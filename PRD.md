@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 ## KingdomVitals - Multi-Tenant Church Management System
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** December 30, 2025
 **Status:** Draft
-**Last Updated:** Multi-Branch/Multi-Campus Management feature added
+**Last Updated:** Super Admin & Platform Management system added
 
 ---
 
@@ -24,7 +24,8 @@
    - 8. [Report Module](#8-report-module)
    - 9. [Settings Module](#9-settings-module)
    - 10. [Cluster Follow-up Module](#10-cluster-follow-up-module)
-   - 11. [**Multi-Branch/Multi-Campus Management**](#11-multi-branchmulti-campus-management) *(New)*
+   - 11. [Multi-Branch/Multi-Campus Management](#11-multi-branchmulti-campus-management)
+   - 12. [**Super Admin & Platform Management**](#12-super-admin--platform-management) *(New in v1.2)*
 6. [Technical Requirements](#technical-requirements)
 7. [Security & Compliance](#security--compliance)
 8. [Integration Requirements](#integration-requirements)
@@ -37,9 +38,11 @@
 
 ## Executive Summary
 
-KingdomVitals is a modern, multi-tenant church management system designed to streamline church operations, enhance member engagement, and provide powerful analytics for data-driven decision-making. Built on Laravel 12 with Livewire 3 and Flux UI, the system offers a comprehensive suite of tools for member management, financial operations, communication, and reporting.
+KingdomVitals is a modern, multi-tenant SaaS church management platform designed to streamline church operations, enhance member engagement, and provide powerful analytics for data-driven decision-making. Built on Laravel 12 with Livewire 3 and Flux UI, the system offers a comprehensive suite of tools for member management, financial operations, communication, and reporting.
 
 **New in Version 1.1:** Comprehensive multi-branch/multi-campus management capabilities enabling churches with multiple physical locations to manage all sites within a unified system while maintaining appropriate data isolation and financial autonomy per location.
+
+**New in Version 1.2:** Complete Super Admin & Platform Management system for SaaS operation, including tenant management, per-tenant service configuration, subscription billing, module access control, and comprehensive support tools.
 
 ### Key Objectives
 - Provide an intuitive, accessible platform for churches of all sizes
@@ -48,9 +51,12 @@ KingdomVitals is a modern, multi-tenant church management system designed to str
 - Enhance member engagement and communication
 - Ensure enterprise-grade security and data protection
 - Support multi-tenancy for scalable SaaS deployment
-- **Support multi-branch/multi-campus churches with 2-50+ locations** *(New)*
-- **Provide configurable terminology (branches/campuses/locations/centers)** *(New)*
-- **Enable full branch financial autonomy with separate budgets and P&L** *(New)*
+- **Support multi-branch/multi-campus churches with 2-50+ locations**
+- **Provide configurable terminology (branches/campuses/locations/centers)**
+- **Enable full branch financial autonomy with separate budgets and P&L**
+- **Platform-level administration for SaaS operations** *(New in v1.2)*
+- **Per-tenant service and module configuration** *(New in v1.2)*
+- **Subscription billing and revenue management** *(New in v1.2)*
 
 ---
 
@@ -974,19 +980,24 @@ To empower churches worldwide with modern technology that simplifies administrat
 - Email signature
 - Email notification preferences
 
-**SMS Configuration**
-- TextTango API credentials
-- SMS sender ID
+**SMS Configuration** *(Configured by Super Admin)*
+- View SMS service status (enabled/disabled)
+- SMS sender ID (read-only, set by Super Admin)
 - Default SMS templates
-- SMS notification settings
-- Credit balance threshold alerts
+- SMS notification preferences
+- Credit balance monitoring
+- Usage statistics
 
-**Payment Gateway Configuration**
-- Paystack API keys (test/live)
-- Payment methods enabled
-- Currency settings
-- Transaction fees handling
+**Note:** TextTango API credentials are configured by Super Administrators only. Church admins cannot access or modify API keys.
+
+**Payment Gateway Configuration** *(Configured by Super Admin)*
+- View payment service status (enabled/disabled)
+- Supported payment methods (read-only, set by Super Admin)
 - Receipt customization
+- Donation categories configuration
+- Transaction notification preferences
+
+**Note:** Paystack API keys are configured by Super Administrators only. Church admins cannot access or modify payment gateway credentials.
 
 **Custom Fields Configuration**
 - Add custom fields to member profiles
@@ -1921,6 +1932,1100 @@ tenants
 
 ---
 
+### 12. Super Admin & Platform Management
+
+#### 12.1 Overview
+**Priority:** High
+**User Roles:** Super Administrators (Platform Level)
+
+**Description:**
+The Super Admin system provides platform-level administrative capabilities to manage all church tenants, configure services and modules per organization, handle billing and subscriptions, and provide technical support. Super Admins operate above the tenant level with access to system-wide configurations and tenant management.
+
+**Key Capabilities:**
+- Tenant onboarding and management
+- Per-tenant service configuration (SMS, payments, email, storage)
+- Per-tenant module access control
+- Billing and subscription management
+- System-wide settings and feature flags
+- Tenant impersonation for support
+- Platform analytics and monitoring
+
+**Super Admin vs. Church Admin:**
+- **Super Admin**: Platform operator, manages all tenants, configures services, handles billing
+- **Church Admin**: Organization administrator, manages their church only, uses services configured by Super Admin
+
+---
+
+#### 12.2 Super Admin Authentication & Access
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Super Admin Accounts**
+- Separate authentication system from tenant users
+- Independent super admin user table
+- Email/password login
+- Mandatory two-factor authentication (2FA)
+- Recovery codes for 2FA
+- Session timeout (15 minutes of inactivity)
+- IP whitelisting (optional)
+- Login attempt monitoring and lockout
+
+**Access Control**
+- Super Admin role cannot be created by church admins
+- Only existing Super Admins can create new Super Admins
+- Role-based permissions within Super Admin (Owner, Admin, Support)
+- Granular permissions for sensitive operations
+- Audit trail for all Super Admin actions
+
+**Security Requirements**
+- Strong password policy (min 12 characters, complexity requirements)
+- Password rotation every 90 days
+- 2FA required for all Super Admin accounts
+- TOTP-based authentication (Google Authenticator, Authy)
+- Backup codes for account recovery
+- Email notifications for login from new devices
+- Failed login alerts
+
+**Activity Logging**
+- All Super Admin actions logged
+- Tenant impersonation logged with reason
+- Configuration changes tracked
+- Service credential access logged
+- Log retention: 7 years
+- Tamper-proof audit trail
+
+**Acceptance Criteria:**
+- 2FA cannot be bypassed
+- Super Admin login page separate from tenant login
+- Session auto-logout after 15 minutes inactivity
+- All security events logged
+- Account lockout after 3 failed attempts
+
+---
+
+#### 12.3 Super Admin Dashboard
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Access URL:** `admin.kingdomvitals.com` (separate subdomain)
+
+**Features:**
+
+**Dashboard Overview**
+- **Tenant Statistics**
+  - Total tenants (all time)
+  - Active tenants
+  - Trial tenants
+  - Suspended/inactive tenants
+  - New tenants this month
+  - Churn rate
+
+- **Revenue Metrics**
+  - Monthly Recurring Revenue (MRR)
+  - Annual Recurring Revenue (ARR)
+  - Revenue by plan
+  - Revenue growth trend
+  - Failed payments
+  - Upcoming renewals
+
+- **System Health**
+  - Server uptime
+  - Database status
+  - Queue status
+  - API response times
+  - Error rate (last 24 hours)
+  - Service status (SMS, Payments, Email, Storage)
+
+- **Recent Activity**
+  - New tenant signups
+  - Subscription changes
+  - Support tickets
+  - Failed payments
+  - System errors
+
+**Quick Actions**
+- Create new tenant
+- View support tickets
+- Access system logs
+- Send system announcement
+- Enable maintenance mode
+- View billing reports
+
+**System Monitoring Widgets**
+- Real-time error tracking
+- API usage statistics
+- SMS credit consumption across tenants
+- Payment processing volume
+- Storage usage by tenant
+- Database size and growth
+
+**Acceptance Criteria:**
+- Dashboard loads in under 3 seconds
+- Real-time data updates
+- Mobile-responsive design
+- Export capabilities for all metrics
+- Alert notifications for critical issues
+
+---
+
+#### 12.4 Tenant Management
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Tenant List**
+- Searchable tenant directory
+- Filter by status (active, trial, suspended, inactive)
+- Filter by subscription plan
+- Filter by billing status
+- Sort by created date, MRR, member count
+- Bulk operations support
+
+**Tenant Creation**
+- Create new church organization
+- Set organization details (name, address, contact)
+- Choose subscription plan
+- Set trial period (if applicable)
+- Configure initial branch ("Main Campus")
+- Send welcome email
+- Auto-generate tenant database
+- Set default language and timezone
+
+**Tenant Profile Management**
+- View tenant details
+- Edit tenant information
+- View tenant statistics:
+  - Total members
+  - Total branches
+  - Monthly giving
+  - Active users
+  - Storage used
+  - SMS credits used
+- Tenant status management
+- Tenant notes (internal, not visible to tenant)
+
+**Tenant Status Control**
+- **Active**: Full access to system
+- **Trial**: Limited time access with full features
+- **Suspended**: Login blocked, data retained (non-payment, policy violation)
+- **Inactive**: Voluntarily deactivated, can reactivate
+- **Deleted**: Scheduled for permanent deletion (30-day grace period)
+
+**Tenant Operations**
+- Activate tenant
+- Suspend tenant (with reason)
+- Reactivate suspended tenant
+- Delete tenant (with confirmation and backup)
+- Export tenant data
+- Migrate tenant data
+- Reset tenant password (church admin)
+- Force password change on next login
+
+**Tenant Impersonation** (Support Feature)
+- Login as tenant church admin
+- Requires reason documentation
+- Time-limited session (60 minutes)
+- Tenant receives notification of impersonation
+- All actions logged
+- Cannot modify billing/subscription during impersonation
+- Clear visual indicator when impersonating
+
+**Acceptance Criteria:**
+- Tenant creation completes in under 2 minutes
+- Impersonation logged with reason and duration
+- Tenant receives email notification of impersonation
+- Cannot delete tenant with active subscription without confirmation
+- Suspended tenants cannot login
+
+---
+
+#### 12.5 Per-Tenant Service Configuration
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Description:**
+Super Admins configure third-party service integrations (SMS, payments, email, storage) for each tenant individually. Tenants cannot access or modify API credentials.
+
+**Features:**
+
+**Service Configuration Dashboard**
+- List of all tenants with service status
+- Quick view of enabled/disabled services per tenant
+- Service health indicators
+- Configuration status (configured, missing, error)
+- Last tested date for each service
+
+**TextTango SMS Configuration (Per Tenant)**
+- Enable/disable SMS for tenant
+- Configure TextTango API credentials:
+  - API key (encrypted storage)
+  - API secret (encrypted storage)
+  - Sender ID
+  - SMS credit allocation
+- Test SMS sending
+- SMS usage monitoring:
+  - Messages sent this month
+  - Messages remaining (if credit-based)
+  - Cost tracking
+- Set SMS credit limits/alerts
+- Configure webhook URLs for delivery reports
+
+**Paystack Payment Gateway Configuration (Per Tenant)**
+- Enable/disable online giving for tenant
+- Configure Paystack credentials:
+  - Public key (encrypted)
+  - Secret key (encrypted)
+  - Test mode toggle
+- Supported payment methods
+- Currency settings
+- Transaction fee handling (absorbed or passed to donor)
+- Test payment processing
+- Payment volume tracking
+- Failed payment monitoring
+
+**Email Service Configuration (Per Tenant)**
+- Email provider selection (SMTP, SendGrid, Mailgun, SES)
+- SMTP settings:
+  - Host, port, encryption
+  - Username, password (encrypted)
+- Sending limits
+- From name and email address
+- Test email sending
+- Email deliverability tracking:
+  - Sent, delivered, bounced, complained
+- Blacklist monitoring
+
+**Cloud Storage Configuration (Per Tenant)**
+- Storage provider (AWS S3, DigitalOcean Spaces, Google Cloud)
+- Configure credentials (encrypted)
+- Bucket/container name
+- Region selection
+- Storage quota (per plan)
+- CDN configuration
+- Storage usage monitoring
+- Automatic cleanup policies
+
+**Service Testing**
+- Test connection button for each service
+- Send test SMS
+- Process test payment ($1 authorization)
+- Send test email
+- Upload test file to storage
+- View test results and error messages
+- Service health check scheduling
+
+**Credential Management**
+- All credentials encrypted at rest (AES-256)
+- Credentials never displayed in full (masked)
+- Credential rotation support
+- Audit log for credential access
+- Secure credential deletion
+
+**Service Usage Analytics**
+- SMS usage per tenant (charts, trends)
+- Payment processing volume
+- Email sending statistics
+- Storage consumption trends
+- Cost analysis per tenant
+- Alerts for unusual usage patterns
+
+**Acceptance Criteria:**
+- All credentials encrypted in database
+- Credentials never visible to church admins
+- Test connection provides clear success/failure messages
+- Service configuration changes logged
+- Cannot save invalid credentials
+- Service can be disabled without deleting credentials
+
+---
+
+#### 12.6 Per-Tenant Module Access Control
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Module Control Dashboard**
+- List of all modules in system
+- Enable/disable modules per tenant
+- Module availability by subscription plan
+- Module usage tracking
+
+**Available Modules to Control:**
+1. **Members Module** - Always enabled (core feature)
+2. **Visitors Module** - Can be disabled
+3. **Attendance Module** - Can be disabled
+4. **Finance Module** - Can be disabled (based on plan)
+5. **Bulk SMS Module** - Requires SMS service configuration
+6. **Equipment Module** - Can be disabled
+7. **Report Module** - Always enabled (core feature)
+8. **Cluster Follow-up Module** - Can be disabled
+9. **Multi-Branch Module** - Available on Pro/Enterprise plans only
+10. **Online Giving** - Requires payment gateway configuration
+
+**Module Configuration Per Tenant**
+- View modules available to tenant based on plan
+- Enable/disable individual modules
+- Override plan defaults (grant access to premium modules)
+- Set module quotas/limits (if applicable)
+- Module activation date tracking
+- Module usage statistics
+
+**Plan-Based Module Access**
+- **Free Plan**: Members, Visitors, Attendance, Reports (basic)
+- **Basic Plan**: + Finance, Equipment, Cluster, SMS (limited)
+- **Pro Plan**: + Multi-Branch (up to 5), Online Giving, Advanced Reports
+- **Enterprise Plan**: All modules, unlimited branches, priority support
+
+**Module Toggle Actions**
+- Enable module for tenant
+- Disable module (with data retention)
+- Schedule module activation/deactivation
+- Notify tenant of module changes
+- Provide reason for module disable (if applicable)
+
+**Module Usage Tracking**
+- Last used date
+- Active users per module
+- Feature adoption rate
+- Module-specific metrics
+
+**Acceptance Criteria:**
+- Disabled modules hidden from tenant UI
+- Attempting to access disabled module shows upgrade prompt
+- Module data retained when disabled (not deleted)
+- Module changes logged in audit trail
+- Tenant receives notification of module changes
+
+---
+
+#### 12.7 Billing & Subscription Management
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Subscription Plans**
+- Create and manage pricing plans
+- Plan details:
+  - Plan name (Free, Basic, Pro, Enterprise)
+  - Monthly price
+  - Annual price (with discount)
+  - Member limit
+  - Branch limit
+  - Included modules
+  - Storage quota
+  - SMS credit allocation
+  - Support level
+  - Custom features (JSON)
+
+**Plan Management**
+- Create new plan
+- Edit existing plan
+- Archive plan (hide from new signups, existing keep it)
+- Set plan as default for new tenants
+- Plan comparison matrix
+- Grandfathered plan support
+
+**Tenant Subscriptions**
+- View tenant's current plan
+- Subscription status:
+  - Trial (with end date)
+  - Active
+  - Past due (payment failed)
+  - Canceled
+  - Suspended
+- Next billing date
+- Billing cycle (monthly, annual)
+- Subscription start date
+- Auto-renewal status
+
+**Subscription Operations**
+- Upgrade tenant to higher plan
+- Downgrade tenant to lower plan (with confirmation)
+- Change billing cycle (monthly ↔ annual)
+- Apply discount/coupon
+- Extend trial period
+- Cancel subscription (with grace period)
+- Reactivate canceled subscription
+- Manual subscription renewal
+
+**Billing & Invoicing**
+- Generate invoices automatically
+- Invoice details:
+  - Invoice number
+  - Billing period
+  - Line items (plan, add-ons, credits)
+  - Subtotal, tax, total
+  - Payment status
+  - Due date
+- Send invoice via email
+- Invoice payment tracking
+- Receipt generation
+- Tax calculation (if applicable)
+- Multi-currency support
+
+**Payment Processing**
+- Process payment manually (offline payment)
+- Record payment received
+- Refund processing
+- Failed payment handling
+- Payment retry logic
+- Payment method on file
+
+**Billing Analytics**
+- Revenue dashboard
+- MRR (Monthly Recurring Revenue)
+- ARR (Annual Recurring Revenue)
+- Churn rate
+- Customer lifetime value (LTV)
+- Average revenue per user (ARPU)
+- Revenue by plan
+- Failed payment rate
+- Refund rate
+
+**Dunning Management** (Failed Payments)
+- Automatic retry schedule (day 3, 7, 14)
+- Email reminders to tenant
+- Grace period before suspension
+- Suspend tenant after multiple failures
+- Reactivation upon payment
+
+**Acceptance Criteria:**
+- Accurate billing calculations
+- Invoices generated automatically on billing date
+- Failed payments trigger retry workflow
+- Tenants can view their billing history
+- Subscription changes prorated correctly
+- All financial transactions logged
+
+---
+
+#### 12.8 System-Wide Settings & Feature Flags
+**Priority:** Medium
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Global System Settings**
+- System name and branding
+- Default language
+- Default currency
+- Default timezone
+- System email (noreply@kingdomvitals.com)
+- Support email
+- Privacy policy URL
+- Terms of service URL
+
+**Feature Flags**
+- Enable/disable features globally
+- Beta feature access
+- Feature flags per tenant (override global)
+- A/B testing support
+- Gradual rollout (percentage of tenants)
+- Feature deprecation warnings
+
+**Maintenance Mode**
+- Enable maintenance mode (blocks all tenant access)
+- Set maintenance message
+- Allow Super Admin access during maintenance
+- Schedule maintenance windows
+- Notify tenants before maintenance
+- Automatic enable/disable based on schedule
+
+**System Announcements**
+- Create system-wide announcements
+- Announcement types (info, warning, critical)
+- Display location (login page, dashboard banner)
+- Target audience (all tenants, specific plans)
+- Schedule announcement (start/end date)
+- Dismissible or persistent
+- Announcement priority
+
+**API Rate Limiting**
+- Configure rate limits per tenant
+- Rate limit by subscription plan
+- Override rate limits for specific tenants
+- Monitor API usage
+- Throttle or block abusive usage
+
+**Security Policies**
+- Password complexity requirements
+- Session timeout settings
+- 2FA enforcement policies
+- IP whitelisting for Super Admin
+- Failed login attempt limits
+- Account lockout duration
+
+**Default Configurations**
+- Default subscription plan for new tenants
+- Default trial period (days)
+- Default branch terminology ("Campus", "Branch", etc.)
+- Default modules enabled
+- Default language and localization
+
+**Acceptance Criteria:**
+- Maintenance mode blocks all tenant access
+- Feature flags take effect immediately
+- System announcements visible to targeted tenants
+- Rate limits enforced per configuration
+- Settings changes logged in audit trail
+
+---
+
+#### 12.9 Support & Troubleshooting
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Tenant Impersonation**
+- Login as any tenant's church admin
+- Impersonation requires:
+  - Reason/ticket number
+  - Time limit (default: 60 minutes)
+  - Confirmation dialog
+- Tenant notification:
+  - Email sent to tenant admin
+  - In-app notification
+  - Impersonation banner visible during session
+- Impersonation session controls:
+  - Extend session (with new reason)
+  - End session early
+  - Cannot modify billing during impersonation
+  - Cannot delete data during impersonation
+- Complete audit log:
+  - Who impersonated
+  - Which tenant
+  - Reason
+  - Start/end time
+  - Actions performed
+
+**Activity Logs**
+- View tenant activity logs
+- Filter by user, action, date
+- Search logs
+- Export logs (CSV, JSON)
+- Real-time log streaming
+- Error log highlighting
+
+**Error Tracking**
+- View all system errors
+- Filter by tenant
+- Error severity levels
+- Stack traces
+- Error frequency
+- Resolved/unresolved status
+- Link errors to support tickets
+
+**Performance Monitoring**
+- Per-tenant performance metrics
+- Slow query detection
+- API response times
+- Page load times
+- Database query analysis
+- Queue job monitoring
+
+**Tenant Data Access**
+- View tenant statistics
+- Browse tenant data (read-only during support)
+- Export tenant data (for migration/backup)
+- Data integrity checks
+- Database query execution (read-only)
+
+**System Diagnostics**
+- Server health checks
+- Database connection testing
+- Queue worker status
+- External service health (SMS, Payment, Email)
+- Disk space monitoring
+- Memory usage
+
+**Support Ticket Integration**
+- View support tickets
+- Assign tickets
+- Ticket priority management
+- Internal notes
+- Ticket history
+- Escalation workflows
+
+**Acceptance Criteria:**
+- Impersonation always logged with reason
+- Tenant receives notification within 1 minute
+- Cannot impersonate without providing reason
+- Impersonation session auto-expires after time limit
+- Error logs retained for 30 days minimum
+- Performance metrics updated in real-time
+
+---
+
+#### 12.10 Tenant Onboarding Workflow
+**Priority:** High
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Automated Onboarding**
+1. **Create Tenant Account**
+   - Church name
+   - Primary contact (name, email, phone)
+   - Church address
+   - Timezone and language selection
+   - Choose subscription plan
+   - Set trial period (if applicable)
+
+2. **Database Provisioning**
+   - Create tenant-specific database
+   - Run migrations
+   - Seed default data
+   - Create "Main Campus" branch
+   - Set default settings
+
+3. **Service Configuration**
+   - Assign SMS service configuration (optional)
+   - Assign payment gateway configuration (optional)
+   - Assign email service configuration
+   - Assign cloud storage
+
+4. **Module Activation**
+   - Enable modules based on subscription plan
+   - Configure module settings
+   - Set quotas and limits
+
+5. **Admin Account Creation**
+   - Generate church admin account
+   - Set temporary password
+   - Send welcome email with login instructions
+   - Force password change on first login
+
+6. **Welcome Materials**
+   - Send getting started guide
+   - Schedule onboarding call (for Pro/Enterprise)
+   - Provide training resources
+   - Assign account manager (for Enterprise)
+
+**Onboarding Checklist Tracking**
+- Track onboarding progress
+- Identify incomplete setups
+- Automated reminders for incomplete steps
+- Onboarding completion report
+
+**Bulk Tenant Creation**
+- CSV import for multiple tenants
+- Batch processing
+- Error handling and reporting
+- Validation before creation
+
+**Acceptance Criteria:**
+- Tenant creation completes in under 3 minutes
+- All services configured during onboarding
+- Church admin receives welcome email immediately
+- Default data seeded correctly
+- Onboarding progress tracked
+
+---
+
+#### 12.11 Platform Analytics & Reporting
+**Priority:** Medium
+**User Roles:** Super Administrators
+
+**Features:**
+
+**Tenant Analytics**
+- Total tenants over time (growth chart)
+- Tenants by subscription plan
+- Tenants by status
+- Geographic distribution
+- Average tenant size (members)
+- Tenant retention rate
+- Churn analysis
+
+**Revenue Analytics**
+- MRR trend
+- ARR trend
+- Revenue by plan
+- Revenue by tenant
+- Top 10 revenue-generating tenants
+- Forecasted revenue
+- Conversion rate (trial → paid)
+
+**Usage Analytics**
+- SMS usage across all tenants
+- Payment processing volume
+- Storage consumption
+- API calls per tenant
+- Feature adoption rates
+- Most used modules
+
+**Support Analytics**
+- Support tickets by status
+- Average resolution time
+- Tickets by tenant
+- Common issues
+- Support load over time
+
+**System Performance Analytics**
+- Average response time
+- Error rate trends
+- Uptime percentage
+- Slow queries report
+- Resource utilization
+
+**Custom Reports**
+- Report builder
+- Saved report templates
+- Scheduled reports (email delivery)
+- Export to PDF, Excel, CSV
+- Data visualization
+
+**Acceptance Criteria:**
+- All analytics updated daily
+- Custom reports generate in under 30 seconds
+- Data accurate and verified
+- Export functionality works correctly
+- Visualizations mobile-responsive
+
+---
+
+#### 12.12 Super Admin Technical Specifications
+
+**Database Schema Additions:**
+
+```sql
+-- Super Admin users
+super_admins
+  - id (primary key)
+  - name (varchar 100)
+  - email (varchar 255, unique)
+  - password (hashed)
+  - two_factor_secret (encrypted, nullable)
+  - two_factor_enabled (boolean, default false)
+  - role (enum: owner, admin, support)
+  - is_active (boolean, default true)
+  - last_login_at (timestamp, nullable)
+  - last_login_ip (varchar 45, nullable)
+  - failed_login_attempts (integer, default 0)
+  - locked_until (timestamp, nullable)
+  - created_at, updated_at
+
+-- Subscription plans
+subscription_plans
+  - id (primary key)
+  - name (varchar 100)
+  - slug (varchar 100, unique)
+  - description (text)
+  - price_monthly (decimal 10,2)
+  - price_annual (decimal 10,2)
+  - max_members (integer, nullable = unlimited)
+  - max_branches (integer, nullable = unlimited)
+  - storage_quota_gb (integer)
+  - sms_credits_monthly (integer, nullable)
+  - enabled_modules (JSON array)
+  - features (JSON)
+  - support_level (enum: community, email, priority)
+  - is_active (boolean, default true)
+  - is_default (boolean, default false)
+  - display_order (integer)
+  - created_at, updated_at
+
+-- Tenant subscriptions
+tenant_subscriptions
+  - id (primary key)
+  - tenant_id (foreign key to tenants)
+  - plan_id (foreign key to subscription_plans)
+  - status (enum: trial, active, past_due, canceled, suspended)
+  - trial_ends_at (timestamp, nullable)
+  - current_period_start (date)
+  - current_period_end (date)
+  - billing_cycle (enum: monthly, annual)
+  - auto_renew (boolean, default true)
+  - canceled_at (timestamp, nullable)
+  - cancellation_reason (text, nullable)
+  - created_at, updated_at
+
+-- Tenant service configurations (encrypted credentials)
+tenant_service_configs
+  - id (primary key)
+  - tenant_id (foreign key to tenants)
+  - service_name (enum: texttango, paystack, email_smtp, email_sendgrid, storage_s3, storage_do)
+  - is_enabled (boolean, default false)
+  - credentials (JSON, encrypted)
+  - settings (JSON)
+  - last_tested_at (timestamp, nullable)
+  - last_test_status (enum: success, failed, not_tested)
+  - last_test_message (text, nullable)
+  - created_at, updated_at
+  - UNIQUE (tenant_id, service_name)
+
+-- Tenant module access
+tenant_module_access
+  - id (primary key)
+  - tenant_id (foreign key to tenants)
+  - module_name (varchar 50: members, visitors, attendance, finance, sms, equipment, reports, cluster, multi_branch, online_giving)
+  - is_enabled (boolean, default true)
+  - enabled_at (timestamp)
+  - disabled_at (timestamp, nullable)
+  - disabled_reason (text, nullable)
+  - created_at, updated_at
+  - UNIQUE (tenant_id, module_name)
+
+-- Billing invoices
+billing_invoices
+  - id (primary key)
+  - tenant_id (foreign key to tenants)
+  - subscription_id (foreign key to tenant_subscriptions)
+  - invoice_number (varchar 50, unique)
+  - billing_period_start (date)
+  - billing_period_end (date)
+  - subtotal (decimal 10,2)
+  - tax_rate (decimal 5,2)
+  - tax_amount (decimal 10,2)
+  - total (decimal 10,2)
+  - currency (varchar 3, default 'NGN')
+  - status (enum: draft, sent, paid, overdue, void)
+  - due_date (date)
+  - paid_at (timestamp, nullable)
+  - payment_method (varchar 50, nullable)
+  - line_items (JSON)
+  - notes (text, nullable)
+  - created_at, updated_at
+
+-- Super Admin activity logs
+super_admin_activity_logs
+  - id (primary key)
+  - super_admin_id (foreign key to super_admins)
+  - tenant_id (foreign key to tenants, nullable)
+  - action (varchar 100)
+  - description (text)
+  - metadata (JSON)
+  - ip_address (varchar 45)
+  - user_agent (text)
+  - created_at
+
+-- Tenant impersonation logs
+tenant_impersonation_logs
+  - id (primary key)
+  - super_admin_id (foreign key to super_admins)
+  - tenant_id (foreign key to tenants)
+  - reason (text)
+  - started_at (timestamp)
+  - ended_at (timestamp, nullable)
+  - duration_minutes (integer, nullable)
+  - actions_performed (integer, default 0)
+  - ip_address (varchar 45)
+
+-- System feature flags
+system_feature_flags
+  - id (primary key)
+  - flag_name (varchar 100, unique)
+  - description (text)
+  - is_enabled_globally (boolean, default false)
+  - rollout_percentage (integer, default 0)
+  - enabled_for_plans (JSON array, nullable)
+  - created_at, updated_at
+
+-- Tenant feature overrides
+tenant_feature_overrides
+  - id (primary key)
+  - tenant_id (foreign key to tenants)
+  - flag_name (varchar 100)
+  - is_enabled (boolean)
+  - created_at, updated_at
+  - UNIQUE (tenant_id, flag_name)
+
+-- Modified tenants table
+ALTER TABLE tenants ADD COLUMN subscription_id (foreign key to tenant_subscriptions, nullable);
+ALTER TABLE tenants ADD COLUMN status (enum: active, trial, suspended, inactive, deleted, default 'active');
+ALTER TABLE tenants ADD COLUMN trial_ends_at (timestamp, nullable);
+ALTER TABLE tenants ADD COLUMN suspended_at (timestamp, nullable);
+ALTER TABLE tenants ADD COLUMN suspension_reason (text, nullable);
+ALTER TABLE tenants ADD COLUMN deleted_at (timestamp, nullable);
+```
+
+**API Endpoints:**
+
+```
+Super Admin Authentication:
+POST   /admin/login
+POST   /admin/logout
+POST   /admin/2fa/verify
+GET    /admin/2fa/qr-code
+POST   /admin/2fa/enable
+
+Tenant Management:
+GET    /admin/tenants
+POST   /admin/tenants
+GET    /admin/tenants/{id}
+PUT    /admin/tenants/{id}
+DELETE /admin/tenants/{id}
+POST   /admin/tenants/{id}/suspend
+POST   /admin/tenants/{id}/reactivate
+POST   /admin/tenants/{id}/impersonate
+POST   /admin/tenants/{id}/export
+
+Service Configuration:
+GET    /admin/tenants/{id}/services
+POST   /admin/tenants/{id}/services/{service}
+PUT    /admin/tenants/{id}/services/{service}
+DELETE /admin/tenants/{id}/services/{service}
+POST   /admin/tenants/{id}/services/{service}/test
+
+Module Access:
+GET    /admin/tenants/{id}/modules
+POST   /admin/tenants/{id}/modules/{module}/enable
+POST   /admin/tenants/{id}/modules/{module}/disable
+
+Subscription Management:
+GET    /admin/subscriptions
+GET    /admin/tenants/{id}/subscription
+PUT    /admin/tenants/{id}/subscription
+POST   /admin/tenants/{id}/subscription/upgrade
+POST   /admin/tenants/{id}/subscription/downgrade
+POST   /admin/tenants/{id}/subscription/cancel
+
+Billing:
+GET    /admin/invoices
+GET    /admin/invoices/{id}
+POST   /admin/invoices/{id}/send
+POST   /admin/invoices/{id}/record-payment
+GET    /admin/tenants/{id}/invoices
+
+Analytics:
+GET    /admin/analytics/tenants
+GET    /admin/analytics/revenue
+GET    /admin/analytics/usage
+GET    /admin/analytics/support
+
+System Settings:
+GET    /admin/settings
+PUT    /admin/settings
+GET    /admin/feature-flags
+PUT    /admin/feature-flags/{flag}
+POST   /admin/maintenance-mode
+```
+
+**Acceptance Criteria:**
+- All Super Admin actions logged
+- API endpoints secured with Super Admin authentication
+- 2FA required for sensitive operations
+- Credentials encrypted with AES-256
+- Impersonation logged with full audit trail
+- All database migrations run successfully
+
+---
+
+#### 12.13 Super Admin UI/UX Specifications
+
+**Super Admin Panel Location:**
+- Separate subdomain: `admin.kingdomvitals.com`
+- Distinct branding from tenant application
+- Dark theme (differentiate from tenant UI)
+- Responsive design (desktop-first)
+
+**Navigation Structure:**
+```
+Dashboard
+├── Overview
+├── Metrics
+└── Alerts
+
+Tenants
+├── All Tenants
+├── Active
+├── Trial
+├── Suspended
+└── Create New
+
+Services
+├── SMS Configuration
+├── Payment Gateway
+├── Email Services
+└── Cloud Storage
+
+Modules
+├── Module Access
+└── Feature Flags
+
+Billing
+├── Subscriptions
+├── Invoices
+├── Revenue Reports
+└── Failed Payments
+
+Support
+├── Impersonation
+├── Activity Logs
+├── Error Tracking
+└── Tickets
+
+Settings
+├── System Settings
+├── Feature Flags
+├── Subscription Plans
+└── Super Admins
+```
+
+**Key UI Components:**
+- Tenant selector (search and select)
+- Service status indicators (green/red/yellow)
+- Quick action buttons
+- Data tables with sorting and filtering
+- Charts and visualizations
+- Real-time notifications
+- Breadcrumb navigation
+- Quick search (global)
+
+**Acceptance Criteria:**
+- Separate login from tenant system
+- Clear visual distinction from tenant UI
+- All pages mobile-responsive
+- Load times under 2 seconds
+- Keyboard shortcuts for common actions
+
+---
+
+#### 12.14 Super Admin Feature Acceptance Criteria Summary
+
+**Functional Requirements:**
+- ✅ Super Admins can create and manage tenant organizations
+- ✅ Super Admins can configure services (SMS, Payment, Email, Storage) per tenant
+- ✅ Super Admins can enable/disable modules per tenant based on subscription
+- ✅ Super Admins can manage subscription plans and billing
+- ✅ Super Admins can impersonate tenants for support with full audit trail
+- ✅ Super Admins can set system-wide settings and feature flags
+- ✅ Super Admins can access platform analytics and reports
+- ✅ Tenants cannot access or modify service API credentials
+- ✅ All Super Admin actions are logged
+
+**Security Requirements:**
+- ✅ 2FA mandatory for all Super Admin accounts
+- ✅ All service credentials encrypted at rest (AES-256)
+- ✅ Tenant impersonation logged with reason and notification
+- ✅ Super Admin session timeout after 15 minutes
+- ✅ Activity logs tamper-proof and retained for 7 years
+- ✅ Separate authentication system from tenant users
+
+**Technical Requirements:**
+- ✅ Super Admin panel at admin.kingdomvitals.com
+- ✅ All database schema additions implemented
+- ✅ API endpoints secured with Super Admin auth
+- ✅ Billing calculations accurate and automated
+- ✅ Service configuration changes take effect immediately
+- ✅ Platform supports 1,000+ tenants
+
+**User Experience:**
+- ✅ Super Admin dashboard loads in < 3 seconds
+- ✅ Clear visual distinction from tenant UI
+- ✅ Tenant creation wizard completes in < 3 minutes
+- ✅ Service testing provides instant feedback
+- ✅ Impersonation banner clearly visible
+- ✅ Real-time notifications for critical events
+
+---
+
 ## Technical Requirements
 
 ### 6.1 Performance Requirements
@@ -1986,11 +3091,10 @@ tenants
 - Tenant-specific tables: Members, donations, attendance, etc.
 
 **Key Tables:**
-- `tenants` - Church organizations
+
+**Core Tenant Tables:**
+- `tenants` - Church organizations (with subscription_id, status, trial_ends_at)
 - `users` - System users with roles
-- **`branches`** - Church branches/campuses/locations *(Multi-Branch)*
-- **`services`** - Service schedules per branch *(Multi-Branch)*
-- **`user_branch_access`** - Multi-branch user permissions *(Multi-Branch)*
 - `members` - Church members (with primary_branch_id)
 - `visitors` - Guest visitors (with branch_id)
 - `attendance` - Attendance records (with branch_id and service_id)
@@ -2003,6 +3107,23 @@ tenants
 - `prayer_requests` - Prayer requests
 - `sms_logs` - SMS delivery logs
 - `activity_logs` - Audit trail
+
+**Multi-Branch Tables:**
+- **`branches`** - Church branches/campuses/locations
+- **`services`** - Service schedules per branch
+- **`user_branch_access`** - Multi-branch user permissions
+
+**Super Admin & Platform Tables:** *(New in v1.2)*
+- **`super_admins`** - Platform administrators
+- **`subscription_plans`** - Pricing and feature plans
+- **`tenant_subscriptions`** - Tenant subscription records
+- **`tenant_service_configs`** - Per-tenant service credentials (encrypted)
+- **`tenant_module_access`** - Module enablement per tenant
+- **`billing_invoices`** - Subscription invoices
+- **`super_admin_activity_logs`** - Super Admin audit trail
+- **`tenant_impersonation_logs`** - Support impersonation tracking
+- **`system_feature_flags`** - Global feature flags
+- **`tenant_feature_overrides`** - Tenant-specific feature toggles
 
 **Database Optimization:**
 - Indexed foreign keys
@@ -2487,6 +3608,9 @@ tenants
 - [x] Laravel 12 application setup
 - [x] User authentication (Fortify)
 - [x] Role-based access control
+- [ ] **Super Admin authentication system** *(New in v1.2)*
+- [ ] **Subscription plans database schema** *(New in v1.2)*
+- [ ] **Tenant service configuration system** *(New in v1.2)*
 - [ ] Member CRUD operations
 - [ ] Basic dashboard
 - [ ] Responsive layout (Flux UI)
@@ -2497,6 +3621,8 @@ tenants
 - Code coverage > 80%
 - Security audit passed
 - Performance benchmarks met
+- **Super Admin 2FA working** *(New in v1.2)*
+- **Credential encryption implemented** *(New in v1.2)*
 
 ### 11.2 Phase 2: Core Features (Months 4-6)
 
@@ -2562,6 +3688,7 @@ tenants
 **Objectives:**
 - Refine user experience
 - Complete all integrations
+- **Finalize Super Admin platform** *(New in v1.2)*
 - Conduct thorough testing
 - Prepare for production launch
 
@@ -2569,10 +3696,16 @@ tenants
 - [ ] UI/UX refinements
 - [ ] Email service integration
 - [ ] Cloud storage integration
-- [ ] Two-factor authentication
+- [ ] Two-factor authentication (tenants)
 - [ ] Comprehensive audit logging
+- [ ] **Super Admin dashboard (admin.kingdomvitals.com)** *(New in v1.2)*
+- [ ] **Tenant billing and invoicing system** *(New in v1.2)*
+- [ ] **Module access control implementation** *(New in v1.2)*
+- [ ] **Tenant impersonation feature** *(New in v1.2)*
+- [ ] **Platform analytics dashboard** *(New in v1.2)*
 - [ ] Admin training materials
 - [ ] User documentation
+- [ ] **Super Admin documentation** *(New in v1.2)*
 - [ ] Marketing website
 
 **Acceptance Criteria:**
@@ -2580,6 +3713,9 @@ tenants
 - Security penetration testing
 - Compliance verification (GDPR, PCI-DSS)
 - Production launch readiness
+- **Super Admin can onboard tenant in < 3 minutes** *(New in v1.2)*
+- **Billing calculations accurate** *(New in v1.2)*
+- **All service credentials encrypted** *(New in v1.2)*
 
 ### 11.5 Post-Launch (Ongoing)
 
@@ -2622,7 +3758,21 @@ tenants
 - **Consolidated View:** Dashboard or report showing data across all branches
 - **Branch Context:** The currently selected branch filter applied to the user's view
 - **Multi-Branch User:** A staff member with access to multiple campuses
-- **Organization Admin:** A user with full access to all branches and settings
+- **Organization Admin:** A user with full access to all branches and settings within their church
+
+**Super Admin & Platform Terms:** *(New in v1.2)*
+- **Super Admin:** Platform-level administrator who manages all tenants, services, and billing
+- **Subscription Plan:** Pricing tier with specific features, limits, and support level (Free, Basic, Pro, Enterprise)
+- **Tenant Subscription:** A church's active subscription to a specific plan
+- **Module Access:** Per-tenant enablement of system features (Finance, Equipment, Multi-Branch, etc.)
+- **Service Configuration:** Per-tenant setup of third-party integrations (SMS, Payment, Email, Storage)
+- **Tenant Impersonation:** Super Admin temporarily logging in as a church admin for support purposes
+- **MRR:** Monthly Recurring Revenue from all active subscriptions
+- **ARR:** Annual Recurring Revenue projected from subscriptions
+- **Dunning:** Automated process for handling failed subscription payments
+- **Feature Flag:** System-wide or per-tenant toggle for enabling/disabling specific features
+- **Trial Period:** Limited-time access to full features before requiring payment
+- **Tenant Status:** Current state of a church organization (Active, Trial, Suspended, Inactive, Deleted)
 
 ### B. Technical Dependencies
 
@@ -2705,6 +3855,7 @@ tenants
 |---------|------|--------|---------|
 | 1.0 | 2025-12-30 | System Architect | Initial PRD creation |
 | 1.1 | 2025-12-30 | System Architect | Added comprehensive multi-branch/multi-campus management feature (Section 11). Updated Dashboard, Members, Database Schema, and Development Roadmap sections to include branch support. |
+| 1.2 | 2025-12-30 | System Architect | Added complete Super Admin & Platform Management system (Section 12). Includes tenant management, per-tenant service configuration, subscription billing, module access control, tenant impersonation, platform analytics, and comprehensive support tools. Updated Settings module to reflect Super Admin-managed services. Updated Database Schema, Development Roadmap, and Glossary with SaaS platform features. |
 
 **Approvals:**
 
