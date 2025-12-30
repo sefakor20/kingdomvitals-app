@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 ## KingdomVitals - Multi-Tenant Church Management System
 
-**Version:** 1.2
+**Version:** 1.4
 **Date:** December 30, 2025
 **Status:** Draft
-**Last Updated:** Super Admin & Platform Management system added
+**Last Updated:** UUID primary keys implementation (migrated all tables from auto-incrementing integers to UUIDs)
 
 ---
 
@@ -1801,8 +1801,8 @@ Hierarchical single-tenant model where each church tenant can manage multiple br
 ```sql
 -- Branches table
 branches
-  - id (primary key)
-  - tenant_id (foreign key)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key)
   - name (varchar 100)
   - slug (varchar 100, unique per tenant)
   - is_main (boolean)
@@ -1810,7 +1810,7 @@ branches
   - phone, email
   - capacity (integer)
   - timezone (varchar 50)
-  - status (enum: active, inactive, planning)
+  - status (varchar 20) -- PHP Enum: BranchStatus (active, inactive, planning)
   - logo_url (varchar 255, nullable)
   - color_primary (varchar 7, nullable)
   - settings (json)
@@ -1818,54 +1818,114 @@ branches
 
 -- Services table (per branch)
 services
-  - id (primary key)
-  - tenant_id (foreign key)
-  - branch_id (foreign key)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key)
+  - branch_id (uuid foreign key)
   - name (varchar 100)
   - day_of_week (tinyint 0-6)
   - time (time)
-  - service_type (enum: sunday, midweek, special, youth)
+  - service_type (varchar 20) -- PHP Enum: ServiceType (sunday, midweek, special, youth)
   - capacity (integer)
   - is_active (boolean)
   - created_at, updated_at
 
 -- User-branch access (junction table)
 user_branch_access
-  - id (primary key)
-  - user_id (foreign key)
-  - branch_id (foreign key)
+  - id (uuid primary key)
+  - user_id (uuid foreign key)
+  - branch_id (uuid foreign key)
   - role (varchar 50, nullable)
   - can_manage (boolean)
   - created_at
 
 -- Modified existing tables (add branch_id foreign key)
 members
-  - primary_branch_id (foreign key to branches)
+  - primary_branch_id (uuid foreign key to branches)
 
 attendance
-  - branch_id (foreign key to branches)
-  - service_id (foreign key to services)
+  - branch_id (uuid foreign key to branches)
+  - service_id (uuid foreign key to services)
 
 visitors
-  - branch_id (foreign key to branches)
+  - branch_id (uuid foreign key to branches)
 
 equipment
-  - branch_id (foreign key to branches)
+  - branch_id (uuid foreign key to branches)
 
 expenses
-  - branch_id (foreign key to branches, nullable for org-wide)
+  - branch_id (uuid foreign key to branches, nullable for org-wide)
 
 donations
-  - branch_id (foreign key to branches, nullable)
+  - branch_id (uuid foreign key to branches, nullable)
 
 clusters
-  - branch_id (foreign key to branches, nullable for cross-branch)
+  - branch_id (uuid foreign key to branches, nullable for cross-branch)
 
 -- Tenant settings addition
 tenants
   - settings (json) includes:
     - branch_type_term (default: "Campus")
     - multi_branch_enabled (boolean)
+```
+
+**PHP Enum Specifications:**
+
+```php
+// app/Enums/BranchStatus.php
+enum BranchStatus: string
+{
+    case Active = 'active';
+    case Inactive = 'inactive';
+    case Planning = 'planning';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active',
+            self::Inactive => 'Inactive',
+            self::Planning => 'Planning',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Active => 'green',
+            self::Inactive => 'gray',
+            self::Planning => 'blue',
+        };
+    }
+}
+
+// app/Enums/ServiceType.php
+enum ServiceType: string
+{
+    case Sunday = 'sunday';
+    case Midweek = 'midweek';
+    case Special = 'special';
+    case Youth = 'youth';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Sunday => 'Sunday Service',
+            self::Midweek => 'Midweek Service',
+            self::Special => 'Special Event',
+            self::Youth => 'Youth Service',
+        };
+    }
+}
+
+// Model casting example
+// app/Models/Branch.php
+protected $casts = [
+    'status' => BranchStatus::class,
+];
+
+// app/Models/Service.php
+protected $casts = [
+    'service_type' => ServiceType::class,
+];
 ```
 
 **Performance Optimization:**
@@ -2697,13 +2757,13 @@ Super Admins configure third-party service integrations (SMS, payments, email, s
 ```sql
 -- Super Admin users
 super_admins
-  - id (primary key)
+  - id (uuid primary key)
   - name (varchar 100)
   - email (varchar 255, unique)
   - password (hashed)
   - two_factor_secret (encrypted, nullable)
   - two_factor_enabled (boolean, default false)
-  - role (enum: owner, admin, support)
+  - role (varchar 20) -- PHP Enum: SuperAdminRole (owner, admin, support)
   - is_active (boolean, default true)
   - last_login_at (timestamp, nullable)
   - last_login_ip (varchar 45, nullable)
@@ -2713,7 +2773,7 @@ super_admins
 
 -- Subscription plans
 subscription_plans
-  - id (primary key)
+  - id (uuid primary key)
   - name (varchar 100)
   - slug (varchar 100, unique)
   - description (text)
@@ -2725,7 +2785,7 @@ subscription_plans
   - sms_credits_monthly (integer, nullable)
   - enabled_modules (JSON array)
   - features (JSON)
-  - support_level (enum: community, email, priority)
+  - support_level (varchar 20) -- PHP Enum: SupportLevel (community, email, priority)
   - is_active (boolean, default true)
   - is_default (boolean, default false)
   - display_order (integer)
@@ -2733,14 +2793,14 @@ subscription_plans
 
 -- Tenant subscriptions
 tenant_subscriptions
-  - id (primary key)
-  - tenant_id (foreign key to tenants)
-  - plan_id (foreign key to subscription_plans)
-  - status (enum: trial, active, past_due, canceled, suspended)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key to tenants)
+  - plan_id (uuid foreign key to subscription_plans)
+  - status (varchar 20) -- PHP Enum: SubscriptionStatus (trial, active, past_due, canceled, suspended)
   - trial_ends_at (timestamp, nullable)
   - current_period_start (date)
   - current_period_end (date)
-  - billing_cycle (enum: monthly, annual)
+  - billing_cycle (varchar 20) -- PHP Enum: BillingCycle (monthly, annual)
   - auto_renew (boolean, default true)
   - canceled_at (timestamp, nullable)
   - cancellation_reason (text, nullable)
@@ -2748,22 +2808,22 @@ tenant_subscriptions
 
 -- Tenant service configurations (encrypted credentials)
 tenant_service_configs
-  - id (primary key)
-  - tenant_id (foreign key to tenants)
-  - service_name (enum: texttango, paystack, email_smtp, email_sendgrid, storage_s3, storage_do)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key to tenants)
+  - service_name (varchar 30) -- PHP Enum: ServiceName (texttango, paystack, email_smtp, email_sendgrid, storage_s3, storage_do)
   - is_enabled (boolean, default false)
   - credentials (JSON, encrypted)
   - settings (JSON)
   - last_tested_at (timestamp, nullable)
-  - last_test_status (enum: success, failed, not_tested)
+  - last_test_status (varchar 20) -- PHP Enum: TestStatus (success, failed, not_tested)
   - last_test_message (text, nullable)
   - created_at, updated_at
   - UNIQUE (tenant_id, service_name)
 
 -- Tenant module access
 tenant_module_access
-  - id (primary key)
-  - tenant_id (foreign key to tenants)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key to tenants)
   - module_name (varchar 50: members, visitors, attendance, finance, sms, equipment, reports, cluster, multi_branch, online_giving)
   - is_enabled (boolean, default true)
   - enabled_at (timestamp)
@@ -2774,9 +2834,9 @@ tenant_module_access
 
 -- Billing invoices
 billing_invoices
-  - id (primary key)
-  - tenant_id (foreign key to tenants)
-  - subscription_id (foreign key to tenant_subscriptions)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key to tenants)
+  - subscription_id (uuid foreign key to tenant_subscriptions)
   - invoice_number (varchar 50, unique)
   - billing_period_start (date)
   - billing_period_end (date)
@@ -2785,7 +2845,7 @@ billing_invoices
   - tax_amount (decimal 10,2)
   - total (decimal 10,2)
   - currency (varchar 3, default 'NGN')
-  - status (enum: draft, sent, paid, overdue, void)
+  - status (varchar 20) -- PHP Enum: InvoiceStatus (draft, sent, paid, overdue, void)
   - due_date (date)
   - paid_at (timestamp, nullable)
   - payment_method (varchar 50, nullable)
@@ -2795,9 +2855,9 @@ billing_invoices
 
 -- Super Admin activity logs
 super_admin_activity_logs
-  - id (primary key)
-  - super_admin_id (foreign key to super_admins)
-  - tenant_id (foreign key to tenants, nullable)
+  - id (uuid primary key)
+  - super_admin_id (uuid foreign key to super_admins)
+  - tenant_id (uuid foreign key to tenants, nullable)
   - action (varchar 100)
   - description (text)
   - metadata (JSON)
@@ -2807,9 +2867,9 @@ super_admin_activity_logs
 
 -- Tenant impersonation logs
 tenant_impersonation_logs
-  - id (primary key)
-  - super_admin_id (foreign key to super_admins)
-  - tenant_id (foreign key to tenants)
+  - id (uuid primary key)
+  - super_admin_id (uuid foreign key to super_admins)
+  - tenant_id (uuid foreign key to tenants)
   - reason (text)
   - started_at (timestamp)
   - ended_at (timestamp, nullable)
@@ -2819,7 +2879,7 @@ tenant_impersonation_logs
 
 -- System feature flags
 system_feature_flags
-  - id (primary key)
+  - id (uuid primary key)
   - flag_name (varchar 100, unique)
   - description (text)
   - is_enabled_globally (boolean, default false)
@@ -2829,20 +2889,272 @@ system_feature_flags
 
 -- Tenant feature overrides
 tenant_feature_overrides
-  - id (primary key)
-  - tenant_id (foreign key to tenants)
+  - id (uuid primary key)
+  - tenant_id (uuid foreign key to tenants)
   - flag_name (varchar 100)
   - is_enabled (boolean)
   - created_at, updated_at
   - UNIQUE (tenant_id, flag_name)
 
 -- Modified tenants table
-ALTER TABLE tenants ADD COLUMN subscription_id (foreign key to tenant_subscriptions, nullable);
-ALTER TABLE tenants ADD COLUMN status (enum: active, trial, suspended, inactive, deleted, default 'active');
+ALTER TABLE tenants ADD COLUMN subscription_id (uuid foreign key to tenant_subscriptions, nullable);
+ALTER TABLE tenants ADD COLUMN status (varchar 20 default 'active'); -- PHP Enum: TenantStatus (active, trial, suspended, inactive, deleted)
 ALTER TABLE tenants ADD COLUMN trial_ends_at (timestamp, nullable);
 ALTER TABLE tenants ADD COLUMN suspended_at (timestamp, nullable);
 ALTER TABLE tenants ADD COLUMN suspension_reason (text, nullable);
 ALTER TABLE tenants ADD COLUMN deleted_at (timestamp, nullable);
+```
+
+**PHP Enum Specifications:**
+
+```php
+// app/Enums/SuperAdminRole.php
+enum SuperAdminRole: string
+{
+    case Owner = 'owner';
+    case Admin = 'admin';
+    case Support = 'support';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Owner => 'Owner',
+            self::Admin => 'Administrator',
+            self::Support => 'Support Staff',
+        };
+    }
+
+    public function hasFullAccess(): bool
+    {
+        return $this === self::Owner || $this === self::Admin;
+    }
+}
+
+// app/Enums/SupportLevel.php
+enum SupportLevel: string
+{
+    case Community = 'community';
+    case Email = 'email';
+    case Priority = 'priority';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Community => 'Community Support',
+            self::Email => 'Email Support',
+            self::Priority => 'Priority Support',
+        };
+    }
+
+    public function responseTime(): string
+    {
+        return match($this) {
+            self::Community => 'Best effort',
+            self::Email => '24 hours',
+            self::Priority => '4 hours',
+        };
+    }
+}
+
+// app/Enums/SubscriptionStatus.php
+enum SubscriptionStatus: string
+{
+    case Trial = 'trial';
+    case Active = 'active';
+    case PastDue = 'past_due';
+    case Canceled = 'canceled';
+    case Suspended = 'suspended';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Trial => 'Trial',
+            self::Active => 'Active',
+            self::PastDue => 'Past Due',
+            self::Canceled => 'Canceled',
+            self::Suspended => 'Suspended',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Trial => 'blue',
+            self::Active => 'green',
+            self::PastDue => 'yellow',
+            self::Canceled => 'gray',
+            self::Suspended => 'red',
+        };
+    }
+
+    public function isActive(): bool
+    {
+        return $this === self::Trial || $this === self::Active;
+    }
+}
+
+// app/Enums/BillingCycle.php
+enum BillingCycle: string
+{
+    case Monthly = 'monthly';
+    case Annual = 'annual';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Monthly => 'Monthly',
+            self::Annual => 'Annually',
+        };
+    }
+
+    public function months(): int
+    {
+        return match($this) {
+            self::Monthly => 1,
+            self::Annual => 12,
+        };
+    }
+}
+
+// app/Enums/ServiceName.php
+enum ServiceName: string
+{
+    case TextTango = 'texttango';
+    case Paystack = 'paystack';
+    case EmailSMTP = 'email_smtp';
+    case EmailSendGrid = 'email_sendgrid';
+    case StorageS3 = 'storage_s3';
+    case StorageDO = 'storage_do';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::TextTango => 'TextTango SMS',
+            self::Paystack => 'Paystack Payments',
+            self::EmailSMTP => 'SMTP Email',
+            self::EmailSendGrid => 'SendGrid Email',
+            self::StorageS3 => 'AWS S3 Storage',
+            self::StorageDO => 'DigitalOcean Spaces',
+        };
+    }
+}
+
+// app/Enums/TestStatus.php
+enum TestStatus: string
+{
+    case Success = 'success';
+    case Failed = 'failed';
+    case NotTested = 'not_tested';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Success => 'Passed',
+            self::Failed => 'Failed',
+            self::NotTested => 'Not Tested',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Success => 'green',
+            self::Failed => 'red',
+            self::NotTested => 'gray',
+        };
+    }
+}
+
+// app/Enums/InvoiceStatus.php
+enum InvoiceStatus: string
+{
+    case Draft = 'draft';
+    case Sent = 'sent';
+    case Paid = 'paid';
+    case Overdue = 'overdue';
+    case Void = 'void';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Draft => 'Draft',
+            self::Sent => 'Sent',
+            self::Paid => 'Paid',
+            self::Overdue => 'Overdue',
+            self::Void => 'Void',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Draft => 'gray',
+            self::Sent => 'blue',
+            self::Paid => 'green',
+            self::Overdue => 'red',
+            self::Void => 'gray',
+        };
+    }
+}
+
+// app/Enums/TenantStatus.php
+enum TenantStatus: string
+{
+    case Active = 'active';
+    case Trial = 'trial';
+    case Suspended = 'suspended';
+    case Inactive = 'inactive';
+    case Deleted = 'deleted';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active',
+            self::Trial => 'Trial',
+            self::Suspended => 'Suspended',
+            self::Inactive => 'Inactive',
+            self::Deleted => 'Deleted',
+        };
+    }
+
+    public function canLogin(): bool
+    {
+        return $this === self::Active || $this === self::Trial;
+    }
+}
+
+// Model casting examples
+// app/Models/SuperAdmin.php
+protected $casts = [
+    'role' => SuperAdminRole::class,
+];
+
+// app/Models/SubscriptionPlan.php
+protected $casts = [
+    'support_level' => SupportLevel::class,
+];
+
+// app/Models/TenantSubscription.php
+protected $casts = [
+    'status' => SubscriptionStatus::class,
+    'billing_cycle' => BillingCycle::class,
+];
+
+// app/Models/TenantServiceConfig.php
+protected $casts = [
+    'service_name' => ServiceName::class,
+    'last_test_status' => TestStatus::class,
+];
+
+// app/Models/BillingInvoice.php
+protected $casts = [
+    'status' => InvoiceStatus::class,
+];
+
+// app/Models/Tenant.php
+protected $casts = [
+    'status' => TenantStatus::class,
+];
 ```
 
 **API Endpoints:**
@@ -3089,6 +3401,97 @@ Settings
 - Tenant isolation: Separate database per tenant
 - Shared tables: Users, tenants, subscriptions
 - Tenant-specific tables: Members, donations, attendance, etc.
+
+**Database Design Principles:**
+
+**UUID Primary Keys:**
+- **All tables use UUID primary keys** instead of auto-incrementing integers
+- **Column type**: `uuid` (CHAR(36)) for standard UUID format
+- **Format**: 8-4-4-4-12 hexadecimal format (e.g., `550e8400-e29b-41d4-a716-446655440000`)
+- **Auto-generation**: Laravel's `HasUuids` trait automatically generates UUIDs on model creation
+- **Foreign keys**: Use `foreignUuid()` instead of `foreignId()` for relationships
+
+**Why UUIDs over Auto-Incrementing IDs:**
+1. **Global Uniqueness**: UUIDs are globally unique across all tables, databases, and systems
+2. **Security**: Non-sequential IDs prevent enumeration attacks and exposure of record counts
+3. **Distributed Systems**: Can generate IDs client-side or in distributed systems without collision
+4. **Merging Data**: Easier to merge data from multiple sources without ID conflicts
+5. **API Design**: UUIDs in URLs don't leak business information about record counts
+6. **Multi-Tenancy**: Prevents tenant-to-tenant ID conflicts in shared systems
+7. **Future-Proof**: Facilitates microservices architecture and data replication
+
+**UUID Implementation Example:**
+```php
+// Migration
+Schema::create('members', function (Blueprint $table) {
+    $table->uuid('id')->primary();
+    $table->foreignUuid('branch_id')->nullable()->constrained();
+    $table->string('name');
+    $table->timestamps();
+});
+
+// Model
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Member extends Model
+{
+    use HasFactory, HasUuids;
+
+    // UUIDs are auto-generated - no manual intervention needed
+}
+
+// Usage
+$member = Member::create(['name' => 'John Doe']);
+// $member->id is automatically a UUID: "9b8f4d2e-5c1a-4b6e-8f9e-1a2b3c4d5e6f"
+```
+
+**Enum Handling Strategy:**
+- **Use varchar columns** instead of MySQL ENUM types
+- **PHP-backed enums** (PHP 8.1+) for all status, type, and category fields
+- **Model casting** on Eloquent models for type safety and IDE support
+- **Column sizing**: varchar(20-50) depending on enum value lengths
+
+**Why PHP Enums over MySQL ENUMs:**
+1. **Type Safety**: Compile-time type checking in PHP code
+2. **IDE Support**: Better autocomplete, refactoring, and navigation
+3. **Flexibility**: Adding new values doesn't require ALTER TABLE migrations
+4. **Version Control**: Enum changes tracked in PHP files, not database
+5. **Testability**: Easier to mock and test enum values
+6. **Laravel Best Practice**: Follows modern Laravel 8.1+ conventions
+7. **Self-Documenting**: Enum values clearly defined in code
+
+**Enum Implementation Example:**
+```php
+// app/Enums/MembershipStatus.php
+enum MembershipStatus: string
+{
+    case Active = 'active';
+    case Inactive = 'inactive';
+    case Transferred = 'transferred';
+    case Deceased = 'deceased';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active',
+            self::Inactive => 'Inactive',
+            self::Transferred => 'Transferred',
+            self::Deceased => 'Deceased',
+        };
+    }
+}
+
+// app/Models/Member.php
+protected $casts = [
+    'status' => MembershipStatus::class,
+];
+
+// Usage
+$member->status = MembershipStatus::Active;
+if ($member->status === MembershipStatus::Active) {
+    // Type-safe comparison
+}
+```
 
 **Key Tables:**
 
@@ -3845,6 +4248,1178 @@ Settings
 - Minor features: Monthly
 - Major releases: Quarterly
 
+### F. Comprehensive PHP Enum Specifications
+
+This appendix provides complete specifications for all PHP-backed enums used throughout the KingdomVitals application. All enums are string-backed for database compatibility and include helper methods for labels, colors, and business logic.
+
+#### F.1 Member & User Enums
+
+##### MembershipStatus
+**File:** `app/Enums/MembershipStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track the current status of church members
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum MembershipStatus: string
+{
+    case Active = 'active';
+    case Inactive = 'inactive';
+    case Transferred = 'transferred';
+    case Deceased = 'deceased';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active Member',
+            self::Inactive => 'Inactive',
+            self::Transferred => 'Transferred Out',
+            self::Deceased => 'Deceased',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Active => 'green',
+            self::Inactive => 'gray',
+            self::Transferred => 'blue',
+            self::Deceased => 'black',
+        };
+    }
+
+    public function canReceiveCommunications(): bool
+    {
+        return $this === self::Active;
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/Member.php
+protected $casts = [
+    'status' => MembershipStatus::class,
+];
+
+// Usage in code
+if ($member->status->canReceiveCommunications()) {
+    // Send SMS or email
+}
+```
+
+##### Gender
+**File:** `app/Enums/Gender.php`
+**Database Column Type:** `varchar(10)`
+**Purpose:** Member gender identification
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum Gender: string
+{
+    case Male = 'male';
+    case Female = 'female';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Male => 'Male',
+            self::Female => 'Female',
+        };
+    }
+
+    public function pronoun(): string
+    {
+        return match($this) {
+            self::Male => 'he',
+            self::Female => 'she',
+        };
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/Member.php
+protected $casts = [
+    'gender' => Gender::class,
+];
+```
+
+##### MaritalStatus
+**File:** `app/Enums/MaritalStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track member marital status
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum MaritalStatus: string
+{
+    case Single = 'single';
+    case Married = 'married';
+    case Divorced = 'divorced';
+    case Widowed = 'widowed';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Single => 'Single',
+            self::Married => 'Married',
+            self::Divorced => 'Divorced',
+            self::Widowed => 'Widowed',
+        };
+    }
+}
+```
+
+##### UserRole
+**File:** `app/Enums/UserRole.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Define user permission levels within a tenant
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum UserRole: string
+{
+    case Admin = 'admin';
+    case Pastor = 'pastor';
+    case Staff = 'staff';
+    case Accountant = 'accountant';
+    case Viewer = 'viewer';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Admin => 'Administrator',
+            self::Pastor => 'Pastor',
+            self::Staff => 'Staff Member',
+            self::Accountant => 'Accountant',
+            self::Viewer => 'Viewer',
+        };
+    }
+
+    public function permissions(): array
+    {
+        return match($this) {
+            self::Admin => ['*'], // Full access
+            self::Pastor => ['members.view', 'members.edit', 'visitors.view', 'attendance.view', 'reports.view'],
+            self::Staff => ['members.view', 'visitors.view', 'attendance.manage'],
+            self::Accountant => ['finance.view', 'finance.edit', 'reports.view'],
+            self::Viewer => ['dashboard.view', 'reports.view'],
+        };
+    }
+
+    public function hasFullAccess(): bool
+    {
+        return $this === self::Admin;
+    }
+}
+```
+
+#### F.2 Visitor & Attendance Enums
+
+##### VisitorStatus
+**File:** `app/Enums/VisitorStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track visitor follow-up status
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum VisitorStatus: string
+{
+    case New = 'new';
+    case Contacted = 'contacted';
+    case FollowUp = 'follow_up';
+    case Converted = 'converted';
+    case Lost = 'lost';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::New => 'New Visitor',
+            self::Contacted => 'Contacted',
+            self::FollowUp => 'Follow-up Needed',
+            self::Converted => 'Became Member',
+            self::Lost => 'Lost Contact',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::New => 'blue',
+            self::Contacted => 'yellow',
+            self::FollowUp => 'orange',
+            self::Converted => 'green',
+            self::Lost => 'red',
+        };
+    }
+
+    public function needsFollowUp(): bool
+    {
+        return in_array($this, [self::New, self::FollowUp]);
+    }
+}
+```
+
+##### AttendanceStatus
+**File:** `app/Enums/AttendanceStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Record attendance for services and events
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum AttendanceStatus: string
+{
+    case Present = 'present';
+    case Absent = 'absent';
+    case Excused = 'excused';
+    case Late = 'late';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Present => 'Present',
+            self::Absent => 'Absent',
+            self::Excused => 'Excused',
+            self::Late => 'Late',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Present => 'green',
+            self::Absent => 'red',
+            self::Excused => 'blue',
+            self::Late => 'yellow',
+        };
+    }
+
+    public function countsAsPresent(): bool
+    {
+        return in_array($this, [self::Present, self::Late]);
+    }
+}
+```
+
+#### F.3 Financial Enums
+
+##### TransactionType
+**File:** `app/Enums/TransactionType.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Categorize financial transactions
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum TransactionType: string
+{
+    case Income = 'income';
+    case Expense = 'expense';
+    case Transfer = 'transfer';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Income => 'Income',
+            self::Expense => 'Expense',
+            self::Transfer => 'Transfer',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Income => 'green',
+            self::Expense => 'red',
+            self::Transfer => 'blue',
+        };
+    }
+
+    public function affectsBalance(): int
+    {
+        return match($this) {
+            self::Income => 1,   // Increases balance
+            self::Expense => -1, // Decreases balance
+            self::Transfer => 0, // Neutral (moves between accounts)
+        };
+    }
+}
+```
+
+##### PaymentMethod
+**File:** `app/Enums/PaymentMethod.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track how payments were made
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum PaymentMethod: string
+{
+    case Cash = 'cash';
+    case Cheque = 'cheque';
+    case BankTransfer = 'bank_transfer';
+    case Card = 'card';
+    case MobileMoney = 'mobile_money';
+    case Online = 'online';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Cash => 'Cash',
+            self::Cheque => 'Cheque',
+            self::BankTransfer => 'Bank Transfer',
+            self::Card => 'Card Payment',
+            self::MobileMoney => 'Mobile Money',
+            self::Online => 'Online Payment',
+        };
+    }
+
+    public function requiresReference(): bool
+    {
+        return in_array($this, [
+            self::Cheque,
+            self::BankTransfer,
+            self::Card,
+            self::Online,
+        ]);
+    }
+
+    public function isDigital(): bool
+    {
+        return in_array($this, [
+            self::BankTransfer,
+            self::Card,
+            self::MobileMoney,
+            self::Online,
+        ]);
+    }
+}
+```
+
+##### PledgeStatus
+**File:** `app/Enums/PledgeStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track pledge fulfillment
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum PledgeStatus: string
+{
+    case Active = 'active';
+    case Completed = 'completed';
+    case Cancelled = 'cancelled';
+    case Defaulted = 'defaulted';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active',
+            self::Completed => 'Completed',
+            self::Cancelled => 'Cancelled',
+            self::Defaulted => 'Defaulted',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Active => 'blue',
+            self::Completed => 'green',
+            self::Cancelled => 'gray',
+            self::Defaulted => 'red',
+        };
+    }
+
+    public function canReceivePayments(): bool
+    {
+        return $this === self::Active;
+    }
+}
+```
+
+#### F.4 Multi-Branch Enums
+
+##### BranchStatus
+**File:** `app/Enums/BranchStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track branch operational status
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum BranchStatus: string
+{
+    case Active = 'active';
+    case Inactive = 'inactive';
+    case Planning = 'planning';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active',
+            self::Inactive => 'Inactive',
+            self::Planning => 'Planning Phase',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Active => 'green',
+            self::Inactive => 'gray',
+            self::Planning => 'blue',
+        };
+    }
+
+    public function canAcceptMembers(): bool
+    {
+        return in_array($this, [self::Active, self::Planning]);
+    }
+
+    public function appearsInReports(): bool
+    {
+        return $this === self::Active;
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/Branch.php
+protected $casts = [
+    'status' => BranchStatus::class,
+];
+```
+
+##### ServiceType
+**File:** `app/Enums/ServiceType.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Categorize church services for attendance tracking
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum ServiceType: string
+{
+    case Sunday = 'sunday';
+    case Midweek = 'midweek';
+    case Special = 'special';
+    case Youth = 'youth';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Sunday => 'Sunday Service',
+            self::Midweek => 'Midweek Service',
+            self::Special => 'Special Event',
+            self::Youth => 'Youth Service',
+        };
+    }
+
+    public function defaultDayOfWeek(): int
+    {
+        return match($this) {
+            self::Sunday => 0,  // Sunday
+            self::Midweek => 3, // Wednesday
+            self::Special => null,
+            self::Youth => 5,   // Friday
+        };
+    }
+
+    public function requiresAttendance(): bool
+    {
+        return in_array($this, [self::Sunday, self::Midweek]);
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/Service.php
+protected $casts = [
+    'service_type' => ServiceType::class,
+];
+```
+
+#### F.5 Super Admin & Platform Enums
+
+##### SuperAdminRole
+**File:** `app/Enums/SuperAdminRole.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Define Super Admin permission levels
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum SuperAdminRole: string
+{
+    case Owner = 'owner';
+    case Admin = 'admin';
+    case Support = 'support';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Owner => 'Platform Owner',
+            self::Admin => 'Administrator',
+            self::Support => 'Support Staff',
+        };
+    }
+
+    public function permissions(): array
+    {
+        return match($this) {
+            self::Owner => ['*'], // Full access including billing settings
+            self::Admin => ['tenants.*', 'subscriptions.*', 'services.*', 'support.*'],
+            self::Support => ['tenants.view', 'support.*', 'impersonate'],
+        };
+    }
+
+    public function hasFullAccess(): bool
+    {
+        return $this === self::Owner;
+    }
+
+    public function canImpersonate(): bool
+    {
+        return true; // All Super Admins can impersonate
+    }
+
+    public function canManageBilling(): bool
+    {
+        return in_array($this, [self::Owner, self::Admin]);
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/SuperAdmin.php
+protected $casts = [
+    'role' => SuperAdminRole::class,
+];
+```
+
+##### SupportLevel
+**File:** `app/Enums/SupportLevel.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Define support tiers for subscription plans
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum SupportLevel: string
+{
+    case Community = 'community';
+    case Email = 'email';
+    case Priority = 'priority';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Community => 'Community Support',
+            self::Email => 'Email Support',
+            self::Priority => 'Priority Support',
+        };
+    }
+
+    public function responseTime(): string
+    {
+        return match($this) {
+            self::Community => 'Best effort (forums)',
+            self::Email => '24-hour response',
+            self::Priority => '< 4 hour response',
+        };
+    }
+
+    public function hasDirectSupport(): bool
+    {
+        return in_array($this, [self::Email, self::Priority]);
+    }
+
+    public function priorityLevel(): int
+    {
+        return match($this) {
+            self::Community => 3,
+            self::Email => 2,
+            self::Priority => 1,
+        };
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/SubscriptionPlan.php
+protected $casts = [
+    'support_level' => SupportLevel::class,
+];
+```
+
+##### SubscriptionStatus
+**File:** `app/Enums/SubscriptionStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track subscription lifecycle states
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum SubscriptionStatus: string
+{
+    case Trial = 'trial';
+    case Active = 'active';
+    case PastDue = 'past_due';
+    case Canceled = 'canceled';
+    case Suspended = 'suspended';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Trial => 'Trial Period',
+            self::Active => 'Active',
+            self::PastDue => 'Past Due',
+            self::Canceled => 'Canceled',
+            self::Suspended => 'Suspended',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Trial => 'blue',
+            self::Active => 'green',
+            self::PastDue => 'yellow',
+            self::Canceled => 'gray',
+            self::Suspended => 'red',
+        };
+    }
+
+    public function isActive(): bool
+    {
+        return in_array($this, [self::Trial, self::Active]);
+    }
+
+    public function allowsLogin(): bool
+    {
+        return in_array($this, [self::Trial, self::Active, self::PastDue]);
+    }
+
+    public function requiresPayment(): bool
+    {
+        return $this === self::PastDue;
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/TenantSubscription.php
+protected $casts = [
+    'status' => SubscriptionStatus::class,
+];
+```
+
+##### BillingCycle
+**File:** `app/Enums/BillingCycle.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Define subscription billing frequency
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum BillingCycle: string
+{
+    case Monthly = 'monthly';
+    case Annual = 'annual';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Monthly => 'Monthly',
+            self::Annual => 'Annual',
+        };
+    }
+
+    public function months(): int
+    {
+        return match($this) {
+            self::Monthly => 1,
+            self::Annual => 12,
+        };
+    }
+
+    public function discount(): float
+    {
+        return match($this) {
+            self::Monthly => 0.0,
+            self::Annual => 0.15, // 15% discount for annual
+        };
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/TenantSubscription.php
+protected $casts = [
+    'billing_cycle' => BillingCycle::class,
+];
+```
+
+##### ServiceName
+**File:** `app/Enums/ServiceName.php`
+**Database Column Type:** `varchar(30)`
+**Purpose:** Identify third-party services
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum ServiceName: string
+{
+    case TextTango = 'texttango';
+    case Paystack = 'paystack';
+    case EmailSMTP = 'email_smtp';
+    case EmailSendGrid = 'email_sendgrid';
+    case StorageS3 = 'storage_s3';
+    case StorageDigitalOcean = 'storage_do';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::TextTango => 'TextTango SMS',
+            self::Paystack => 'Paystack Payments',
+            self::EmailSMTP => 'SMTP Email',
+            self::EmailSendGrid => 'SendGrid Email',
+            self::StorageS3 => 'AWS S3 Storage',
+            self::StorageDigitalOcean => 'DigitalOcean Spaces',
+        };
+    }
+
+    public function category(): string
+    {
+        return match($this) {
+            self::TextTango => 'SMS',
+            self::Paystack => 'Payment',
+            self::EmailSMTP, self::EmailSendGrid => 'Email',
+            self::StorageS3, self::StorageDigitalOcean => 'Storage',
+        };
+    }
+
+    public function requiredCredentials(): array
+    {
+        return match($this) {
+            self::TextTango => ['api_key', 'sender_id'],
+            self::Paystack => ['public_key', 'secret_key'],
+            self::EmailSMTP => ['host', 'port', 'username', 'password', 'encryption'],
+            self::EmailSendGrid => ['api_key'],
+            self::StorageS3 => ['key', 'secret', 'region', 'bucket'],
+            self::StorageDigitalOcean => ['key', 'secret', 'region', 'bucket', 'endpoint'],
+        };
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/TenantServiceConfig.php
+protected $casts = [
+    'service_name' => ServiceName::class,
+];
+```
+
+##### TestStatus
+**File:** `app/Enums/TestStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track service configuration test results
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum TestStatus: string
+{
+    case Success = 'success';
+    case Failed = 'failed';
+    case NotTested = 'not_tested';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Success => 'Test Passed',
+            self::Failed => 'Test Failed',
+            self::NotTested => 'Not Tested',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Success => 'green',
+            self::Failed => 'red',
+            self::NotTested => 'gray',
+        };
+    }
+
+    public function icon(): string
+    {
+        return match($this) {
+            self::Success => 'check-circle',
+            self::Failed => 'x-circle',
+            self::NotTested => 'question-mark-circle',
+        };
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/TenantServiceConfig.php
+protected $casts = [
+    'last_test_status' => TestStatus::class,
+];
+```
+
+##### InvoiceStatus
+**File:** `app/Enums/InvoiceStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track billing invoice states
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum InvoiceStatus: string
+{
+    case Draft = 'draft';
+    case Sent = 'sent';
+    case Paid = 'paid';
+    case Overdue = 'overdue';
+    case Void = 'void';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Draft => 'Draft',
+            self::Sent => 'Sent',
+            self::Paid => 'Paid',
+            self::Overdue => 'Overdue',
+            self::Void => 'Void',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Draft => 'gray',
+            self::Sent => 'blue',
+            self::Paid => 'green',
+            self::Overdue => 'red',
+            self::Void => 'black',
+        };
+    }
+
+    public function isPaid(): bool
+    {
+        return $this === self::Paid;
+    }
+
+    public function requiresAction(): bool
+    {
+        return in_array($this, [self::Sent, self::Overdue]);
+    }
+
+    public function canBeVoided(): bool
+    {
+        return in_array($this, [self::Draft, self::Sent, self::Overdue]);
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/BillingInvoice.php
+protected $casts = [
+    'status' => InvoiceStatus::class,
+];
+```
+
+##### TenantStatus
+**File:** `app/Enums/TenantStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track tenant account status
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum TenantStatus: string
+{
+    case Active = 'active';
+    case Trial = 'trial';
+    case Suspended = 'suspended';
+    case Inactive = 'inactive';
+    case Deleted = 'deleted';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Active => 'Active',
+            self::Trial => 'Trial Period',
+            self::Suspended => 'Suspended',
+            self::Inactive => 'Inactive',
+            self::Deleted => 'Deleted',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Active => 'green',
+            self::Trial => 'blue',
+            self::Suspended => 'red',
+            self::Inactive => 'gray',
+            self::Deleted => 'black',
+        };
+    }
+
+    public function canLogin(): bool
+    {
+        return in_array($this, [self::Active, self::Trial]);
+    }
+
+    public function canBeReactivated(): bool
+    {
+        return in_array($this, [self::Suspended, self::Inactive]);
+    }
+
+    public function isPermanent(): bool
+    {
+        return $this === self::Deleted;
+    }
+}
+```
+
+**Model Usage:**
+```php
+// app/Models/Tenant.php
+protected $casts = [
+    'status' => TenantStatus::class,
+];
+```
+
+#### F.6 Equipment & SMS Enums
+
+##### EquipmentStatus
+**File:** `app/Enums/EquipmentStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track equipment availability
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum EquipmentStatus: string
+{
+    case Available = 'available';
+    case InUse = 'in_use';
+    case Maintenance = 'maintenance';
+    case Damaged = 'damaged';
+    case Retired = 'retired';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Available => 'Available',
+            self::InUse => 'In Use',
+            self::Maintenance => 'Under Maintenance',
+            self::Damaged => 'Damaged',
+            self::Retired => 'Retired',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Available => 'green',
+            self::InUse => 'blue',
+            self::Maintenance => 'yellow',
+            self::Damaged => 'red',
+            self::Retired => 'gray',
+        };
+    }
+
+    public function canBeBooked(): bool
+    {
+        return $this === self::Available;
+    }
+}
+```
+
+##### SMSStatus
+**File:** `app/Enums/SMSStatus.php`
+**Database Column Type:** `varchar(20)`
+**Purpose:** Track SMS delivery status
+
+```php
+<?php
+
+namespace App\Enums;
+
+enum SMSStatus: string
+{
+    case Pending = 'pending';
+    case Sent = 'sent';
+    case Delivered = 'delivered';
+    case Failed = 'failed';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::Pending => 'Pending',
+            self::Sent => 'Sent',
+            self::Delivered => 'Delivered',
+            self::Failed => 'Failed',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::Pending => 'yellow',
+            self::Sent => 'blue',
+            self::Delivered => 'green',
+            self::Failed => 'red',
+        };
+    }
+
+    public function isComplete(): bool
+    {
+        return in_array($this, [self::Delivered, self::Failed]);
+    }
+
+    public function canRetry(): bool
+    {
+        return $this === self::Failed;
+    }
+}
+```
+
+#### F.7 Best Practices & Usage Guidelines
+
+**General Guidelines:**
+
+1. **Always use string-backed enums** for database compatibility
+2. **Include helper methods** like `label()`, `color()`, and business logic methods
+3. **Use match expressions** instead of switch statements for exhaustive checking
+4. **Cast enums in Eloquent models** using the `$casts` property
+5. **Never use MySQL ENUM types** - always use `varchar` columns
+
+**Example Migration:**
+```php
+Schema::create('members', function (Blueprint $table) {
+    $table->id();
+    $table->string('status', 20); // PHP Enum: MembershipStatus
+    $table->string('gender', 10); // PHP Enum: Gender
+    $table->string('marital_status', 20); // PHP Enum: MaritalStatus
+    $table->timestamps();
+});
+```
+
+**Testing Enums:**
+```php
+it('has correct membership status enum values', function () {
+    $statuses = MembershipStatus::cases();
+
+    expect($statuses)->toHaveCount(4)
+        ->and($statuses[0]->value)->toBe('active')
+        ->and($statuses[0]->label())->toBe('Active Member')
+        ->and($statuses[0]->canReceiveCommunications())->toBeTrue();
+});
+```
+
+**Validation with Enums:**
+```php
+use Illuminate\Validation\Rules\Enum;
+
+// In Form Request
+public function rules(): array
+{
+    return [
+        'status' => ['required', new Enum(MembershipStatus::class)],
+        'gender' => ['required', new Enum(Gender::class)],
+    ];
+}
+```
+
+**Querying with Enums:**
+```php
+// Find all active members
+$members = Member::where('status', MembershipStatus::Active)->get();
+
+// Filter by multiple statuses
+$members = Member::whereIn('status', [
+    MembershipStatus::Active,
+    MembershipStatus::Transferred,
+])->get();
+```
+
+**Blade Templates:**
+```blade
+<div class="badge badge-{{ $member->status->color() }}">
+    {{ $member->status->label() }}
+</div>
+
+@if($member->status->canReceiveCommunications())
+    <button wire:click="sendSMS">Send SMS</button>
+@endif
+```
+
 ---
 
 ## Document Control
@@ -3856,6 +5431,8 @@ Settings
 | 1.0 | 2025-12-30 | System Architect | Initial PRD creation |
 | 1.1 | 2025-12-30 | System Architect | Added comprehensive multi-branch/multi-campus management feature (Section 11). Updated Dashboard, Members, Database Schema, and Development Roadmap sections to include branch support. |
 | 1.2 | 2025-12-30 | System Architect | Added complete Super Admin & Platform Management system (Section 12). Includes tenant management, per-tenant service configuration, subscription billing, module access control, tenant impersonation, platform analytics, and comprehensive support tools. Updated Settings module to reflect Super Admin-managed services. Updated Database Schema, Development Roadmap, and Glossary with SaaS platform features. |
+| 1.3 | 2025-12-30 | System Architect | Migrated from MySQL ENUM types to PHP-backed enums with model casting. Added Database Design Principles (Section 6.3) explaining enum strategy. Updated Multi-Branch schema (Section 11.15) and Super Admin schema (Section 12.12) replacing all ENUM columns with varchar. Added PHP enum specifications to both sections with complete enum classes including helper methods. Created Appendix F: Comprehensive PHP Enum Specifications covering all 20+ enums used throughout the application with usage guidelines, validation examples, and best practices. |
+| 1.4 | 2025-12-30 | System Architect | Migrated all tables to use UUID primary keys instead of auto-incrementing integers. Updated all existing migrations (users, sessions, jobs, failed_jobs) to use `$table->uuid('id')->primary()`. Added HasUuids trait to User model. Updated Database Design Principles (Section 6.3) with comprehensive UUID specifications including rationale and implementation examples. Updated all schema definitions in Multi-Branch (Section 11.15) and Super Admin (Section 12.12) sections to use UUID for all primary and foreign keys. All foreign key columns now use `foreignUuid()` instead of `foreignId()`. |
 
 **Approvals:**
 
