@@ -1,0 +1,104 @@
+<?php
+
+namespace App\Models\Tenant;
+
+use App\Enums\Gender;
+use App\Enums\MaritalStatus;
+use App\Enums\MembershipStatus;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Member extends Model
+{
+    use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'primary_branch_id',
+        'first_name',
+        'last_name',
+        'middle_name',
+        'email',
+        'phone',
+        'date_of_birth',
+        'gender',
+        'marital_status',
+        'status',
+        'address',
+        'city',
+        'state',
+        'zip',
+        'country',
+        'joined_at',
+        'baptized_at',
+        'notes',
+        'photo_url',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'date_of_birth' => 'date',
+            'joined_at' => 'date',
+            'baptized_at' => 'date',
+            'gender' => Gender::class,
+            'marital_status' => MaritalStatus::class,
+            'status' => MembershipStatus::class,
+        ];
+    }
+
+    public function fullName(): string
+    {
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+    }
+
+    public function primaryBranch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'primary_branch_id');
+    }
+
+    public function attendance(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function donations(): HasMany
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    public function pledges(): HasMany
+    {
+        return $this->hasMany(Pledge::class);
+    }
+
+    public function clusters(): BelongsToMany
+    {
+        return $this->belongsToMany(Cluster::class, 'cluster_member')
+            ->withPivot(['role', 'joined_at'])
+            ->withTimestamps();
+    }
+
+    public function assignedVisitors(): HasMany
+    {
+        return $this->hasMany(Visitor::class, 'assigned_to');
+    }
+
+    public function assignedEquipment(): HasMany
+    {
+        return $this->hasMany(Equipment::class, 'assigned_to');
+    }
+
+    public function ledClusters(): HasMany
+    {
+        return $this->hasMany(Cluster::class, 'leader_id');
+    }
+
+    public function smsLogs(): HasMany
+    {
+        return $this->hasMany(SmsLog::class);
+    }
+}
