@@ -26,4 +26,11 @@ Route::middleware([
     Route::get('/', function () {
         return 'This is your multi-tenant application. The id of the current tenant is '.tenant('id');
     });
+
+    // Authenticated routes
+    Route::middleware(['auth'])->group(function () {
+        // Branch Management
+        Route::get('/branches', \App\Livewire\Branches\BranchIndex::class)
+            ->name('branches.index');
+    });
 });

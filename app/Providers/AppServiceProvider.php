@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Load central/landlord migrations
+        $this->loadMigrationsFrom([
+            database_path('migrations'),
+            database_path('migrations/landlord'),
+        ]);
     }
 }
