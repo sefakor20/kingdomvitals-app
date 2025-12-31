@@ -61,6 +61,12 @@
                     </div>
 
                     <div class="flex items-center gap-2">
+                        @can('viewAny', [\App\Models\Tenant\UserBranchAccess::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('branches.users.index', $branch) }}" icon="users">
+                                {{ __('Users') }}
+                            </flux:button>
+                        @endcan
+
                         @can('update', $branch)
                             <flux:button variant="ghost" size="sm" wire:click="edit('{{ $branch->id }}')" icon="pencil">
                                 {{ __('Edit') }}

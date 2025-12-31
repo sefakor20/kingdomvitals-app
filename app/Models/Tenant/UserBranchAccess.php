@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use App\Enums\BranchRole;
+use App\Models\User;
 use Database\Factories\Tenant\UserBranchAccessFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -41,5 +42,10 @@ class UserBranchAccess extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
