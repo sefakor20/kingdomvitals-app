@@ -14,7 +14,8 @@
         "laravel/framework": "^12.44",
         "laravel/tinker": "^2.10.2",
         "livewire/flux": "^2.10.2",
-        "propaganistas/laravel-phone": "^6.0.2"
+        "propaganistas/laravel-phone": "^6.0.2",
+        "stancl/tenancy": "^3.9"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16.3",

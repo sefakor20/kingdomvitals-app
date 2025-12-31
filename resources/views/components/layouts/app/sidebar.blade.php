@@ -11,9 +11,19 @@
                 <x-app-logo />
             </a>
 
+            <!-- Branch Selector (only in tenant context) -->
+            @if(tenant() && auth()->check())
+                <div class="mb-4">
+                    <livewire:branches.branch-selector />
+                </div>
+            @endif
+
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    @if(tenant())
+                        <flux:navlist.item icon="building-office" :href="route('branches.index')" :current="request()->routeIs('branches.*')" wire:navigate>{{ __('Branches') }}</flux:navlist.item>
+                    @endif
                 </flux:navlist.group>
             </flux:navlist>
 
