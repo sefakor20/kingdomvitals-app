@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Branches;
 
+use App\Enums\BranchRole;
 use App\Enums\BranchStatus;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\UserBranchAccess;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -101,7 +103,15 @@ class BranchIndex extends Component
         $this->authorize('create', Branch::class);
         $validated = $this->validate();
 
-        Branch::create($validated);
+        $branch = Branch::create($validated);
+
+        // Grant the creating user admin access to the new branch
+        UserBranchAccess::create([
+            'user_id' => auth()->id(),
+            'branch_id' => $branch->id,
+            'role' => BranchRole::Admin,
+            'is_primary' => false,
+        ]);
 
         $this->showCreateModal = false;
         $this->resetForm();

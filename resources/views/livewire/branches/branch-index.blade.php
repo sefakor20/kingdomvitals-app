@@ -26,7 +26,7 @@
             @endcan
         </div>
     @else
-        <div class="space-y-4">
+        <div class="grid gap-4 md:grid-cols-2">
             @foreach($this->branches as $branch)
                 <div wire:key="branch-{{ $branch->id }}" class="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
                     <div class="flex items-center gap-4">
