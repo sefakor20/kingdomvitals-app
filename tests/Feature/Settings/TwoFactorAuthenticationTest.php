@@ -15,6 +15,11 @@ beforeEach(function () {
     tenancy()->initialize($this->tenant);
     Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
 
+    // Configure app URL and host for tenant domain routing
+    config(['app.url' => 'http://test.localhost']);
+    url()->forceRootUrl('http://test.localhost');
+    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
@@ -39,7 +44,7 @@ test('two factor settings page can be rendered', function () {
         ->assertOk()
         ->assertSee('Two Factor Authentication')
         ->assertSee('Disabled');
-})->skip('Requires tenant domain routing setup');
+});
 
 test('two factor settings page requires password confirmation when enabled', function () {
     $user = User::factory()->create();
@@ -48,7 +53,7 @@ test('two factor settings page requires password confirmation when enabled', fun
         ->get(route('two-factor.show'));
 
     $response->assertRedirect(route('password.confirm'));
-})->skip('Requires tenant domain routing setup');
+});
 
 test('two factor settings page returns forbidden response when two factor is disabled', function () {
     config(['fortify.features' => []]);
@@ -60,7 +65,7 @@ test('two factor settings page returns forbidden response when two factor is dis
         ->get(route('two-factor.show'));
 
     $response->assertForbidden();
-})->skip('Requires tenant domain routing setup');
+});
 
 test('two factor authentication disabled when confirmation abandoned between requests', function () {
     $user = User::factory()->create();

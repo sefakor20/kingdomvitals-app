@@ -13,6 +13,11 @@ beforeEach(function () {
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
     Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+
+    // Configure app URL and host for tenant domain routing
+    config(['app.url' => 'http://test.localhost']);
+    url()->forceRootUrl('http://test.localhost');
+    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
 });
 
 afterEach(function () {
@@ -28,7 +33,7 @@ test('two factor challenge redirects to login when not authenticated', function 
     $response = $this->get(route('two-factor.login'));
 
     $response->assertRedirect(route('login'));
-})->skip('Requires tenant domain routing setup');
+});
 
 test('two factor challenge can be rendered', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
@@ -46,4 +51,4 @@ test('two factor challenge can be rendered', function () {
         'email' => $user->email,
         'password' => 'password',
     ])->assertRedirect(route('two-factor.login'));
-})->skip('Requires tenant domain routing setup');
+});
