@@ -203,4 +203,17 @@
             </div>
         </div>
     </flux:modal>
+
+    <!-- Success Toasts -->
+    <x-toast on="branch-created" type="success">
+        {{ __('Branch created successfully.') }}
+    </x-toast>
+
+    <x-toast on="branch-updated" type="success">
+        {{ __('Branch updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="branch-deleted" type="success">
+        {{ __('Branch deleted successfully.') }}
+    </x-toast>
 </section>
