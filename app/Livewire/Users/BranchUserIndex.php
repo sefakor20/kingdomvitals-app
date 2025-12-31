@@ -6,6 +6,7 @@ use App\Enums\BranchRole;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
+use App\Notifications\InvitedToBranchNotification;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -108,6 +109,12 @@ class BranchUserIndex extends Component
             'role' => $this->inviteRole,
             'is_primary' => false,
         ]);
+
+        $user->notify(new InvitedToBranchNotification(
+            $this->branch,
+            $this->inviteRole,
+            auth()->user()
+        ));
 
         $this->showInviteModal = false;
         $this->resetInviteForm();
