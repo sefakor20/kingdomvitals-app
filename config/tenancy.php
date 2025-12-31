@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-use Stancl\Tenancy\Database\Models\Domain;
-
 return [
     'tenant_model' => \App\Models\Tenant::class,
     'id_generator' => Stancl\Tenancy\UUIDGenerator::class,
 
-    'domain_model' => Domain::class,
+    'domain_model' => \App\Models\Domain::class,
 
     /**
      * The list of domains hosting your central app.
@@ -19,7 +17,8 @@ return [
         '127.0.0.1',
         'localhost',
         'admin.kingdomvitals.com',
-        'admin.kingdomvitals.test', // For local development
+        'kingdomvitals-app.test', // For local development
+        'admin.kingdomvitals-app.test', // For local development
     ],
 
     /**
@@ -46,7 +45,7 @@ return [
          * Connection used as a "template" for the dynamically created tenant database connection.
          * Note: don't name your template connection tenant. That name is reserved by package.
          */
-        'template_tenant_connection' => null,
+        'template_tenant_connection' => 'tenant_mysql',
 
         /**
          * Tenant database names are created like this:

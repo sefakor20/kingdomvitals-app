@@ -40,18 +40,18 @@ class CreateTenantCommand extends Command
 
         // Create the domain
         $tenant->domains()->create([
-            'domain' => $domain.'.kingdomvitals.test',
+            'domain' => $domain.'.kingdomvitals-app.test',
         ]);
 
-        $this->info("Domain created: {$domain}.kingdomvitals.test");
+        $this->info("Domain created: {$domain}.kingdomvitals-app.test");
         $this->info("Database will be: tenant_{$tenant->id}");
 
         $this->newLine();
         $this->comment('Tenant created successfully!');
-        $this->comment("Access at: http://{$domain}.kingdomvitals.test");
+        $this->comment("Access at: http://{$domain}.kingdomvitals-app.test");
         $this->newLine();
         $this->comment('Next steps:');
-        $this->comment("1. Add '{$domain}.kingdomvitals.test' to your /etc/hosts file");
+        $this->comment("1. Add '{$domain}.kingdomvitals-app.test' to your /etc/hosts file");
         $this->comment('2. Run: php artisan tenants:migrate');
         $this->comment('3. Visit the domain in your browser');
 

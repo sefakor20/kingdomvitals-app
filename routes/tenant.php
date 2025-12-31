@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Settings\Appearance;
+use App\Livewire\Settings\Password;
+use App\Livewire\Settings\Profile;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -23,12 +26,26 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+    // Include all Fortify authentication routes (login, register, password reset, 2FA, etc.)
+    require base_path('vendor/laravel/fortify/routes/routes.php');
+
     Route::get('/', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is '.tenant('id');
-    });
+        return redirect()->route('dashboard');
+    })->name('home');
+
+    // Dashboard
+    Route::view('/dashboard', 'dashboard')
+        ->middleware(['auth', 'verified'])
+        ->name('dashboard');
 
     // Authenticated routes
     Route::middleware(['auth'])->group(function () {
+        // Settings
+        Route::redirect('settings', 'settings/profile');
+        Route::get('settings/profile', Profile::class)->name('profile.edit');
+        Route::get('settings/password', Password::class)->name('user-password.edit');
+        Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
+
         // Branch Management
         Route::get('/branches', \App\Livewire\Branches\BranchIndex::class)
             ->name('branches.index');

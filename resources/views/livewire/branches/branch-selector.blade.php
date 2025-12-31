@@ -1,9 +1,8 @@
 <div>
     @if($this->branches->isNotEmpty())
         <flux:dropdown position="bottom" align="start">
-            <flux:button variant="ghost" class="w-full justify-start" icon:trailing="chevron-down">
-                <flux:icon icon="building-office" class="size-4" />
-                <span class="max-w-[140px] truncate">
+            <flux:button variant="ghost" class="w-full justify-start" icon="building-office" icon:trailing="chevron-down">
+                <span class="truncate">
                     {{ $this->currentBranch?->name ?? __('Select Branch') }}
                 </span>
             </flux:button>
