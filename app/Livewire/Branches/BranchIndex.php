@@ -9,7 +9,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('components.layouts.app.sidebar')]
+#[Layout('components.layouts.app')]
 class BranchIndex extends Component
 {
     public bool $showCreateModal = false;

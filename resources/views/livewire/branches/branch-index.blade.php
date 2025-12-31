@@ -1,4 +1,4 @@
-<section class="w-full max-w-5xl p-6">
+<section class="w-full ">
     <div class="mb-6 flex items-center justify-between">
         <div>
             <flux:heading size="xl" level="1">{{ __('Branches') }}</flux:heading>
@@ -12,7 +12,7 @@
         @endcan
     </div>
 
-    <flux:separator class="mb-6" />
+    {{--  <flux:separator class="mb-6" />  --}}
 
     @if($this->branches->isEmpty())
         <div class="flex flex-col items-center justify-center py-12">
