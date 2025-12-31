@@ -1,9 +1,26 @@
 <?php
 
 use App\Livewire\Settings\Password;
+use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->tenant = Tenant::create(['name' => 'Test Church']);
+    $this->tenant->domains()->create(['domain' => 'test.localhost']);
+    tenancy()->initialize($this->tenant);
+    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+});
+
+afterEach(function () {
+    tenancy()->end();
+    $this->tenant?->delete();
+});
 
 test('password can be updated', function () {
     $user = User::factory()->create([
