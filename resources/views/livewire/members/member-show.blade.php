@@ -312,4 +312,9 @@
             @endif
         @endif
     </div>
+
+    <!-- Success Toast -->
+    <x-toast on="member-updated" type="success">
+        {{ __('Member updated successfully.') }}
+    </x-toast>
 </section>
