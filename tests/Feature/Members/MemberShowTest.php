@@ -11,7 +11,9 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -575,4 +577,169 @@ test('edit mode populates all form fields correctly', function () {
         ->assertSet('zip', '00233')
         ->assertSet('country', 'Ghana')
         ->assertSet('notes', 'A very active member of the congregation.');
+});
+
+// ============================================
+// PHOTO EDITING TESTS
+// ============================================
+
+test('can upload photo in edit mode', function () {
+    Storage::fake('livewire-tmp');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $photo = UploadedFile::fake()->image('avatar.jpg', 100, 100);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('photo', $photo)
+        ->call('save')
+        ->assertSet('editing', false);
+
+    $this->member->refresh();
+    expect($this->member->photo_url)->not->toBeNull();
+    expect($this->member->photo_url)->toContain('/storage/members/');
+});
+
+test('can replace existing photo in edit mode', function () {
+    Storage::fake('livewire-tmp');
+
+    // Set up member with existing photo
+    $this->member->update(['photo_url' => '/storage/members/test/old-photo.jpg']);
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $newPhoto = UploadedFile::fake()->image('new-avatar.jpg', 100, 100);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertSet('existingPhotoUrl', '/storage/members/test/old-photo.jpg')
+        ->set('photo', $newPhoto)
+        ->call('save')
+        ->assertSet('editing', false);
+
+    $this->member->refresh();
+    expect($this->member->photo_url)->not->toBeNull();
+    expect($this->member->photo_url)->not->toBe('/storage/members/test/old-photo.jpg');
+});
+
+test('can remove photo in edit mode', function () {
+    // Set up member with existing photo
+    $this->member->update(['photo_url' => '/storage/members/test/photo.jpg']);
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertSet('existingPhotoUrl', '/storage/members/test/photo.jpg')
+        ->call('removePhoto')
+        ->assertSet('existingPhotoUrl', null)
+        ->assertSet('photo', null);
+
+    $this->member->refresh();
+    expect($this->member->photo_url)->toBeNull();
+});
+
+test('photo must be an image in edit mode', function () {
+    Storage::fake('livewire-tmp');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $textFile = UploadedFile::fake()->create('document.txt', 100);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('photo', $textFile)
+        ->call('save')
+        ->assertHasErrors(['photo']);
+});
+
+test('photo must not exceed 2mb in edit mode', function () {
+    Storage::fake('livewire-tmp');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $largePhoto = UploadedFile::fake()->image('large.jpg')->size(3000);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('photo', $largePhoto)
+        ->call('save')
+        ->assertHasErrors(['photo']);
+});
+
+test('edit mode sets existing photo url', function () {
+    $this->member->update(['photo_url' => '/storage/members/test/photo.jpg']);
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertSet('existingPhotoUrl', '/storage/members/test/photo.jpg')
+        ->assertSet('photo', null);
+});
+
+test('cancel resets photo fields', function () {
+    Storage::fake('livewire-tmp');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $photo = UploadedFile::fake()->image('avatar.jpg', 100, 100);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('photo', $photo)
+        ->call('cancel')
+        ->assertSet('photo', null)
+        ->assertSet('existingPhotoUrl', null)
+        ->assertSet('editing', false);
 });

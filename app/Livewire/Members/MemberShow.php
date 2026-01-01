@@ -10,15 +10,24 @@ use App\Models\Tenant\Member;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.app')]
 class MemberShow extends Component
 {
+    use WithFileUploads;
+
     public Branch $branch;
 
     public Member $member;
 
     public bool $editing = false;
+
+    // Photo fields
+    public TemporaryUploadedFile|string|null $photo = null;
+
+    public ?string $existingPhotoUrl = null;
 
     // Form fields
     public string $first_name = '';
@@ -112,12 +121,16 @@ class MemberShow extends Component
             'joined_at' => ['nullable', 'date'],
             'baptized_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'photo' => ['nullable', 'image', 'max:2048'],
         ];
     }
 
     public function edit(): void
     {
         $this->authorize('update', $this->member);
+
+        $this->existingPhotoUrl = $this->member->photo_url;
+        $this->photo = null;
 
         $this->fill([
             'first_name' => $this->member->first_name,
@@ -159,17 +172,79 @@ class MemberShow extends Component
             }
         }
 
+        // Handle photo upload
+        if ($this->photo instanceof TemporaryUploadedFile) {
+            // Delete old photo if exists
+            $this->deleteOldPhoto($this->member);
+            $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+        }
+
+        // Remove photo from validated data (it's not a model field)
+        unset($validated['photo']);
+
         $this->member->update($validated);
         $this->member->refresh();
 
         $this->editing = false;
+        $this->existingPhotoUrl = null;
+        $this->photo = null;
         $this->dispatch('member-updated');
     }
 
     public function cancel(): void
     {
         $this->editing = false;
+        $this->photo = null;
+        $this->existingPhotoUrl = null;
         $this->resetValidation();
+    }
+
+    public function removePhoto(): void
+    {
+        $this->authorize('update', $this->member);
+
+        if ($this->existingPhotoUrl) {
+            $this->deleteOldPhoto($this->member);
+            $this->member->update(['photo_url' => null]);
+            $this->existingPhotoUrl = null;
+        }
+        $this->photo = null;
+    }
+
+    private function deleteOldPhoto(Member $member): void
+    {
+        if ($member->photo_url) {
+            // Extract path from URL and delete from central storage
+            $relativePath = str_replace('/storage/', '', parse_url($member->photo_url, PHP_URL_PATH));
+            // Use base_path to avoid tenant storage path prefix
+            $fullPath = base_path('storage/app/public/'.$relativePath);
+
+            if ($relativePath && file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+        }
+    }
+
+    private function storePhotoInCentralStorage(TemporaryUploadedFile $photo): string
+    {
+        $tenantId = tenant()->id;
+        $filename = $photo->hashName();
+
+        // Use base_path to avoid tenant storage path prefix
+        $directory = base_path("storage/app/public/members/{$tenantId}");
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $destination = $directory.'/'.$filename;
+
+        // Use copy + unlink instead of move to handle cross-filesystem transfers
+        // (tenant storage to central storage)
+        copy($photo->getRealPath(), $destination);
+        @unlink($photo->getRealPath());
+
+        return "/storage/members/{$tenantId}/{$filename}";
     }
 
     public function render()

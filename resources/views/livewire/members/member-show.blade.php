@@ -29,10 +29,38 @@
     <div class="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="flex items-start justify-between">
             <div class="flex items-center gap-4">
-                @if($member->photo_url)
-                    <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-16 rounded-full object-cover" />
+                @if($editing)
+                    <div class="flex flex-col items-center gap-2">
+                        @if($photo && $photo->isPreviewable())
+                            <img src="{{ $photo->temporaryUrl() }}" alt="{{ __('New photo') }}" class="size-16 rounded-full object-cover" />
+                        @elseif($photo)
+                            <div class="flex size-16 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                <flux:icon.photo class="size-8 text-zinc-400" />
+                            </div>
+                        @elseif($existingPhotoUrl)
+                            <img src="{{ $existingPhotoUrl }}" alt="{{ $member->fullName() }}" class="size-16 rounded-full object-cover" />
+                        @else
+                            <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                        @endif
+                        <div class="flex gap-2">
+                            <label class="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">
+                                {{ __('Upload') }}
+                                <input type="file" wire:model="photo" class="hidden" accept="image/*" />
+                            </label>
+                            @if($existingPhotoUrl || $photo)
+                                <button type="button" wire:click="removePhoto" class="text-xs text-red-600 hover:underline dark:text-red-400">
+                                    {{ __('Remove') }}
+                                </button>
+                            @endif
+                        </div>
+                        @error('photo') <div class="text-xs text-red-600">{{ $message }}</div> @enderror
+                    </div>
                 @else
-                    <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                    @if($member->photo_url)
+                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-16 rounded-full object-cover" />
+                    @else
+                        <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                    @endif
                 @endif
                 <div>
                     @if($editing)
