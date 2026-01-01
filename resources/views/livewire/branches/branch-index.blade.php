@@ -26,7 +26,7 @@
             @endcan
         </div>
     @else
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-4">
             @foreach($this->branches as $branch)
                 <div wire:key="branch-{{ $branch->id }}" class="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
                     <div class="flex items-center gap-4">
@@ -61,6 +61,30 @@
                     </div>
 
                     <div class="flex items-center gap-2">
+                        @can('viewAny', [\App\Models\Tenant\UserBranchAccess::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('branches.users.index', $branch) }}" icon="users">
+                                {{ __('Users') }}
+                            </flux:button>
+                        @endcan
+
+                        @can('viewAny', [\App\Models\Tenant\Member::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('members.index', $branch) }}" icon="user-group">
+                                {{ __('Members') }}
+                            </flux:button>
+                        @endcan
+
+                        @can('viewAny', [\App\Models\Tenant\Cluster::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('clusters.index', $branch) }}" icon="rectangle-group">
+                                {{ __('Clusters') }}
+                            </flux:button>
+                        @endcan
+
+                        @can('viewAny', [\App\Models\Tenant\Service::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('services.index', $branch) }}" icon="calendar">
+                                {{ __('Services') }}
+                            </flux:button>
+                        @endcan
+
                         @can('update', $branch)
                             <flux:button variant="ghost" size="sm" wire:click="edit('{{ $branch->id }}')" icon="pencil">
                                 {{ __('Edit') }}

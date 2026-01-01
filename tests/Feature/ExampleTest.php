@@ -11,6 +11,11 @@ beforeEach(function () {
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
     Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+
+    // Configure app URL and host for tenant domain routing
+    config(['app.url' => 'http://test.localhost']);
+    url()->forceRootUrl('http://test.localhost');
+    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
 });
 
 afterEach(function () {
@@ -23,4 +28,4 @@ test('returns a successful response', function () {
     $response = $this->get('/');
 
     $response->assertRedirect('/dashboard');
-})->skip('Requires tenant domain routing setup');
+});

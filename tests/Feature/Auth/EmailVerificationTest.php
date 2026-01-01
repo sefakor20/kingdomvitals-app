@@ -12,6 +12,11 @@ beforeEach(function () {
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
     Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+
+    // Configure app URL and host for tenant domain routing
+    config(['app.url' => 'http://test.localhost']);
+    url()->forceRootUrl('http://test.localhost');
+    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
 });
 
 afterEach(function () {
@@ -25,7 +30,7 @@ test('email verification screen can be rendered', function () {
     $response = $this->actingAs($user)->get(route('verification.notice'));
 
     $response->assertStatus(200);
-})->skip('Requires tenant domain routing setup');
+});
 
 test('email can be verified', function () {
     $user = User::factory()->unverified()->create();
@@ -44,7 +49,7 @@ test('email can be verified', function () {
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
-})->skip('Requires tenant domain routing setup');
+});
 
 test('email is not verified with invalid hash', function () {
     $user = User::factory()->unverified()->create();
@@ -58,4 +63,4 @@ test('email is not verified with invalid hash', function () {
     $this->actingAs($user)->get($verificationUrl);
 
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
-})->skip('Requires tenant domain routing setup');
+});

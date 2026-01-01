@@ -5,16 +5,27 @@ namespace App\Models\Tenant;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Observers\MemberObserver;
+use Database\Factories\Tenant\MemberFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy([MemberObserver::class])]
 class Member extends Model
 {
-    use HasFactory, HasUuids;
+    /** @use HasFactory<MemberFactory> */
+    use HasFactory, HasUuids, SoftDeletes;
+
+    protected static function newFactory(): MemberFactory
+    {
+        return MemberFactory::new();
+    }
 
     protected $fillable = [
         'primary_branch_id',
@@ -78,7 +89,8 @@ class Member extends Model
     public function clusters(): BelongsToMany
     {
         return $this->belongsToMany(Cluster::class, 'cluster_member')
-            ->withPivot(['role', 'joined_at'])
+            ->using(ClusterMember::class)
+            ->withPivot(['id', 'role', 'joined_at'])
             ->withTimestamps();
     }
 
@@ -100,5 +112,10 @@ class Member extends Model
     public function smsLogs(): HasMany
     {
         return $this->hasMany(SmsLog::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(MemberActivity::class)->latest();
     }
 }

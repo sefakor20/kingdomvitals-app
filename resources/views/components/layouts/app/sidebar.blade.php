@@ -27,6 +27,11 @@
                 </flux:navlist.group>
             </flux:navlist>
 
+            <!-- Branch Context Navigation -->
+            @if(tenant() && auth()->check())
+                <livewire:navigation.branch-navigation />
+            @endif
+
             <flux:spacer />
 
             <flux:navlist variant="outline">

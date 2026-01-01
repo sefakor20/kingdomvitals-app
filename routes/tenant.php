@@ -49,5 +49,27 @@ Route::middleware([
         // Branch Management
         Route::get('/branches', \App\Livewire\Branches\BranchIndex::class)
             ->name('branches.index');
+
+        // Branch User Management
+        Route::get('/branches/{branch}/users', \App\Livewire\Users\BranchUserIndex::class)
+            ->name('branches.users.index');
+
+        // Member Management
+        Route::get('/branches/{branch}/members', \App\Livewire\Members\MemberIndex::class)
+            ->name('members.index');
+        Route::get('/branches/{branch}/members/{member}', \App\Livewire\Members\MemberShow::class)
+            ->name('members.show');
+
+        // Cluster Management
+        Route::get('/branches/{branch}/clusters', \App\Livewire\Clusters\ClusterIndex::class)
+            ->name('clusters.index');
+        Route::get('/branches/{branch}/clusters/{cluster}', \App\Livewire\Clusters\ClusterShow::class)
+            ->name('clusters.show');
+
+        // Service Management
+        Route::get('/branches/{branch}/services', \App\Livewire\Services\ServiceIndex::class)
+            ->name('services.index');
+        Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
+            ->name('services.show');
     });
 });

@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use App\Enums\ServiceType;
+use Database\Factories\Tenant\ServiceFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Service extends Model
 {
+    /** @use HasFactory<ServiceFactory> */
     use HasFactory, HasUuids;
+
+    protected static function newFactory(): ServiceFactory
+    {
+        return ServiceFactory::new();
+    }
 
     protected $fillable = [
         'branch_id',

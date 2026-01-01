@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Tenant\Member;
+use App\Models\Tenant\UserBranchAccess;
+use App\Policies\MemberPolicy;
+use App\Policies\UserBranchAccessPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -21,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register policies
+        Gate::policy(UserBranchAccess::class, UserBranchAccessPolicy::class);
+        Gate::policy(Member::class, MemberPolicy::class);
+
         // Load central/landlord migrations
         $this->loadMigrationsFrom([
             database_path('migrations'),

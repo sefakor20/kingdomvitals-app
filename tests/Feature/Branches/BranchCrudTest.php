@@ -21,6 +21,11 @@ beforeEach(function () {
     tenancy()->initialize($this->tenant);
     Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
 
+    // Configure app URL and host for tenant domain routing
+    config(['app.url' => 'http://test.localhost']);
+    url()->forceRootUrl('http://test.localhost');
+    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+
     // Create main branch
     $this->mainBranch = Branch::factory()->main()->create();
 });
@@ -42,7 +47,7 @@ test('authenticated user can view branches page', function () {
         ->get('/branches')
         ->assertOk()
         ->assertSeeLivewire(BranchIndex::class);
-})->skip('Requires tenant routing setup');
+});
 
 test('admin can create a new branch', function () {
     $user = User::factory()->create();

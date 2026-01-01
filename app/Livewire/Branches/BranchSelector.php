@@ -49,10 +49,48 @@ class BranchSelector extends Component
 
     public function switchBranch(string $branchId): void
     {
-        if ($this->branches->contains('id', $branchId)) {
-            $this->currentBranchId = $branchId;
-            $this->dispatch('branch-switched', branchId: $branchId);
+        if (! $this->branches->contains('id', $branchId)) {
+            return;
         }
+
+        // Update both component state AND explicitly persist to session
+        $this->currentBranchId = $branchId;
+        app(BranchContextService::class)->setCurrentBranch($branchId);
+
+        // Check if we need to navigate to a new route
+        $currentRoute = request()->route()?->getName();
+        $branchScopedRoutes = [
+            'members.index',
+            'members.show',
+            'clusters.index',
+            'clusters.show',
+            'services.index',
+            'services.show',
+            'branches.users.index',
+        ];
+
+        if ($currentRoute && in_array($currentRoute, $branchScopedRoutes)) {
+            $newBranch = Branch::find($branchId);
+
+            // For detail routes, redirect to index (item may not exist in new branch)
+            $indexRoute = match ($currentRoute) {
+                'members.index', 'members.show' => 'members.index',
+                'clusters.index', 'clusters.show' => 'clusters.index',
+                'services.index', 'services.show' => 'services.index',
+                'branches.users.index' => 'branches.users.index',
+                default => null,
+            };
+
+            if ($indexRoute && $newBranch) {
+                // Use full page redirect to avoid Livewire snapshot conflicts
+                $this->redirect(route($indexRoute, $newBranch), navigate: false);
+
+                return;
+            }
+        }
+
+        // Only dispatch event when NOT redirecting (e.g., on Dashboard, Branches list)
+        $this->dispatch('branch-switched', branchId: $branchId);
     }
 
     public function render()
