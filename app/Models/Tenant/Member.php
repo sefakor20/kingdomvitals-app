@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use Database\Factories\Tenant\MemberFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Member extends Model
 {
+    /** @use HasFactory<MemberFactory> */
     use HasFactory, HasUuids;
+
+    protected static function newFactory(): MemberFactory
+    {
+        return MemberFactory::new();
+    }
 
     protected $fillable = [
         'primary_branch_id',
