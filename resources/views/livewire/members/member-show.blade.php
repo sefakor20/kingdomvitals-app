@@ -20,7 +20,11 @@
     <div class="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="flex items-start justify-between">
             <div class="flex items-center gap-4">
-                <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                @if($member->photo_url)
+                    <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-16 rounded-full object-cover" />
+                @else
+                    <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                @endif
                 <div>
                     <flux:heading size="xl">{{ $member->fullName() }}</flux:heading>
                     <div class="mt-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">

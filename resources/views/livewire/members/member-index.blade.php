@@ -73,7 +73,11 @@
                         <tr wire:key="member-{{ $member->id }}">
                             <td class="whitespace-nowrap px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <flux:avatar size="sm" name="{{ $member->fullName() }}" />
+                                    @if($member->photo_url)
+                                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                    @else
+                                        <flux:avatar size="sm" name="{{ $member->fullName() }}" />
+                                    @endif
                                     <div>
                                         <a href="{{ route('members.show', [$branch, $member]) }}" class="font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400" wire:navigate>
                                             {{ $member->fullName() }}
@@ -197,6 +201,27 @@
 
                 <flux:textarea wire:model="notes" :label="__('Notes')" rows="2" />
 
+                <!-- Photo Upload -->
+                <div>
+                    <flux:field>
+                        <flux:label>{{ __('Photo') }}</flux:label>
+                        <div class="flex items-center gap-4">
+                            @if($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                                <img src="{{ $photo->temporaryUrl() }}" alt="Preview" class="size-16 rounded-full object-cover" />
+                            @else
+                                <div class="flex size-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <flux:icon icon="user" class="size-8 text-zinc-400" />
+                                </div>
+                            @endif
+                            <div class="flex-1">
+                                <input type="file" wire:model="photo" accept="image/*" class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-md file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300" />
+                                <p class="mt-1 text-xs text-zinc-500">{{ __('JPG, PNG, GIF up to 2MB') }}</p>
+                            </div>
+                        </div>
+                        @error('photo') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                </div>
+
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="cancelCreate" type="button">
                         {{ __('Cancel') }}
@@ -271,6 +296,34 @@
                 </div>
 
                 <flux:textarea wire:model="notes" :label="__('Notes')" rows="2" />
+
+                <!-- Photo Upload -->
+                <div>
+                    <flux:field>
+                        <flux:label>{{ __('Photo') }}</flux:label>
+                        <div class="flex items-center gap-4">
+                            @if($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                                <img src="{{ $photo->temporaryUrl() }}" alt="Preview" class="size-16 rounded-full object-cover" />
+                            @elseif($existingPhotoUrl)
+                                <img src="{{ $existingPhotoUrl }}" alt="Current photo" class="size-16 rounded-full object-cover" />
+                            @else
+                                <div class="flex size-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <flux:icon icon="user" class="size-8 text-zinc-400" />
+                                </div>
+                            @endif
+                            <div class="flex-1">
+                                <input type="file" wire:model="photo" accept="image/*" class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-md file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300" />
+                                <p class="mt-1 text-xs text-zinc-500">{{ __('JPG, PNG, GIF up to 2MB') }}</p>
+                            </div>
+                            @if($existingPhotoUrl || $photo)
+                                <flux:button variant="ghost" size="sm" wire:click="removePhoto" type="button" class="text-red-600">
+                                    {{ __('Remove') }}
+                                </flux:button>
+                            @endif
+                        </div>
+                        @error('photo') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                </div>
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="cancelEdit" type="button">

@@ -9,7 +9,9 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -952,4 +954,228 @@ test('create button is hidden for volunteers', function () {
 
     // Verify volunteer cannot trigger create action
     $component->call('create')->assertForbidden();
+});
+
+// ============================================
+// PHOTO UPLOAD TESTS
+// ============================================
+
+test('can create member with photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $photo = UploadedFile::fake()->image('photo.jpg', 200, 200);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('create')
+        ->set('first_name', 'Photo')
+        ->set('last_name', 'Member')
+        ->set('status', 'active')
+        ->set('photo', $photo)
+        ->call('store')
+        ->assertHasNoErrors()
+        ->assertSet('showCreateModal', false);
+
+    $member = Member::where('first_name', 'Photo')->first();
+    expect($member)->not->toBeNull();
+    expect($member->photo_url)->not->toBeNull();
+    expect($member->photo_url)->toContain('/storage/members/');
+});
+
+test('can update member photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+
+    $this->actingAs($user);
+
+    $photo = UploadedFile::fake()->image('new-photo.jpg', 200, 200);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('edit', $member)
+        ->set('photo', $photo)
+        ->call('update')
+        ->assertHasNoErrors();
+
+    $member->refresh();
+    expect($member->photo_url)->not->toBeNull();
+    expect($member->photo_url)->toContain('/storage/members/');
+});
+
+test('can replace existing member photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    // Create member with existing photo
+    $oldPhoto = UploadedFile::fake()->image('old-photo.jpg', 200, 200);
+    $oldPath = $oldPhoto->store('members/'.$this->tenant->id, 'public');
+    $oldUrl = Storage::disk('public')->url($oldPath);
+
+    $member = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'photo_url' => $oldUrl,
+    ]);
+
+    $this->actingAs($user);
+
+    $newPhoto = UploadedFile::fake()->image('new-photo.jpg', 200, 200);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('edit', $member)
+        ->set('photo', $newPhoto)
+        ->call('update')
+        ->assertHasNoErrors();
+
+    $member->refresh();
+    expect($member->photo_url)->not->toBeNull();
+    expect($member->photo_url)->not->toBe($oldUrl);
+});
+
+test('can remove member photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    // Create member with existing photo
+    $photo = UploadedFile::fake()->image('photo.jpg', 200, 200);
+    $path = $photo->store('members/'.$this->tenant->id, 'public');
+    $photoUrl = Storage::disk('public')->url($path);
+
+    $member = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'photo_url' => $photoUrl,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('edit', $member)
+        ->assertSet('existingPhotoUrl', $photoUrl)
+        ->call('removePhoto')
+        ->assertSet('existingPhotoUrl', null);
+
+    $member->refresh();
+    expect($member->photo_url)->toBeNull();
+});
+
+test('photo must be an image', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('create')
+        ->set('first_name', 'Test')
+        ->set('last_name', 'Member')
+        ->set('status', 'active')
+        ->set('photo', $file)
+        ->call('store')
+        ->assertHasErrors(['photo']);
+});
+
+test('photo must not exceed 2mb', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    // Create image larger than 2MB (2048KB)
+    $file = UploadedFile::fake()->image('large-photo.jpg')->size(3000);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('create')
+        ->set('first_name', 'Test')
+        ->set('last_name', 'Member')
+        ->set('status', 'active')
+        ->set('photo', $file)
+        ->call('store')
+        ->assertHasErrors(['photo']);
+});
+
+test('edit modal loads existing photo url', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'photo_url' => 'http://example.com/photo.jpg',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('edit', $member)
+        ->assertSet('existingPhotoUrl', 'http://example.com/photo.jpg');
+});
+
+test('photo is stored in tenant-specific directory', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $photo = UploadedFile::fake()->image('photo.jpg', 200, 200);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->call('create')
+        ->set('first_name', 'Tenant')
+        ->set('last_name', 'Isolated')
+        ->set('status', 'active')
+        ->set('photo', $photo)
+        ->call('store')
+        ->assertHasNoErrors();
+
+    $member = Member::where('first_name', 'Tenant')->first();
+    expect($member->photo_url)->toContain('/storage/members/'.$this->tenant->id.'/');
 });

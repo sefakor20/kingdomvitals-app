@@ -11,10 +11,14 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.app')]
 class MemberIndex extends Component
 {
+    use WithFileUploads;
+
     public Branch $branch;
 
     public string $search = '';
@@ -29,6 +33,10 @@ class MemberIndex extends Component
 
     // Form properties
     public string $first_name = '';
+
+    public TemporaryUploadedFile|string|null $photo = null;
+
+    public ?string $existingPhotoUrl = null;
 
     public string $last_name = '';
 
@@ -138,6 +146,7 @@ class MemberIndex extends Component
             'joined_at' => ['nullable', 'date'],
             'baptized_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'photo' => ['nullable', 'image', 'max:2048'],
         ];
     }
 
@@ -167,6 +176,14 @@ class MemberIndex extends Component
             }
         }
 
+        // Handle photo upload - store in central public storage
+        if ($this->photo instanceof TemporaryUploadedFile) {
+            $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+        }
+
+        // Remove photo from validated data (it's not a model field)
+        unset($validated['photo']);
+
         Member::create($validated);
 
         $this->showCreateModal = false;
@@ -178,6 +195,8 @@ class MemberIndex extends Component
     {
         $this->authorize('update', $member);
         $this->editingMember = $member;
+        $this->existingPhotoUrl = $member->photo_url;
+        $this->photo = null;
         $this->fill([
             'first_name' => $member->first_name,
             'last_name' => $member->last_name,
@@ -204,6 +223,17 @@ class MemberIndex extends Component
     {
         $this->authorize('update', $this->editingMember);
         $validated = $this->validate();
+
+        // Handle photo upload - store in central public storage
+        if ($this->photo instanceof TemporaryUploadedFile) {
+            // Delete old photo if exists
+            $this->deleteOldPhoto($this->editingMember);
+
+            $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+        }
+
+        // Remove photo from validated data (it's not a model field)
+        unset($validated['photo']);
 
         $this->editingMember->update($validated);
 
@@ -249,12 +279,60 @@ class MemberIndex extends Component
         $this->deletingMember = null;
     }
 
+    public function removePhoto(): void
+    {
+        if ($this->editingMember) {
+            $this->authorize('update', $this->editingMember);
+            $this->deleteOldPhoto($this->editingMember);
+            $this->editingMember->update(['photo_url' => null]);
+            $this->existingPhotoUrl = null;
+        }
+        $this->photo = null;
+    }
+
+    private function deleteOldPhoto(Member $member): void
+    {
+        if ($member->photo_url) {
+            // Extract path from URL and delete from central storage
+            $relativePath = str_replace('/storage/', '', parse_url($member->photo_url, PHP_URL_PATH));
+            // Use base_path to avoid tenant storage path prefix
+            $fullPath = base_path('storage/app/public/'.$relativePath);
+
+            if ($relativePath && file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+        }
+    }
+
+    private function storePhotoInCentralStorage(TemporaryUploadedFile $photo): string
+    {
+        $tenantId = tenant()->id;
+        $filename = $photo->hashName();
+
+        // Use base_path to avoid tenant storage path prefix
+        $directory = base_path("storage/app/public/members/{$tenantId}");
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $destination = $directory.'/'.$filename;
+
+        // Use copy + unlink instead of move to handle cross-filesystem transfers
+        // (tenant storage to central storage)
+        copy($photo->getRealPath(), $destination);
+        @unlink($photo->getRealPath());
+
+        return "/storage/members/{$tenantId}/{$filename}";
+    }
+
     private function resetForm(): void
     {
         $this->reset([
             'first_name', 'last_name', 'middle_name', 'email', 'phone',
             'date_of_birth', 'gender', 'marital_status', 'address',
             'city', 'state', 'zip', 'joined_at', 'baptized_at', 'notes',
+            'photo', 'existingPhotoUrl',
         ]);
         $this->status = 'active';
         $this->country = 'Ghana';
