@@ -5,7 +5,9 @@ namespace App\Models\Tenant;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Observers\MemberObserver;
 use Database\Factories\Tenant\MemberFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy([MemberObserver::class])]
 class Member extends Model
 {
     /** @use HasFactory<MemberFactory> */
@@ -109,5 +112,10 @@ class Member extends Model
     public function smsLogs(): HasMany
     {
         return $this->hasMany(SmsLog::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(MemberActivity::class)->latest();
     }
 }

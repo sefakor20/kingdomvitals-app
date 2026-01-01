@@ -395,6 +395,11 @@
         @endif
     </div>
 
+    <!-- Activity History -->
+    <div class="mt-6">
+        <livewire:members.member-activity-log :member="$member" />
+    </div>
+
     <!-- Add to Cluster Modal -->
     <flux:modal wire:model.self="showAddClusterModal" name="add-cluster" class="w-full max-w-md">
         <div class="space-y-6">
