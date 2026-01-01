@@ -33,6 +33,17 @@
                     {{ __('Services') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewVisitors)
+                <flux:navlist.item
+                    icon="user-plus"
+                    :href="route('visitors.index', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.*')"
+                    wire:navigate
+                >
+                    {{ __('Visitors') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
     </flux:navlist>
 @endif

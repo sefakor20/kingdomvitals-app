@@ -6,6 +6,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
+use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -55,6 +56,13 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [Service::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewVisitors(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Visitor::class, $this->currentBranch]);
     }
 
     public function render()

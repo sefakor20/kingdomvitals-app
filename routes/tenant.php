@@ -71,5 +71,11 @@ Route::middleware([
             ->name('services.index');
         Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
             ->name('services.show');
+
+        // Visitor Management
+        Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
+            ->name('visitors.index');
+        Route::get('/branches/{branch}/visitors/{visitor}', \App\Livewire\Visitors\VisitorShow::class)
+            ->name('visitors.show');
     });
 });
