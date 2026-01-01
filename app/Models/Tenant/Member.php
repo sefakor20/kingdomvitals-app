@@ -90,7 +90,7 @@ class Member extends Model
     {
         return $this->belongsToMany(Cluster::class, 'cluster_member')
             ->using(ClusterMember::class)
-            ->withPivot(['role', 'joined_at'])
+            ->withPivot(['id', 'role', 'joined_at'])
             ->withTimestamps();
     }
 

@@ -73,6 +73,12 @@
                             </flux:button>
                         @endcan
 
+                        @can('viewAny', [\App\Models\Tenant\Cluster::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('clusters.index', $branch) }}" icon="rectangle-group">
+                                {{ __('Clusters') }}
+                            </flux:button>
+                        @endcan
+
                         @can('update', $branch)
                             <flux:button variant="ghost" size="sm" wire:click="edit('{{ $branch->id }}')" icon="pencil">
                                 {{ __('Edit') }}

@@ -62,7 +62,8 @@ class Cluster extends Model
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(Member::class, 'cluster_member')
-            ->withPivot(['role', 'joined_at'])
+            ->using(ClusterMember::class)
+            ->withPivot(['id', 'role', 'joined_at'])
             ->withTimestamps();
     }
 }
