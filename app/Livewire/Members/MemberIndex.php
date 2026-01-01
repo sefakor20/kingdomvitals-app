@@ -76,6 +76,10 @@ class MemberIndex extends Component
 
     public ?Member $deletingMember = null;
 
+    public ?Member $forceDeleting = null;
+
+    public bool $showForceDeleteModal = false;
+
     public function mount(Branch $branch): void
     {
         $this->authorize('viewAny', [Member::class, $branch]);
@@ -278,6 +282,29 @@ class MemberIndex extends Component
         $this->authorize('restore', $member);
         $member->restore();
         $this->dispatch('member-restored');
+    }
+
+    public function confirmForceDelete(string $memberId): void
+    {
+        $member = Member::onlyTrashed()->where('id', $memberId)->firstOrFail();
+        $this->authorize('forceDelete', $member);
+        $this->forceDeleting = $member;
+        $this->showForceDeleteModal = true;
+    }
+
+    public function cancelForceDelete(): void
+    {
+        $this->showForceDeleteModal = false;
+        $this->forceDeleting = null;
+    }
+
+    public function forceDelete(): void
+    {
+        $this->authorize('forceDelete', $this->forceDeleting);
+        $this->forceDeleting->forceDelete();
+        $this->showForceDeleteModal = false;
+        $this->forceDeleting = null;
+        $this->dispatch('member-force-deleted');
     }
 
     public function cancelCreate(): void

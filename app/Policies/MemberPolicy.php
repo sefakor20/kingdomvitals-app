@@ -107,4 +107,16 @@ class MemberPolicy
             ])
             ->exists();
     }
+
+    /**
+     * Determine whether the user can permanently delete a member.
+     * Only Admin can permanently delete.
+     */
+    public function forceDelete(User $user, Member $member): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $member->primary_branch_id)
+            ->where('role', BranchRole::Admin->value)
+            ->exists();
+    }
 }

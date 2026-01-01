@@ -152,6 +152,11 @@
                                                 {{ __('Restore') }}
                                             </flux:button>
                                         @endcan
+                                        @can('forceDelete', $member)
+                                            <flux:button variant="danger" size="sm" wire:click="confirmForceDelete('{{ $member->id }}')" icon="trash">
+                                                {{ __('Delete Permanently') }}
+                                            </flux:button>
+                                        @endcan
                                     @else
                                         @can('update', $member)
                                             <flux:button variant="ghost" size="sm" wire:click="edit('{{ $member->id }}')" icon="pencil">
@@ -393,6 +398,26 @@
         </div>
     </flux:modal>
 
+    <!-- Permanent Delete Confirmation Modal -->
+    <flux:modal wire:model.self="showForceDeleteModal" name="force-delete-member" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Permanently Delete Member') }}</flux:heading>
+
+            <p class="text-sm text-red-600 dark:text-red-400">
+                {{ __('This action cannot be undone. The member :name and all their data will be permanently removed from the database.', ['name' => $forceDeleting?->fullName() ?? '']) }}
+            </p>
+
+            <div class="flex justify-end gap-3">
+                <flux:button variant="ghost" wire:click="cancelForceDelete">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="danger" wire:click="forceDelete">
+                    {{ __('Delete Permanently') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
     <!-- Success Toasts -->
     <x-toast on="member-created" type="success">
         {{ __('Member added successfully.') }}
@@ -408,5 +433,9 @@
 
     <x-toast on="member-restored" type="success">
         {{ __('Member restored successfully.') }}
+    </x-toast>
+
+    <x-toast on="member-force-deleted" type="success">
+        {{ __('Member permanently deleted.') }}
     </x-toast>
 </section>

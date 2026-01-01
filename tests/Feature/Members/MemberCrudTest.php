@@ -631,6 +631,151 @@ test('empty state shows appropriate message for deleted view', function () {
 });
 
 // ============================================
+// PERMANENT DELETE TESTS
+// ============================================
+
+test('admin can permanently delete a soft-deleted member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    // Verify member is soft deleted
+    expect(Member::find($memberId))->toBeNull();
+    expect(Member::withTrashed()->find($memberId))->not->toBeNull();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('confirmForceDelete', $memberId)
+        ->assertSet('showForceDeleteModal', true)
+        ->call('forceDelete')
+        ->assertSet('showForceDeleteModal', false)
+        ->assertDispatched('member-force-deleted');
+
+    // Verify member is completely removed from database
+    expect(Member::find($memberId))->toBeNull();
+    expect(Member::withTrashed()->find($memberId))->toBeNull();
+});
+
+test('manager cannot permanently delete a member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Manager,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('confirmForceDelete', $memberId)
+        ->assertForbidden();
+
+    // Member should still exist in trashed
+    expect(Member::withTrashed()->find($memberId))->not->toBeNull();
+});
+
+test('staff cannot permanently delete a member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('confirmForceDelete', $memberId)
+        ->assertForbidden();
+
+    // Member should still exist in trashed
+    expect(Member::withTrashed()->find($memberId))->not->toBeNull();
+});
+
+test('cancel force delete modal closes modal', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('confirmForceDelete', $memberId)
+        ->assertSet('showForceDeleteModal', true)
+        ->call('cancelForceDelete')
+        ->assertSet('showForceDeleteModal', false)
+        ->assertSet('forceDeleting', null);
+
+    // Member should still exist in trashed
+    expect(Member::withTrashed()->find($memberId))->not->toBeNull();
+});
+
+test('admin sees delete permanently button in deleted view', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $member->delete();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->assertSee('Delete Permanently');
+});
+
+test('manager does not see delete permanently button in table actions', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Manager,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    // Manager should not be able to trigger the force delete action
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->assertDontSeeHtml("wire:click=\"confirmForceDelete('{$memberId}')\"");
+});
+
+// ============================================
 // SEARCH AND FILTER TESTS
 // ============================================
 
