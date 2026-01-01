@@ -67,6 +67,12 @@
                             </flux:button>
                         @endcan
 
+                        @can('viewAny', [\App\Models\Tenant\Member::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('members.index', $branch) }}" icon="user-group">
+                                {{ __('Members') }}
+                            </flux:button>
+                        @endcan
+
                         @can('update', $branch)
                             <flux:button variant="ghost" size="sm" wire:click="edit('{{ $branch->id }}')" icon="pencil">
                                 {{ __('Edit') }}
