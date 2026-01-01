@@ -1000,3 +1000,106 @@ test('view mode hides add to group button in clusters section', function () {
         ->assertSet('editing', false)
         ->assertDontSeeHtml('wire:click="openAddClusterModal"');
 });
+
+// ============================================
+// DELETE MEMBER TESTS
+// ============================================
+
+test('admin can delete member and is redirected', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $memberId = $this->member->id;
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('confirmDelete')
+        ->assertSet('showDeleteModal', true)
+        ->call('delete')
+        ->assertDispatched('member-deleted')
+        ->assertRedirect(route('members.index', $this->branch));
+
+    // Member is soft deleted (not visible in normal queries)
+    expect(Member::find($memberId))->toBeNull();
+    // But exists with trashed
+    expect(Member::withTrashed()->find($memberId))->not->toBeNull();
+    expect(Member::withTrashed()->find($memberId)->deleted_at)->not->toBeNull();
+});
+
+test('manager can delete member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Manager,
+    ]);
+
+    $memberId = $this->member->id;
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('confirmDelete')
+        ->assertSet('showDeleteModal', true)
+        ->call('delete')
+        ->assertDispatched('member-deleted');
+
+    // Member is soft deleted
+    expect(Member::find($memberId))->toBeNull();
+    expect(Member::withTrashed()->find($memberId)->deleted_at)->not->toBeNull();
+});
+
+test('staff cannot delete member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('confirmDelete')
+        ->assertForbidden();
+});
+
+test('volunteer cannot delete member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Volunteer,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('confirmDelete')
+        ->assertForbidden();
+});
+
+test('can cancel delete confirmation', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('confirmDelete')
+        ->assertSet('showDeleteModal', true)
+        ->call('cancelDelete')
+        ->assertSet('showDeleteModal', false);
+
+    // Member should still exist
+    expect(Member::find($this->member->id))->not->toBeNull();
+});

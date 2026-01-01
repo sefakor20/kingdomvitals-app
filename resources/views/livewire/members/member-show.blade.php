@@ -29,6 +29,11 @@
                     </flux:button>
                 @endif
             @endif
+            @if($this->canDelete && !$editing)
+                <flux:button variant="danger" wire:click="confirmDelete" icon="trash">
+                    {{ __('Delete') }}
+                </flux:button>
+            @endif
         </div>
     </div>
 
@@ -439,6 +444,24 @@
                     </flux:button>
                 </div>
             </form>
+        </div>
+    </flux:modal>
+
+    <!-- Delete Confirmation Modal -->
+    <flux:modal wire:model.self="showDeleteModal" name="delete-member" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Delete Member') }}</flux:heading>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                {{ __('Are you sure you want to delete :name? This action cannot be undone.', ['name' => $member->fullName()]) }}
+            </p>
+            <div class="flex justify-end gap-3">
+                <flux:button variant="ghost" wire:click="cancelDelete">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="danger" wire:click="delete">
+                    {{ __('Delete Member') }}
+                </flux:button>
+            </div>
         </div>
     </flux:modal>
 

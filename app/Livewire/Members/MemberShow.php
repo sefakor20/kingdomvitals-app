@@ -76,6 +76,9 @@ class MemberShow extends Component
 
     public ?string $clusterJoinedAt = null;
 
+    // Delete modal
+    public bool $showDeleteModal = false;
+
     public function mount(Branch $branch, Member $member): void
     {
         $this->authorize('view', $member);
@@ -365,6 +368,25 @@ class MemberShow extends Component
 
         $this->member->refresh();
         $this->dispatch('cluster-updated');
+    }
+
+    public function confirmDelete(): void
+    {
+        $this->authorize('delete', $this->member);
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->showDeleteModal = false;
+    }
+
+    public function delete(): void
+    {
+        $this->authorize('delete', $this->member);
+        $this->member->delete();
+        $this->dispatch('member-deleted');
+        $this->redirect(route('members.index', $this->branch), navigate: true);
     }
 
     public function render()
