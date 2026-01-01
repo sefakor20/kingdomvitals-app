@@ -5,15 +5,68 @@
             <flux:subheading>{{ __('Manage visitors for :branch', ['branch' => $branch->name]) }}</flux:subheading>
         </div>
 
-        @if($this->canCreate)
-            <flux:button variant="primary" wire:click="create" icon="plus">
-                {{ __('Add Visitor') }}
-            </flux:button>
-        @endif
+        <div class="flex gap-2">
+            @if($this->visitors->isNotEmpty())
+                <flux:button variant="ghost" wire:click="exportToCsv" icon="arrow-down-tray">
+                    {{ __('Export CSV') }}
+                </flux:button>
+            @endif
+            @if($this->canCreate)
+                <flux:button variant="primary" wire:click="create" icon="plus">
+                    {{ __('Add Visitor') }}
+                </flux:button>
+            @endif
+        </div>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="flex items-center justify-between">
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Total Visitors') }}</flux:text>
+                <div class="rounded-full bg-blue-100 p-2 dark:bg-blue-900">
+                    <flux:icon icon="users" class="size-4 text-blue-600 dark:text-blue-400" />
+                </div>
+            </div>
+            <flux:heading size="xl" class="mt-2">{{ number_format($this->visitorStats['total']) }}</flux:heading>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="flex items-center justify-between">
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('New Visitors') }}</flux:text>
+                <div class="rounded-full bg-green-100 p-2 dark:bg-green-900">
+                    <flux:icon icon="user-plus" class="size-4 text-green-600 dark:text-green-400" />
+                </div>
+            </div>
+            <flux:heading size="xl" class="mt-2">{{ number_format($this->visitorStats['new']) }}</flux:heading>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="flex items-center justify-between">
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Converted') }}</flux:text>
+                <div class="rounded-full bg-purple-100 p-2 dark:bg-purple-900">
+                    <flux:icon icon="check-circle" class="size-4 text-purple-600 dark:text-purple-400" />
+                </div>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+                <flux:heading size="xl">{{ number_format($this->visitorStats['converted']) }}</flux:heading>
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">({{ $this->visitorStats['conversionRate'] }}%)</flux:text>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="flex items-center justify-between">
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Pending Follow-ups') }}</flux:text>
+                <div class="rounded-full {{ $this->visitorStats['pendingFollowUps'] > 0 ? 'bg-yellow-100 dark:bg-yellow-900' : 'bg-zinc-100 dark:bg-zinc-800' }} p-2">
+                    <flux:icon icon="clock" class="size-4 {{ $this->visitorStats['pendingFollowUps'] > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-zinc-600 dark:text-zinc-400' }}" />
+                </div>
+            </div>
+            <flux:heading size="xl" class="mt-2">{{ number_format($this->visitorStats['pendingFollowUps']) }}</flux:heading>
+        </div>
     </div>
 
     <!-- Search and Filters -->
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row">
+    <div class="mb-4 flex flex-col gap-4 sm:flex-row">
         <div class="flex-1">
             <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search by name, email, or phone...') }}" icon="magnifying-glass" />
         </div>
@@ -35,6 +88,64 @@
             </flux:select>
         </div>
     </div>
+
+    <!-- Advanced Filters -->
+    <div class="mb-6 flex flex-col gap-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800 sm:flex-row sm:items-end">
+        <div class="flex-1">
+            <flux:input wire:model.live="dateFrom" type="date" :label="__('From Date')" />
+        </div>
+        <div class="flex-1">
+            <flux:input wire:model.live="dateTo" type="date" :label="__('To Date')" />
+        </div>
+        <div class="flex-1">
+            <flux:select wire:model.live="assignedMemberFilter" :label="__('Assigned To')">
+                <flux:select.option :value="null">{{ __('All') }}</flux:select.option>
+                <flux:select.option value="unassigned">{{ __('Unassigned') }}</flux:select.option>
+                @foreach($this->members as $member)
+                    <flux:select.option value="{{ $member->id }}">{{ $member->fullName() }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        </div>
+        <div class="flex-1">
+            <flux:select wire:model.live="sourceFilter" :label="__('Source')">
+                <flux:select.option value="">{{ __('All Sources') }}</flux:select.option>
+                @foreach($this->howDidYouHearOptions as $option)
+                    <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        </div>
+        @if($this->hasActiveFilters)
+            <flux:button variant="ghost" wire:click="clearFilters" icon="x-mark" class="shrink-0">
+                {{ __('Clear Filters') }}
+            </flux:button>
+        @endif
+    </div>
+
+    <!-- Bulk Actions Toolbar -->
+    @if($this->hasSelection)
+        <div class="mb-4 flex items-center gap-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
+            <flux:text class="font-medium text-blue-700 dark:text-blue-300">
+                {{ trans_choice(':count visitor selected|:count visitors selected', $this->selectedCount, ['count' => $this->selectedCount]) }}
+            </flux:text>
+            <flux:button variant="ghost" size="sm" wire:click="clearSelection">
+                {{ __('Clear') }}
+            </flux:button>
+            <div class="flex-1"></div>
+            @if($this->canBulkUpdate)
+                <flux:button variant="ghost" size="sm" icon="user" wire:click="openBulkAssignModal">
+                    {{ __('Assign') }}
+                </flux:button>
+                <flux:button variant="ghost" size="sm" icon="tag" wire:click="openBulkStatusModal">
+                    {{ __('Change Status') }}
+                </flux:button>
+            @endif
+            @if($this->canBulkDelete)
+                <flux:button variant="danger" size="sm" icon="trash" wire:click="confirmBulkDelete">
+                    {{ __('Delete') }}
+                </flux:button>
+            @endif
+        </div>
+    @endif
 
     @if($this->visitors->isEmpty())
         <div class="flex flex-col items-center justify-center py-12">
@@ -58,6 +169,9 @@
             <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-800">
                     <tr>
+                        <th scope="col" class="w-12 px-4 py-3">
+                            <flux:checkbox wire:model.live="selectAll" />
+                        </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             {{ __('Name') }}
                         </th>
@@ -80,7 +194,10 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
                     @foreach($this->visitors as $visitor)
-                        <tr wire:key="visitor-{{ $visitor->id }}">
+                        <tr wire:key="visitor-{{ $visitor->id }}" class="{{ in_array($visitor->id, $selectedVisitors) ? 'bg-blue-50 dark:bg-blue-900/10' : '' }}">
+                            <td class="w-12 px-4 py-4">
+                                <flux:checkbox wire:model.live="selectedVisitors" value="{{ $visitor->id }}" />
+                            </td>
                             <td class="whitespace-nowrap px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <flux:avatar size="sm" name="{{ $visitor->fullName() }}" />
@@ -340,6 +457,91 @@
         </div>
     </flux:modal>
 
+    <!-- Bulk Delete Confirmation Modal -->
+    <flux:modal wire:model.self="showBulkDeleteModal" name="bulk-delete-visitors" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Delete Visitors') }}</flux:heading>
+
+            <flux:text>
+                {{ trans_choice('Are you sure you want to delete :count visitor? This action cannot be undone.|Are you sure you want to delete :count visitors? This action cannot be undone.', $this->selectedCount, ['count' => $this->selectedCount]) }}
+            </flux:text>
+
+            <div class="flex justify-end gap-3">
+                <flux:button variant="ghost" wire:click="cancelBulkDelete">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="danger" wire:click="bulkDelete">
+                    {{ __('Delete Visitors') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <!-- Bulk Assign Modal -->
+    <flux:modal wire:model.self="showBulkAssignModal" name="bulk-assign-visitors" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Assign Visitors') }}</flux:heading>
+
+            <flux:text>
+                {{ trans_choice('Assign :count visitor to a member for follow-up.|Assign :count visitors to a member for follow-up.', $this->selectedCount, ['count' => $this->selectedCount]) }}
+            </flux:text>
+
+            <form wire:submit="bulkAssign" class="space-y-4">
+                <flux:select wire:model="bulkAssignTo" :label="__('Assign To')">
+                    <flux:select.option value="">{{ __('Select a member...') }}</flux:select.option>
+                    <flux:select.option value="unassign">{{ __('Unassign (remove current assignment)') }}</flux:select.option>
+                    @foreach($this->members as $member)
+                        <flux:select.option value="{{ $member->id }}">
+                            {{ $member->fullName() }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+                @error('bulkAssignTo') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <flux:button variant="ghost" wire:click="cancelBulkAssign" type="button">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button variant="primary" type="submit">
+                        {{ __('Assign') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+    <!-- Bulk Status Change Modal -->
+    <flux:modal wire:model.self="showBulkStatusModal" name="bulk-status-visitors" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Change Status') }}</flux:heading>
+
+            <flux:text>
+                {{ trans_choice('Change the status of :count visitor.|Change the status of :count visitors.', $this->selectedCount, ['count' => $this->selectedCount]) }}
+            </flux:text>
+
+            <form wire:submit="bulkChangeStatus" class="space-y-4">
+                <flux:select wire:model="bulkStatusValue" :label="__('New Status')" required>
+                    <flux:select.option value="">{{ __('Select a status...') }}</flux:select.option>
+                    @foreach($this->statuses as $statusOption)
+                        <flux:select.option value="{{ $statusOption->value }}">
+                            {{ str_replace('_', ' ', ucfirst($statusOption->value)) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+                @error('bulkStatusValue') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <flux:button variant="ghost" wire:click="cancelBulkStatus" type="button">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button variant="primary" type="submit">
+                        {{ __('Change Status') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
     <!-- Success Toasts -->
     <x-toast on="visitor-created" type="success">
         {{ __('Visitor added successfully.') }}
@@ -355,5 +557,17 @@
 
     <x-toast on="visitor-converted" type="success">
         {{ __('Visitor converted to member successfully.') }}
+    </x-toast>
+
+    <x-toast on="visitors-bulk-deleted" type="success">
+        {{ __('Visitors deleted successfully.') }}
+    </x-toast>
+
+    <x-toast on="visitors-bulk-assigned" type="success">
+        {{ __('Visitors assigned successfully.') }}
+    </x-toast>
+
+    <x-toast on="visitors-bulk-status-changed" type="success">
+        {{ __('Visitor statuses updated successfully.') }}
     </x-toast>
 </section>
