@@ -77,5 +77,13 @@ Route::middleware([
             ->name('visitors.index');
         Route::get('/branches/{branch}/visitors/{visitor}', \App\Livewire\Visitors\VisitorShow::class)
             ->name('visitors.show');
+
+        // Financial Management
+        Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
+            ->name('donations.index');
+        Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
+            ->name('expenses.index');
+        Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
+            ->name('pledges.index');
     });
 });
