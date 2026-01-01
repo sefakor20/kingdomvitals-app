@@ -111,19 +111,22 @@
                                 </flux:badge>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <div class="flex items-center justify-end gap-2">
-                                    @can('update', $service)
-                                        <flux:button variant="ghost" size="sm" wire:click="edit('{{ $service->id }}')" icon="pencil">
-                                            {{ __('Edit') }}
-                                        </flux:button>
-                                    @endcan
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
 
-                                    @can('delete', $service)
-                                        <flux:button variant="ghost" size="sm" wire:click="confirmDelete('{{ $service->id }}')" icon="trash" class="text-red-600 hover:text-red-700">
-                                            {{ __('Delete') }}
-                                        </flux:button>
-                                    @endcan
-                                </div>
+                                    <flux:menu>
+                                        @can('update', $service)
+                                            <flux:menu.item wire:click="edit('{{ $service->id }}')" icon="pencil">
+                                                {{ __('Edit') }}
+                                            </flux:menu.item>
+                                        @endcan
+                                        @can('delete', $service)
+                                            <flux:menu.item wire:click="confirmDelete('{{ $service->id }}')" icon="trash" variant="danger">
+                                                {{ __('Delete') }}
+                                            </flux:menu.item>
+                                        @endcan
+                                    </flux:menu>
+                                </flux:dropdown>
                             </td>
                         </tr>
                     @endforeach
