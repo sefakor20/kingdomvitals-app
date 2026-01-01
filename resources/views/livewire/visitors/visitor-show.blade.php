@@ -208,6 +208,126 @@
             @endif
         </div>
 
+        <!-- Follow-ups Section -->
+        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900 lg:col-span-2">
+            <div class="mb-4 flex items-center justify-between">
+                <flux:heading size="lg">{{ __('Follow-ups') }}</flux:heading>
+                @if($this->canAddFollowUp && !$editing)
+                    <div class="flex items-center gap-2">
+                        <flux:button variant="ghost" size="sm" wire:click="openScheduleFollowUpModal" icon="calendar">
+                            {{ __('Schedule') }}
+                        </flux:button>
+                        <flux:button variant="primary" size="sm" wire:click="openAddFollowUpModal" icon="plus">
+                            {{ __('Add Follow-up') }}
+                        </flux:button>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Pending/Scheduled Follow-ups -->
+            @if($this->pendingFollowUps->isNotEmpty())
+                <div class="mb-6">
+                    <h4 class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Scheduled') }}</h4>
+                    <div class="space-y-3">
+                        @foreach($this->pendingFollowUps as $pending)
+                            <div wire:key="pending-{{ $pending->id }}" class="flex items-center justify-between rounded-lg border {{ $pending->isOverdue() ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20' : 'border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800' }} p-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex size-8 items-center justify-center rounded-full {{ $pending->isOverdue() ? 'bg-red-100 dark:bg-red-800' : 'bg-blue-100 dark:bg-blue-800' }}">
+                                        <flux:icon icon="{{ match($pending->type->value) {
+                                            'call' => 'phone',
+                                            'sms' => 'chat-bubble-left',
+                                            'email' => 'envelope',
+                                            'visit' => 'home',
+                                            'whatsapp' => 'chat-bubble-oval-left-ellipsis',
+                                            default => 'clipboard-document-check',
+                                        } }}" class="size-4 {{ $pending->isOverdue() ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400' }}" />
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ ucfirst($pending->type->value) }}
+                                            @if($pending->isOverdue())
+                                                <flux:badge color="red" size="sm" class="ml-2">{{ __('Overdue') }}</flux:badge>
+                                            @endif
+                                        </div>
+                                        <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                                            {{ $pending->scheduled_at?->format('M d, Y \a\t g:i A') }}
+                                            @if($pending->performedBy)
+                                                &bull; {{ $pending->performedBy->fullName() }}
+                                            @endif
+                                        </div>
+                                        @if($pending->notes)
+                                            <div class="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{{ Str::limit($pending->notes, 100) }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($this->canAddFollowUp && !$editing)
+                                    <div class="flex items-center gap-2">
+                                        <flux:button variant="primary" size="sm" wire:click="startCompleteFollowUp('{{ $pending->id }}')">
+                                            {{ __('Complete') }}
+                                        </flux:button>
+                                        <flux:button variant="ghost" size="sm" wire:click="cancelFollowUp('{{ $pending->id }}')" class="text-red-600 hover:text-red-700">
+                                            {{ __('Cancel') }}
+                                        </flux:button>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Completed Follow-ups History -->
+            @php
+                $completedFollowUps = $this->followUps->where('outcome', '!=', 'pending');
+            @endphp
+            @if($completedFollowUps->isNotEmpty())
+                <h4 class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('History') }}</h4>
+                <div class="space-y-3">
+                    @foreach($completedFollowUps->take(10) as $followUp)
+                        <div wire:key="followup-{{ $followUp->id }}" class="flex items-start gap-3 border-l-2 pl-4 {{ match($followUp->outcome->value) {
+                            'successful' => 'border-green-500',
+                            'no_answer', 'voicemail' => 'border-yellow-500',
+                            'not_interested', 'wrong_number' => 'border-red-500',
+                            default => 'border-zinc-300 dark:border-zinc-600',
+                        } }}">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ ucfirst($followUp->type->value) }}
+                                    </span>
+                                    <flux:badge
+                                        :color="match($followUp->outcome->value) {
+                                            'successful' => 'green',
+                                            'no_answer', 'voicemail', 'callback', 'rescheduled' => 'yellow',
+                                            'not_interested', 'wrong_number' => 'red',
+                                            default => 'zinc',
+                                        }"
+                                        size="sm"
+                                    >
+                                        {{ str_replace('_', ' ', ucfirst($followUp->outcome->value)) }}
+                                    </flux:badge>
+                                </div>
+                                <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                    {{ $followUp->completed_at?->format('M d, Y \a\t g:i A') }}
+                                    @if($followUp->performedBy)
+                                        &bull; {{ __('by') }} {{ $followUp->performedBy->fullName() }}
+                                    @endif
+                                </div>
+                                @if($followUp->notes)
+                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $followUp->notes }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @elseif($this->pendingFollowUps->isEmpty())
+                <div class="text-center py-6">
+                    <flux:icon icon="clipboard-document-check" class="mx-auto size-12 text-zinc-400" />
+                    <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('No follow-ups recorded yet') }}</p>
+                </div>
+            @endif
+        </div>
+
         <!-- Conversion Status -->
         <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg" class="mb-4">{{ __('Conversion Status') }}</flux:heading>
@@ -289,6 +409,143 @@
         </div>
     </flux:modal>
 
+    <!-- Add Follow-up Modal -->
+    <flux:modal wire:model.self="showAddFollowUpModal" name="add-follow-up" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Add Follow-up') }}</flux:heading>
+
+            <form wire:submit="addFollowUp" class="space-y-4">
+                <flux:select wire:model="followUpType" :label="__('Type')" required>
+                    @foreach($this->followUpTypes as $type)
+                        <flux:select.option value="{{ $type->value }}">
+                            {{ ucfirst($type->value) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model="followUpOutcome" :label="__('Outcome')" required>
+                    @foreach($this->followUpOutcomes as $outcome)
+                        @if($outcome->value !== 'pending')
+                            <flux:select.option value="{{ $outcome->value }}">
+                                {{ str_replace('_', ' ', ucfirst($outcome->value)) }}
+                            </flux:select.option>
+                        @endif
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model="followUpPerformedBy" :label="__('Performed By')">
+                    <flux:select.option value="">{{ __('Select member...') }}</flux:select.option>
+                    @foreach($this->members as $member)
+                        <flux:select.option value="{{ $member->id }}">
+                            {{ $member->fullName() }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:textarea wire:model="followUpNotes" :label="__('Notes')" rows="3" />
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <flux:button variant="ghost" wire:click="cancelFollowUpModal" type="button">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button variant="primary" type="submit">
+                        {{ __('Add Follow-up') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+    <!-- Schedule Follow-up Modal -->
+    <flux:modal wire:model.self="showScheduleFollowUpModal" name="schedule-follow-up" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Schedule Follow-up') }}</flux:heading>
+
+            <form wire:submit="scheduleFollowUp" class="space-y-4">
+                <flux:select wire:model="followUpType" :label="__('Type')" required>
+                    @foreach($this->followUpTypes as $type)
+                        <flux:select.option value="{{ $type->value }}">
+                            {{ ucfirst($type->value) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:input type="datetime-local" wire:model="followUpScheduledAt" :label="__('Scheduled Date/Time')" required />
+                @error('followUpScheduledAt') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+
+                <flux:select wire:model="followUpPerformedBy" :label="__('Assign To')">
+                    <flux:select.option value="">{{ __('Select member...') }}</flux:select.option>
+                    @foreach($this->members as $member)
+                        <flux:select.option value="{{ $member->id }}">
+                            {{ $member->fullName() }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:textarea wire:model="followUpNotes" :label="__('Notes')" rows="3" />
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <flux:button variant="ghost" wire:click="cancelFollowUpModal" type="button">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button variant="primary" type="submit">
+                        {{ __('Schedule') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+    <!-- Complete Follow-up Modal -->
+    @if($completingFollowUp)
+        <flux:modal :name="'complete-follow-up'" class="w-full max-w-md" wire:key="complete-modal-{{ $completingFollowUp->id }}">
+            <div class="space-y-6" x-data x-init="$flux.modal('complete-follow-up').show()">
+                <flux:heading size="lg">{{ __('Complete Follow-up') }}</flux:heading>
+
+                <form wire:submit="completeFollowUp" class="space-y-4">
+                    <div class="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                        <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {{ ucfirst($completingFollowUp->type->value) }}
+                        </div>
+                        <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                            {{ __('Scheduled for') }} {{ $completingFollowUp->scheduled_at?->format('M d, Y \a\t g:i A') }}
+                        </div>
+                    </div>
+
+                    <flux:select wire:model="followUpOutcome" :label="__('Outcome')" required>
+                        @foreach($this->followUpOutcomes as $outcome)
+                            @if($outcome->value !== 'pending')
+                                <flux:select.option value="{{ $outcome->value }}">
+                                    {{ str_replace('_', ' ', ucfirst($outcome->value)) }}
+                                </flux:select.option>
+                            @endif
+                        @endforeach
+                    </flux:select>
+
+                    <flux:select wire:model="followUpPerformedBy" :label="__('Performed By')">
+                        <flux:select.option value="">{{ __('Select member...') }}</flux:select.option>
+                        @foreach($this->members as $member)
+                            <flux:select.option value="{{ $member->id }}">
+                                {{ $member->fullName() }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    <flux:textarea wire:model="followUpNotes" :label="__('Notes')" rows="3" />
+
+                    <div class="flex justify-end gap-3 pt-4">
+                        <flux:button variant="ghost" wire:click="cancelFollowUpModal" type="button">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" type="submit">
+                            {{ __('Complete') }}
+                        </flux:button>
+                    </div>
+                </form>
+            </div>
+        </flux:modal>
+    @endif
+
     <!-- Delete Confirmation Modal -->
     <flux:modal wire:model.self="showDeleteModal" name="delete-visitor" class="w-full max-w-md">
         <div class="space-y-6">
@@ -314,5 +571,21 @@
 
     <x-toast on="visitor-converted" type="success">
         {{ __('Visitor converted to member successfully.') }}
+    </x-toast>
+
+    <x-toast on="follow-up-added" type="success">
+        {{ __('Follow-up added successfully.') }}
+    </x-toast>
+
+    <x-toast on="follow-up-scheduled" type="success">
+        {{ __('Follow-up scheduled successfully.') }}
+    </x-toast>
+
+    <x-toast on="follow-up-completed" type="success">
+        {{ __('Follow-up completed successfully.') }}
+    </x-toast>
+
+    <x-toast on="follow-up-cancelled" type="success">
+        {{ __('Follow-up cancelled.') }}
     </x-toast>
 </section>

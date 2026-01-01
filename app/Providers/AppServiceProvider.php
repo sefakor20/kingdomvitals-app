@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
+use App\Models\Tenant\VisitorFollowUp;
 use App\Policies\MemberPolicy;
 use App\Policies\UserBranchAccessPolicy;
+use App\Policies\VisitorFollowUpPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         // Register policies
         Gate::policy(UserBranchAccess::class, UserBranchAccessPolicy::class);
         Gate::policy(Member::class, MemberPolicy::class);
+        Gate::policy(VisitorFollowUp::class, VisitorFollowUpPolicy::class);
 
         // Load central/landlord migrations
         $this->loadMigrationsFrom([

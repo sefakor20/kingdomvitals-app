@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\Visitors;
 
+use App\Enums\FollowUpOutcome;
+use App\Enums\FollowUpType;
 use App\Enums\VisitorStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
+use App\Models\Tenant\VisitorFollowUp;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -47,6 +50,24 @@ class VisitorShow extends Component
     public bool $showConvertModal = false;
 
     public ?string $convertToMemberId = null;
+
+    // Follow-up modals
+    public bool $showAddFollowUpModal = false;
+
+    public bool $showScheduleFollowUpModal = false;
+
+    public ?VisitorFollowUp $completingFollowUp = null;
+
+    // Follow-up form fields
+    public string $followUpType = 'call';
+
+    public string $followUpOutcome = 'successful';
+
+    public string $followUpNotes = '';
+
+    public ?string $followUpPerformedBy = null;
+
+    public ?string $followUpScheduledAt = null;
 
     public function mount(Branch $branch, Visitor $visitor): void
     {
@@ -102,6 +123,42 @@ class VisitorShow extends Component
     public function attendanceCount(): int
     {
         return $this->visitor->attendance()->count();
+    }
+
+    #[Computed]
+    public function followUps(): Collection
+    {
+        return $this->visitor->followUps()
+            ->with('performedBy')
+            ->get();
+    }
+
+    #[Computed]
+    public function pendingFollowUps(): Collection
+    {
+        return $this->visitor->followUps()
+            ->where('outcome', FollowUpOutcome::Pending->value)
+            ->with('performedBy')
+            ->orderBy('scheduled_at', 'asc')
+            ->get();
+    }
+
+    #[Computed]
+    public function followUpTypes(): array
+    {
+        return FollowUpType::cases();
+    }
+
+    #[Computed]
+    public function followUpOutcomes(): array
+    {
+        return FollowUpOutcome::cases();
+    }
+
+    #[Computed]
+    public function canAddFollowUp(): bool
+    {
+        return auth()->user()->can('create', [VisitorFollowUp::class, $this->branch]);
     }
 
     protected function rules(): array
@@ -214,6 +271,199 @@ class VisitorShow extends Component
         $this->showConvertModal = false;
         $this->convertToMemberId = null;
         $this->dispatch('visitor-converted');
+    }
+
+    // Follow-up methods
+    public function openAddFollowUpModal(): void
+    {
+        $this->authorize('create', [VisitorFollowUp::class, $this->branch]);
+        $this->resetFollowUpForm();
+        $this->showAddFollowUpModal = true;
+    }
+
+    public function openScheduleFollowUpModal(): void
+    {
+        $this->authorize('create', [VisitorFollowUp::class, $this->branch]);
+        $this->resetFollowUpForm();
+        $this->followUpScheduledAt = now()->addDay()->format('Y-m-d\TH:i');
+        $this->showScheduleFollowUpModal = true;
+    }
+
+    public function cancelFollowUpModal(): void
+    {
+        $this->showAddFollowUpModal = false;
+        $this->showScheduleFollowUpModal = false;
+        $this->completingFollowUp = null;
+        $this->resetFollowUpForm();
+    }
+
+    public function addFollowUp(): void
+    {
+        $this->authorize('create', [VisitorFollowUp::class, $this->branch]);
+
+        $validated = $this->validate([
+            'followUpType' => ['required', 'string', 'in:call,sms,email,visit,whatsapp,other'],
+            'followUpOutcome' => ['required', 'string', 'in:successful,no_answer,voicemail,callback,not_interested,wrong_number,rescheduled,pending'],
+            'followUpNotes' => ['nullable', 'string'],
+            'followUpPerformedBy' => ['nullable', 'uuid', 'exists:members,id'],
+        ]);
+
+        VisitorFollowUp::create([
+            'visitor_id' => $this->visitor->id,
+            'type' => $validated['followUpType'],
+            'outcome' => $validated['followUpOutcome'],
+            'notes' => $validated['followUpNotes'] ?: null,
+            'performed_by' => $validated['followUpPerformedBy'] ?: null,
+            'created_by_user_id' => auth()->id(),
+            'completed_at' => now(),
+            'is_scheduled' => false,
+        ]);
+
+        // Update visitor stats
+        $this->visitor->update([
+            'last_follow_up_at' => now(),
+            'follow_up_count' => $this->visitor->follow_up_count + 1,
+        ]);
+
+        // If first follow-up and status is 'new', update to 'followed_up'
+        if ($this->visitor->status === VisitorStatus::New) {
+            $this->visitor->update(['status' => VisitorStatus::FollowedUp->value]);
+        }
+
+        $this->visitor->refresh();
+        unset($this->followUps);
+        unset($this->pendingFollowUps);
+
+        $this->showAddFollowUpModal = false;
+        $this->resetFollowUpForm();
+        $this->dispatch('follow-up-added');
+    }
+
+    public function scheduleFollowUp(): void
+    {
+        $this->authorize('create', [VisitorFollowUp::class, $this->branch]);
+
+        $validated = $this->validate([
+            'followUpType' => ['required', 'string', 'in:call,sms,email,visit,whatsapp,other'],
+            'followUpNotes' => ['nullable', 'string'],
+            'followUpPerformedBy' => ['nullable', 'uuid', 'exists:members,id'],
+            'followUpScheduledAt' => ['required', 'date', 'after:now'],
+        ]);
+
+        VisitorFollowUp::create([
+            'visitor_id' => $this->visitor->id,
+            'type' => $validated['followUpType'],
+            'outcome' => FollowUpOutcome::Pending->value,
+            'notes' => $validated['followUpNotes'] ?: null,
+            'performed_by' => $validated['followUpPerformedBy'] ?: null,
+            'created_by_user_id' => auth()->id(),
+            'scheduled_at' => $validated['followUpScheduledAt'],
+            'is_scheduled' => true,
+        ]);
+
+        // Update next follow-up date if this is earlier
+        if (! $this->visitor->next_follow_up_at || $this->visitor->next_follow_up_at > $validated['followUpScheduledAt']) {
+            $this->visitor->update(['next_follow_up_at' => $validated['followUpScheduledAt']]);
+        }
+
+        $this->visitor->refresh();
+        unset($this->followUps);
+        unset($this->pendingFollowUps);
+
+        $this->showScheduleFollowUpModal = false;
+        $this->resetFollowUpForm();
+        $this->dispatch('follow-up-scheduled');
+    }
+
+    public function startCompleteFollowUp(VisitorFollowUp $followUp): void
+    {
+        $this->authorize('update', $followUp);
+        $this->completingFollowUp = $followUp;
+        $this->followUpType = $followUp->type->value;
+        $this->followUpNotes = $followUp->notes ?? '';
+        $this->followUpPerformedBy = $followUp->performed_by;
+        $this->followUpOutcome = 'successful';
+    }
+
+    public function completeFollowUp(): void
+    {
+        if (! $this->completingFollowUp) {
+            return;
+        }
+
+        $this->authorize('update', $this->completingFollowUp);
+
+        $validated = $this->validate([
+            'followUpOutcome' => ['required', 'string', 'in:successful,no_answer,voicemail,callback,not_interested,wrong_number,rescheduled'],
+            'followUpNotes' => ['nullable', 'string'],
+            'followUpPerformedBy' => ['nullable', 'uuid', 'exists:members,id'],
+        ]);
+
+        $this->completingFollowUp->update([
+            'outcome' => $validated['followUpOutcome'],
+            'notes' => $validated['followUpNotes'] ?: null,
+            'performed_by' => $validated['followUpPerformedBy'] ?: null,
+            'completed_at' => now(),
+        ]);
+
+        // Update visitor stats
+        $this->visitor->update([
+            'last_follow_up_at' => now(),
+            'follow_up_count' => $this->visitor->follow_up_count + 1,
+        ]);
+
+        // Update next follow-up date
+        $nextPending = $this->visitor->followUps()
+            ->where('outcome', FollowUpOutcome::Pending->value)
+            ->where('id', '!=', $this->completingFollowUp->id)
+            ->orderBy('scheduled_at')
+            ->first();
+
+        $this->visitor->update(['next_follow_up_at' => $nextPending?->scheduled_at]);
+
+        // If first follow-up and status is 'new', update to 'followed_up'
+        if ($this->visitor->status === VisitorStatus::New) {
+            $this->visitor->update(['status' => VisitorStatus::FollowedUp->value]);
+        }
+
+        $this->visitor->refresh();
+        unset($this->followUps);
+        unset($this->pendingFollowUps);
+
+        $this->completingFollowUp = null;
+        $this->resetFollowUpForm();
+        $this->dispatch('follow-up-completed');
+    }
+
+    public function cancelFollowUp(VisitorFollowUp $followUp): void
+    {
+        $this->authorize('delete', $followUp);
+
+        $followUp->delete();
+
+        // Update next follow-up date
+        $nextPending = $this->visitor->followUps()
+            ->where('outcome', FollowUpOutcome::Pending->value)
+            ->orderBy('scheduled_at')
+            ->first();
+
+        $this->visitor->update(['next_follow_up_at' => $nextPending?->scheduled_at]);
+
+        $this->visitor->refresh();
+        unset($this->followUps);
+        unset($this->pendingFollowUps);
+
+        $this->dispatch('follow-up-cancelled');
+    }
+
+    private function resetFollowUpForm(): void
+    {
+        $this->followUpType = 'call';
+        $this->followUpOutcome = 'successful';
+        $this->followUpNotes = '';
+        $this->followUpPerformedBy = null;
+        $this->followUpScheduledAt = null;
+        $this->resetValidation();
     }
 
     public function render()
