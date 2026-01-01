@@ -79,6 +79,12 @@
                             </flux:button>
                         @endcan
 
+                        @can('viewAny', [\App\Models\Tenant\Service::class, $branch])
+                            <flux:button variant="ghost" size="sm" href="{{ route('services.index', $branch) }}" icon="calendar">
+                                {{ __('Services') }}
+                            </flux:button>
+                        @endcan
+
                         @can('update', $branch)
                             <flux:button variant="ghost" size="sm" wire:click="edit('{{ $branch->id }}')" icon="pencil">
                                 {{ __('Edit') }}

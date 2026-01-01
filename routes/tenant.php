@@ -65,5 +65,11 @@ Route::middleware([
             ->name('clusters.index');
         Route::get('/branches/{branch}/clusters/{cluster}', \App\Livewire\Clusters\ClusterShow::class)
             ->name('clusters.show');
+
+        // Service Management
+        Route::get('/branches/{branch}/services', \App\Livewire\Services\ServiceIndex::class)
+            ->name('services.index');
+        Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
+            ->name('services.show');
     });
 });
