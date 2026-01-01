@@ -351,3 +351,228 @@ test('user cannot view member from different branch', function () {
     Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
         ->assertForbidden();
 });
+
+// ============================================
+// INLINE EDITING TESTS
+// ============================================
+
+test('admin can enter edit mode', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->assertSet('editing', false)
+        ->call('edit')
+        ->assertSet('editing', true)
+        ->assertSet('first_name', 'John')
+        ->assertSet('last_name', 'Doe');
+});
+
+test('staff can enter edit mode', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertSet('editing', true);
+});
+
+test('volunteer cannot enter edit mode', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Volunteer,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertForbidden();
+});
+
+test('can save updated member data', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('first_name', 'Jane')
+        ->set('last_name', 'Smith')
+        ->set('email', 'jane.smith@example.com')
+        ->call('save')
+        ->assertSet('editing', false)
+        ->assertDispatched('member-updated');
+
+    $this->member->refresh();
+    expect($this->member->first_name)->toBe('Jane');
+    expect($this->member->last_name)->toBe('Smith');
+    expect($this->member->email)->toBe('jane.smith@example.com');
+});
+
+test('can cancel editing without saving changes', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('first_name', 'Jane')
+        ->call('cancel')
+        ->assertSet('editing', false);
+
+    $this->member->refresh();
+    expect($this->member->first_name)->toBe('John');
+});
+
+test('validation errors are shown when saving', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('first_name', '')
+        ->set('last_name', '')
+        ->call('save')
+        ->assertHasErrors(['first_name', 'last_name']);
+});
+
+test('email must be valid format when saving', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('email', 'invalid-email')
+        ->call('save')
+        ->assertHasErrors(['email']);
+});
+
+test('can update all member fields', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->set('first_name', 'Updated')
+        ->set('last_name', 'Member')
+        ->set('middle_name', 'New')
+        ->set('email', 'updated@example.com')
+        ->set('phone', '0551234567')
+        ->set('date_of_birth', '1985-03-20')
+        ->set('gender', 'female')
+        ->set('marital_status', 'single')
+        ->set('status', 'inactive')
+        ->set('address', '456 New Street')
+        ->set('city', 'Kumasi')
+        ->set('state', 'Ashanti')
+        ->set('zip', '00000')
+        ->set('country', 'Ghana')
+        ->set('joined_at', '2023-06-01')
+        ->set('baptized_at', '2023-12-25')
+        ->set('notes', 'Updated notes')
+        ->call('save')
+        ->assertSet('editing', false);
+
+    $this->member->refresh();
+    expect($this->member->first_name)->toBe('Updated');
+    expect($this->member->last_name)->toBe('Member');
+    expect($this->member->middle_name)->toBe('New');
+    expect($this->member->email)->toBe('updated@example.com');
+    expect($this->member->phone)->toBe('0551234567');
+    expect($this->member->gender)->toBe(Gender::Female);
+    expect($this->member->marital_status)->toBe(MaritalStatus::Single);
+    expect($this->member->status)->toBe(MembershipStatus::Inactive);
+    expect($this->member->address)->toBe('456 New Street');
+    expect($this->member->city)->toBe('Kumasi');
+    expect($this->member->notes)->toBe('Updated notes');
+});
+
+test('volunteer cannot save member data', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Volunteer,
+    ]);
+
+    $this->actingAs($user);
+
+    // Manually set editing to true to bypass edit() authorization
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->set('editing', true)
+        ->set('first_name', 'Hacker')
+        ->call('save')
+        ->assertForbidden();
+});
+
+test('edit mode populates all form fields correctly', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertSet('first_name', 'John')
+        ->assertSet('last_name', 'Doe')
+        ->assertSet('middle_name', 'Michael')
+        ->assertSet('email', 'john.doe@example.com')
+        ->assertSet('phone', '0241234567')
+        ->assertSet('date_of_birth', '1990-05-15')
+        ->assertSet('gender', 'male')
+        ->assertSet('marital_status', 'married')
+        ->assertSet('status', 'active')
+        ->assertSet('address', '123 Main Street')
+        ->assertSet('city', 'Accra')
+        ->assertSet('state', 'Greater Accra')
+        ->assertSet('zip', '00233')
+        ->assertSet('country', 'Ghana')
+        ->assertSet('notes', 'A very active member of the congregation.');
+});
