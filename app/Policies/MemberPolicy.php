@@ -77,4 +77,34 @@ class MemberPolicy
             ])
             ->exists();
     }
+
+    /**
+     * Determine whether the user can delete any member in the branch.
+     * Only Admin and Manager can delete.
+     */
+    public function deleteAny(User $user, Branch $branch): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $branch->id)
+            ->whereIn('role', [
+                BranchRole::Admin->value,
+                BranchRole::Manager->value,
+            ])
+            ->exists();
+    }
+
+    /**
+     * Determine whether the user can restore a deleted member.
+     * Only Admin and Manager can restore.
+     */
+    public function restore(User $user, Member $member): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $member->primary_branch_id)
+            ->whereIn('role', [
+                BranchRole::Admin->value,
+                BranchRole::Manager->value,
+            ])
+            ->exists();
+    }
 }

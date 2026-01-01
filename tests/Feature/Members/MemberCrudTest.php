@@ -409,6 +409,228 @@ test('volunteer cannot delete a member', function () {
 });
 
 // ============================================
+// RESTORE MEMBER TESTS
+// ============================================
+
+test('admin can see deleted members filter', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(MemberIndex::class, ['branch' => $this->branch]);
+
+    expect($component->instance()->canRestore)->toBeTrue();
+    $component->assertSee('Deleted');
+});
+
+test('manager can see deleted members filter', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Manager,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(MemberIndex::class, ['branch' => $this->branch]);
+
+    expect($component->instance()->canRestore)->toBeTrue();
+    $component->assertSee('Deleted');
+});
+
+test('staff cannot see deleted members filter', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(MemberIndex::class, ['branch' => $this->branch]);
+
+    expect($component->instance()->canRestore)->toBeFalse();
+});
+
+test('volunteer cannot see deleted members filter', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Volunteer,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(MemberIndex::class, ['branch' => $this->branch]);
+
+    expect($component->instance()->canRestore)->toBeFalse();
+});
+
+test('admin can restore a deleted member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    // Verify member is soft deleted
+    expect(Member::find($memberId))->toBeNull();
+    expect(Member::withTrashed()->find($memberId))->not->toBeNull();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('restore', $memberId)
+        ->assertDispatched('member-restored');
+
+    // Verify member is restored
+    expect(Member::find($memberId))->not->toBeNull();
+    expect(Member::find($memberId)->deleted_at)->toBeNull();
+});
+
+test('manager can restore a deleted member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Manager,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('restore', $memberId)
+        ->assertDispatched('member-restored');
+
+    expect(Member::find($memberId))->not->toBeNull();
+});
+
+test('staff cannot restore a deleted member', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('restore', $memberId)
+        ->assertForbidden();
+
+    // Member should still be deleted
+    expect(Member::find($memberId))->toBeNull();
+});
+
+test('deleted members only appear in deleted view', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $activeMember = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'first_name' => 'ActiveMember',
+    ]);
+
+    $deletedMember = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'first_name' => 'DeletedMember',
+    ]);
+    $deletedMember->delete();
+
+    $this->actingAs($user);
+
+    // Active view should only show active member
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->assertSet('viewFilter', 'active')
+        ->assertSee('ActiveMember')
+        ->assertDontSee('DeletedMember');
+
+    // Deleted view should only show deleted member
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->assertSee('DeletedMember')
+        ->assertDontSee('ActiveMember');
+});
+
+test('restored member appears in active list', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $member = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'first_name' => 'RestoredMember',
+    ]);
+    $memberId = $member->id;
+    $member->delete();
+
+    $this->actingAs($user);
+
+    // Restore the member
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->call('restore', $memberId);
+
+    // Verify member appears in active list
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->assertSet('viewFilter', 'active')
+        ->assertSee('RestoredMember');
+
+    // Verify member no longer appears in deleted list
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->assertDontSee('RestoredMember');
+});
+
+test('empty state shows appropriate message for deleted view', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberIndex::class, ['branch' => $this->branch])
+        ->set('viewFilter', 'deleted')
+        ->assertSee('No deleted members')
+        ->assertSee('There are no deleted members to restore.');
+});
+
+// ============================================
 // SEARCH AND FILTER TESTS
 // ============================================
 

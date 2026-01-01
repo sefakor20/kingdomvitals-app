@@ -12,6 +12,26 @@
         @endif
     </div>
 
+    <!-- View Filter Tabs -->
+    @if($this->canRestore)
+        <div class="mb-4 flex gap-2">
+            <flux:button
+                :variant="$viewFilter === 'active' ? 'primary' : 'ghost'"
+                wire:click="$set('viewFilter', 'active')"
+                size="sm"
+            >
+                {{ __('Active') }}
+            </flux:button>
+            <flux:button
+                :variant="$viewFilter === 'deleted' ? 'primary' : 'ghost'"
+                wire:click="$set('viewFilter', 'deleted')"
+                size="sm"
+            >
+                {{ __('Deleted') }}
+            </flux:button>
+        </div>
+    @endif
+
     <!-- Search and Filter -->
     <div class="mb-6 flex flex-col gap-4 sm:flex-row">
         <div class="flex-1">
@@ -32,15 +52,23 @@
     @if($this->members->isEmpty())
         <div class="flex flex-col items-center justify-center py-12">
             <flux:icon icon="users" class="size-12 text-zinc-400" />
-            <flux:heading size="lg" class="mt-4">{{ __('No members found') }}</flux:heading>
+            <flux:heading size="lg" class="mt-4">
+                @if($viewFilter === 'deleted')
+                    {{ __('No deleted members') }}
+                @else
+                    {{ __('No members found') }}
+                @endif
+            </flux:heading>
             <flux:text class="mt-2 text-zinc-500">
-                @if($search || $statusFilter)
+                @if($viewFilter === 'deleted')
+                    {{ __('There are no deleted members to restore.') }}
+                @elseif($search || $statusFilter)
                     {{ __('Try adjusting your search or filter criteria.') }}
                 @else
                     {{ __('Get started by adding your first member.') }}
                 @endif
             </flux:text>
-            @if(!$search && !$statusFilter && $this->canCreate)
+            @if($viewFilter === 'active' && !$search && !$statusFilter && $this->canCreate)
                 <flux:button variant="primary" wire:click="create" icon="plus" class="mt-4">
                     {{ __('Add Member') }}
                 </flux:button>
@@ -118,17 +146,25 @@
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end gap-2">
-                                    @can('update', $member)
-                                        <flux:button variant="ghost" size="sm" wire:click="edit('{{ $member->id }}')" icon="pencil">
-                                            {{ __('Edit') }}
-                                        </flux:button>
-                                    @endcan
+                                    @if($viewFilter === 'deleted')
+                                        @can('restore', $member)
+                                            <flux:button variant="primary" size="sm" wire:click="restore('{{ $member->id }}')" icon="arrow-uturn-left">
+                                                {{ __('Restore') }}
+                                            </flux:button>
+                                        @endcan
+                                    @else
+                                        @can('update', $member)
+                                            <flux:button variant="ghost" size="sm" wire:click="edit('{{ $member->id }}')" icon="pencil">
+                                                {{ __('Edit') }}
+                                            </flux:button>
+                                        @endcan
 
-                                    @can('delete', $member)
-                                        <flux:button variant="ghost" size="sm" wire:click="confirmDelete('{{ $member->id }}')" icon="trash" class="text-red-600 hover:text-red-700">
-                                            {{ __('Delete') }}
-                                        </flux:button>
-                                    @endcan
+                                        @can('delete', $member)
+                                            <flux:button variant="ghost" size="sm" wire:click="confirmDelete('{{ $member->id }}')" icon="trash" class="text-red-600 hover:text-red-700">
+                                                {{ __('Delete') }}
+                                            </flux:button>
+                                        @endcan
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -368,5 +404,9 @@
 
     <x-toast on="member-deleted" type="success">
         {{ __('Member deleted successfully.') }}
+    </x-toast>
+
+    <x-toast on="member-restored" type="success">
+        {{ __('Member restored successfully.') }}
     </x-toast>
 </section>

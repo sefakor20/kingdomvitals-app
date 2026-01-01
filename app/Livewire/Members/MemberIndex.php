@@ -25,6 +25,8 @@ class MemberIndex extends Component
 
     public string $statusFilter = '';
 
+    public string $viewFilter = 'active';
+
     public bool $showCreateModal = false;
 
     public bool $showEditModal = false;
@@ -85,6 +87,10 @@ class MemberIndex extends Component
     {
         $query = Member::where('primary_branch_id', $this->branch->id);
 
+        if ($this->viewFilter === 'deleted') {
+            $query->onlyTrashed();
+        }
+
         if ($this->search) {
             $search = $this->search;
             $query->where(function ($q) use ($search) {
@@ -124,6 +130,12 @@ class MemberIndex extends Component
     public function canCreate(): bool
     {
         return auth()->user()->can('create', [Member::class, $this->branch]);
+    }
+
+    #[Computed]
+    public function canRestore(): bool
+    {
+        return auth()->user()->can('deleteAny', [Member::class, $this->branch]);
     }
 
     protected function rules(): array
@@ -258,6 +270,14 @@ class MemberIndex extends Component
         $this->showDeleteModal = false;
         $this->deletingMember = null;
         $this->dispatch('member-deleted');
+    }
+
+    public function restore(string $memberId): void
+    {
+        $member = Member::onlyTrashed()->where('id', $memberId)->firstOrFail();
+        $this->authorize('restore', $member);
+        $member->restore();
+        $this->dispatch('member-restored');
     }
 
     public function cancelCreate(): void
