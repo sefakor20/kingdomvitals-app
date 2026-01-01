@@ -75,9 +75,9 @@
                                 <div class="flex items-center gap-3">
                                     <flux:avatar size="sm" name="{{ $member->fullName() }}" />
                                     <div>
-                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                        <a href="{{ route('members.show', [$branch, $member]) }}" class="font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400" wire:navigate>
                                             {{ $member->fullName() }}
-                                        </div>
+                                        </a>
                                         @if($member->gender)
                                             <div class="text-sm text-zinc-500 dark:text-zinc-400">
                                                 {{ ucfirst($member->gender->value) }}

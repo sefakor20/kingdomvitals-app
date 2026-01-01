@@ -57,5 +57,7 @@ Route::middleware([
         // Member Management
         Route::get('/branches/{branch}/members', \App\Livewire\Members\MemberIndex::class)
             ->name('members.index');
+        Route::get('/branches/{branch}/members/{member}', \App\Livewire\Members\MemberShow::class)
+            ->name('members.show');
     });
 });
