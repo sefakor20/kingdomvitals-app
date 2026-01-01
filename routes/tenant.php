@@ -34,7 +34,7 @@ Route::middleware([
     })->name('home');
 
     // Dashboard
-    Route::view('/dashboard', 'dashboard')
+    Route::get('/dashboard', \App\Livewire\Dashboard::class)
         ->middleware(['auth', 'verified'])
         ->name('dashboard');
 
@@ -71,5 +71,19 @@ Route::middleware([
             ->name('services.index');
         Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
             ->name('services.show');
+
+        // Visitor Management
+        Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
+            ->name('visitors.index');
+        Route::get('/branches/{branch}/visitors/{visitor}', \App\Livewire\Visitors\VisitorShow::class)
+            ->name('visitors.show');
+
+        // Financial Management
+        Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
+            ->name('donations.index');
+        Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
+            ->name('expenses.index');
+        Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
+            ->name('pledges.index');
     });
 });

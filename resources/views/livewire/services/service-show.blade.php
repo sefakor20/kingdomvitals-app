@@ -153,12 +153,133 @@
                         </dd>
                     </div>
                 </div>
-                <flux:text size="sm" class="text-zinc-500">
-                    {{ __('Attendance and donation statistics are available when those features are implemented.') }}
-                </flux:text>
             </dl>
         </div>
     </div>
+
+    <!-- Attendance Records Section -->
+    <div class="mt-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="mb-4 flex items-center justify-between">
+            <flux:heading size="lg">
+                {{ __('Attendance Records') }}
+                <span class="text-sm font-normal text-zinc-500">({{ $this->attendanceRecords->count() }})</span>
+            </flux:heading>
+            @if($this->canManageAttendance)
+                <flux:button variant="primary" size="sm" wire:click="openAddAttendanceModal" icon="plus">
+                    {{ __('Add Attendance') }}
+                </flux:button>
+            @endif
+        </div>
+
+        @if($this->attendanceRecords->isEmpty())
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No attendance records for this service.') }}</p>
+        @else
+            <div class="space-y-3">
+                @foreach($this->attendanceRecords as $attendance)
+                    <div wire:key="attendance-{{ $attendance->id }}" class="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                        <div class="flex items-center gap-3">
+                            @if($attendance->member)
+                                @if($attendance->member->photo_url)
+                                    <img src="{{ $attendance->member->photo_url }}" alt="{{ $attendance->member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                @else
+                                    <flux:avatar size="sm" name="{{ $attendance->member->fullName() }}" />
+                                @endif
+                                <div>
+                                    <a href="{{ route('members.show', [$branch, $attendance->member]) }}" class="text-sm font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400" wire:navigate>
+                                        {{ $attendance->member->fullName() }}
+                                    </a>
+                                    <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                                        <span>{{ $attendance->date->format('M d, Y') }}</span>
+                                        <span>&bull;</span>
+                                        <span>{{ $attendance->check_in_time }}{{ $attendance->check_out_time ? ' - ' . $attendance->check_out_time : '' }}</span>
+                                        <flux:badge
+                                            :color="match($attendance->check_in_method->value) {
+                                                'qr' => 'blue',
+                                                'kiosk' => 'purple',
+                                                default => 'zinc',
+                                            }"
+                                            size="sm"
+                                        >
+                                            {{ ucfirst($attendance->check_in_method->value) }}
+                                        </flux:badge>
+                                    </div>
+                                </div>
+                            @else
+                                <flux:avatar size="sm" name="?" />
+                                <div>
+                                    <span class="text-sm font-medium text-zinc-500">{{ __('Unknown Member') }}</span>
+                                </div>
+                            @endif
+                        </div>
+                        @if($editing && $this->canManageAttendance)
+                            <div class="flex items-center gap-1">
+                                <flux:button variant="ghost" size="sm" wire:click="editAttendance('{{ $attendance->id }}')" class="text-zinc-600 hover:text-zinc-700">
+                                    <flux:icon icon="pencil" class="size-4" />
+                                </flux:button>
+                                <flux:button variant="ghost" size="sm" wire:click="deleteAttendance('{{ $attendance->id }}')" wire:confirm="{{ __('Are you sure you want to delete this attendance record?') }}" class="text-red-600 hover:text-red-700">
+                                    <flux:icon icon="trash" class="size-4" />
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    <!-- Add/Edit Attendance Modal -->
+    <flux:modal wire:model.self="showAddAttendanceModal" name="add-attendance" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">
+                {{ $editingAttendanceId ? __('Edit Attendance Record') : __('Add Attendance Record') }}
+            </flux:heading>
+
+            <form wire:submit="saveAttendance" class="space-y-4">
+                <flux:select wire:model="attendanceMemberId" :label="__('Member')" required>
+                    <flux:select.option value="">{{ __('Select a member...') }}</flux:select.option>
+                    @foreach($this->availableMembers as $member)
+                        <flux:select.option value="{{ $member->id }}">
+                            {{ $member->fullName() }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+                @error('attendanceMemberId') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+
+                <flux:input type="date" wire:model="attendanceDate" :label="__('Date')" required />
+                @error('attendanceDate') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <flux:input type="time" wire:model="attendanceCheckInTime" :label="__('Check-in Time')" required />
+                        @error('attendanceCheckInTime') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                    </div>
+                    <div>
+                        <flux:input type="time" wire:model="attendanceCheckOutTime" :label="__('Check-out Time')" />
+                        @error('attendanceCheckOutTime') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <flux:select wire:model="attendanceCheckInMethod" :label="__('Check-in Method')">
+                    @foreach($this->checkInMethods as $method)
+                        <flux:select.option value="{{ $method->value }}">
+                            {{ ucfirst($method->value) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:textarea wire:model="attendanceNotes" :label="__('Notes')" rows="2" />
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <flux:button variant="ghost" wire:click="closeAddAttendanceModal" type="button">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button variant="primary" type="submit">
+                        {{ $editingAttendanceId ? __('Update') : __('Add Attendance') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
 
     <!-- Delete Confirmation Modal -->
     <flux:modal wire:model.self="showDeleteModal" name="delete-service" class="w-full max-w-md">
@@ -180,8 +301,20 @@
         </div>
     </flux:modal>
 
-    <!-- Success Toast -->
+    <!-- Success Toasts -->
     <x-toast on="service-updated" type="success">
         {{ __('Service updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="attendance-added" type="success">
+        {{ __('Attendance record added successfully.') }}
+    </x-toast>
+
+    <x-toast on="attendance-updated" type="success">
+        {{ __('Attendance record updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="attendance-deleted" type="success">
+        {{ __('Attendance record deleted successfully.') }}
     </x-toast>
 </section>

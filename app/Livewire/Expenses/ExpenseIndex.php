@@ -1,0 +1,489 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire\Expenses;
+
+use App\Enums\ExpenseCategory;
+use App\Enums\ExpenseStatus;
+use App\Enums\PaymentMethod;
+use App\Models\Tenant\Branch;
+use App\Models\Tenant\Expense;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+#[Layout('components.layouts.app')]
+class ExpenseIndex extends Component
+{
+    public Branch $branch;
+
+    // Search and filters
+    public string $search = '';
+
+    public string $categoryFilter = '';
+
+    public string $statusFilter = '';
+
+    public ?string $dateFrom = null;
+
+    public ?string $dateTo = null;
+
+    // Modal states
+    public bool $showCreateModal = false;
+
+    public bool $showEditModal = false;
+
+    public bool $showDeleteModal = false;
+
+    public bool $showApproveModal = false;
+
+    public bool $showRejectModal = false;
+
+    // Form properties
+    public string $category = '';
+
+    public string $description = '';
+
+    public string $amount = '';
+
+    public ?string $expense_date = null;
+
+    public string $payment_method = 'cash';
+
+    public string $vendor_name = '';
+
+    public string $receipt_url = '';
+
+    public string $reference_number = '';
+
+    public string $notes = '';
+
+    public ?Expense $editingExpense = null;
+
+    public ?Expense $deletingExpense = null;
+
+    public ?Expense $approvingExpense = null;
+
+    public ?Expense $rejectingExpense = null;
+
+    public function mount(Branch $branch): void
+    {
+        $this->authorize('viewAny', [Expense::class, $branch]);
+        $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function expenses(): Collection
+    {
+        $query = Expense::where('branch_id', $this->branch->id);
+
+        if ($this->search) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhere('vendor_name', 'like', "%{$search}%")
+                    ->orWhere('reference_number', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        if ($this->categoryFilter) {
+            $query->where('category', $this->categoryFilter);
+        }
+
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->dateFrom) {
+            $query->whereDate('expense_date', '>=', $this->dateFrom);
+        }
+
+        if ($this->dateTo) {
+            $query->whereDate('expense_date', '<=', $this->dateTo);
+        }
+
+        return $query->with(['submitter', 'approver'])
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    #[Computed]
+    public function categories(): array
+    {
+        return ExpenseCategory::cases();
+    }
+
+    #[Computed]
+    public function statuses(): array
+    {
+        return ExpenseStatus::cases();
+    }
+
+    #[Computed]
+    public function paymentMethods(): array
+    {
+        return PaymentMethod::cases();
+    }
+
+    #[Computed]
+    public function canCreate(): bool
+    {
+        return auth()->user()->can('create', [Expense::class, $this->branch]);
+    }
+
+    #[Computed]
+    public function canDelete(): bool
+    {
+        return auth()->user()->can('deleteAny', [Expense::class, $this->branch]);
+    }
+
+    #[Computed]
+    public function canApprove(): bool
+    {
+        // Check if user has Admin or Manager role in this branch
+        return auth()->user()->branchAccess()
+            ->where('branch_id', $this->branch->id)
+            ->whereIn('role', [
+                \App\Enums\BranchRole::Admin,
+                \App\Enums\BranchRole::Manager,
+            ])
+            ->exists();
+    }
+
+    #[Computed]
+    public function expenseStats(): array
+    {
+        $expenses = $this->expenses;
+        $total = $expenses->sum('amount');
+        $count = $expenses->count();
+
+        $pending = $expenses->where('status', ExpenseStatus::Pending)->count();
+
+        $thisMonthExpenses = $expenses->filter(function ($expense) {
+            return $expense->expense_date &&
+                $expense->expense_date->isCurrentMonth();
+        });
+        $thisMonth = $thisMonthExpenses->sum('amount');
+
+        // Top category by amount
+        $byCategory = $expenses->groupBy(fn ($e) => $e->category->value)
+            ->map(fn ($group) => $group->sum('amount'))
+            ->sortDesc();
+        $topCategory = $byCategory->keys()->first();
+
+        return [
+            'total' => $total,
+            'count' => $count,
+            'pending' => $pending,
+            'thisMonth' => $thisMonth,
+            'topCategory' => $topCategory ? str_replace('_', ' ', ucfirst($topCategory)) : '-',
+        ];
+    }
+
+    #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->search !== ''
+            || $this->categoryFilter !== ''
+            || $this->statusFilter !== ''
+            || $this->dateFrom !== null
+            || $this->dateTo !== null;
+    }
+
+    protected function rules(): array
+    {
+        $categories = collect(ExpenseCategory::cases())->pluck('value')->implode(',');
+        $paymentMethods = collect(PaymentMethod::cases())->pluck('value')->implode(',');
+
+        return [
+            'category' => ['required', 'string', 'in:'.$categories],
+            'description' => ['required', 'string', 'max:500'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'expense_date' => ['required', 'date'],
+            'payment_method' => ['required', 'string', 'in:'.$paymentMethods],
+            'vendor_name' => ['nullable', 'string', 'max:255'],
+            'receipt_url' => ['nullable', 'url', 'max:500'],
+            'reference_number' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    public function create(): void
+    {
+        $this->authorize('create', [Expense::class, $this->branch]);
+        $this->resetForm();
+        $this->expense_date = now()->format('Y-m-d');
+        $this->showCreateModal = true;
+    }
+
+    public function store(): void
+    {
+        $this->authorize('create', [Expense::class, $this->branch]);
+        $validated = $this->validate();
+
+        $validated['branch_id'] = $this->branch->id;
+        $validated['currency'] = 'GHS';
+        $validated['status'] = ExpenseStatus::Pending;
+
+        // Convert empty strings to null for nullable fields
+        $nullableFields = ['vendor_name', 'receipt_url', 'reference_number', 'notes'];
+        foreach ($nullableFields as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
+        Expense::create($validated);
+
+        unset($this->expenses);
+        unset($this->expenseStats);
+
+        $this->showCreateModal = false;
+        $this->resetForm();
+        $this->dispatch('expense-created');
+    }
+
+    public function edit(Expense $expense): void
+    {
+        $this->authorize('update', $expense);
+        $this->editingExpense = $expense;
+        $this->fill([
+            'category' => $expense->category->value,
+            'description' => $expense->description,
+            'amount' => (string) $expense->amount,
+            'expense_date' => $expense->expense_date?->format('Y-m-d'),
+            'payment_method' => $expense->payment_method->value,
+            'vendor_name' => $expense->vendor_name ?? '',
+            'receipt_url' => $expense->receipt_url ?? '',
+            'reference_number' => $expense->reference_number ?? '',
+            'notes' => $expense->notes ?? '',
+        ]);
+        $this->showEditModal = true;
+    }
+
+    public function update(): void
+    {
+        $this->authorize('update', $this->editingExpense);
+        $validated = $this->validate();
+
+        // Convert empty strings to null for nullable fields
+        $nullableFields = ['vendor_name', 'receipt_url', 'reference_number', 'notes'];
+        foreach ($nullableFields as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
+        $this->editingExpense->update($validated);
+
+        unset($this->expenses);
+        unset($this->expenseStats);
+
+        $this->showEditModal = false;
+        $this->editingExpense = null;
+        $this->resetForm();
+        $this->dispatch('expense-updated');
+    }
+
+    public function confirmDelete(Expense $expense): void
+    {
+        $this->authorize('delete', $expense);
+        $this->deletingExpense = $expense;
+        $this->showDeleteModal = true;
+    }
+
+    public function delete(): void
+    {
+        $this->authorize('delete', $this->deletingExpense);
+
+        $this->deletingExpense->delete();
+
+        unset($this->expenses);
+        unset($this->expenseStats);
+
+        $this->showDeleteModal = false;
+        $this->deletingExpense = null;
+        $this->dispatch('expense-deleted');
+    }
+
+    // Approval workflow methods
+    public function confirmApprove(Expense $expense): void
+    {
+        $this->authorize('approve', $expense);
+        $this->approvingExpense = $expense;
+        $this->showApproveModal = true;
+    }
+
+    public function approve(): void
+    {
+        $this->authorize('approve', $this->approvingExpense);
+
+        $this->approvingExpense->update([
+            'status' => ExpenseStatus::Approved,
+            'approved_at' => now(),
+        ]);
+
+        unset($this->expenses);
+        unset($this->expenseStats);
+
+        $this->showApproveModal = false;
+        $this->approvingExpense = null;
+        $this->dispatch('expense-approved');
+    }
+
+    public function confirmReject(Expense $expense): void
+    {
+        $this->authorize('reject', $expense);
+        $this->rejectingExpense = $expense;
+        $this->showRejectModal = true;
+    }
+
+    public function reject(): void
+    {
+        $this->authorize('reject', $this->rejectingExpense);
+
+        $this->rejectingExpense->update([
+            'status' => ExpenseStatus::Rejected,
+        ]);
+
+        unset($this->expenses);
+        unset($this->expenseStats);
+
+        $this->showRejectModal = false;
+        $this->rejectingExpense = null;
+        $this->dispatch('expense-rejected');
+    }
+
+    public function markAsPaid(Expense $expense): void
+    {
+        $this->authorize('markAsPaid', $expense);
+
+        if ($expense->status !== ExpenseStatus::Approved) {
+            return;
+        }
+
+        $expense->update([
+            'status' => ExpenseStatus::Paid,
+        ]);
+
+        unset($this->expenses);
+        unset($this->expenseStats);
+
+        $this->dispatch('expense-paid');
+    }
+
+    public function cancelCreate(): void
+    {
+        $this->showCreateModal = false;
+        $this->resetForm();
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->showEditModal = false;
+        $this->editingExpense = null;
+        $this->resetForm();
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deletingExpense = null;
+    }
+
+    public function cancelApprove(): void
+    {
+        $this->showApproveModal = false;
+        $this->approvingExpense = null;
+    }
+
+    public function cancelReject(): void
+    {
+        $this->showRejectModal = false;
+        $this->rejectingExpense = null;
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset([
+            'search', 'categoryFilter', 'statusFilter',
+            'dateFrom', 'dateTo',
+        ]);
+        unset($this->expenses);
+        unset($this->expenseStats);
+        unset($this->hasActiveFilters);
+    }
+
+    public function exportToCsv(): StreamedResponse
+    {
+        $this->authorize('viewAny', [Expense::class, $this->branch]);
+
+        $expenses = $this->expenses;
+
+        $filename = sprintf(
+            'expenses_%s_%s.csv',
+            str($this->branch->name)->slug(),
+            now()->format('Y-m-d_His')
+        );
+
+        return response()->streamDownload(function () use ($expenses) {
+            $handle = fopen('php://output', 'w');
+
+            // Headers
+            fputcsv($handle, [
+                'Date',
+                'Description',
+                'Category',
+                'Amount',
+                'Currency',
+                'Payment Method',
+                'Vendor',
+                'Reference',
+                'Status',
+                'Approved At',
+                'Notes',
+            ]);
+
+            // Data rows
+            foreach ($expenses as $expense) {
+                fputcsv($handle, [
+                    $expense->expense_date?->format('Y-m-d') ?? '',
+                    $expense->description,
+                    str_replace('_', ' ', ucfirst($expense->category->value)),
+                    number_format((float) $expense->amount, 2),
+                    $expense->currency,
+                    str_replace('_', ' ', ucfirst($expense->payment_method->value)),
+                    $expense->vendor_name ?? '',
+                    $expense->reference_number ?? '',
+                    ucfirst($expense->status->value),
+                    $expense->approved_at?->format('Y-m-d H:i') ?? '',
+                    $expense->notes ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    private function resetForm(): void
+    {
+        $this->reset([
+            'category', 'description', 'amount', 'expense_date',
+            'vendor_name', 'receipt_url', 'reference_number', 'notes',
+        ]);
+        $this->payment_method = 'cash';
+        $this->resetValidation();
+    }
+
+    public function render()
+    {
+        return view('livewire.expenses.expense-index');
+    }
+}

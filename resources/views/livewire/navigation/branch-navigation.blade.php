@@ -33,6 +33,52 @@
                     {{ __('Services') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewVisitors)
+                <flux:navlist.item
+                    icon="user-plus"
+                    :href="route('visitors.index', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.*')"
+                    wire:navigate
+                >
+                    {{ __('Visitors') }}
+                </flux:navlist.item>
+            @endif
+        </flux:navlist.group>
+
+        <flux:navlist.group :heading="__('Financial')" class="grid">
+            @if($this->canViewDonations)
+                <flux:navlist.item
+                    icon="banknotes"
+                    :href="route('donations.index', $this->currentBranch)"
+                    :current="request()->routeIs('donations.*')"
+                    wire:navigate
+                >
+                    {{ __('Donations') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewExpenses)
+                <flux:navlist.item
+                    icon="credit-card"
+                    :href="route('expenses.index', $this->currentBranch)"
+                    :current="request()->routeIs('expenses.*')"
+                    wire:navigate
+                >
+                    {{ __('Expenses') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewPledges)
+                <flux:navlist.item
+                    icon="hand-raised"
+                    :href="route('pledges.index', $this->currentBranch)"
+                    :current="request()->routeIs('pledges.*')"
+                    wire:navigate
+                >
+                    {{ __('Pledges') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
     </flux:navlist>
 @endif

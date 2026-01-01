@@ -145,32 +145,35 @@
                                 {{ $member->joined_at?->format('M d, Y') ?? '-' }}
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <div class="flex items-center justify-end gap-2">
-                                    @if($viewFilter === 'deleted')
-                                        @can('restore', $member)
-                                            <flux:button variant="primary" size="sm" wire:click="restore('{{ $member->id }}')" icon="arrow-uturn-left">
-                                                {{ __('Restore') }}
-                                            </flux:button>
-                                        @endcan
-                                        @can('forceDelete', $member)
-                                            <flux:button variant="danger" size="sm" wire:click="confirmForceDelete('{{ $member->id }}')" icon="trash">
-                                                {{ __('Delete Permanently') }}
-                                            </flux:button>
-                                        @endcan
-                                    @else
-                                        @can('update', $member)
-                                            <flux:button variant="ghost" size="sm" wire:click="edit('{{ $member->id }}')" icon="pencil">
-                                                {{ __('Edit') }}
-                                            </flux:button>
-                                        @endcan
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
 
-                                        @can('delete', $member)
-                                            <flux:button variant="ghost" size="sm" wire:click="confirmDelete('{{ $member->id }}')" icon="trash" class="text-red-600 hover:text-red-700">
-                                                {{ __('Delete') }}
-                                            </flux:button>
-                                        @endcan
-                                    @endif
-                                </div>
+                                    <flux:menu>
+                                        @if($viewFilter === 'deleted')
+                                            @can('restore', $member)
+                                                <flux:menu.item wire:click="restore('{{ $member->id }}')" icon="arrow-uturn-left">
+                                                    {{ __('Restore') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                            @can('forceDelete', $member)
+                                                <flux:menu.item wire:click="confirmForceDelete('{{ $member->id }}')" icon="trash" variant="danger">
+                                                    {{ __('Delete Permanently') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                        @else
+                                            @can('update', $member)
+                                                <flux:menu.item wire:click="edit('{{ $member->id }}')" icon="pencil">
+                                                    {{ __('Edit') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                            @can('delete', $member)
+                                                <flux:menu.item wire:click="confirmDelete('{{ $member->id }}')" icon="trash" variant="danger">
+                                                    {{ __('Delete') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                        @endif
+                                    </flux:menu>
+                                </flux:dropdown>
                             </td>
                         </tr>
                     @endforeach

@@ -4,8 +4,12 @@ namespace App\Livewire\Navigation;
 
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
+use App\Models\Tenant\Donation;
+use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
+use App\Models\Tenant\Pledge;
 use App\Models\Tenant\Service;
+use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -55,6 +59,34 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [Service::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewVisitors(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Visitor::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewDonations(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Donation::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewExpenses(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Expense::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewPledges(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Pledge::class, $this->currentBranch]);
     }
 
     public function render()
