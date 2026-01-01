@@ -10,11 +10,18 @@
         <div class="flex items-center gap-2">
             @if($this->canEdit)
                 @if($editing)
-                    <flux:button variant="ghost" wire:click="cancel">
+                    <flux:button variant="ghost" wire:click="cancel" wire:loading.attr="disabled" wire:target="save">
                         {{ __('Cancel') }}
                     </flux:button>
-                    <flux:button variant="primary" wire:click="save" icon="check">
-                        {{ __('Save') }}
+                    <flux:button variant="primary" wire:click="save" wire:loading.attr="disabled" wire:target="save,photo">
+                        <span wire:loading.remove wire:target="save" class="flex items-center gap-1">
+                            <flux:icon.check class="size-4" />
+                            {{ __('Save') }}
+                        </span>
+                        <span wire:loading wire:target="save" class="flex items-center gap-1">
+                            <flux:icon.arrow-path class="size-4 animate-spin" />
+                            {{ __('Saving...') }}
+                        </span>
                     </flux:button>
                 @else
                     <flux:button variant="primary" wire:click="edit" icon="pencil">
@@ -42,13 +49,17 @@
                         @else
                             <flux:avatar size="lg" name="{{ $member->fullName() }}" />
                         @endif
-                        <div class="flex gap-2">
-                            <label class="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">
+                        <div class="flex items-center gap-2">
+                            <span wire:loading wire:target="photo" class="flex items-center gap-1 text-xs text-zinc-500">
+                                <flux:icon.arrow-path class="size-3 animate-spin" />
+                                {{ __('Uploading...') }}
+                            </span>
+                            <label wire:loading.remove wire:target="photo" class="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">
                                 {{ __('Upload') }}
                                 <input type="file" wire:model="photo" class="hidden" accept="image/*" />
                             </label>
                             @if($existingPhotoUrl || $photo)
-                                <button type="button" wire:click="removePhoto" class="text-xs text-red-600 hover:underline dark:text-red-400">
+                                <button type="button" wire:click="removePhoto" wire:loading.attr="disabled" wire:target="photo,removePhoto" class="text-xs text-red-600 hover:underline disabled:opacity-50 dark:text-red-400">
                                     {{ __('Remove') }}
                                 </button>
                             @endif
