@@ -85,6 +85,7 @@ class Member extends Model
     public function clusters(): BelongsToMany
     {
         return $this->belongsToMany(Cluster::class, 'cluster_member')
+            ->using(ClusterMember::class)
             ->withPivot(['role', 'joined_at'])
             ->withTimestamps();
     }

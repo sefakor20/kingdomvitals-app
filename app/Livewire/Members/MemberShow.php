@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Members;
 
+use App\Enums\ClusterRole;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -64,6 +67,15 @@ class MemberShow extends Component
 
     public string $notes = '';
 
+    // Cluster management properties
+    public bool $showAddClusterModal = false;
+
+    public string $selectedClusterId = '';
+
+    public string $selectedClusterRole = 'member';
+
+    public ?string $clusterJoinedAt = null;
+
     public function mount(Branch $branch, Member $member): void
     {
         $this->authorize('view', $member);
@@ -99,6 +111,34 @@ class MemberShow extends Component
     public function statuses(): array
     {
         return MembershipStatus::cases();
+    }
+
+    #[Computed]
+    public function memberClusters(): Collection
+    {
+        return $this->member->clusters()
+            ->where('branch_id', $this->branch->id)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function availableClusters(): Collection
+    {
+        $existingClusterIds = $this->member->clusters()->pluck('clusters.id')->toArray();
+
+        return Cluster::query()
+            ->where('branch_id', $this->branch->id)
+            ->where('is_active', true)
+            ->whereNotIn('id', $existingClusterIds)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function clusterRoles(): array
+    {
+        return ClusterRole::cases();
     }
 
     protected function rules(): array
@@ -245,6 +285,86 @@ class MemberShow extends Component
         @unlink($photo->getRealPath());
 
         return "/storage/members/{$tenantId}/{$filename}";
+    }
+
+    public function openAddClusterModal(): void
+    {
+        $this->authorize('update', $this->member);
+
+        $this->reset(['selectedClusterId', 'selectedClusterRole', 'clusterJoinedAt']);
+        $this->selectedClusterRole = ClusterRole::Member->value;
+        $this->clusterJoinedAt = now()->format('Y-m-d');
+        $this->showAddClusterModal = true;
+    }
+
+    public function closeAddClusterModal(): void
+    {
+        $this->showAddClusterModal = false;
+        $this->reset(['selectedClusterId', 'selectedClusterRole', 'clusterJoinedAt']);
+    }
+
+    public function addToCluster(): void
+    {
+        $this->authorize('update', $this->member);
+
+        $this->validate([
+            'selectedClusterId' => ['required', 'uuid', 'exists:clusters,id'],
+            'selectedClusterRole' => ['required', 'string', 'in:leader,assistant,member'],
+            'clusterJoinedAt' => ['nullable', 'date'],
+        ]);
+
+        // Verify cluster belongs to same branch and is active
+        $cluster = Cluster::where('id', $this->selectedClusterId)
+            ->where('branch_id', $this->branch->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $cluster) {
+            $this->addError('selectedClusterId', __('Invalid cluster selected.'));
+
+            return;
+        }
+
+        // Check if already a member
+        if ($this->member->clusters()->where('cluster_id', $cluster->id)->exists()) {
+            $this->addError('selectedClusterId', __('Member is already in this cluster.'));
+
+            return;
+        }
+
+        $this->member->clusters()->attach($cluster->id, [
+            'role' => $this->selectedClusterRole,
+            'joined_at' => $this->clusterJoinedAt,
+        ]);
+
+        $this->member->refresh();
+        $this->closeAddClusterModal();
+        $this->dispatch('cluster-added');
+    }
+
+    public function removeFromCluster(string $clusterId): void
+    {
+        $this->authorize('update', $this->member);
+
+        $this->member->clusters()->detach($clusterId);
+        $this->member->refresh();
+        $this->dispatch('cluster-removed');
+    }
+
+    public function updateClusterRole(string $clusterId, string $newRole): void
+    {
+        $this->authorize('update', $this->member);
+
+        if (! in_array($newRole, ['leader', 'assistant', 'member'])) {
+            return;
+        }
+
+        $this->member->clusters()->updateExistingPivot($clusterId, [
+            'role' => $newRole,
+        ]);
+
+        $this->member->refresh();
+        $this->dispatch('cluster-updated');
     }
 
     public function render()

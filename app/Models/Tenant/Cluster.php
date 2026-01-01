@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use App\Enums\ClusterType;
+use Database\Factories\Tenant\ClusterFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Cluster extends Model
 {
+    /** @use HasFactory<ClusterFactory> */
     use HasFactory, HasUuids;
+
+    protected static function newFactory(): ClusterFactory
+    {
+        return ClusterFactory::new();
+    }
 
     protected $fillable = [
         'branch_id',

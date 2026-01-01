@@ -4,14 +4,18 @@ namespace App\Models\Tenant;
 
 use App\Enums\ClusterRole;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class ClusterMember extends Model
+class ClusterMember extends Pivot
 {
     use HasUuids;
 
     protected $table = 'cluster_member';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'cluster_id',

@@ -297,6 +297,83 @@
                 </div>
             </dl>
         </div>
+
+        <!-- Clusters / Groups -->
+        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-4 flex items-center justify-between">
+                <flux:heading size="lg">{{ __('Groups & Clusters') }}</flux:heading>
+                @if($editing && $this->canEdit)
+                    <flux:button variant="ghost" size="sm" wire:click="openAddClusterModal" icon="plus">
+                        {{ __('Add to Group') }}
+                    </flux:button>
+                @endif
+            </div>
+
+            @if($this->memberClusters->isEmpty())
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ __('Not assigned to any groups') }}
+                </p>
+            @else
+                <div class="space-y-3">
+                    @foreach($this->memberClusters as $cluster)
+                        <div wire:key="cluster-{{ $cluster->id }}" class="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
+                            <div class="flex items-center gap-3">
+                                <div>
+                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $cluster->name }}
+                                    </div>
+                                    <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                        <span>{{ str_replace('_', ' ', ucwords($cluster->cluster_type->value, '_')) }}</span>
+                                        @if($cluster->pivot->joined_at)
+                                            <span>&bull;</span>
+                                            <span>{{ __('Joined') }} {{ \Carbon\Carbon::parse($cluster->pivot->joined_at)->format('M d, Y') }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if($editing && $this->canEdit)
+                                    <flux:select
+                                        wire:change="updateClusterRole('{{ $cluster->id }}', $event.target.value)"
+                                        size="sm"
+                                        class="w-28"
+                                    >
+                                        @foreach($this->clusterRoles as $role)
+                                            <flux:select.option
+                                                value="{{ $role->value }}"
+                                                :selected="($cluster->pivot->role->value ?? $cluster->pivot->role) === $role->value"
+                                            >
+                                                {{ ucfirst($role->value) }}
+                                            </flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        wire:click="removeFromCluster('{{ $cluster->id }}')"
+                                        wire:confirm="{{ __('Are you sure you want to remove this member from :cluster?', ['cluster' => $cluster->name]) }}"
+                                        icon="x-mark"
+                                        class="text-red-600 hover:text-red-700"
+                                    />
+                                @else
+                                    <flux:badge
+                                        :color="match($cluster->pivot->role->value ?? $cluster->pivot->role) {
+                                            'leader' => 'blue',
+                                            'assistant' => 'yellow',
+                                            'member' => 'zinc',
+                                            default => 'zinc',
+                                        }"
+                                        size="sm"
+                                    >
+                                        {{ ucfirst($cluster->pivot->role->value ?? $cluster->pivot->role) }}
+                                    </flux:badge>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
     </div>
 
     <!-- Notes -->
@@ -313,8 +390,72 @@
         @endif
     </div>
 
-    <!-- Success Toast -->
+    <!-- Add to Cluster Modal -->
+    <flux:modal wire:model.self="showAddClusterModal" name="add-cluster" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Add to Group') }}</flux:heading>
+
+            <form wire:submit="addToCluster" class="space-y-4">
+                <div>
+                    <flux:select
+                        wire:model="selectedClusterId"
+                        :label="__('Select Group')"
+                    >
+                        <flux:select.option value="">{{ __('Choose a group...') }}</flux:select.option>
+                        @foreach($this->availableClusters as $cluster)
+                            <flux:select.option value="{{ $cluster->id }}">
+                                {{ $cluster->name }} ({{ str_replace('_', ' ', ucwords($cluster->cluster_type->value, '_')) }})
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    @error('selectedClusterId')
+                        <div class="mt-1 text-sm text-red-600">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <flux:select
+                    wire:model="selectedClusterRole"
+                    :label="__('Role')"
+                >
+                    @foreach($this->clusterRoles as $role)
+                        <flux:select.option value="{{ $role->value }}">
+                            {{ ucfirst($role->value) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:input
+                    type="date"
+                    wire:model="clusterJoinedAt"
+                    :label="__('Joined Date')"
+                />
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <flux:button variant="ghost" wire:click="closeAddClusterModal" type="button">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button variant="primary" type="submit">
+                        {{ __('Add to Group') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+    <!-- Success Toasts -->
     <x-toast on="member-updated" type="success">
         {{ __('Member updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="cluster-added" type="success">
+        {{ __('Member added to group successfully.') }}
+    </x-toast>
+
+    <x-toast on="cluster-removed" type="success">
+        {{ __('Member removed from group.') }}
+    </x-toast>
+
+    <x-toast on="cluster-updated" type="success">
+        {{ __('Cluster role updated.') }}
     </x-toast>
 </section>

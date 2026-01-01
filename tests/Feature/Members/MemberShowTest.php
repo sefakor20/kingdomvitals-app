@@ -7,6 +7,7 @@ use App\Enums\MembershipStatus;
 use App\Livewire\Members\MemberShow;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
@@ -742,4 +743,260 @@ test('cancel resets photo fields', function () {
         ->assertSet('photo', null)
         ->assertSet('existingPhotoUrl', null)
         ->assertSet('editing', false);
+});
+
+// ============================================
+// CLUSTER MANAGEMENT TESTS
+// ============================================
+
+test('member show displays clusters in view mode', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $cluster = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'name' => 'Youth Fellowship',
+    ]);
+
+    $this->member->clusters()->attach($cluster->id, [
+        'role' => 'member',
+        'joined_at' => '2024-06-15',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->assertSee('Youth Fellowship')
+        ->assertSee('Member');
+});
+
+test('member show displays no clusters message when member has none', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->assertSee('Not assigned to any groups');
+});
+
+test('admin can add member to cluster', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $cluster = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'name' => 'Cell Group A',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->call('openAddClusterModal')
+        ->assertSet('showAddClusterModal', true)
+        ->set('selectedClusterId', $cluster->id)
+        ->set('selectedClusterRole', 'member')
+        ->set('clusterJoinedAt', '2024-06-15')
+        ->call('addToCluster')
+        ->assertSet('showAddClusterModal', false)
+        ->assertDispatched('cluster-added');
+
+    expect($this->member->clusters()->where('cluster_id', $cluster->id)->exists())->toBeTrue();
+});
+
+test('admin can remove member from cluster', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $cluster = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+    ]);
+
+    $this->member->clusters()->attach($cluster->id, [
+        'role' => 'member',
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->call('removeFromCluster', $cluster->id)
+        ->assertDispatched('cluster-removed');
+
+    expect($this->member->clusters()->where('cluster_id', $cluster->id)->exists())->toBeFalse();
+});
+
+test('admin can update member cluster role', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $cluster = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+    ]);
+
+    $this->member->clusters()->attach($cluster->id, [
+        'role' => 'member',
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->call('updateClusterRole', $cluster->id, 'leader')
+        ->assertDispatched('cluster-updated');
+
+    $this->member->refresh();
+    expect($this->member->clusters()->first()->pivot->role->value)->toBe('leader');
+});
+
+test('volunteer cannot add member to cluster', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Volunteer,
+    ]);
+
+    $cluster = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('openAddClusterModal')
+        ->assertForbidden();
+});
+
+test('cannot add member to cluster from different branch', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $otherBranch = Branch::factory()->create();
+    $cluster = Cluster::factory()->create([
+        'branch_id' => $otherBranch->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->call('openAddClusterModal')
+        ->set('selectedClusterId', $cluster->id)
+        ->set('selectedClusterRole', 'member')
+        ->call('addToCluster')
+        ->assertHasErrors(['selectedClusterId']);
+});
+
+test('cannot add member to inactive cluster', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $cluster = Cluster::factory()->inactive()->create([
+        'branch_id' => $this->branch->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->call('openAddClusterModal')
+        ->set('selectedClusterId', $cluster->id)
+        ->set('selectedClusterRole', 'member')
+        ->call('addToCluster')
+        ->assertHasErrors(['selectedClusterId']);
+});
+
+test('available clusters excludes clusters member is already in', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $cluster1 = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'name' => 'Cluster One',
+    ]);
+    $cluster2 = Cluster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'name' => 'Cluster Two',
+    ]);
+
+    $this->member->clusters()->attach($cluster1->id, [
+        'role' => 'member',
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member]);
+
+    $availableClusters = $component->instance()->availableClusters;
+    expect($availableClusters->pluck('id')->toArray())->toContain($cluster2->id);
+    expect($availableClusters->pluck('id')->toArray())->not->toContain($cluster1->id);
+});
+
+test('edit mode shows add to group button', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->call('edit')
+        ->assertSee('Add to Group');
+});
+
+test('view mode hides add to group button in clusters section', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    // In view mode (not editing), the openAddClusterModal button should not be visible
+    // The modal itself has "Add to Group" text, but the header button should not exist
+    Livewire::test(MemberShow::class, ['branch' => $this->branch, 'member' => $this->member])
+        ->assertSet('editing', false)
+        ->assertDontSeeHtml('wire:click="openAddClusterModal"');
 });
