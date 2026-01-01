@@ -34,7 +34,7 @@ Route::middleware([
     })->name('home');
 
     // Dashboard
-    Route::view('/dashboard', 'dashboard')
+    Route::get('/dashboard', \App\Livewire\Dashboard::class)
         ->middleware(['auth', 'verified'])
         ->name('dashboard');
 
