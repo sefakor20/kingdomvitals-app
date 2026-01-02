@@ -59,6 +59,7 @@ class LiveCheckIn extends Component
                 'id' => $m->id,
                 'name' => $m->fullName(),
                 'type' => 'member',
+                'photo_url' => $m->photo_url,
                 'already_checked_in' => $this->isAlreadyCheckedIn('member', $m->id),
             ]);
 
@@ -76,6 +77,7 @@ class LiveCheckIn extends Component
                 'id' => $v->id,
                 'name' => $v->fullName(),
                 'type' => 'visitor',
+                'photo_url' => null,
                 'already_checked_in' => $this->isAlreadyCheckedIn('visitor', $v->id),
             ]);
 
@@ -95,6 +97,7 @@ class LiveCheckIn extends Component
             ->map(fn ($a) => [
                 'name' => $a->member?->fullName() ?? $a->visitor?->fullName() ?? 'Unknown',
                 'type' => $a->member_id ? 'member' : 'visitor',
+                'photo_url' => $a->member?->photo_url,
                 'time' => $a->check_in_time ? substr($a->check_in_time, 0, 5) : '-',
             ]);
     }

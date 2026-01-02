@@ -197,7 +197,11 @@
                             <td class="whitespace-nowrap px-6 py-4">
                                 @if($attendance->member)
                                     <div class="flex items-center gap-2">
-                                        <flux:avatar size="sm" name="{{ $attendance->member->fullName() }}" />
+                                        @if($attendance->member->photo_url)
+                                            <img src="{{ $attendance->member->photo_url }}" alt="{{ $attendance->member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                        @else
+                                            <flux:avatar size="sm" name="{{ $attendance->member->fullName() }}" />
+                                        @endif
                                         <a
                                             href="{{ route('members.show', [$branch, $attendance->member]) }}"
                                             class="text-sm text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"

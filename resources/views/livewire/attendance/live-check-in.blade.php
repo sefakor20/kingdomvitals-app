@@ -77,11 +77,15 @@
                                     : 'border-purple-200 bg-purple-50 hover:border-purple-400 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/30 dark:hover:border-purple-600')
                             }}"
                     >
-                        <flux:avatar
-                            size="lg"
-                            name="{{ $result['name'] }}"
-                            class="{{ $result['type'] === 'visitor' ? 'ring-2 ring-purple-400' : '' }}"
-                        />
+                        @if($result['photo_url'])
+                            <img src="{{ $result['photo_url'] }}" alt="{{ $result['name'] }}" class="size-12 rounded-full object-cover {{ $result['type'] === 'visitor' ? 'ring-2 ring-purple-400' : '' }}" />
+                        @else
+                            <flux:avatar
+                                size="lg"
+                                name="{{ $result['name'] }}"
+                                class="{{ $result['type'] === 'visitor' ? 'ring-2 ring-purple-400' : '' }}"
+                            />
+                        @endif
                         <span class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                             {{ $result['name'] }}
                         </span>
@@ -122,9 +126,13 @@
             <div class="space-y-3">
                 @foreach($this->recentCheckIns as $checkIn)
                     <div wire:key="recent-{{ $loop->index }}" class="flex items-center gap-3">
-                        <div class="flex size-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                            <flux:icon icon="check" class="size-4 text-green-600 dark:text-green-400" />
-                        </div>
+                        @if($checkIn['photo_url'])
+                            <img src="{{ $checkIn['photo_url'] }}" alt="{{ $checkIn['name'] }}" class="size-8 rounded-full object-cover" />
+                        @else
+                            <div class="flex size-8 items-center justify-center rounded-full {{ $checkIn['type'] === 'member' ? 'bg-green-100 dark:bg-green-900' : 'bg-purple-100 dark:bg-purple-900' }}">
+                                <flux:icon icon="check" class="size-4 {{ $checkIn['type'] === 'member' ? 'text-green-600 dark:text-green-400' : 'text-purple-600 dark:text-purple-400' }}" />
+                            </div>
+                        @endif
                         <div class="flex-1">
                             <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">
                                 {{ $checkIn['name'] }}
