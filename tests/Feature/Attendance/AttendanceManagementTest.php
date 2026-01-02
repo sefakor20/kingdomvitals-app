@@ -9,6 +9,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
+use App\Models\Tenant\Visitor;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -38,6 +39,9 @@ beforeEach(function () {
 
     // Create a test member
     $this->member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
+
+    // Create a test visitor
+    $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 });
 
 afterEach(function () {
@@ -803,4 +807,332 @@ test('checkInMethods computed property returns all methods', function () {
 
     expect($methods)->toBe(CheckInMethod::cases());
     expect(count($methods))->toBe(3);
+});
+
+// ============================================
+// VISITOR ATTENDANCE TESTS
+// ============================================
+
+test('admin can add visitor attendance record', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->assertSet('showAddAttendanceModal', true)
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', $this->visitor->id)
+        ->set('attendanceDate', now()->format('Y-m-d'))
+        ->set('attendanceCheckInTime', '09:30')
+        ->set('attendanceCheckInMethod', 'manual')
+        ->call('addAttendance')
+        ->assertSet('showAddAttendanceModal', false)
+        ->assertDispatched('attendance-added');
+
+    $attendance = Attendance::where('service_id', $this->service->id)->first();
+    expect($attendance)->not->toBeNull();
+    expect($attendance->visitor_id)->toBe($this->visitor->id);
+    expect($attendance->member_id)->toBeNull();
+});
+
+test('service show displays visitor attendance records', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'visitor_id' => $this->visitor->id,
+        'member_id' => null,
+        'date' => now()->format('Y-m-d'),
+        'check_in_time' => '10:00',
+        'check_in_method' => CheckInMethod::Manual,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->assertSee($this->visitor->fullName())
+        ->assertSee('Visitor');
+});
+
+test('cannot add duplicate visitor attendance for same date', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $date = now()->format('Y-m-d');
+
+    // Create existing visitor attendance record
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'visitor_id' => $this->visitor->id,
+        'member_id' => null,
+        'date' => $date,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', $this->visitor->id)
+        ->set('attendanceDate', $date)
+        ->set('attendanceCheckInTime', '10:00')
+        ->call('addAttendance')
+        ->assertHasErrors(['attendanceVisitorId']);
+
+    expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
+});
+
+test('can add visitor attendance for same visitor on different dates', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    // Create existing attendance record for yesterday
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'visitor_id' => $this->visitor->id,
+        'member_id' => null,
+        'date' => now()->subDay()->format('Y-m-d'),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', $this->visitor->id)
+        ->set('attendanceDate', now()->format('Y-m-d'))
+        ->set('attendanceCheckInTime', '09:00')
+        ->call('addAttendance')
+        ->assertHasNoErrors();
+
+    expect(Attendance::where('service_id', $this->service->id)->count())->toBe(2);
+});
+
+test('admin can edit visitor attendance record', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $attendance = Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'visitor_id' => $this->visitor->id,
+        'member_id' => null,
+        'date' => now()->format('Y-m-d'),
+        'check_in_time' => '09:00',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('editAttendance', $attendance->id)
+        ->assertSet('attendanceType', 'visitor')
+        ->assertSet('attendanceVisitorId', $this->visitor->id)
+        ->set('attendanceCheckInTime', '10:00')
+        ->call('saveAttendance')
+        ->assertDispatched('attendance-updated');
+
+    expect(substr($attendance->fresh()->check_in_time, 0, 5))->toBe('10:00');
+});
+
+test('visitor is required when attendance type is visitor', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', null)
+        ->set('attendanceDate', now()->format('Y-m-d'))
+        ->set('attendanceCheckInTime', '09:00')
+        ->call('addAttendance')
+        ->assertHasErrors(['attendanceVisitorId']);
+});
+
+test('cannot add attendance for visitor from different branch', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $otherBranch = Branch::factory()->create();
+    $otherVisitor = Visitor::factory()->create(['branch_id' => $otherBranch->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', $otherVisitor->id)
+        ->set('attendanceDate', now()->format('Y-m-d'))
+        ->set('attendanceCheckInTime', '09:00')
+        ->call('addAttendance')
+        ->assertHasErrors(['attendanceVisitorId']);
+});
+
+test('cannot add attendance for converted visitor', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $convertedVisitor = Visitor::factory()->create([
+        'branch_id' => $this->branch->id,
+        'converted_member_id' => $this->member->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', $convertedVisitor->id)
+        ->set('attendanceDate', now()->format('Y-m-d'))
+        ->set('attendanceCheckInTime', '09:00')
+        ->call('addAttendance')
+        ->assertHasErrors(['attendanceVisitorId']);
+});
+
+test('attendance type defaults to member when opening modal', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->assertSet('attendanceType', 'member');
+});
+
+test('switching attendance type clears the other type id', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    // Start with member, switch to visitor
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('openAddAttendanceModal')
+        ->set('attendanceMemberId', $this->member->id)
+        ->set('attendanceType', 'visitor')
+        ->set('attendanceVisitorId', $this->visitor->id)
+        ->set('attendanceDate', now()->format('Y-m-d'))
+        ->set('attendanceCheckInTime', '09:00')
+        ->call('addAttendance')
+        ->assertHasNoErrors();
+
+    $attendance = Attendance::where('service_id', $this->service->id)->first();
+    expect($attendance->visitor_id)->toBe($this->visitor->id);
+    expect($attendance->member_id)->toBeNull();
+});
+
+test('availableVisitors computed property returns unconverted branch visitors', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    // Create additional visitors
+    $visitor1 = Visitor::factory()->create([
+        'branch_id' => $this->branch->id,
+        'last_name' => 'Adams',
+    ]);
+    $visitor2 = Visitor::factory()->create([
+        'branch_id' => $this->branch->id,
+        'last_name' => 'Brown',
+    ]);
+    $convertedVisitor = Visitor::factory()->create([
+        'branch_id' => $this->branch->id,
+        'converted_member_id' => $this->member->id,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service]);
+    $visitors = $component->instance()->availableVisitors;
+
+    // Should include $this->visitor (from beforeEach) + 2 new visitors, but not converted
+    expect($visitors->count())->toBe(3);
+    expect($visitors->contains('id', $convertedVisitor->id))->toBeFalse();
+});
+
+test('can delete visitor attendance record', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $attendance = Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'visitor_id' => $this->visitor->id,
+        'member_id' => null,
+    ]);
+
+    $attendanceId = $attendance->id;
+
+    $this->actingAs($user);
+
+    Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('edit')
+        ->call('deleteAttendance', $attendance->id)
+        ->assertDispatched('attendance-deleted');
+
+    expect(Attendance::find($attendanceId))->toBeNull();
 });

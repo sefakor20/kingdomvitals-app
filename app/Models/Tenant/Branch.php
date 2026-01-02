@@ -102,4 +102,48 @@ class Branch extends Model
     {
         return $this->hasMany(UserBranchAccess::class);
     }
+
+    public function smsTemplates(): HasMany
+    {
+        return $this->hasMany(SmsTemplate::class);
+    }
+
+    /**
+     * Get a setting value from the branch settings.
+     */
+    public function getSetting(string $key, mixed $default = null): mixed
+    {
+        $settings = $this->settings ?? [];
+
+        return $settings[$key] ?? $default;
+    }
+
+    /**
+     * Set a setting value in the branch settings.
+     */
+    public function setSetting(string $key, mixed $value): void
+    {
+        $settings = $this->settings ?? [];
+        $settings[$key] = $value;
+        $this->settings = $settings;
+    }
+
+    /**
+     * Check if SMS is configured for this branch.
+     */
+    public function hasSmsConfigured(): bool
+    {
+        $apiKey = $this->getSetting('sms_api_key');
+        $senderId = $this->getSetting('sms_sender_id');
+
+        return ! empty($apiKey) && ! empty($senderId);
+    }
+
+    /**
+     * Get the SMS sender ID for this branch.
+     */
+    public function getSmsSenderId(): ?string
+    {
+        return $this->getSetting('sms_sender_id');
+    }
 }

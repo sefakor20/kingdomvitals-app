@@ -72,6 +72,12 @@ Route::middleware([
         Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
             ->name('services.show');
 
+        // Attendance Management
+        Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
+            ->name('attendance.index');
+        Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
+            ->name('attendance.checkin');
+
         // Visitor Management
         Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
             ->name('visitors.index');
@@ -85,5 +91,17 @@ Route::middleware([
             ->name('expenses.index');
         Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
             ->name('pledges.index');
+
+        // SMS Management
+        Route::get('/branches/{branch}/sms', \App\Livewire\Sms\SmsIndex::class)
+            ->name('sms.index');
+        Route::get('/branches/{branch}/sms/compose', \App\Livewire\Sms\SmsCompose::class)
+            ->name('sms.compose');
+        Route::get('/branches/{branch}/sms/templates', \App\Livewire\Sms\SmsTemplateIndex::class)
+            ->name('sms.templates');
+
+        // Branch Settings
+        Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)
+            ->name('branches.settings');
     });
 });

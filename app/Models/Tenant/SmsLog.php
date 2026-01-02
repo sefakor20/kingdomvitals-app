@@ -4,6 +4,7 @@ namespace App\Models\Tenant;
 
 use App\Enums\SmsStatus;
 use App\Enums\SmsType;
+use Database\Factories\Tenant\SmsLogFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SmsLog extends Model
 {
+    /** @use HasFactory<SmsLogFactory> */
     use HasFactory, HasUuids;
+
+    protected static function newFactory(): SmsLogFactory
+    {
+        return SmsLogFactory::new();
+    }
 
     protected $fillable = [
         'branch_id',
@@ -53,6 +60,6 @@ class SmsLog extends Model
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(Member::class, 'sent_by');
+        return $this->belongsTo(\App\Models\User::class, 'sent_by');
     }
 }

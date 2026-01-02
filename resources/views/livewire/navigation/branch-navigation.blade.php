@@ -44,6 +44,17 @@
                     {{ __('Visitors') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewAttendance)
+                <flux:navlist.item
+                    icon="clipboard-document-check"
+                    :href="route('attendance.index', $this->currentBranch)"
+                    :current="request()->routeIs('attendance.*')"
+                    wire:navigate
+                >
+                    {{ __('Attendance') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">
@@ -80,5 +91,31 @@
                 </flux:navlist.item>
             @endif
         </flux:navlist.group>
+
+        @if($this->canViewSms)
+            <flux:navlist.group :heading="__('Communication')" class="grid">
+                <flux:navlist.item
+                    icon="chat-bubble-left-right"
+                    :href="route('sms.index', $this->currentBranch)"
+                    :current="request()->routeIs('sms.*')"
+                    wire:navigate
+                >
+                    {{ __('SMS') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
+
+        @if($this->canUpdateBranch)
+            <flux:navlist.group :heading="__('Configuration')" class="grid">
+                <flux:navlist.item
+                    icon="cog-6-tooth"
+                    :href="route('branches.settings', $this->currentBranch)"
+                    :current="request()->routeIs('branches.settings')"
+                    wire:navigate
+                >
+                    {{ __('Settings') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
     </flux:navlist>
 @endif

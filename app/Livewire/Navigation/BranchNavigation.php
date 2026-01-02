@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Navigation;
 
+use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Donation;
@@ -9,6 +10,7 @@ use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\Service;
+use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
 use Livewire\Attributes\Computed;
@@ -69,6 +71,13 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewAttendance(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Attendance::class, $this->currentBranch]);
+    }
+
+    #[Computed]
     public function canViewDonations(): bool
     {
         return $this->currentBranch &&
@@ -87,6 +96,20 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [Pledge::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewSms(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [SmsLog::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canUpdateBranch(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('update', $this->currentBranch);
     }
 
     public function render()
