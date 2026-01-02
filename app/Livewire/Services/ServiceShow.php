@@ -8,6 +8,7 @@ use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
+use App\Models\Tenant\Visitor;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -42,7 +43,11 @@ class ServiceShow extends Component
     // Attendance form fields
     public bool $showAddAttendanceModal = false;
 
+    public string $attendanceType = 'member';
+
     public ?string $attendanceMemberId = null;
+
+    public ?string $attendanceVisitorId = null;
 
     public ?string $attendanceDate = null;
 
@@ -97,7 +102,7 @@ class ServiceShow extends Component
     public function attendanceRecords(): Collection
     {
         return $this->service->attendance()
-            ->with('member')
+            ->with(['member', 'visitor'])
             ->orderBy('date', 'desc')
             ->orderBy('check_in_time', 'desc')
             ->get();
@@ -109,6 +114,17 @@ class ServiceShow extends Component
         return Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+    }
+
+    #[Computed]
+    public function availableVisitors(): Collection
+    {
+        return Visitor::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNull('converted_member_id')
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
@@ -225,7 +241,9 @@ class ServiceShow extends Component
     public function resetAttendanceForm(): void
     {
         $this->reset([
+            'attendanceType',
             'attendanceMemberId',
+            'attendanceVisitorId',
             'attendanceDate',
             'attendanceCheckInTime',
             'attendanceCheckOutTime',
@@ -233,6 +251,7 @@ class ServiceShow extends Component
             'attendanceNotes',
             'editingAttendanceId',
         ]);
+        $this->attendanceType = 'member';
         $this->attendanceCheckInMethod = 'manual';
         $this->resetValidation();
     }
@@ -240,7 +259,9 @@ class ServiceShow extends Component
     protected function attendanceRules(): array
     {
         return [
-            'attendanceMemberId' => ['required', 'uuid', 'exists:members,id'],
+            'attendanceType' => ['required', Rule::in(['member', 'visitor'])],
+            'attendanceMemberId' => ['required_if:attendanceType,member', 'nullable', 'uuid', 'exists:members,id'],
+            'attendanceVisitorId' => ['required_if:attendanceType,visitor', 'nullable', 'uuid', 'exists:visitors,id'],
             'attendanceDate' => ['required', 'date'],
             'attendanceCheckInTime' => ['required', 'date_format:H:i'],
             'attendanceCheckOutTime' => ['nullable', 'date_format:H:i'],
@@ -255,34 +276,68 @@ class ServiceShow extends Component
 
         $this->validate($this->attendanceRules());
 
-        // Verify member belongs to same branch and is active
-        $member = Member::where('id', $this->attendanceMemberId)
-            ->where('primary_branch_id', $this->branch->id)
-            ->where('status', 'active')
-            ->first();
+        $memberId = null;
+        $visitorId = null;
 
-        if (! $member) {
-            $this->addError('attendanceMemberId', __('Invalid member selected.'));
+        if ($this->attendanceType === 'member') {
+            // Verify member belongs to same branch and is active
+            $member = Member::where('id', $this->attendanceMemberId)
+                ->where('primary_branch_id', $this->branch->id)
+                ->where('status', 'active')
+                ->first();
 
-            return;
-        }
+            if (! $member) {
+                $this->addError('attendanceMemberId', __('Invalid member selected.'));
 
-        // Check for duplicate attendance
-        $exists = Attendance::where('service_id', $this->service->id)
-            ->where('date', $this->attendanceDate)
-            ->where('member_id', $this->attendanceMemberId)
-            ->exists();
+                return;
+            }
 
-        if ($exists) {
-            $this->addError('attendanceMemberId', __('This member already has an attendance record for this date.'));
+            // Check for duplicate attendance
+            $exists = Attendance::where('service_id', $this->service->id)
+                ->where('date', $this->attendanceDate)
+                ->where('member_id', $this->attendanceMemberId)
+                ->exists();
 
-            return;
+            if ($exists) {
+                $this->addError('attendanceMemberId', __('This member already has an attendance record for this date.'));
+
+                return;
+            }
+
+            $memberId = $this->attendanceMemberId;
+        } else {
+            // Verify visitor belongs to same branch and is not converted
+            $visitor = Visitor::where('id', $this->attendanceVisitorId)
+                ->where('branch_id', $this->branch->id)
+                ->whereNull('converted_member_id')
+                ->first();
+
+            if (! $visitor) {
+                $this->addError('attendanceVisitorId', __('Invalid visitor selected.'));
+
+                return;
+            }
+
+            // Check for duplicate attendance
+            $exists = Attendance::where('service_id', $this->service->id)
+                ->where('date', $this->attendanceDate)
+                ->where('visitor_id', $this->attendanceVisitorId)
+                ->exists();
+
+            if ($exists) {
+                $this->addError('attendanceVisitorId', __('This visitor already has an attendance record for this date.'));
+
+                return;
+            }
+
+            $visitorId = $this->attendanceVisitorId;
         }
 
         Attendance::create([
             'service_id' => $this->service->id,
             'branch_id' => $this->branch->id,
-            'member_id' => $this->attendanceMemberId,
+            'member_id' => $memberId,
+            'visitor_id' => $visitorId,
             'date' => $this->attendanceDate,
             'check_in_time' => $this->attendanceCheckInTime,
             'check_out_time' => $this->attendanceCheckOutTime ?: null,
@@ -304,7 +359,18 @@ class ServiceShow extends Component
         $this->authorize('update', $attendance);
 
         $this->editingAttendanceId = $id;
-        $this->attendanceMemberId = $attendance->member_id;
+
+        // Determine attendance type based on which ID is set
+        if ($attendance->member_id) {
+            $this->attendanceType = 'member';
+            $this->attendanceMemberId = $attendance->member_id;
+            $this->attendanceVisitorId = null;
+        } else {
+            $this->attendanceType = 'visitor';
+            $this->attendanceVisitorId = $attendance->visitor_id;
+            $this->attendanceMemberId = null;
+        }
+
         $this->attendanceDate = $attendance->date->format('Y-m-d');
         // Strip seconds from time fields to match H:i validation format
         $this->attendanceCheckInTime = $attendance->check_in_time ? substr($attendance->check_in_time, 0, 5) : null;
@@ -325,21 +391,44 @@ class ServiceShow extends Component
 
         $this->validate($this->attendanceRules());
 
-        // Check for duplicate attendance (excluding current record)
-        $exists = Attendance::where('service_id', $this->service->id)
-            ->where('date', $this->attendanceDate)
-            ->where('member_id', $this->attendanceMemberId)
-            ->where('id', '!=', $this->editingAttendanceId)
-            ->exists();
+        $memberId = null;
+        $visitorId = null;
 
-        if ($exists) {
-            $this->addError('attendanceMemberId', __('This member already has an attendance record for this date.'));
+        if ($this->attendanceType === 'member') {
+            // Check for duplicate attendance (excluding current record)
+            $exists = Attendance::where('service_id', $this->service->id)
+                ->where('date', $this->attendanceDate)
+                ->where('member_id', $this->attendanceMemberId)
+                ->where('id', '!=', $this->editingAttendanceId)
+                ->exists();
 
-            return;
+            if ($exists) {
+                $this->addError('attendanceMemberId', __('This member already has an attendance record for this date.'));
+
+                return;
+            }
+
+            $memberId = $this->attendanceMemberId;
+        } else {
+            // Check for duplicate attendance (excluding current record)
+            $exists = Attendance::where('service_id', $this->service->id)
+                ->where('date', $this->attendanceDate)
+                ->where('visitor_id', $this->attendanceVisitorId)
+                ->where('id', '!=', $this->editingAttendanceId)
+                ->exists();
+
+            if ($exists) {
+                $this->addError('attendanceVisitorId', __('This visitor already has an attendance record for this date.'));
+
+                return;
+            }
+
+            $visitorId = $this->attendanceVisitorId;
         }
 
         $attendance->update([
-            'member_id' => $this->attendanceMemberId,
+            'member_id' => $memberId,
+            'visitor_id' => $visitorId,
             'date' => $this->attendanceDate,
             'check_in_time' => $this->attendanceCheckInTime,
             'check_out_time' => $this->attendanceCheckOutTime ?: null,

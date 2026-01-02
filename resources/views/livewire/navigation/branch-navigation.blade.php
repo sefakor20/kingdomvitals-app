@@ -44,6 +44,17 @@
                     {{ __('Visitors') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewAttendance)
+                <flux:navlist.item
+                    icon="clipboard-document-check"
+                    :href="route('attendance.index', $this->currentBranch)"
+                    :current="request()->routeIs('attendance.*')"
+                    wire:navigate
+                >
+                    {{ __('Attendance') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">

@@ -165,9 +165,20 @@
                 <span class="text-sm font-normal text-zinc-500">({{ $this->attendanceRecords->count() }})</span>
             </flux:heading>
             @if($this->canManageAttendance)
-                <flux:button variant="primary" size="sm" wire:click="openAddAttendanceModal" icon="plus">
-                    {{ __('Add Attendance') }}
-                </flux:button>
+                <div class="flex items-center gap-2">
+                    <flux:button
+                        variant="ghost"
+                        size="sm"
+                        :href="route('attendance.checkin', [$branch, $service])"
+                        icon="hand-raised"
+                        wire:navigate
+                    >
+                        {{ __('Live Check-in') }}
+                    </flux:button>
+                    <flux:button variant="primary" size="sm" wire:click="openAddAttendanceModal" icon="plus">
+                        {{ __('Add Attendance') }}
+                    </flux:button>
+                </div>
             @endif
         </div>
 
@@ -204,10 +215,33 @@
                                         </flux:badge>
                                     </div>
                                 </div>
+                            @elseif($attendance->visitor)
+                                <flux:avatar size="sm" name="{{ $attendance->visitor->fullName() }}" class="ring-2 ring-purple-400" />
+                                <div>
+                                    <a href="{{ route('visitors.show', [$branch, $attendance->visitor]) }}" class="text-sm font-medium text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300" wire:navigate>
+                                        {{ $attendance->visitor->fullName() }}
+                                        <span class="text-xs font-normal text-purple-500">({{ __('Visitor') }})</span>
+                                    </a>
+                                    <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                                        <span>{{ $attendance->date->format('M d, Y') }}</span>
+                                        <span>&bull;</span>
+                                        <span>{{ $attendance->check_in_time }}{{ $attendance->check_out_time ? ' - ' . $attendance->check_out_time : '' }}</span>
+                                        <flux:badge
+                                            :color="match($attendance->check_in_method->value) {
+                                                'qr' => 'blue',
+                                                'kiosk' => 'purple',
+                                                default => 'zinc',
+                                            }"
+                                            size="sm"
+                                        >
+                                            {{ ucfirst($attendance->check_in_method->value) }}
+                                        </flux:badge>
+                                    </div>
+                                </div>
                             @else
                                 <flux:avatar size="sm" name="?" />
                                 <div>
-                                    <span class="text-sm font-medium text-zinc-500">{{ __('Unknown Member') }}</span>
+                                    <span class="text-sm font-medium text-zinc-500">{{ __('Unknown') }}</span>
                                 </div>
                             @endif
                         </div>
@@ -235,15 +269,43 @@
             </flux:heading>
 
             <form wire:submit="saveAttendance" class="space-y-4">
-                <flux:select wire:model="attendanceMemberId" :label="__('Member')" required>
-                    <flux:select.option value="">{{ __('Select a member...') }}</flux:select.option>
-                    @foreach($this->availableMembers as $member)
-                        <flux:select.option value="{{ $member->id }}">
-                            {{ $member->fullName() }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-                @error('attendanceMemberId') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                <!-- Attendee Type Selector -->
+                <div>
+                    <flux:text class="mb-2 text-sm font-medium">{{ __('Attendee Type') }}</flux:text>
+                    <div class="flex gap-4">
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" wire:model.live="attendanceType" value="member" class="text-blue-600 focus:ring-blue-500" />
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Member') }}</span>
+                        </label>
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" wire:model.live="attendanceType" value="visitor" class="text-purple-600 focus:ring-purple-500" />
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Visitor') }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Conditional Member/Visitor Select -->
+                @if($attendanceType === 'member')
+                    <flux:select wire:model="attendanceMemberId" :label="__('Member')" required>
+                        <flux:select.option value="">{{ __('Select a member...') }}</flux:select.option>
+                        @foreach($this->availableMembers as $member)
+                            <flux:select.option value="{{ $member->id }}">
+                                {{ $member->fullName() }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    @error('attendanceMemberId') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                @else
+                    <flux:select wire:model="attendanceVisitorId" :label="__('Visitor')" required>
+                        <flux:select.option value="">{{ __('Select a visitor...') }}</flux:select.option>
+                        @foreach($this->availableVisitors as $visitor)
+                            <flux:select.option value="{{ $visitor->id }}">
+                                {{ $visitor->fullName() }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    @error('attendanceVisitorId') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                @endif
 
                 <flux:input type="date" wire:model="attendanceDate" :label="__('Date')" required />
                 @error('attendanceDate') <div class="text-sm text-red-600">{{ $message }}</div> @enderror

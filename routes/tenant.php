@@ -72,6 +72,12 @@ Route::middleware([
         Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
             ->name('services.show');
 
+        // Attendance Management
+        Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
+            ->name('attendance.index');
+        Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
+            ->name('attendance.checkin');
+
         // Visitor Management
         Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
             ->name('visitors.index');
