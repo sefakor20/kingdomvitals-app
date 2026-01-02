@@ -103,6 +103,80 @@
         </div>
     </div>
 
+    <!-- Automated SMS Section -->
+    <div class="mt-6 rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="border-b border-zinc-200 p-6 dark:border-zinc-700">
+            <div class="flex items-center gap-3">
+                <div class="rounded-full bg-purple-100 p-2 dark:bg-purple-900">
+                    <flux:icon icon="clock" class="size-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                    <flux:heading size="lg">{{ __('Automated SMS') }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('Configure automated SMS messages for birthdays and special occasions.') }}
+                    </flux:text>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6 p-6">
+            @if(!$hasExistingApiKey)
+                <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/30">
+                    <div class="flex items-center gap-2">
+                        <flux:icon icon="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                        <flux:text class="text-amber-700 dark:text-amber-300">
+                            {{ __('Please configure your SMS credentials above before enabling automated SMS.') }}
+                        </flux:text>
+                    </div>
+                </div>
+            @else
+                <!-- Birthday SMS Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <flux:heading size="sm">{{ __('Birthday Greetings') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Automatically send birthday wishes to members on their special day.') }}
+                        </flux:text>
+                    </div>
+                    <flux:switch wire:model.live="autoBirthdaySms" />
+                </div>
+
+                @if($autoBirthdaySms)
+                    <!-- Birthday Template Selection -->
+                    <div>
+                        <flux:select
+                            wire:model="birthdayTemplateId"
+                            :label="__('Birthday Message Template')"
+                        >
+                            <flux:select.option value="">{{ __('Use default message') }}</flux:select.option>
+                            @foreach($this->birthdayTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:text class="mt-1 text-xs text-zinc-500">
+                            {{ __('Select a template or use the default: "Happy Birthday, {first_name}! Wishing you a blessed and wonderful day filled with joy."') }}
+                        </flux:text>
+                        @if($this->birthdayTemplates->isEmpty())
+                            <div class="mt-2">
+                                <flux:button variant="ghost" size="sm" :href="route('sms.templates', $branch)" wire:navigate icon="plus">
+                                    {{ __('Manage Templates') }}
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            @endif
+
+            <!-- Save Button for Auto SMS -->
+            <div class="flex justify-end border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                <flux:button variant="primary" wire:click="save" icon="check" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="save">{{ __('Save Settings') }}</span>
+                    <span wire:loading wire:target="save">{{ __('Saving...') }}</span>
+                </flux:button>
+            </div>
+        </div>
+    </div>
+
     <!-- Help Section -->
     <div class="mt-6 rounded-xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800">
         <flux:heading size="sm" class="mb-3">{{ __('Need Help?') }}</flux:heading>

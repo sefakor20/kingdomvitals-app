@@ -17,3 +17,8 @@ Schedule::command('visitors:send-follow-up-reminders --hours=24')
 Schedule::command('visitors:send-follow-up-reminders --hours=2')
     ->everyTwoHours()
     ->withoutOverlapping();
+
+// Send birthday SMS greetings daily at 8 AM
+Schedule::command('sms:send-birthday')
+    ->dailyAt('08:00')
+    ->withoutOverlapping();

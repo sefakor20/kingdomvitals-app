@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\Branches;
 
+use App\Enums\SmsType;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\SmsTemplate;
 use App\Services\TextTangoService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -15,6 +19,7 @@ class BranchSettings extends Component
 {
     public Branch $branch;
 
+    // SMS Credentials
     public string $smsApiKey = '';
 
     public string $smsSenderId = '';
@@ -26,6 +31,11 @@ class BranchSettings extends Component
     public ?string $testConnectionResult = null;
 
     public ?string $testConnectionStatus = null;
+
+    // Auto Birthday SMS
+    public bool $autoBirthdaySms = false;
+
+    public ?string $birthdayTemplateId = null;
 
     public function mount(Branch $branch): void
     {
@@ -48,6 +58,20 @@ class BranchSettings extends Component
         }
 
         $this->smsSenderId = $this->branch->getSetting('sms_sender_id') ?? '';
+
+        // Load auto SMS settings
+        $this->autoBirthdaySms = (bool) $this->branch->getSetting('auto_birthday_sms', false);
+        $this->birthdayTemplateId = $this->branch->getSetting('birthday_template_id');
+    }
+
+    #[Computed]
+    public function birthdayTemplates(): Collection
+    {
+        return SmsTemplate::where('branch_id', $this->branch->id)
+            ->where('type', SmsType::Birthday)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
     }
 
     protected function rules(): array
@@ -79,6 +103,11 @@ class BranchSettings extends Component
         }
 
         $this->branch->setSetting('sms_sender_id', $this->smsSenderId);
+
+        // Save auto SMS settings
+        $this->branch->setSetting('auto_birthday_sms', $this->autoBirthdaySms);
+        $this->branch->setSetting('birthday_template_id', $this->birthdayTemplateId);
+
         $this->branch->save();
 
         $this->hasExistingApiKey = ! empty($this->branch->getSetting('sms_api_key'));
