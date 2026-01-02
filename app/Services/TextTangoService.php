@@ -33,7 +33,8 @@ class TextTangoService
 
     /**
      * Create a TextTangoService instance for a specific branch.
-     * Uses branch SMS settings if configured, falls back to system config.
+     * Only uses branch-configured SMS credentials. Does NOT fall back to system config.
+     * System credentials are reserved for system-level notifications only.
      */
     public static function forBranch(Branch $branch): self
     {
@@ -55,8 +56,8 @@ class TextTangoService
             return new self($apiKey, $senderId);
         }
 
-        // Otherwise fall back to system config
-        return new self;
+        // No fallback to system config - branch must configure their own credentials
+        return new self('', '');
     }
 
     protected function client(): PendingRequest

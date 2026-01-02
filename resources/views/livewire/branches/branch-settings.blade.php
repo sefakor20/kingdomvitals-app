@@ -109,8 +109,8 @@
         <div class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
             <p>{{ __('To get your TextTango API credentials:') }}</p>
             <ol class="ml-4 list-decimal space-y-1">
-                <li>{{ __('Log in to your TextTango account') }}</li>
-                <li>{{ __('Navigate to Settings > API Keys') }}</li>
+                <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango') }}</a> {{ __('account') }}</li>
+                <li>{{ __('Navigate to Developer > Access Tokens') }}</li>
                 <li>{{ __('Create a new API key or copy your existing one') }}</li>
                 <li>{{ __('For Sender ID, use your organization name (max 11 characters)') }}</li>
             </ol>
