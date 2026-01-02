@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Tenant\Branch;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -38,11 +39,19 @@ class TextTangoService
     {
         $settings = $branch->settings ?? [];
 
-        $apiKey = $settings['sms_api_key'] ?? null;
+        $encryptedApiKey = $settings['sms_api_key'] ?? null;
         $senderId = $settings['sms_sender_id'] ?? null;
 
         // If branch has SMS settings configured, use them
-        if (! empty($apiKey) && ! empty($senderId)) {
+        if (! empty($encryptedApiKey) && ! empty($senderId)) {
+            // Decrypt the API key
+            try {
+                $apiKey = Crypt::decryptString($encryptedApiKey);
+            } catch (\Exception $e) {
+                // If decryption fails, assume it's stored unencrypted (legacy)
+                $apiKey = $encryptedApiKey;
+            }
+
             return new self($apiKey, $senderId);
         }
 

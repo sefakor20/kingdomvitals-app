@@ -1,0 +1,171 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire\Branches;
+
+use App\Models\Tenant\Branch;
+use App\Services\TextTangoService;
+use Illuminate\Support\Facades\Crypt;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+#[Layout('components.layouts.app')]
+class BranchSettings extends Component
+{
+    public Branch $branch;
+
+    public string $smsApiKey = '';
+
+    public string $smsSenderId = '';
+
+    public bool $showApiKey = false;
+
+    public bool $hasExistingApiKey = false;
+
+    public ?string $testConnectionResult = null;
+
+    public ?string $testConnectionStatus = null;
+
+    public function mount(Branch $branch): void
+    {
+        $this->authorize('update', $branch);
+        $this->branch = $branch;
+
+        // Load existing settings
+        $existingApiKey = $this->branch->getSetting('sms_api_key');
+        $this->hasExistingApiKey = ! empty($existingApiKey);
+
+        // If there's an existing API key, show masked version
+        if ($this->hasExistingApiKey) {
+            try {
+                $decrypted = Crypt::decryptString($existingApiKey);
+                $this->smsApiKey = str_repeat('•', max(0, strlen($decrypted) - 4)).substr($decrypted, -4);
+            } catch (\Exception $e) {
+                // If decryption fails, it might be stored unencrypted (legacy)
+                $this->smsApiKey = str_repeat('•', max(0, strlen($existingApiKey) - 4)).substr($existingApiKey, -4);
+            }
+        }
+
+        $this->smsSenderId = $this->branch->getSetting('sms_sender_id') ?? '';
+    }
+
+    protected function rules(): array
+    {
+        return [
+            'smsSenderId' => ['required', 'string', 'max:11', 'regex:/^[a-zA-Z0-9]+$/'],
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'smsSenderId.required' => __('Sender ID is required.'),
+            'smsSenderId.max' => __('Sender ID cannot exceed 11 characters.'),
+            'smsSenderId.regex' => __('Sender ID can only contain letters and numbers.'),
+        ];
+    }
+
+    public function save(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->validate();
+
+        // Only update API key if a new one was entered (not the masked version)
+        if ($this->smsApiKey && ! str_contains($this->smsApiKey, '•')) {
+            $encryptedApiKey = Crypt::encryptString($this->smsApiKey);
+            $this->branch->setSetting('sms_api_key', $encryptedApiKey);
+        }
+
+        $this->branch->setSetting('sms_sender_id', $this->smsSenderId);
+        $this->branch->save();
+
+        $this->hasExistingApiKey = ! empty($this->branch->getSetting('sms_api_key'));
+
+        // Mask the API key after saving
+        if ($this->smsApiKey && ! str_contains($this->smsApiKey, '•')) {
+            $this->smsApiKey = str_repeat('•', max(0, strlen($this->smsApiKey) - 4)).substr($this->smsApiKey, -4);
+        }
+
+        $this->dispatch('settings-saved');
+        session()->flash('success', __('SMS settings saved successfully.'));
+    }
+
+    public function testConnection(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->testConnectionResult = null;
+        $this->testConnectionStatus = null;
+
+        // Get the API key to test with
+        $apiKeyToTest = null;
+
+        if ($this->smsApiKey && ! str_contains($this->smsApiKey, '•')) {
+            // New API key entered, use it directly
+            $apiKeyToTest = $this->smsApiKey;
+        } else {
+            // Use existing encrypted API key
+            $existingApiKey = $this->branch->getSetting('sms_api_key');
+            if ($existingApiKey) {
+                try {
+                    $apiKeyToTest = Crypt::decryptString($existingApiKey);
+                } catch (\Exception $e) {
+                    // Legacy unencrypted key
+                    $apiKeyToTest = $existingApiKey;
+                }
+            }
+        }
+
+        if (empty($apiKeyToTest)) {
+            $this->testConnectionResult = __('Please enter an API key first.');
+            $this->testConnectionStatus = 'error';
+
+            return;
+        }
+
+        $senderId = $this->smsSenderId ?: $this->branch->getSetting('sms_sender_id');
+
+        if (empty($senderId)) {
+            $this->testConnectionResult = __('Please enter a Sender ID first.');
+            $this->testConnectionStatus = 'error';
+
+            return;
+        }
+
+        // Test the connection by checking balance
+        $service = new TextTangoService($apiKeyToTest, $senderId);
+        $result = $service->getBalance();
+
+        if ($result['success']) {
+            $this->testConnectionResult = __('Connection successful! Balance: :currency :balance', [
+                'currency' => $result['currency'] ?? 'GHS',
+                'balance' => number_format($result['balance'] ?? 0, 2),
+            ]);
+            $this->testConnectionStatus = 'success';
+        } else {
+            $this->testConnectionResult = __('Connection failed: :error', [
+                'error' => $result['error'] ?? 'Unknown error',
+            ]);
+            $this->testConnectionStatus = 'error';
+        }
+    }
+
+    public function clearApiKey(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->smsApiKey = '';
+        $this->hasExistingApiKey = false;
+        $this->branch->setSetting('sms_api_key', null);
+        $this->branch->save();
+
+        session()->flash('success', __('API key cleared.'));
+    }
+
+    public function render()
+    {
+        return view('livewire.branches.branch-settings');
+    }
+}

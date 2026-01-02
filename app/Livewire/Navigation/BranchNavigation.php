@@ -105,6 +105,13 @@ class BranchNavigation extends Component
             auth()->user()?->can('viewAny', [SmsLog::class, $this->currentBranch]);
     }
 
+    #[Computed]
+    public function canUpdateBranch(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('update', $this->currentBranch);
+    }
+
     public function render()
     {
         return view('livewire.navigation.branch-navigation');

@@ -104,5 +104,18 @@
                 </flux:navlist.item>
             </flux:navlist.group>
         @endif
+
+        @if($this->canUpdateBranch)
+            <flux:navlist.group :heading="__('Configuration')" class="grid">
+                <flux:navlist.item
+                    icon="cog-6-tooth"
+                    :href="route('branches.settings', $this->currentBranch)"
+                    :current="request()->routeIs('branches.settings')"
+                    wire:navigate
+                >
+                    {{ __('Settings') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
     </flux:navlist>
 @endif

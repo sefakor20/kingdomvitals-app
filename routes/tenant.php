@@ -99,5 +99,9 @@ Route::middleware([
             ->name('sms.compose');
         Route::get('/branches/{branch}/sms/templates', \App\Livewire\Sms\SmsTemplateIndex::class)
             ->name('sms.templates');
+
+        // Branch Settings
+        Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)
+            ->name('branches.settings');
     });
 });
