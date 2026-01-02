@@ -15,7 +15,7 @@
         "laravel/tinker": "^2.10.2",
         "livewire/flux": "^2.10.2",
         "propaganistas/laravel-phone": "^6.0.2",
-        "stancl/tenancy": "^3.9"
+        "stancl/tenancy": "^3.9.1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16.3",
@@ -26,7 +26,7 @@
         "laravel/sail": "^1.51",
         "mockery/mockery": "^1.6.12",
         "nunomaduro/collision": "^8.8.3",
-        "pestphp/pest": "^4.2",
+        "pestphp/pest": "^4.3",
         "pestphp/pest-plugin-laravel": "^4.0"
     },
     "autoload": {
