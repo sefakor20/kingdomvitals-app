@@ -10,6 +10,7 @@ use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\Service;
+use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
 use Livewire\Attributes\Computed;
@@ -95,6 +96,13 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [Pledge::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewSms(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [SmsLog::class, $this->currentBranch]);
     }
 
     public function render()

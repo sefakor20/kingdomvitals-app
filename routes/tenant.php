@@ -91,5 +91,13 @@ Route::middleware([
             ->name('expenses.index');
         Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
             ->name('pledges.index');
+
+        // SMS Management
+        Route::get('/branches/{branch}/sms', \App\Livewire\Sms\SmsIndex::class)
+            ->name('sms.index');
+        Route::get('/branches/{branch}/sms/compose', \App\Livewire\Sms\SmsCompose::class)
+            ->name('sms.compose');
+        Route::get('/branches/{branch}/sms/templates', \App\Livewire\Sms\SmsTemplateIndex::class)
+            ->name('sms.templates');
     });
 });

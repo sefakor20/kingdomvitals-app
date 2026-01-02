@@ -91,5 +91,18 @@
                 </flux:navlist.item>
             @endif
         </flux:navlist.group>
+
+        @if($this->canViewSms)
+            <flux:navlist.group :heading="__('Communication')" class="grid">
+                <flux:navlist.item
+                    icon="chat-bubble-left-right"
+                    :href="route('sms.index', $this->currentBranch)"
+                    :current="request()->routeIs('sms.*')"
+                    wire:navigate
+                >
+                    {{ __('SMS') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
     </flux:navlist>
 @endif
