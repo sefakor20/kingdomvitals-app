@@ -37,6 +37,15 @@ class BranchSettings extends Component
 
     public ?string $birthdayTemplateId = null;
 
+    // Auto Service Reminder SMS
+    public bool $autoServiceReminder = false;
+
+    public int $serviceReminderHours = 24;
+
+    public ?string $serviceReminderTemplateId = null;
+
+    public string $serviceReminderRecipients = 'all';
+
     public function mount(Branch $branch): void
     {
         $this->authorize('update', $branch);
@@ -62,6 +71,12 @@ class BranchSettings extends Component
         // Load auto SMS settings
         $this->autoBirthdaySms = (bool) $this->branch->getSetting('auto_birthday_sms', false);
         $this->birthdayTemplateId = $this->branch->getSetting('birthday_template_id');
+
+        // Load service reminder settings
+        $this->autoServiceReminder = (bool) $this->branch->getSetting('auto_service_reminder', false);
+        $this->serviceReminderHours = (int) $this->branch->getSetting('service_reminder_hours', 24);
+        $this->serviceReminderTemplateId = $this->branch->getSetting('service_reminder_template_id');
+        $this->serviceReminderRecipients = $this->branch->getSetting('service_reminder_recipients', 'all');
     }
 
     #[Computed]
@@ -69,6 +84,16 @@ class BranchSettings extends Component
     {
         return SmsTemplate::where('branch_id', $this->branch->id)
             ->where('type', SmsType::Birthday)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function reminderTemplates(): Collection
+    {
+        return SmsTemplate::where('branch_id', $this->branch->id)
+            ->where('type', SmsType::Reminder)
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -108,6 +133,12 @@ class BranchSettings extends Component
         $this->branch->setSetting('auto_birthday_sms', $this->autoBirthdaySms);
         $this->branch->setSetting('birthday_template_id', $this->birthdayTemplateId);
 
+        // Save service reminder settings
+        $this->branch->setSetting('auto_service_reminder', $this->autoServiceReminder);
+        $this->branch->setSetting('service_reminder_hours', $this->serviceReminderHours);
+        $this->branch->setSetting('service_reminder_template_id', $this->serviceReminderTemplateId);
+        $this->branch->setSetting('service_reminder_recipients', $this->serviceReminderRecipients);
+
         $this->branch->save();
 
         $this->hasExistingApiKey = ! empty($this->branch->getSetting('sms_api_key'));
@@ -118,7 +149,6 @@ class BranchSettings extends Component
         }
 
         $this->dispatch('settings-saved');
-        session()->flash('success', __('SMS settings saved successfully.'));
     }
 
     public function testConnection(): void
@@ -190,7 +220,7 @@ class BranchSettings extends Component
         $this->branch->setSetting('sms_api_key', null);
         $this->branch->save();
 
-        session()->flash('success', __('API key cleared.'));
+        $this->dispatch('api-key-cleared');
     }
 
     public function render()
