@@ -51,6 +51,17 @@ class BranchSettings extends Component
 
     public ?string $welcomeTemplateId = null;
 
+    // Auto Attendance Follow-up SMS
+    public bool $autoAttendanceFollowup = false;
+
+    public int $attendanceFollowupHours = 24;
+
+    public string $attendanceFollowupRecipients = 'regular';
+
+    public int $attendanceFollowupMinAttendance = 3;
+
+    public ?string $attendanceFollowupTemplateId = null;
+
     public function mount(Branch $branch): void
     {
         $this->authorize('update', $branch);
@@ -86,6 +97,13 @@ class BranchSettings extends Component
         // Load welcome SMS settings
         $this->autoWelcomeSms = (bool) $this->branch->getSetting('auto_welcome_sms', false);
         $this->welcomeTemplateId = $this->branch->getSetting('welcome_template_id');
+
+        // Load attendance follow-up settings
+        $this->autoAttendanceFollowup = (bool) $this->branch->getSetting('auto_attendance_followup', false);
+        $this->attendanceFollowupHours = (int) $this->branch->getSetting('attendance_followup_hours', 24);
+        $this->attendanceFollowupRecipients = $this->branch->getSetting('attendance_followup_recipients', 'regular');
+        $this->attendanceFollowupMinAttendance = (int) $this->branch->getSetting('attendance_followup_min_attendance', 3);
+        $this->attendanceFollowupTemplateId = $this->branch->getSetting('attendance_followup_template_id');
     }
 
     #[Computed]
@@ -113,6 +131,16 @@ class BranchSettings extends Component
     {
         return SmsTemplate::where('branch_id', $this->branch->id)
             ->where('type', SmsType::Welcome)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function followupTemplates(): Collection
+    {
+        return SmsTemplate::where('branch_id', $this->branch->id)
+            ->where('type', SmsType::FollowUp)
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -161,6 +189,13 @@ class BranchSettings extends Component
         // Save welcome SMS settings
         $this->branch->setSetting('auto_welcome_sms', $this->autoWelcomeSms);
         $this->branch->setSetting('welcome_template_id', $this->welcomeTemplateId);
+
+        // Save attendance follow-up settings
+        $this->branch->setSetting('auto_attendance_followup', $this->autoAttendanceFollowup);
+        $this->branch->setSetting('attendance_followup_hours', $this->attendanceFollowupHours);
+        $this->branch->setSetting('attendance_followup_recipients', $this->attendanceFollowupRecipients);
+        $this->branch->setSetting('attendance_followup_min_attendance', $this->attendanceFollowupMinAttendance);
+        $this->branch->setSetting('attendance_followup_template_id', $this->attendanceFollowupTemplateId);
 
         $this->branch->save();
 

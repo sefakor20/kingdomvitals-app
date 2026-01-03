@@ -27,3 +27,8 @@ Schedule::command('sms:send-birthday')
 Schedule::command('sms:send-service-reminder')
     ->hourly()
     ->withoutOverlapping();
+
+// Send attendance follow-up SMS hourly
+Schedule::command('sms:send-attendance-followup')
+    ->hourly()
+    ->withoutOverlapping();

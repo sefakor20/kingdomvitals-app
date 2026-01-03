@@ -136,6 +136,17 @@ class SmsLogFactory extends Factory
     }
 
     /**
+     * Indicate that the SMS is a follow-up message.
+     */
+    public function followup(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'message_type' => SmsType::FollowUp,
+            'message' => 'Hi, we missed you at Sunday Service! Hope all is well.',
+        ]);
+    }
+
+    /**
      * Indicate that the SMS was sent today.
      */
     public function today(): static
