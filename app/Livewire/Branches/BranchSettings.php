@@ -46,6 +46,11 @@ class BranchSettings extends Component
 
     public string $serviceReminderRecipients = 'all';
 
+    // Auto Welcome SMS
+    public bool $autoWelcomeSms = false;
+
+    public ?string $welcomeTemplateId = null;
+
     public function mount(Branch $branch): void
     {
         $this->authorize('update', $branch);
@@ -77,6 +82,10 @@ class BranchSettings extends Component
         $this->serviceReminderHours = (int) $this->branch->getSetting('service_reminder_hours', 24);
         $this->serviceReminderTemplateId = $this->branch->getSetting('service_reminder_template_id');
         $this->serviceReminderRecipients = $this->branch->getSetting('service_reminder_recipients', 'all');
+
+        // Load welcome SMS settings
+        $this->autoWelcomeSms = (bool) $this->branch->getSetting('auto_welcome_sms', false);
+        $this->welcomeTemplateId = $this->branch->getSetting('welcome_template_id');
     }
 
     #[Computed]
@@ -94,6 +103,16 @@ class BranchSettings extends Component
     {
         return SmsTemplate::where('branch_id', $this->branch->id)
             ->where('type', SmsType::Reminder)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function welcomeTemplates(): Collection
+    {
+        return SmsTemplate::where('branch_id', $this->branch->id)
+            ->where('type', SmsType::Welcome)
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -138,6 +157,10 @@ class BranchSettings extends Component
         $this->branch->setSetting('service_reminder_hours', $this->serviceReminderHours);
         $this->branch->setSetting('service_reminder_template_id', $this->serviceReminderTemplateId);
         $this->branch->setSetting('service_reminder_recipients', $this->serviceReminderRecipients);
+
+        // Save welcome SMS settings
+        $this->branch->setSetting('auto_welcome_sms', $this->autoWelcomeSms);
+        $this->branch->setSetting('welcome_template_id', $this->welcomeTemplateId);
 
         $this->branch->save();
 

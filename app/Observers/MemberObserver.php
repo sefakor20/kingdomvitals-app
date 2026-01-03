@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Enums\ActivityEvent;
+use App\Jobs\SendWelcomeSmsJob;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\MemberActivity;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,9 @@ class MemberObserver
         );
 
         $this->logActivity($member, ActivityEvent::Created, null, $newValues);
+
+        // Dispatch welcome SMS job
+        SendWelcomeSmsJob::dispatch($member->id);
     }
 
     /**

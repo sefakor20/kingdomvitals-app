@@ -159,6 +159,44 @@
 
                 <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700"></div>
 
+                <!-- Welcome SMS Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <flux:heading size="sm">{{ __('New Member Welcome') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Automatically send a welcome message when new members are added.') }}
+                        </flux:text>
+                    </div>
+                    <flux:switch wire:model.live="autoWelcomeSms" />
+                </div>
+
+                @if($autoWelcomeSms)
+                    <!-- Welcome Template Selection -->
+                    <div>
+                        <flux:select
+                            wire:model="welcomeTemplateId"
+                            :label="__('Welcome Message Template')"
+                        >
+                            <flux:select.option value="">{{ __('Use default message') }}</flux:select.option>
+                            @foreach($this->welcomeTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:text class="mt-1 text-xs text-zinc-500">
+                            {{ __('Available placeholders: {first_name}, {last_name}, {full_name}, {branch_name}') }}
+                        </flux:text>
+                        @if($this->welcomeTemplates->isEmpty())
+                            <div class="mt-2">
+                                <flux:button variant="ghost" size="sm" :href="route('sms.templates', $branch)" wire:navigate icon="plus">
+                                    {{ __('Manage Templates') }}
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700"></div>
+
                 <!-- Service Reminder SMS Toggle -->
                 <div class="flex items-center justify-between">
                     <div>

@@ -114,6 +114,17 @@ class SmsLogFactory extends Factory
     }
 
     /**
+     * Indicate that the SMS is a welcome message.
+     */
+    public function welcome(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'message_type' => SmsType::Welcome,
+            'message' => "Welcome! We're excited to have you as part of our family. God bless you!",
+        ]);
+    }
+
+    /**
      * Indicate that the SMS is an announcement.
      */
     public function announcement(): static
