@@ -41,6 +41,7 @@ class MemberFactory extends Factory
             'baptized_at' => fake()->optional(0.7)->dateTimeBetween('-5 years', 'now'),
             'notes' => fake()->optional(0.2)->sentence(),
             'photo_url' => null,
+            'sms_opt_out' => false,
         ];
     }
 
@@ -103,6 +104,16 @@ class MemberFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'gender' => Gender::Female,
             'first_name' => fake()->firstName('female'),
+        ]);
+    }
+
+    /**
+     * Indicate that the member has opted out of SMS.
+     */
+    public function optedOutOfSms(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'sms_opt_out' => true,
         ]);
     }
 }

@@ -47,6 +47,13 @@
                 @endforeach
             </flux:select>
         </div>
+        <div class="w-full sm:w-48">
+            <flux:select wire:model.live="smsOptOutFilter">
+                <flux:select.option value="">{{ __('All SMS Status') }}</flux:select.option>
+                <flux:select.option value="subscribed">{{ __('SMS Subscribed') }}</flux:select.option>
+                <flux:select.option value="opted_out">{{ __('SMS Opted Out') }}</flux:select.option>
+            </flux:select>
+        </div>
     </div>
 
     @if($this->members->isEmpty())
@@ -62,13 +69,13 @@
             <flux:text class="mt-2 text-zinc-500">
                 @if($viewFilter === 'deleted')
                     {{ __('There are no deleted members to restore.') }}
-                @elseif($search || $statusFilter)
+                @elseif($search || $statusFilter || $smsOptOutFilter)
                     {{ __('Try adjusting your search or filter criteria.') }}
                 @else
                     {{ __('Get started by adding your first member.') }}
                 @endif
             </flux:text>
-            @if($viewFilter === 'active' && !$search && !$statusFilter && $this->canCreate)
+            @if($viewFilter === 'active' && !$search && !$statusFilter && !$smsOptOutFilter && $this->canCreate)
                 <flux:button variant="primary" wire:click="create" icon="plus" class="mt-4">
                     {{ __('Add Member') }}
                 </flux:button>
@@ -127,19 +134,26 @@
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
-                                <flux:badge
-                                    :color="match($member->status->value) {
-                                        'active' => 'green',
-                                        'inactive' => 'zinc',
-                                        'pending' => 'yellow',
-                                        'deceased' => 'red',
-                                        'transferred' => 'blue',
-                                        default => 'zinc',
-                                    }"
-                                    size="sm"
-                                >
-                                    {{ ucfirst($member->status->value) }}
-                                </flux:badge>
+                                <div class="flex items-center gap-1">
+                                    <flux:badge
+                                        :color="match($member->status->value) {
+                                            'active' => 'green',
+                                            'inactive' => 'zinc',
+                                            'pending' => 'yellow',
+                                            'deceased' => 'red',
+                                            'transferred' => 'blue',
+                                            default => 'zinc',
+                                        }"
+                                        size="sm"
+                                    >
+                                        {{ ucfirst($member->status->value) }}
+                                    </flux:badge>
+                                    @if($member->sms_opt_out)
+                                        <flux:badge color="yellow" size="sm">
+                                            {{ __('SMS Opt-out') }}
+                                        </flux:badge>
+                                    @endif
+                                </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
                                 {{ $member->joined_at?->format('M d, Y') ?? '-' }}

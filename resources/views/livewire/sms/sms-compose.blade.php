@@ -88,23 +88,28 @@
                         <div class="max-h-64 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
                             @forelse($this->members as $member)
                                 <label
-                                    class="flex cursor-pointer items-center gap-3 border-b border-zinc-100 px-4 py-3 transition hover:bg-zinc-50 last:border-b-0 dark:border-zinc-800 dark:hover:bg-zinc-800"
+                                    class="flex cursor-pointer items-center gap-3 border-b border-zinc-100 px-4 py-3 transition last:border-b-0 dark:border-zinc-800 {{ $member->sms_opt_out ? 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800' }}"
                                     wire:key="member-{{ $member->id }}"
                                 >
                                     <flux:checkbox
                                         wire:model.live="selectedMemberIds"
                                         value="{{ $member->id }}"
                                     />
-                                    <div class="flex items-center gap-2">
-                                        @if($member->photo_url)
-                                            <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-8 rounded-full object-cover" />
-                                        @else
-                                            <flux:avatar size="sm" name="{{ $member->fullName() }}" />
-                                        @endif
-                                        <div>
-                                            <flux:text class="text-sm text-zinc-900 dark:text-zinc-100">{{ $member->fullName() }}</flux:text>
-                                            <flux:text class="text-xs text-zinc-500">{{ $member->phone }}</flux:text>
+                                    <div class="flex flex-1 items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            @if($member->photo_url)
+                                                <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                            @else
+                                                <flux:avatar size="sm" name="{{ $member->fullName() }}" />
+                                            @endif
+                                            <div>
+                                                <flux:text class="text-sm text-zinc-900 dark:text-zinc-100">{{ $member->fullName() }}</flux:text>
+                                                <flux:text class="text-xs text-zinc-500">{{ $member->phone }}</flux:text>
+                                            </div>
                                         </div>
+                                        @if($member->sms_opt_out)
+                                            <flux:badge size="sm" color="yellow">{{ __('Opted Out') }}</flux:badge>
+                                        @endif
                                     </div>
                                 </label>
                             @empty
@@ -347,16 +352,26 @@
             <div>
                 <flux:text class="mb-2 text-sm font-medium text-zinc-500">
                     {{ __('Recipients') }} ({{ count($previewRecipients) }})
+                    @if($optedOutCount > 0)
+                        <span class="text-yellow-600 dark:text-yellow-400">
+                            ({{ $optedOutCount }} {{ __('opted out') }})
+                        </span>
+                    @endif
                 </flux:text>
                 <div class="max-h-48 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
                     @foreach($previewRecipients as $recipient)
                         <div
-                            class="flex items-center gap-2 border-b border-zinc-100 px-4 py-2 last:border-b-0 dark:border-zinc-800"
+                            class="flex items-center justify-between gap-2 border-b border-zinc-100 px-4 py-2 last:border-b-0 dark:border-zinc-800 {{ ($recipient['sms_opt_out'] ?? false) ? 'bg-yellow-50 dark:bg-yellow-900/20' : '' }}"
                             wire:key="preview-{{ $recipient['id'] }}"
                         >
-                            <flux:icon icon="user" class="size-4 text-zinc-400" />
-                            <flux:text class="text-sm text-zinc-900 dark:text-zinc-100">{{ $recipient['name'] }}</flux:text>
-                            <flux:text class="text-xs text-zinc-500">{{ $recipient['phone'] }}</flux:text>
+                            <div class="flex items-center gap-2">
+                                <flux:icon icon="user" class="size-4 text-zinc-400" />
+                                <flux:text class="text-sm text-zinc-900 dark:text-zinc-100">{{ $recipient['name'] }}</flux:text>
+                                <flux:text class="text-xs text-zinc-500">{{ $recipient['phone'] }}</flux:text>
+                            </div>
+                            @if($recipient['sms_opt_out'] ?? false)
+                                <flux:badge size="sm" color="yellow">{{ __('Opted Out') }}</flux:badge>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -424,6 +439,58 @@
             <div class="pt-4">
                 <flux:button variant="primary" wire:click="closeSuccess">
                     {{ __('View SMS History') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <!-- Opted-Out Warning Modal -->
+    <flux:modal wire:model.self="showOptedOutWarningModal" name="opted-out-warning" class="w-full max-w-lg">
+        <div class="space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="rounded-full bg-yellow-100 p-2 dark:bg-yellow-900">
+                    <flux:icon icon="exclamation-triangle" class="size-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <flux:heading size="lg">{{ __('Some Recipients Have Opted Out') }}</flux:heading>
+            </div>
+
+            <flux:text class="text-zinc-600 dark:text-zinc-400">
+                {{ trans_choice(
+                    '{1} :count member has opted out of receiving SMS messages. They will still receive this message since you are sending it manually.|[2,*] :count members have opted out of receiving SMS messages. They will still receive this message since you are sending it manually.',
+                    $optedOutCount,
+                    ['count' => $optedOutCount]
+                ) }}
+            </flux:text>
+
+            <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/30">
+                <flux:text class="text-sm text-yellow-700 dark:text-yellow-300">
+                    <strong>{{ __('Note:') }}</strong> {{ __('Opted-out members are automatically excluded from automated messages (birthday wishes, service reminders, etc.) but can still receive manual SMS.') }}
+                </flux:text>
+            </div>
+
+            <!-- List opted-out recipients -->
+            <div>
+                <flux:text class="mb-2 text-sm font-medium text-zinc-500">{{ __('Opted-out recipients:') }}</flux:text>
+                <div class="max-h-32 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    @foreach(collect($previewRecipients)->where('sms_opt_out', true) as $recipient)
+                        <div
+                            class="flex items-center gap-2 border-b border-zinc-100 bg-yellow-50 px-4 py-2 last:border-b-0 dark:border-zinc-800 dark:bg-yellow-900/20"
+                            wire:key="opted-out-{{ $recipient['id'] }}"
+                        >
+                            <flux:icon icon="user" class="size-4 text-yellow-600 dark:text-yellow-400" />
+                            <flux:text class="text-sm text-zinc-900 dark:text-zinc-100">{{ $recipient['name'] }}</flux:text>
+                            <flux:text class="text-xs text-zinc-500">{{ $recipient['phone'] }}</flux:text>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-4">
+                <flux:button variant="ghost" wire:click="cancelOptedOutWarning">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="primary" wire:click="acknowledgeOptedOutWarning">
+                    {{ __('Continue Anyway') }}
                 </flux:button>
             </div>
         </div>

@@ -248,6 +248,7 @@ class SendAttendanceFollowupCommand extends Command
         $query = Member::where('primary_branch_id', $branch->id)
             ->whereNotNull('phone')
             ->where('status', MembershipStatus::Active)
+            ->where('sms_opt_out', false)
             ->whereNotIn('id', $attendeeIds);
 
         if ($recipientType === 'regular') {

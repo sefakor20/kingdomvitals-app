@@ -8,6 +8,7 @@ use App\Enums\MembershipStatus;
 use App\Observers\MemberObserver;
 use Database\Factories\Tenant\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,6 +35,7 @@ class Member extends Model
         'middle_name',
         'email',
         'phone',
+        'sms_opt_out',
         'date_of_birth',
         'gender',
         'marital_status',
@@ -58,6 +60,7 @@ class Member extends Model
             'gender' => Gender::class,
             'marital_status' => MaritalStatus::class,
             'status' => MembershipStatus::class,
+            'sms_opt_out' => 'boolean',
         ];
     }
 
@@ -117,5 +120,29 @@ class Member extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(MemberActivity::class)->latest();
+    }
+
+    /**
+     * Scope a query to only include members who have not opted out of SMS.
+     */
+    public function scopeNotOptedOutOfSms(Builder $query): Builder
+    {
+        return $query->where('sms_opt_out', false);
+    }
+
+    /**
+     * Scope a query to only include members who have opted out of SMS.
+     */
+    public function scopeOptedOutOfSms(Builder $query): Builder
+    {
+        return $query->where('sms_opt_out', true);
+    }
+
+    /**
+     * Check if the member has opted out of SMS.
+     */
+    public function hasOptedOutOfSms(): bool
+    {
+        return $this->sms_opt_out === true;
     }
 }

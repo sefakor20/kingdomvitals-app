@@ -66,6 +66,13 @@ class SendWelcomeSmsJob implements ShouldQueue
             return;
         }
 
+        // Check if member has opted out of SMS
+        if ($member->sms_opt_out) {
+            Log::info('SendWelcomeSmsJob: Member opted out of SMS', ['member_id' => $member->id]);
+
+            return;
+        }
+
         $branch = Branch::find($member->primary_branch_id);
 
         if (! $branch) {
