@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Webhooks\TextTangoWebhookController;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -33,3 +34,7 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 });
+
+// Webhook routes (no auth, no tenant middleware)
+Route::post('/webhooks/texttango/delivery', [TextTangoWebhookController::class, 'handleDelivery'])
+    ->name('webhooks.texttango.delivery');

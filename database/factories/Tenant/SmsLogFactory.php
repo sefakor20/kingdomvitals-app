@@ -114,6 +114,17 @@ class SmsLogFactory extends Factory
     }
 
     /**
+     * Indicate that the SMS is a welcome message.
+     */
+    public function welcome(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'message_type' => SmsType::Welcome,
+            'message' => "Welcome! We're excited to have you as part of our family. God bless you!",
+        ]);
+    }
+
+    /**
      * Indicate that the SMS is an announcement.
      */
     public function announcement(): static
@@ -121,6 +132,17 @@ class SmsLogFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'message_type' => SmsType::Announcement,
             'message' => fake()->sentence(15),
+        ]);
+    }
+
+    /**
+     * Indicate that the SMS is a follow-up message.
+     */
+    public function followup(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'message_type' => SmsType::FollowUp,
+            'message' => 'Hi, we missed you at Sunday Service! Hope all is well.',
         ]);
     }
 

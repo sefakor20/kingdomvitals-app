@@ -22,3 +22,13 @@ Schedule::command('visitors:send-follow-up-reminders --hours=2')
 Schedule::command('sms:send-birthday')
     ->dailyAt('08:00')
     ->withoutOverlapping();
+
+// Send service reminder SMS hourly
+Schedule::command('sms:send-service-reminder')
+    ->hourly()
+    ->withoutOverlapping();
+
+// Send attendance follow-up SMS hourly
+Schedule::command('sms:send-attendance-followup')
+    ->hourly()
+    ->withoutOverlapping();

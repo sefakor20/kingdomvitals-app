@@ -10,15 +10,6 @@
         </flux:button>
     </div>
 
-    @if (session('success'))
-        <div class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/30">
-            <div class="flex items-center gap-2">
-                <flux:icon icon="check-circle" class="size-5 text-green-600 dark:text-green-400" />
-                <flux:text class="text-green-700 dark:text-green-300">{{ session('success') }}</flux:text>
-            </div>
-        </div>
-    @endif
-
     <!-- SMS Configuration Section -->
     <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         <div class="border-b border-zinc-200 p-6 dark:border-zinc-700">
@@ -165,6 +156,191 @@
                         @endif
                     </div>
                 @endif
+
+                <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700"></div>
+
+                <!-- Welcome SMS Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <flux:heading size="sm">{{ __('New Member Welcome') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Automatically send a welcome message when new members are added.') }}
+                        </flux:text>
+                    </div>
+                    <flux:switch wire:model.live="autoWelcomeSms" />
+                </div>
+
+                @if($autoWelcomeSms)
+                    <!-- Welcome Template Selection -->
+                    <div>
+                        <flux:select
+                            wire:model="welcomeTemplateId"
+                            :label="__('Welcome Message Template')"
+                        >
+                            <flux:select.option value="">{{ __('Use default message') }}</flux:select.option>
+                            @foreach($this->welcomeTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:text class="mt-1 text-xs text-zinc-500">
+                            {{ __('Available placeholders: {first_name}, {last_name}, {full_name}, {branch_name}') }}
+                        </flux:text>
+                        @if($this->welcomeTemplates->isEmpty())
+                            <div class="mt-2">
+                                <flux:button variant="ghost" size="sm" :href="route('sms.templates', $branch)" wire:navigate icon="plus">
+                                    {{ __('Manage Templates') }}
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700"></div>
+
+                <!-- Service Reminder SMS Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <flux:heading size="sm">{{ __('Service Reminders') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Automatically remind members before upcoming services.') }}
+                        </flux:text>
+                    </div>
+                    <flux:switch wire:model.live="autoServiceReminder" />
+                </div>
+
+                @if($autoServiceReminder)
+                    <!-- Service Reminder Settings -->
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <flux:select
+                                wire:model="serviceReminderHours"
+                                :label="__('Send Reminder')"
+                            >
+                                <flux:select.option value="6">{{ __('6 hours before') }}</flux:select.option>
+                                <flux:select.option value="12">{{ __('12 hours before') }}</flux:select.option>
+                                <flux:select.option value="24">{{ __('24 hours before (Recommended)') }}</flux:select.option>
+                                <flux:select.option value="48">{{ __('48 hours before') }}</flux:select.option>
+                            </flux:select>
+                        </div>
+
+                        <div>
+                            <flux:select
+                                wire:model="serviceReminderRecipients"
+                                :label="__('Send To')"
+                            >
+                                <flux:select.option value="all">{{ __('All Members') }}</flux:select.option>
+                                <flux:select.option value="attendees">{{ __('Regular Attendees Only') }}</flux:select.option>
+                            </flux:select>
+                            <flux:text class="mt-1 text-xs text-zinc-500">
+                                {{ __('Regular attendees are members who have attended this service before.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+
+                    <div>
+                        <flux:select
+                            wire:model="serviceReminderTemplateId"
+                            :label="__('Reminder Message Template')"
+                        >
+                            <flux:select.option value="">{{ __('Use default message') }}</flux:select.option>
+                            @foreach($this->reminderTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:text class="mt-1 text-xs text-zinc-500">
+                            {{ __('Available placeholders: {first_name}, {service_name}, {service_time}, {service_day}, {branch_name}') }}
+                        </flux:text>
+                        @if($this->reminderTemplates->isEmpty())
+                            <div class="mt-2">
+                                <flux:button variant="ghost" size="sm" :href="route('sms.templates', $branch)" wire:navigate icon="plus">
+                                    {{ __('Manage Templates') }}
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700"></div>
+
+                <!-- Attendance Follow-up SMS Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <flux:heading size="sm">{{ __('Attendance Follow-up') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Automatically send follow-up messages to members who missed a service.') }}
+                        </flux:text>
+                    </div>
+                    <flux:switch wire:model.live="autoAttendanceFollowup" />
+                </div>
+
+                @if($autoAttendanceFollowup)
+                    <!-- Attendance Follow-up Settings -->
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <flux:select
+                                wire:model="attendanceFollowupHours"
+                                :label="__('Send Follow-up')"
+                            >
+                                <flux:select.option value="6">{{ __('6 hours after service') }}</flux:select.option>
+                                <flux:select.option value="12">{{ __('12 hours after service') }}</flux:select.option>
+                                <flux:select.option value="24">{{ __('24 hours after service (Recommended)') }}</flux:select.option>
+                                <flux:select.option value="48">{{ __('48 hours after service') }}</flux:select.option>
+                            </flux:select>
+                        </div>
+
+                        <div>
+                            <flux:select
+                                wire:model.live="attendanceFollowupRecipients"
+                                :label="__('Send To')"
+                            >
+                                <flux:select.option value="regular">{{ __('Regular Attendees Only') }}</flux:select.option>
+                                <flux:select.option value="all">{{ __('All Active Members') }}</flux:select.option>
+                            </flux:select>
+                            <flux:text class="mt-1 text-xs text-zinc-500">
+                                {{ __('Regular attendees are members who have attended this service multiple times.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+
+                    @if($attendanceFollowupRecipients === 'regular')
+                        <div>
+                            <flux:select
+                                wire:model="attendanceFollowupMinAttendance"
+                                :label="__('Minimum Past Attendances')"
+                            >
+                                <flux:select.option value="2">{{ __('2 times in last 2 months') }}</flux:select.option>
+                                <flux:select.option value="3">{{ __('3 times in last 2 months (Recommended)') }}</flux:select.option>
+                                <flux:select.option value="4">{{ __('4 times in last 2 months') }}</flux:select.option>
+                                <flux:select.option value="5">{{ __('5 times in last 2 months') }}</flux:select.option>
+                            </flux:select>
+                            <flux:text class="mt-1 text-xs text-zinc-500">
+                                {{ __('Only members who attended at least this many times will receive follow-ups.') }}
+                            </flux:text>
+                        </div>
+                    @endif
+
+                    <div>
+                        <flux:select
+                            wire:model="attendanceFollowupTemplateId"
+                            :label="__('Follow-up Message Template')"
+                        >
+                            <flux:select.option value="">{{ __('Use default message') }}</flux:select.option>
+                            @foreach($this->followupTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:text class="mt-1 text-xs text-zinc-500">
+                            {{ __('Available placeholders: {first_name}, {service_name}, {service_day}, {branch_name}') }}
+                        </flux:text>
+                        @if($this->followupTemplates->isEmpty())
+                            <div class="mt-2">
+                                <flux:button variant="ghost" size="sm" :href="route('sms.templates', $branch)" wire:navigate icon="plus">
+                                    {{ __('Manage Templates') }}
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             @endif
 
             <!-- Save Button for Auto SMS -->
@@ -190,4 +366,13 @@
             </ol>
         </div>
     </div>
+
+    <!-- Success Toasts -->
+    <x-toast on="settings-saved" type="success">
+        {{ __('SMS settings saved successfully.') }}
+    </x-toast>
+
+    <x-toast on="api-key-cleared" type="success">
+        {{ __('API key cleared.') }}
+    </x-toast>
 </section>
