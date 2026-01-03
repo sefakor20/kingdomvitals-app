@@ -90,6 +90,17 @@
                     {{ __('Pledges') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewFinanceReports)
+                <flux:navlist.item
+                    icon="chart-bar"
+                    :href="route('finance.reports', $this->currentBranch)"
+                    :current="request()->routeIs('finance.reports')"
+                    wire:navigate
+                >
+                    {{ __('Reports') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
 
         @if($this->canViewSms)

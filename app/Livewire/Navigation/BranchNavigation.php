@@ -99,6 +99,13 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewFinanceReports(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewReports', [Donation::class, $this->currentBranch]);
+    }
+
+    #[Computed]
     public function canViewSms(): bool
     {
         return $this->currentBranch &&

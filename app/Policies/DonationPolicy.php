@@ -92,4 +92,19 @@ class DonationPolicy
             ])
             ->exists();
     }
+
+    /**
+     * Determine whether the user can view financial reports for the branch.
+     * Only Admin and Manager can view reports.
+     */
+    public function viewReports(User $user, Branch $branch): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $branch->id)
+            ->whereIn('role', [
+                BranchRole::Admin->value,
+                BranchRole::Manager->value,
+            ])
+            ->exists();
+    }
 }
