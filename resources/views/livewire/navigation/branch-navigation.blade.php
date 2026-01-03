@@ -91,6 +91,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewBudgets)
+                <flux:navlist.item
+                    icon="calculator"
+                    :href="route('budgets.index', $this->currentBranch)"
+                    :current="request()->routeIs('budgets.*')"
+                    wire:navigate
+                >
+                    {{ __('Budgets') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewFinanceReports)
                 <flux:navlist.item
                     icon="chart-bar"

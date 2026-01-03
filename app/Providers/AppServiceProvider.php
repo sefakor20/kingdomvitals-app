@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Tenant\Budget;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
@@ -10,6 +11,7 @@ use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Policies\BudgetPolicy;
 use App\Policies\DonationPolicy;
 use App\Policies\ExpensePolicy;
 use App\Policies\MemberPolicy;
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Donation::class, DonationPolicy::class);
         Gate::policy(Expense::class, ExpensePolicy::class);
         Gate::policy(Pledge::class, PledgePolicy::class);
+        Gate::policy(Budget::class, BudgetPolicy::class);
         Gate::policy(SmsLog::class, SmsLogPolicy::class);
         Gate::policy(SmsTemplate::class, SmsTemplatePolicy::class);
 

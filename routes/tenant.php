@@ -91,6 +91,8 @@ Route::middleware([
             ->name('expenses.index');
         Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
             ->name('pledges.index');
+        Route::get('/branches/{branch}/budgets', \App\Livewire\Budgets\BudgetIndex::class)
+            ->name('budgets.index');
         Route::get('/branches/{branch}/finance/reports', \App\Livewire\Finance\FinanceReports::class)
             ->name('finance.reports');
 
