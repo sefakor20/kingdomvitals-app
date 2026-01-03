@@ -198,6 +198,37 @@
                     @error('message')
                         <flux:text class="mt-1 text-sm text-red-500">{{ $message }}</flux:text>
                     @enderror
+
+                    <!-- Placeholder Help -->
+                    <div class="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:text class="mb-2 text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                            {{ __('Available Placeholders (click to insert):') }}
+                        </flux:text>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($this->availablePlaceholders as $placeholder => $description)
+                                <button
+                                    type="button"
+                                    x-on:click="
+                                        const textarea = $el.closest('.space-y-6').querySelector('textarea');
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const text = textarea.value;
+                                        textarea.value = text.substring(0, start) + '{{ $placeholder }}' + text.substring(end);
+                                        textarea.selectionStart = textarea.selectionEnd = start + '{{ $placeholder }}'.length;
+                                        textarea.focus();
+                                        $wire.set('message', textarea.value);
+                                    "
+                                    class="inline-flex items-center rounded-md bg-zinc-200 px-2 py-1 text-xs font-mono text-zinc-700 transition hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
+                                    title="{{ $description }}"
+                                >
+                                    {{ $placeholder }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <flux:text class="mt-2 text-xs text-zinc-500">
+                            {{ __('These placeholders will be replaced with actual member details when the message is sent.') }}
+                        </flux:text>
+                    </div>
                 </div>
 
                 <!-- Schedule Option -->

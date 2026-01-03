@@ -144,6 +144,22 @@ class SmsCompose extends Component
         return $length <= 160 ? 1 : (int) ceil($length / 153);
     }
 
+    /**
+     * Get available placeholders for message composition.
+     *
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function availablePlaceholders(): array
+    {
+        return [
+            '{first_name}' => 'Member\'s first name',
+            '{last_name}' => 'Member\'s last name',
+            '{full_name}' => 'Member\'s full name',
+            '{branch_name}' => 'Branch name',
+        ];
+    }
+
     #[Computed]
     public function recipientCount(): int
     {

@@ -94,6 +94,47 @@ class SmsTemplateIndex extends Component
             || $this->statusFilter !== '';
     }
 
+    #[Computed]
+    public function availablePlaceholders(): array
+    {
+        return $this->getPlaceholdersForType($this->type);
+    }
+
+    /**
+     * Get available placeholders for a given SMS type.
+     *
+     * @return array<string, string>
+     */
+    public function getPlaceholdersForType(string $type): array
+    {
+        $basePlaceholders = [
+            '{first_name}' => 'Member\'s first name',
+            '{last_name}' => 'Member\'s last name',
+            '{full_name}' => 'Member\'s full name',
+        ];
+
+        $branchPlaceholder = [
+            '{branch_name}' => 'Branch name',
+        ];
+
+        $servicePlaceholders = [
+            '{service_name}' => 'Service name (e.g., "Sunday Service")',
+            '{service_day}' => 'Day of service (e.g., "Sunday")',
+        ];
+
+        $serviceTimePlaceholder = [
+            '{service_time}' => 'Service time (e.g., "9:00 AM")',
+        ];
+
+        return match ($type) {
+            'birthday' => $basePlaceholders,
+            'welcome' => array_merge($basePlaceholders, $branchPlaceholder),
+            'reminder' => array_merge($basePlaceholders, $branchPlaceholder, $servicePlaceholders, $serviceTimePlaceholder),
+            'follow_up' => array_merge($basePlaceholders, $branchPlaceholder, $servicePlaceholders),
+            default => array_merge($basePlaceholders, $branchPlaceholder),
+        };
+    }
+
     protected function rules(): array
     {
         $smsTypes = collect(SmsType::cases())->pluck('value')->implode(',');
