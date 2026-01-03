@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('universal', [
             \Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain::class,
         ]);
+
+        // Exclude webhook routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
