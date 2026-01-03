@@ -37,3 +37,8 @@ Schedule::command('sms:send-attendance-followup')
 Schedule::command('budgets:check-thresholds')
     ->hourly()
     ->withoutOverlapping();
+
+// Generate recurring expenses daily at 7 AM
+Schedule::command('expenses:generate-recurring')
+    ->dailyAt('07:00')
+    ->withoutOverlapping();

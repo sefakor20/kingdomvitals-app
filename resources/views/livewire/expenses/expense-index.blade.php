@@ -11,6 +11,9 @@
                     {{ __('Export CSV') }}
                 </flux:button>
             @endif
+            <flux:button variant="ghost" :href="route('expenses.recurring', $branch)" icon="arrow-path">
+                {{ __('Recurring') }}
+            </flux:button>
             @if($this->canCreate)
                 <flux:button variant="primary" wire:click="create" icon="plus">
                     {{ __('Add Expense') }}
@@ -157,8 +160,13 @@
                                 {{ $expense->expense_date?->format('M d, Y') ?? '-' }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="max-w-xs truncate text-sm text-zinc-900 dark:text-zinc-100">
-                                    {{ $expense->description }}
+                                <div class="flex items-center gap-2">
+                                    <div class="max-w-xs truncate text-sm text-zinc-900 dark:text-zinc-100">
+                                        {{ $expense->description }}
+                                    </div>
+                                    @if($expense->isFromRecurringExpense())
+                                        <flux:badge color="cyan" size="sm">{{ __('Auto') }}</flux:badge>
+                                    @endif
                                 </div>
                                 @if($expense->reference_number)
                                     <div class="text-xs text-zinc-500 dark:text-zinc-400">

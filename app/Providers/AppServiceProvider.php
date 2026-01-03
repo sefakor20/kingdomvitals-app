@@ -7,6 +7,7 @@ use App\Models\Tenant\Donation;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\RecurringExpense;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
 use App\Models\Tenant\UserBranchAccess;
@@ -16,6 +17,7 @@ use App\Policies\DonationPolicy;
 use App\Policies\ExpensePolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\PledgePolicy;
+use App\Policies\RecurringExpensePolicy;
 use App\Policies\SmsLogPolicy;
 use App\Policies\SmsTemplatePolicy;
 use App\Policies\UserBranchAccessPolicy;
@@ -48,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Expense::class, ExpensePolicy::class);
         Gate::policy(Pledge::class, PledgePolicy::class);
         Gate::policy(Budget::class, BudgetPolicy::class);
+        Gate::policy(RecurringExpense::class, RecurringExpensePolicy::class);
         Gate::policy(SmsLog::class, SmsLogPolicy::class);
         Gate::policy(SmsTemplate::class, SmsTemplatePolicy::class);
 
