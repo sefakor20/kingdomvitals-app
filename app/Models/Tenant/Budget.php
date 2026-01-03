@@ -26,6 +26,12 @@ class Budget extends Model
         'status',
         'notes',
         'created_by',
+        'alerts_enabled',
+        'alert_threshold_warning',
+        'alert_threshold_critical',
+        'last_warning_sent_at',
+        'last_critical_sent_at',
+        'last_exceeded_sent_at',
     ];
 
     protected function casts(): array
@@ -37,6 +43,12 @@ class Budget extends Model
             'end_date' => 'date',
             'category' => ExpenseCategory::class,
             'status' => BudgetStatus::class,
+            'alerts_enabled' => 'boolean',
+            'alert_threshold_warning' => 'integer',
+            'alert_threshold_critical' => 'integer',
+            'last_warning_sent_at' => 'datetime',
+            'last_critical_sent_at' => 'datetime',
+            'last_exceeded_sent_at' => 'datetime',
         ];
     }
 

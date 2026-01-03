@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire\Expenses;
 
+use App\Enums\BranchRole;
+use App\Enums\BudgetStatus;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
 use App\Enums\PaymentMethod;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\Budget;
 use App\Models\Tenant\Expense;
+use App\Models\User;
+use App\Notifications\BudgetThresholdNotification;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -323,10 +328,14 @@ class ExpenseIndex extends Component
     {
         $this->authorize('approve', $this->approvingExpense);
 
-        $this->approvingExpense->update([
+        $expense = $this->approvingExpense;
+
+        $expense->update([
             'status' => ExpenseStatus::Approved,
             'approved_at' => now(),
         ]);
+
+        $this->checkBudgetThreshold($expense);
 
         unset($this->expenses);
         unset($this->expenseStats);
@@ -370,6 +379,8 @@ class ExpenseIndex extends Component
         $expense->update([
             'status' => ExpenseStatus::Paid,
         ]);
+
+        $this->checkBudgetThreshold($expense);
 
         unset($this->expenses);
         unset($this->expenseStats);
@@ -470,6 +481,66 @@ class ExpenseIndex extends Component
         }, $filename, [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    private function checkBudgetThreshold(Expense $expense): void
+    {
+        $budget = Budget::where('branch_id', $expense->branch_id)
+            ->where('category', $expense->category)
+            ->where('status', BudgetStatus::Active)
+            ->where('alerts_enabled', true)
+            ->where('start_date', '<=', $expense->expense_date)
+            ->where('end_date', '>=', $expense->expense_date)
+            ->first();
+
+        if (! $budget) {
+            return;
+        }
+
+        $utilization = $budget->utilization_percentage;
+
+        // Check which alert level we've reached
+        $alertLevel = null;
+        $lastSentField = null;
+        $cooldown = null;
+
+        if ($utilization >= 100) {
+            $alertLevel = 'exceeded';
+            $lastSentField = 'last_exceeded_sent_at';
+            $cooldown = now()->subDay();
+        } elseif ($utilization >= $budget->alert_threshold_critical) {
+            $alertLevel = 'critical';
+            $lastSentField = 'last_critical_sent_at';
+            $cooldown = now()->subDay();
+        } elseif ($utilization >= $budget->alert_threshold_warning) {
+            $alertLevel = 'warning';
+            $lastSentField = 'last_warning_sent_at';
+            $cooldown = now()->subWeek();
+        }
+
+        if (! $alertLevel) {
+            return;
+        }
+
+        // Check cooldown period
+        if ($budget->$lastSentField !== null && $cooldown <= $budget->$lastSentField) {
+            return;
+        }
+
+        // Send alerts to admins and managers
+        $recipients = User::whereHas('branchAccess', function ($q) use ($budget) {
+            $q->where('branch_id', $budget->branch_id)
+                ->whereIn('role', [
+                    BranchRole::Admin->value,
+                    BranchRole::Manager->value,
+                ]);
+        })->get();
+
+        foreach ($recipients as $user) {
+            $user->notify(new BudgetThresholdNotification($budget, $alertLevel, $utilization));
+        }
+
+        $budget->update([$lastSentField => now()]);
     }
 
     private function resetForm(): void

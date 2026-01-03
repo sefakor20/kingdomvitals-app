@@ -32,6 +32,9 @@ class BudgetFactory extends Factory
             'currency' => 'GHS',
             'status' => BudgetStatus::Draft,
             'notes' => fake()->optional(0.3)->sentence(),
+            'alerts_enabled' => true,
+            'alert_threshold_warning' => 75,
+            'alert_threshold_critical' => 90,
         ];
     }
 
@@ -82,6 +85,42 @@ class BudgetFactory extends Factory
             'fiscal_year' => $year,
             'start_date' => "{$year}-01-01",
             'end_date' => "{$year}-12-31",
+        ]);
+    }
+
+    public function withAlertsDisabled(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'alerts_enabled' => false,
+        ]);
+    }
+
+    public function withCustomThresholds(int $warning, int $critical): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'alert_threshold_warning' => $warning,
+            'alert_threshold_critical' => $critical,
+        ]);
+    }
+
+    public function withWarningSentAt(?\DateTimeInterface $date = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'last_warning_sent_at' => $date ?? now(),
+        ]);
+    }
+
+    public function withCriticalSentAt(?\DateTimeInterface $date = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'last_critical_sent_at' => $date ?? now(),
+        ]);
+    }
+
+    public function withExceededSentAt(?\DateTimeInterface $date = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'last_exceeded_sent_at' => $date ?? now(),
         ]);
     }
 }

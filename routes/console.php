@@ -32,3 +32,8 @@ Schedule::command('sms:send-service-reminder')
 Schedule::command('sms:send-attendance-followup')
     ->hourly()
     ->withoutOverlapping();
+
+// Check budget thresholds hourly and send alerts
+Schedule::command('budgets:check-thresholds')
+    ->hourly()
+    ->withoutOverlapping();

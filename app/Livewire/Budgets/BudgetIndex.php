@@ -52,6 +52,13 @@ class BudgetIndex extends Component
 
     public string $notes = '';
 
+    // Alert settings
+    public bool $alerts_enabled = true;
+
+    public int $alert_threshold_warning = 75;
+
+    public int $alert_threshold_critical = 90;
+
     public ?Budget $editingBudget = null;
 
     public ?Budget $deletingBudget = null;
@@ -182,6 +189,9 @@ class BudgetIndex extends Component
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'status' => ['required', 'string', 'in:'.$statuses],
             'notes' => ['nullable', 'string'],
+            'alerts_enabled' => ['boolean'],
+            'alert_threshold_warning' => ['required_if:alerts_enabled,true', 'integer', 'min:50', 'max:95'],
+            'alert_threshold_critical' => ['required_if:alerts_enabled,true', 'integer', 'min:80', 'max:99', 'gt:alert_threshold_warning'],
         ];
     }
 
@@ -212,6 +222,12 @@ class BudgetIndex extends Component
             $validated['notes'] = null;
         }
 
+        // Set alert defaults if alerts are disabled
+        if (! $validated['alerts_enabled']) {
+            $validated['alert_threshold_warning'] = 75;
+            $validated['alert_threshold_critical'] = 90;
+        }
+
         Budget::create($validated);
 
         unset($this->budgets);
@@ -236,6 +252,9 @@ class BudgetIndex extends Component
             'end_date' => $budget->end_date?->format('Y-m-d'),
             'status' => $budget->status->value,
             'notes' => $budget->notes ?? '',
+            'alerts_enabled' => $budget->alerts_enabled,
+            'alert_threshold_warning' => $budget->alert_threshold_warning,
+            'alert_threshold_critical' => $budget->alert_threshold_critical,
         ]);
         $this->showEditModal = true;
     }
@@ -247,6 +266,12 @@ class BudgetIndex extends Component
 
         if ($validated['notes'] === '') {
             $validated['notes'] = null;
+        }
+
+        // Set alert defaults if alerts are disabled
+        if (! $validated['alerts_enabled']) {
+            $validated['alert_threshold_warning'] = 75;
+            $validated['alert_threshold_critical'] = 90;
         }
 
         $this->editingBudget->update($validated);
@@ -370,6 +395,9 @@ class BudgetIndex extends Component
             'start_date', 'end_date', 'notes',
         ]);
         $this->status = 'draft';
+        $this->alerts_enabled = true;
+        $this->alert_threshold_warning = 75;
+        $this->alert_threshold_critical = 90;
         $this->resetValidation();
     }
 

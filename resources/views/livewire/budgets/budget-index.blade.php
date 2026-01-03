@@ -295,6 +295,40 @@
 
                 <flux:textarea wire:model="notes" :label="__('Notes (optional)')" rows="2" />
 
+                <!-- Alert Settings -->
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <flux:text class="font-medium">{{ __('Budget Alerts') }}</flux:text>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Get notified when spending approaches budget limits') }}
+                            </flux:text>
+                        </div>
+                        <flux:switch wire:model.live="alerts_enabled" />
+                    </div>
+
+                    @if($alerts_enabled)
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <flux:input
+                                wire:model="alert_threshold_warning"
+                                type="number"
+                                min="50"
+                                max="95"
+                                :label="__('Warning Threshold %')"
+                                :description="__('First alert level')"
+                            />
+                            <flux:input
+                                wire:model="alert_threshold_critical"
+                                type="number"
+                                min="80"
+                                max="99"
+                                :label="__('Critical Threshold %')"
+                                :description="__('Urgent alert level')"
+                            />
+                        </div>
+                    @endif
+                </div>
+
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="cancelCreate" type="button">
                         {{ __('Cancel') }}
@@ -342,6 +376,40 @@
                 </flux:select>
 
                 <flux:textarea wire:model="notes" :label="__('Notes (optional)')" rows="2" />
+
+                <!-- Alert Settings -->
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <flux:text class="font-medium">{{ __('Budget Alerts') }}</flux:text>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Get notified when spending approaches budget limits') }}
+                            </flux:text>
+                        </div>
+                        <flux:switch wire:model.live="alerts_enabled" />
+                    </div>
+
+                    @if($alerts_enabled)
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <flux:input
+                                wire:model="alert_threshold_warning"
+                                type="number"
+                                min="50"
+                                max="95"
+                                :label="__('Warning Threshold %')"
+                                :description="__('First alert level')"
+                            />
+                            <flux:input
+                                wire:model="alert_threshold_critical"
+                                type="number"
+                                min="80"
+                                max="99"
+                                :label="__('Critical Threshold %')"
+                                :description="__('Urgent alert level')"
+                            />
+                        </div>
+                    @endif
+                </div>
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="cancelEdit" type="button">
