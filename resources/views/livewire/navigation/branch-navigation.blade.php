@@ -97,10 +97,18 @@
                 <flux:navlist.item
                     icon="chat-bubble-left-right"
                     :href="route('sms.index', $this->currentBranch)"
-                    :current="request()->routeIs('sms.*')"
+                    :current="request()->routeIs('sms.index', 'sms.compose')"
                     wire:navigate
                 >
                     {{ __('SMS') }}
+                </flux:navlist.item>
+                <flux:navlist.item
+                    icon="document-text"
+                    :href="route('sms.templates', $this->currentBranch)"
+                    :current="request()->routeIs('sms.templates')"
+                    wire:navigate
+                >
+                    {{ __('Templates') }}
                 </flux:navlist.item>
             </flux:navlist.group>
         @endif
