@@ -145,18 +145,19 @@
                     @endforeach
                 </flux:select>
 
-                <div>
+                <div x-data="{ charCount: $wire.body?.length || 0 }">
                     <flux:textarea
-                        wire:model.live="body"
+                        wire:model="body"
+                        x-on:input="charCount = $event.target.value.length"
                         :label="__('Message Body')"
                         rows="6"
                         placeholder="{{ __('Enter your message template...') }}"
                     />
                     <flux:text class="mt-1 text-xs text-zinc-500">
-                        {{ strlen($body) }} {{ __('characters') }}
-                        @if(strlen($body) > 160)
-                            ({{ ceil(strlen($body) / 153) }} {{ __('SMS parts') }})
-                        @endif
+                        <span x-text="charCount">0</span> {{ __('characters') }}
+                        <template x-if="charCount > 160">
+                            <span>(<span x-text="Math.ceil(charCount / 153)"></span> {{ __('SMS parts') }})</span>
+                        </template>
                     </flux:text>
                     @error('body')
                         <flux:text class="text-sm text-red-500">{{ $message }}</flux:text>
@@ -172,14 +173,15 @@
                                 <button
                                     type="button"
                                     x-on:click="
-                                        const textarea = $el.closest('.space-y-4').querySelector('textarea');
+                                        const textarea = $el.closest('[x-data]').querySelector('textarea');
                                         const start = textarea.selectionStart;
                                         const end = textarea.selectionEnd;
                                         const text = textarea.value;
                                         textarea.value = text.substring(0, start) + '{{ $placeholder }}' + text.substring(end);
                                         textarea.selectionStart = textarea.selectionEnd = start + '{{ $placeholder }}'.length;
                                         textarea.focus();
-                                        $wire.set('body', textarea.value);
+                                        charCount = textarea.value.length;
+                                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
                                     "
                                     class="inline-flex items-center rounded-md bg-zinc-200 px-2 py-1 text-xs font-mono text-zinc-700 transition hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
                                     title="{{ $description }}"
@@ -230,18 +232,19 @@
                     @endforeach
                 </flux:select>
 
-                <div>
+                <div x-data="{ charCount: $wire.body?.length || 0 }">
                     <flux:textarea
-                        wire:model.live="body"
+                        wire:model="body"
+                        x-on:input="charCount = $event.target.value.length"
                         :label="__('Message Body')"
                         rows="6"
                         placeholder="{{ __('Enter your message template...') }}"
                     />
                     <flux:text class="mt-1 text-xs text-zinc-500">
-                        {{ strlen($body) }} {{ __('characters') }}
-                        @if(strlen($body) > 160)
-                            ({{ ceil(strlen($body) / 153) }} {{ __('SMS parts') }})
-                        @endif
+                        <span x-text="charCount">0</span> {{ __('characters') }}
+                        <template x-if="charCount > 160">
+                            <span>(<span x-text="Math.ceil(charCount / 153)"></span> {{ __('SMS parts') }})</span>
+                        </template>
                     </flux:text>
                     @error('body')
                         <flux:text class="text-sm text-red-500">{{ $message }}</flux:text>
@@ -257,14 +260,15 @@
                                 <button
                                     type="button"
                                     x-on:click="
-                                        const textarea = $el.closest('.space-y-4').querySelector('textarea');
+                                        const textarea = $el.closest('[x-data]').querySelector('textarea');
                                         const start = textarea.selectionStart;
                                         const end = textarea.selectionEnd;
                                         const text = textarea.value;
                                         textarea.value = text.substring(0, start) + '{{ $placeholder }}' + text.substring(end);
                                         textarea.selectionStart = textarea.selectionEnd = start + '{{ $placeholder }}'.length;
                                         textarea.focus();
-                                        $wire.set('body', textarea.value);
+                                        charCount = textarea.value.length;
+                                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
                                     "
                                     class="inline-flex items-center rounded-md bg-zinc-200 px-2 py-1 text-xs font-mono text-zinc-700 transition hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
                                     title="{{ $description }}"
