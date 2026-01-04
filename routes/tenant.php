@@ -97,6 +97,8 @@ Route::middleware([
             ->name('expenses.recurring');
         Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
             ->name('pledges.index');
+        Route::get('/branches/{branch}/campaigns', \App\Livewire\Pledges\CampaignIndex::class)
+            ->name('campaigns.index');
         Route::get('/branches/{branch}/budgets', \App\Livewire\Budgets\BudgetIndex::class)
             ->name('budgets.index');
         Route::get('/branches/{branch}/finance/reports', \App\Livewire\Finance\FinanceReports::class)

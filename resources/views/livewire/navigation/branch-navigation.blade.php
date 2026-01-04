@@ -108,6 +108,14 @@
                 >
                     {{ __('Pledges') }}
                 </flux:navlist.item>
+                <flux:navlist.item
+                    icon="flag"
+                    :href="route('campaigns.index', $this->currentBranch)"
+                    :current="request()->routeIs('campaigns.*')"
+                    wire:navigate
+                >
+                    {{ __('Campaigns') }}
+                </flux:navlist.item>
             @endif
 
             @if($this->canViewBudgets)

@@ -9,6 +9,7 @@ use App\Enums\PledgeStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\PledgeCampaign;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -40,6 +41,8 @@ class PledgeIndex extends Component
 
     // Form properties
     public ?string $member_id = null;
+
+    public ?string $pledge_campaign_id = null;
 
     public string $campaign_name = '';
 
@@ -94,10 +97,10 @@ class PledgeIndex extends Component
         }
 
         if ($this->campaignFilter) {
-            $query->where('campaign_name', $this->campaignFilter);
+            $query->where('pledge_campaign_id', $this->campaignFilter);
         }
 
-        return $query->with(['member'])
+        return $query->with(['member', 'campaign'])
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -125,14 +128,20 @@ class PledgeIndex extends Component
     }
 
     #[Computed]
-    public function campaigns(): array
+    public function campaigns(): Collection
     {
-        return Pledge::where('branch_id', $this->branch->id)
-            ->distinct()
-            ->pluck('campaign_name')
-            ->sort()
-            ->values()
-            ->toArray();
+        return PledgeCampaign::where('branch_id', $this->branch->id)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function activeCampaigns(): Collection
+    {
+        return PledgeCampaign::where('branch_id', $this->branch->id)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
     }
 
     #[Computed]
@@ -195,7 +204,8 @@ class PledgeIndex extends Component
 
         return [
             'member_id' => ['required', 'uuid', 'exists:members,id'],
-            'campaign_name' => ['required', 'string', 'max:255'],
+            'pledge_campaign_id' => ['nullable', 'uuid', 'exists:pledge_campaigns,id'],
+            'campaign_name' => ['required_without:pledge_campaign_id', 'nullable', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'frequency' => ['required', 'string', 'in:'.$frequencies],
             'start_date' => ['required', 'date'],
@@ -222,19 +232,25 @@ class PledgeIndex extends Component
         $validated['status'] = PledgeStatus::Active;
         $validated['amount_fulfilled'] = 0;
 
-        // Convert empty strings to null for nullable fields
-        if (isset($validated['end_date']) && $validated['end_date'] === '') {
-            $validated['end_date'] = null;
+        // If a campaign is selected, copy its name to campaign_name for display
+        if (! empty($validated['pledge_campaign_id'])) {
+            $campaign = PledgeCampaign::find($validated['pledge_campaign_id']);
+            if ($campaign) {
+                $validated['campaign_name'] = $campaign->name;
+            }
         }
-        if (isset($validated['notes']) && $validated['notes'] === '') {
-            $validated['notes'] = null;
+
+        // Convert empty strings to null for nullable fields
+        foreach (['end_date', 'notes', 'pledge_campaign_id', 'campaign_name'] as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
         }
 
         Pledge::create($validated);
 
         unset($this->pledges);
         unset($this->pledgeStats);
-        unset($this->campaigns);
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -247,7 +263,8 @@ class PledgeIndex extends Component
         $this->editingPledge = $pledge;
         $this->fill([
             'member_id' => $pledge->member_id,
-            'campaign_name' => $pledge->campaign_name,
+            'pledge_campaign_id' => $pledge->pledge_campaign_id,
+            'campaign_name' => $pledge->campaign_name ?? '',
             'amount' => (string) $pledge->amount,
             'frequency' => $pledge->frequency->value,
             'start_date' => $pledge->start_date?->format('Y-m-d'),
@@ -262,19 +279,25 @@ class PledgeIndex extends Component
         $this->authorize('update', $this->editingPledge);
         $validated = $this->validate();
 
-        // Convert empty strings to null for nullable fields
-        if (isset($validated['end_date']) && $validated['end_date'] === '') {
-            $validated['end_date'] = null;
+        // If a campaign is selected, copy its name to campaign_name for display
+        if (! empty($validated['pledge_campaign_id'])) {
+            $campaign = PledgeCampaign::find($validated['pledge_campaign_id']);
+            if ($campaign) {
+                $validated['campaign_name'] = $campaign->name;
+            }
         }
-        if (isset($validated['notes']) && $validated['notes'] === '') {
-            $validated['notes'] = null;
+
+        // Convert empty strings to null for nullable fields
+        foreach (['end_date', 'notes', 'pledge_campaign_id', 'campaign_name'] as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
         }
 
         $this->editingPledge->update($validated);
 
         unset($this->pledges);
         unset($this->pledgeStats);
-        unset($this->campaigns);
 
         $this->showEditModal = false;
         $this->editingPledge = null;
@@ -460,9 +483,10 @@ class PledgeIndex extends Component
 
             // Data rows
             foreach ($pledges as $pledge) {
+                $campaignName = $pledge->campaign?->name ?? $pledge->campaign_name ?? '-';
                 fputcsv($handle, [
                     $pledge->member?->fullName() ?? '-',
-                    $pledge->campaign_name,
+                    $campaignName,
                     number_format((float) $pledge->amount, 2),
                     number_format((float) $pledge->amount_fulfilled, 2),
                     number_format($pledge->remainingAmount(), 2),
@@ -484,7 +508,7 @@ class PledgeIndex extends Component
     private function resetForm(): void
     {
         $this->reset([
-            'member_id', 'campaign_name', 'amount',
+            'member_id', 'pledge_campaign_id', 'campaign_name', 'amount',
             'start_date', 'end_date', 'notes',
         ]);
         $this->frequency = 'one_time';

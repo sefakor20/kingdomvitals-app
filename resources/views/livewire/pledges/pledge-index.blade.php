@@ -81,7 +81,7 @@
             <flux:select wire:model.live="campaignFilter">
                 <flux:select.option value="">{{ __('All Campaigns') }}</flux:select.option>
                 @foreach($this->campaigns as $campaign)
-                    <flux:select.option value="{{ $campaign }}">{{ $campaign }}</flux:select.option>
+                    <flux:select.option value="{{ $campaign->id }}">{{ $campaign->name }}</flux:select.option>
                 @endforeach
             </flux:select>
         </div>
@@ -163,7 +163,15 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
-                                <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $pledge->campaign_name }}</div>
+                                @if($pledge->campaign)
+                                    <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $pledge->campaign->name }}
+                                    </div>
+                                @elseif($pledge->campaign_name)
+                                    <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $pledge->campaign_name }}</div>
+                                @else
+                                    <span class="text-sm text-zinc-400">-</span>
+                                @endif
                                 @if($pledge->start_date)
                                     <div class="text-xs text-zinc-500 dark:text-zinc-400">
                                         {{ $pledge->start_date->format('M d, Y') }}
@@ -276,7 +284,20 @@
                     @endforeach
                 </flux:select>
 
-                <flux:input wire:model="campaign_name" :label="__('Campaign Name')" required placeholder="{{ __('e.g., Building Fund 2025') }}" />
+                @if($this->activeCampaigns->isNotEmpty())
+                    <flux:select wire:model="pledge_campaign_id" :label="__('Campaign')">
+                        <flux:select.option value="">{{ __('Select a campaign (optional)...') }}</flux:select.option>
+                        @foreach($this->activeCampaigns as $campaign)
+                            <flux:select.option value="{{ $campaign->id }}">
+                                {{ $campaign->name }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                @endif
+
+                @if(!$pledge_campaign_id)
+                    <flux:input wire:model="campaign_name" :label="__('Custom Campaign Name')" placeholder="{{ __('e.g., Building Fund 2025') }}" :description="$this->activeCampaigns->isNotEmpty() ? __('Only required if no campaign selected above') : null" />
+                @endif
 
                 <div class="grid grid-cols-2 gap-4">
                     <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Pledge Amount (GHS)')" required />
@@ -323,7 +344,18 @@
                     @endforeach
                 </flux:select>
 
-                <flux:input wire:model="campaign_name" :label="__('Campaign Name')" required />
+                <flux:select wire:model="pledge_campaign_id" :label="__('Campaign')">
+                    <flux:select.option value="">{{ __('No campaign linked') }}</flux:select.option>
+                    @foreach($this->campaigns as $campaign)
+                        <flux:select.option value="{{ $campaign->id }}">
+                            {{ $campaign->name }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                @if(!$pledge_campaign_id)
+                    <flux:input wire:model="campaign_name" :label="__('Custom Campaign Name')" :description="__('Only required if no campaign selected above')" />
+                @endif
 
                 <div class="grid grid-cols-2 gap-4">
                     <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Pledge Amount (GHS)')" required />
@@ -384,7 +416,7 @@
                 <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800">
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $recordingPaymentFor->campaign_name }}</div>
+                            <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $recordingPaymentFor->campaign?->name ?? $recordingPaymentFor->campaign_name }}</div>
                             <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $recordingPaymentFor->member?->fullName() }}</div>
                         </div>
                         <div class="text-right">

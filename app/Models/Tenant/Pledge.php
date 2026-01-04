@@ -15,6 +15,7 @@ class Pledge extends Model
 
     protected $fillable = [
         'branch_id',
+        'pledge_campaign_id',
         'member_id',
         'campaign_name',
         'amount',
@@ -47,6 +48,11 @@ class Pledge extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(PledgeCampaign::class, 'pledge_campaign_id');
     }
 
     public function remainingAmount(): float
