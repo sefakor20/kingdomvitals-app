@@ -77,6 +77,17 @@
                     {{ __('Equipment') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewPrayerRequests)
+                <flux:navlist.item
+                    icon="sparkles"
+                    :href="route('prayer-requests.index', $this->currentBranch)"
+                    :current="request()->routeIs('prayer-requests.*')"
+                    wire:navigate
+                >
+                    {{ __('Prayer Requests') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">

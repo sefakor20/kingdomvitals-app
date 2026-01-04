@@ -11,6 +11,7 @@ use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\PledgeCampaign;
+use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\RecurringExpense;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
@@ -25,6 +26,7 @@ use App\Policies\HouseholdPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\PledgeCampaignPolicy;
 use App\Policies\PledgePolicy;
+use App\Policies\PrayerRequestPolicy;
 use App\Policies\RecurringExpensePolicy;
 use App\Policies\ReportPolicy;
 use App\Policies\SmsLogPolicy;
@@ -66,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Equipment::class, EquipmentPolicy::class);
         Gate::policy(Household::class, HouseholdPolicy::class);
         Gate::policy(ChildrenCheckinSecurity::class, ChildrenCheckinSecurityPolicy::class);
+        Gate::policy(PrayerRequest::class, PrayerRequestPolicy::class);
 
         // Register Report gates (not model-based)
         Gate::define('viewReports', [ReportPolicy::class, 'viewReports']);

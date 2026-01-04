@@ -9,5 +9,6 @@ enum SmsType: string
     case Welcome = 'welcome';
     case Announcement = 'announcement';
     case FollowUp = 'follow_up';
+    case PrayerChain = 'prayer_chain';
     case Custom = 'custom';
 }

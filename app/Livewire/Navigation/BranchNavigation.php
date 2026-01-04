@@ -12,6 +12,7 @@ use App\Models\Tenant\Expense;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
@@ -134,6 +135,13 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [Household::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewPrayerRequests(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [PrayerRequest::class, $this->currentBranch]);
     }
 
     #[Computed]

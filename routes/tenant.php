@@ -134,6 +134,12 @@ Route::middleware([
         Route::get('/branches/{branch}/equipment/{equipment}', \App\Livewire\Equipment\EquipmentShow::class)
             ->name('equipment.show');
 
+        // Prayer Request Management
+        Route::get('/branches/{branch}/prayer-requests', \App\Livewire\PrayerRequests\PrayerRequestIndex::class)
+            ->name('prayer-requests.index');
+        Route::get('/branches/{branch}/prayer-requests/{prayerRequest}', \App\Livewire\PrayerRequests\PrayerRequestShow::class)
+            ->name('prayer-requests.show');
+
         // Report Center
         Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)
             ->name('reports.index');
