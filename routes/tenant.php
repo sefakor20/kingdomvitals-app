@@ -38,6 +38,10 @@ Route::middleware([
         ->middleware(['auth', 'verified'])
         ->name('dashboard');
 
+    // Mobile Self Check-in (public access via token)
+    Route::get('/checkin/{token}', \App\Livewire\Attendance\MobileSelfCheckIn::class)
+        ->name('checkin.qr');
+
     // Authenticated routes
     Route::middleware(['auth'])->group(function () {
         // Settings
@@ -76,7 +80,17 @@ Route::middleware([
         Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
             ->name('attendance.index');
         Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
-            ->name('attendance.checkin');
+            ->name('attendance.live-check-in');
+        Route::get('/branches/{branch}/services/{service}/dashboard', \App\Livewire\Attendance\AttendanceDashboard::class)
+            ->name('attendance.dashboard');
+        Route::get('/branches/{branch}/services/{service}/children', \App\Livewire\Attendance\ChildrenCheckIn::class)
+            ->name('attendance.children');
+
+        // Household Management
+        Route::get('/branches/{branch}/households', \App\Livewire\Households\HouseholdIndex::class)
+            ->name('households.index');
+        Route::get('/branches/{branch}/households/{household}', \App\Livewire\Households\HouseholdShow::class)
+            ->name('households.show');
 
         // Visitor Management
         Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)

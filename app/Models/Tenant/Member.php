@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use App\Enums\Gender;
+use App\Enums\HouseholdRole;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Observers\MemberObserver;
@@ -30,6 +31,8 @@ class Member extends Model
 
     protected $fillable = [
         'primary_branch_id',
+        'household_id',
+        'household_role',
         'first_name',
         'last_name',
         'middle_name',
@@ -40,6 +43,8 @@ class Member extends Model
         'gender',
         'marital_status',
         'status',
+        'qr_token',
+        'qr_token_generated_at',
         'address',
         'city',
         'state',
@@ -57,9 +62,11 @@ class Member extends Model
             'date_of_birth' => 'date',
             'joined_at' => 'date',
             'baptized_at' => 'date',
+            'qr_token_generated_at' => 'datetime',
             'gender' => Gender::class,
             'marital_status' => MaritalStatus::class,
             'status' => MembershipStatus::class,
+            'household_role' => HouseholdRole::class,
             'sms_opt_out' => 'boolean',
         ];
     }
@@ -72,6 +79,17 @@ class Member extends Model
     public function primaryBranch(): BelongsTo
     {
         return $this->belongsTo(Branch::class, 'primary_branch_id');
+    }
+
+    public function household(): BelongsTo
+    {
+        return $this->belongsTo(Household::class);
+    }
+
+    public function familyMembers(): HasMany
+    {
+        return $this->hasMany(self::class, 'household_id', 'household_id')
+            ->where('id', '!=', $this->id);
     }
 
     public function attendance(): HasMany
@@ -144,5 +162,76 @@ class Member extends Model
     public function hasOptedOutOfSms(): bool
     {
         return $this->sms_opt_out === true;
+    }
+
+    /**
+     * Generate a new QR token for this member.
+     */
+    public function generateQrToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+
+        $this->update([
+            'qr_token' => $token,
+            'qr_token_generated_at' => now(),
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Get or generate the QR token.
+     */
+    public function getOrGenerateQrToken(): string
+    {
+        if (! $this->qr_token) {
+            return $this->generateQrToken();
+        }
+
+        return $this->qr_token;
+    }
+
+    /**
+     * Check if the member is a child (under 18).
+     */
+    public function isChild(): bool
+    {
+        if (! $this->date_of_birth) {
+            return false;
+        }
+
+        return $this->date_of_birth->age < 18;
+    }
+
+    /**
+     * Check if the member is a minor (under 13).
+     */
+    public function isMinor(): bool
+    {
+        if (! $this->date_of_birth) {
+            return false;
+        }
+
+        return $this->date_of_birth->age < 13;
+    }
+
+    /**
+     * Scope to get only children members.
+     */
+    public function scopeChildren(Builder $query): Builder
+    {
+        return $query->whereNotNull('date_of_birth')
+            ->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) < 18');
+    }
+
+    /**
+     * Scope to get only adult members.
+     */
+    public function scopeAdults(Builder $query): Builder
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('date_of_birth')
+                ->orWhereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= 18');
+        });
     }
 }

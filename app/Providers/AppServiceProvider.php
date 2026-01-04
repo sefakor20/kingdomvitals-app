@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Tenant\Budget;
+use App\Models\Tenant\ChildrenCheckinSecurity;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
+use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\PledgeCampaign;
@@ -15,9 +17,11 @@ use App\Models\Tenant\SmsTemplate;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Policies\BudgetPolicy;
+use App\Policies\ChildrenCheckinSecurityPolicy;
 use App\Policies\DonationPolicy;
 use App\Policies\EquipmentPolicy;
 use App\Policies\ExpensePolicy;
+use App\Policies\HouseholdPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\PledgeCampaignPolicy;
 use App\Policies\PledgePolicy;
@@ -60,6 +64,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SmsLog::class, SmsLogPolicy::class);
         Gate::policy(SmsTemplate::class, SmsTemplatePolicy::class);
         Gate::policy(Equipment::class, EquipmentPolicy::class);
+        Gate::policy(Household::class, HouseholdPolicy::class);
+        Gate::policy(ChildrenCheckinSecurity::class, ChildrenCheckinSecurityPolicy::class);
 
         // Register Report gates (not model-based)
         Gate::define('viewReports', [ReportPolicy::class, 'viewReports']);

@@ -45,6 +45,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewHouseholds)
+                <flux:navlist.item
+                    icon="home"
+                    :href="route('households.index', $this->currentBranch)"
+                    :current="request()->routeIs('households.*')"
+                    wire:navigate
+                >
+                    {{ __('Households') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewAttendance)
                 <flux:navlist.item
                     icon="clipboard-document-check"
