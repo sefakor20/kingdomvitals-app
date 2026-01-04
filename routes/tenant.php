@@ -114,6 +114,12 @@ Route::middleware([
         Route::get('/branches/{branch}/sms/analytics', \App\Livewire\Sms\SmsAnalytics::class)
             ->name('sms.analytics');
 
+        // Equipment Management
+        Route::get('/branches/{branch}/equipment', \App\Livewire\Equipment\EquipmentIndex::class)
+            ->name('equipment.index');
+        Route::get('/branches/{branch}/equipment/{equipment}', \App\Livewire\Equipment\EquipmentShow::class)
+            ->name('equipment.show');
+
         // Branch Settings
         Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)
             ->name('branches.settings');

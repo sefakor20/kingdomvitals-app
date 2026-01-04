@@ -55,6 +55,17 @@
                     {{ __('Attendance') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewEquipment)
+                <flux:navlist.item
+                    icon="wrench-screwdriver"
+                    :href="route('equipment.index', $this->currentBranch)"
+                    :current="request()->routeIs('equipment.*')"
+                    wire:navigate
+                >
+                    {{ __('Equipment') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">

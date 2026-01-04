@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
@@ -15,6 +16,7 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Policies\BudgetPolicy;
 use App\Policies\DonationPolicy;
+use App\Policies\EquipmentPolicy;
 use App\Policies\ExpensePolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\PledgeCampaignPolicy;
@@ -56,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RecurringExpense::class, RecurringExpensePolicy::class);
         Gate::policy(SmsLog::class, SmsLogPolicy::class);
         Gate::policy(SmsTemplate::class, SmsTemplatePolicy::class);
+        Gate::policy(Equipment::class, EquipmentPolicy::class);
 
         // Load central/landlord migrations
         $this->loadMigrationsFrom([

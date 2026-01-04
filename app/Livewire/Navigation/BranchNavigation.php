@@ -7,6 +7,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
@@ -118,6 +119,13 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [SmsLog::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewEquipment(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Equipment::class, $this->currentBranch]);
     }
 
     #[Computed]
