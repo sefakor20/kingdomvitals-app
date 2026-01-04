@@ -274,6 +274,9 @@
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg" class="mb-4">{{ __('Quick Links') }}</flux:heading>
         <div class="flex flex-wrap gap-3">
+            <flux:button variant="ghost" :href="route('finance.donor-engagement', $branch)" wire:navigate icon="heart">
+                {{ __('Donor Engagement') }}
+            </flux:button>
             <flux:button variant="ghost" :href="route('donations.index', $branch)" wire:navigate icon="banknotes">
                 {{ __('Donations') }}
             </flux:button>

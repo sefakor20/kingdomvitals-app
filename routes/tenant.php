@@ -87,6 +87,8 @@ Route::middleware([
         // Financial Management
         Route::get('/branches/{branch}/finance/dashboard', \App\Livewire\Finance\FinanceDashboard::class)
             ->name('finance.dashboard');
+        Route::get('/branches/{branch}/finance/donor-engagement', \App\Livewire\Finance\DonorEngagement::class)
+            ->name('finance.donor-engagement');
         Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
             ->name('donations.index');
         Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)

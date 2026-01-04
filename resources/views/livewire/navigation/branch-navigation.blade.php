@@ -67,6 +67,14 @@
                 >
                     {{ __('Dashboard') }}
                 </flux:navlist.item>
+                <flux:navlist.item
+                    icon="heart"
+                    :href="route('finance.donor-engagement', $this->currentBranch)"
+                    :current="request()->routeIs('finance.donor-engagement')"
+                    wire:navigate
+                >
+                    {{ __('Donor Engagement') }}
+                </flux:navlist.item>
             @endif
 
             @if($this->canViewDonations)
