@@ -58,6 +58,17 @@
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">
+            @if($this->canViewFinanceReports)
+                <flux:navlist.item
+                    icon="presentation-chart-line"
+                    :href="route('finance.dashboard', $this->currentBranch)"
+                    :current="request()->routeIs('finance.dashboard')"
+                    wire:navigate
+                >
+                    {{ __('Dashboard') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewDonations)
                 <flux:navlist.item
                     icon="banknotes"
