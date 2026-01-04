@@ -129,6 +129,13 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewReports(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewReports', $this->currentBranch);
+    }
+
+    #[Computed]
     public function canUpdateBranch(): bool
     {
         return $this->currentBranch &&

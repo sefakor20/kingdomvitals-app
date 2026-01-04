@@ -173,6 +173,19 @@
             </flux:navlist.group>
         @endif
 
+        @if($this->canViewReports)
+            <flux:navlist.group :heading="__('Analytics')" class="grid">
+                <flux:navlist.item
+                    icon="chart-bar-square"
+                    :href="route('reports.index', $this->currentBranch)"
+                    :current="request()->routeIs('reports.*')"
+                    wire:navigate
+                >
+                    {{ __('Report Center') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
+
         @if($this->canUpdateBranch)
             <flux:navlist.group :heading="__('Configuration')" class="grid">
                 <flux:navlist.item

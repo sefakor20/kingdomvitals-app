@@ -22,6 +22,7 @@ use App\Policies\MemberPolicy;
 use App\Policies\PledgeCampaignPolicy;
 use App\Policies\PledgePolicy;
 use App\Policies\RecurringExpensePolicy;
+use App\Policies\ReportPolicy;
 use App\Policies\SmsLogPolicy;
 use App\Policies\SmsTemplatePolicy;
 use App\Policies\UserBranchAccessPolicy;
@@ -59,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SmsLog::class, SmsLogPolicy::class);
         Gate::policy(SmsTemplate::class, SmsTemplatePolicy::class);
         Gate::policy(Equipment::class, EquipmentPolicy::class);
+
+        // Register Report gates (not model-based)
+        Gate::define('viewReports', [ReportPolicy::class, 'viewReports']);
+        Gate::define('exportReports', [ReportPolicy::class, 'exportReports']);
 
         // Load central/landlord migrations
         $this->loadMigrationsFrom([

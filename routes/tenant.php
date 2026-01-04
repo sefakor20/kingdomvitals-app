@@ -120,6 +120,34 @@ Route::middleware([
         Route::get('/branches/{branch}/equipment/{equipment}', \App\Livewire\Equipment\EquipmentShow::class)
             ->name('equipment.show');
 
+        // Report Center
+        Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)
+            ->name('reports.index');
+
+        // Membership Reports
+        Route::get('/branches/{branch}/reports/membership/directory', \App\Livewire\Reports\Membership\MemberDirectory::class)
+            ->name('reports.membership.directory');
+        Route::get('/branches/{branch}/reports/membership/new-members', \App\Livewire\Reports\Membership\NewMembersReport::class)
+            ->name('reports.membership.new-members');
+        Route::get('/branches/{branch}/reports/membership/inactive', \App\Livewire\Reports\Membership\InactiveMembersReport::class)
+            ->name('reports.membership.inactive');
+        Route::get('/branches/{branch}/reports/membership/demographics', \App\Livewire\Reports\Membership\MemberDemographics::class)
+            ->name('reports.membership.demographics');
+        Route::get('/branches/{branch}/reports/membership/growth', \App\Livewire\Reports\Membership\MemberGrowthTrends::class)
+            ->name('reports.membership.growth');
+
+        // Attendance Reports
+        Route::get('/branches/{branch}/reports/attendance/weekly', \App\Livewire\Reports\Attendance\WeeklyAttendanceSummary::class)
+            ->name('reports.attendance.weekly');
+        Route::get('/branches/{branch}/reports/attendance/monthly', \App\Livewire\Reports\Attendance\MonthlyAttendanceComparison::class)
+            ->name('reports.attendance.monthly');
+        Route::get('/branches/{branch}/reports/attendance/by-service', \App\Livewire\Reports\Attendance\ServiceWiseAttendance::class)
+            ->name('reports.attendance.by-service');
+        Route::get('/branches/{branch}/reports/attendance/absent-members', \App\Livewire\Reports\Attendance\AbsentMembersReport::class)
+            ->name('reports.attendance.absent-members');
+        Route::get('/branches/{branch}/reports/attendance/visitors', \App\Livewire\Reports\Attendance\FirstTimeVisitorsReport::class)
+            ->name('reports.attendance.visitors');
+
         // Branch Settings
         Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)
             ->name('branches.settings');
