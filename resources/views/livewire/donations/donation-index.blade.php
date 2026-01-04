@@ -6,6 +6,23 @@
         </div>
 
         <div class="flex gap-2">
+            @if($this->selectedDonationsCount > 0)
+                <flux:dropdown position="bottom" align="end">
+                    <flux:button variant="ghost" icon="document-duplicate">
+                        {{ __('Receipts') }} ({{ $this->selectedDonationsCount }})
+                    </flux:button>
+                    <flux:menu>
+                        <flux:menu.item wire:click="bulkDownloadReceipts" icon="arrow-down-tray">
+                            {{ __('Download All as ZIP') }}
+                        </flux:menu.item>
+                        @if($this->canSendReceipts)
+                            <flux:menu.item wire:click="bulkEmailReceipts" icon="envelope">
+                                {{ __('Email to Donors') }}
+                            </flux:menu.item>
+                        @endif
+                    </flux:menu>
+                </flux:dropdown>
+            @endif
             @if($this->donations->isNotEmpty())
                 <flux:button variant="ghost" wire:click="exportToCsv" icon="arrow-down-tray">
                     {{ __('Export CSV') }}
@@ -136,6 +153,12 @@
             <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-800">
                     <tr>
+                        <th scope="col" class="w-10 px-3 py-3">
+                            <flux:checkbox
+                                wire:click="selectAllDonations"
+                                :checked="count($selectedDonations) > 0 && count($selectedDonations) === $this->donations->count()"
+                            />
+                        </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             {{ __('Date') }}
                         </th>
@@ -162,6 +185,12 @@
                 <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
                     @foreach($this->donations as $donation)
                         <tr wire:key="donation-{{ $donation->id }}">
+                            <td class="whitespace-nowrap px-3 py-4">
+                                <flux:checkbox
+                                    wire:click="toggleDonationSelection('{{ $donation->id }}')"
+                                    :checked="in_array($donation->id, $selectedDonations)"
+                                />
+                            </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
                                 {{ $donation->donation_date?->format('M d, Y') ?? '-' }}
                             </td>
@@ -224,6 +253,25 @@
                                     <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
 
                                     <flux:menu>
+                                        @can('generateReceipt', $donation)
+                                            <flux:menu.item wire:click="downloadReceipt('{{ $donation->id }}')" icon="document-arrow-down">
+                                                {{ __('Download Receipt') }}
+                                            </flux:menu.item>
+                                        @endcan
+
+                                        @can('sendReceipt', $donation)
+                                            @if($donation->canSendReceipt())
+                                                <flux:menu.item wire:click="emailReceipt('{{ $donation->id }}')" icon="envelope">
+                                                    {{ __('Email Receipt') }}
+                                                    @if($donation->receipt_sent_at)
+                                                        <flux:badge size="sm" color="zinc" class="ml-2">{{ __('Sent') }}</flux:badge>
+                                                    @endif
+                                                </flux:menu.item>
+                                            @endif
+                                        @endcan
+
+                                        <flux:menu.separator />
+
                                         @can('update', $donation)
                                             <flux:menu.item wire:click="edit('{{ $donation->id }}')" icon="pencil">
                                                 {{ __('Edit') }}
@@ -412,5 +460,17 @@
 
     <x-toast on="donation-deleted" type="success">
         {{ __('Donation deleted successfully.') }}
+    </x-toast>
+
+    <x-toast on="receipt-sent" type="success">
+        {{ __('Receipt sent successfully.') }}
+    </x-toast>
+
+    <x-toast on="receipt-send-failed" type="error">
+        {{ __('Failed to send receipt. Donor may not have an email address.') }}
+    </x-toast>
+
+    <x-toast on="bulk-receipts-sent" type="success">
+        {{ __('Receipts sent successfully.') }}
     </x-toast>
 </section>

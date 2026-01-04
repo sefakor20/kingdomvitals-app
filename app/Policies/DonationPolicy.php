@@ -107,4 +107,31 @@ class DonationPolicy
             ])
             ->exists();
     }
+
+    /**
+     * Determine whether the user can generate receipts for donations.
+     * All roles with branch access can generate/download receipts.
+     */
+    public function generateReceipt(User $user, Donation $donation): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $donation->branch_id)
+            ->exists();
+    }
+
+    /**
+     * Determine whether the user can send receipt emails.
+     * Only Admin, Manager, and Staff can send emails.
+     */
+    public function sendReceipt(User $user, Donation $donation): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $donation->branch_id)
+            ->whereIn('role', [
+                BranchRole::Admin->value,
+                BranchRole::Manager->value,
+                BranchRole::Staff->value,
+            ])
+            ->exists();
+    }
 }
