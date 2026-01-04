@@ -85,12 +85,22 @@ Route::middleware([
             ->name('visitors.show');
 
         // Financial Management
+        Route::get('/branches/{branch}/finance/dashboard', \App\Livewire\Finance\FinanceDashboard::class)
+            ->name('finance.dashboard');
+        Route::get('/branches/{branch}/finance/donor-engagement', \App\Livewire\Finance\DonorEngagement::class)
+            ->name('finance.donor-engagement');
         Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
             ->name('donations.index');
         Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
             ->name('expenses.index');
+        Route::get('/branches/{branch}/expenses/recurring', \App\Livewire\Expenses\RecurringExpenseIndex::class)
+            ->name('expenses.recurring');
         Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
             ->name('pledges.index');
+        Route::get('/branches/{branch}/budgets', \App\Livewire\Budgets\BudgetIndex::class)
+            ->name('budgets.index');
+        Route::get('/branches/{branch}/finance/reports', \App\Livewire\Finance\FinanceReports::class)
+            ->name('finance.reports');
 
         // SMS Management
         Route::get('/branches/{branch}/sms', \App\Livewire\Sms\SmsIndex::class)

@@ -10,6 +10,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
+use App\Services\DonationReceiptService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -65,6 +66,9 @@ class DonationIndex extends Component
     public ?Donation $editingDonation = null;
 
     public ?Donation $deletingDonation = null;
+
+    /** @var array<string> */
+    public array $selectedDonations = [];
 
     public function mount(Branch $branch): void
     {
@@ -161,6 +165,20 @@ class DonationIndex extends Component
     public function canDelete(): bool
     {
         return auth()->user()->can('deleteAny', [Donation::class, $this->branch]);
+    }
+
+    #[Computed]
+    public function selectedDonationsCount(): int
+    {
+        return count($this->selectedDonations);
+    }
+
+    #[Computed]
+    public function canSendReceipts(): bool
+    {
+        $firstDonation = Donation::where('branch_id', $this->branch->id)->first();
+
+        return $firstDonation && auth()->user()->can('sendReceipt', $firstDonation);
     }
 
     #[Computed]
@@ -422,6 +440,76 @@ class DonationIndex extends Component
         $this->donation_type = 'offering';
         $this->payment_method = 'cash';
         $this->resetValidation();
+    }
+
+    // Receipt Methods
+
+    public function downloadReceipt(Donation $donation): StreamedResponse
+    {
+        $this->authorize('generateReceipt', $donation);
+
+        return app(DonationReceiptService::class)->downloadReceipt($donation);
+    }
+
+    public function emailReceipt(Donation $donation): void
+    {
+        $this->authorize('sendReceipt', $donation);
+
+        if (app(DonationReceiptService::class)->emailReceipt($donation)) {
+            unset($this->donations);
+            $this->dispatch('receipt-sent');
+        } else {
+            $this->dispatch('receipt-send-failed');
+        }
+    }
+
+    public function bulkDownloadReceipts(): StreamedResponse
+    {
+        $donations = Donation::whereIn('id', $this->selectedDonations)->get();
+
+        foreach ($donations as $donation) {
+            $this->authorize('generateReceipt', $donation);
+        }
+
+        return app(DonationReceiptService::class)->bulkDownloadReceipts($donations);
+    }
+
+    public function bulkEmailReceipts(): void
+    {
+        $donations = Donation::whereIn('id', $this->selectedDonations)->get();
+
+        foreach ($donations as $donation) {
+            $this->authorize('sendReceipt', $donation);
+        }
+
+        $result = app(DonationReceiptService::class)->bulkEmailReceipts($donations);
+        $this->selectedDonations = [];
+        unset($this->donations);
+        unset($this->selectedDonationsCount);
+
+        $this->dispatch('bulk-receipts-sent', sent: $result['sent'], skipped: $result['skipped']);
+    }
+
+    public function toggleDonationSelection(string $donationId): void
+    {
+        if (in_array($donationId, $this->selectedDonations)) {
+            $this->selectedDonations = array_values(array_diff($this->selectedDonations, [$donationId]));
+        } else {
+            $this->selectedDonations[] = $donationId;
+        }
+        unset($this->selectedDonationsCount);
+    }
+
+    public function selectAllDonations(): void
+    {
+        $this->selectedDonations = $this->donations->pluck('id')->toArray();
+        unset($this->selectedDonationsCount);
+    }
+
+    public function deselectAllDonations(): void
+    {
+        $this->selectedDonations = [];
+        unset($this->selectedDonationsCount);
     }
 
     public function render()

@@ -57,6 +57,13 @@ class SmsCompose extends Component
 
     public int $sentCount = 0;
 
+    // Opted-out recipients warning
+    public int $optedOutCount = 0;
+
+    public bool $showOptedOutWarningModal = false;
+
+    public bool $acknowledgedOptedOutWarning = false;
+
     public function mount(Branch $branch): void
     {
         $this->authorize('create', [SmsLog::class, $branch]);
@@ -223,6 +230,7 @@ class SmsCompose extends Component
                     'id' => $member->id,
                     'name' => $member->fullName(),
                     'phone' => $member->phone,
+                    'sms_opt_out' => $member->sms_opt_out,
                 ];
             }
         } elseif ($this->recipientType === 'cluster' && $this->selectedClusterId) {
@@ -238,6 +246,7 @@ class SmsCompose extends Component
                         'id' => $member->id,
                         'name' => $member->fullName(),
                         'phone' => $member->phone,
+                        'sms_opt_out' => $member->sms_opt_out,
                     ];
                 }
             }
@@ -252,6 +261,7 @@ class SmsCompose extends Component
                     'id' => $member->id,
                     'name' => $member->fullName(),
                     'phone' => $member->phone,
+                    'sms_opt_out' => $member->sms_opt_out,
                 ];
             }
         }
@@ -267,6 +277,17 @@ class SmsCompose extends Component
 
         if (empty($recipients)) {
             $this->addError('recipients', 'No recipients selected or all selected members have no phone number.');
+
+            return;
+        }
+
+        // Check for opted-out recipients
+        $this->optedOutCount = collect($recipients)->where('sms_opt_out', true)->count();
+
+        // If there are opted-out recipients and user hasn't acknowledged, show warning
+        if ($this->optedOutCount > 0 && ! $this->acknowledgedOptedOutWarning) {
+            $this->previewRecipients = $recipients;
+            $this->showOptedOutWarningModal = true;
 
             return;
         }
@@ -290,6 +311,20 @@ class SmsCompose extends Component
     public function cancelConfirm(): void
     {
         $this->showConfirmModal = false;
+    }
+
+    public function acknowledgeOptedOutWarning(): void
+    {
+        $this->acknowledgedOptedOutWarning = true;
+        $this->showOptedOutWarningModal = false;
+        $this->showPreviewModal = true;
+    }
+
+    public function cancelOptedOutWarning(): void
+    {
+        $this->showOptedOutWarningModal = false;
+        $this->previewRecipients = [];
+        $this->optedOutCount = 0;
     }
 
     public function send(): void
@@ -352,6 +387,7 @@ class SmsCompose extends Component
             'recipientType', 'selectedMemberIds', 'selectedClusterId',
             'message', 'templateId', 'messageType',
             'isScheduled', 'scheduledAt',
+            'optedOutCount', 'showOptedOutWarningModal', 'acknowledgedOptedOutWarning',
         ]);
         $this->resetValidation();
 

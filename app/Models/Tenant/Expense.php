@@ -16,6 +16,7 @@ class Expense extends Model
 
     protected $fillable = [
         'branch_id',
+        'recurring_expense_id',
         'category',
         'description',
         'amount',
@@ -57,5 +58,15 @@ class Expense extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'approved_by');
+    }
+
+    public function recurringExpense(): BelongsTo
+    {
+        return $this->belongsTo(RecurringExpense::class);
+    }
+
+    public function isFromRecurringExpense(): bool
+    {
+        return $this->recurring_expense_id !== null;
     }
 }

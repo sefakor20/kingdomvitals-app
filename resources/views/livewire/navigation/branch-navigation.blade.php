@@ -58,6 +58,25 @@
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">
+            @if($this->canViewFinanceReports)
+                <flux:navlist.item
+                    icon="presentation-chart-line"
+                    :href="route('finance.dashboard', $this->currentBranch)"
+                    :current="request()->routeIs('finance.dashboard')"
+                    wire:navigate
+                >
+                    {{ __('Dashboard') }}
+                </flux:navlist.item>
+                <flux:navlist.item
+                    icon="heart"
+                    :href="route('finance.donor-engagement', $this->currentBranch)"
+                    :current="request()->routeIs('finance.donor-engagement')"
+                    wire:navigate
+                >
+                    {{ __('Donor Engagement') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewDonations)
                 <flux:navlist.item
                     icon="banknotes"
@@ -88,6 +107,28 @@
                     wire:navigate
                 >
                     {{ __('Pledges') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewBudgets)
+                <flux:navlist.item
+                    icon="calculator"
+                    :href="route('budgets.index', $this->currentBranch)"
+                    :current="request()->routeIs('budgets.*')"
+                    wire:navigate
+                >
+                    {{ __('Budgets') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewFinanceReports)
+                <flux:navlist.item
+                    icon="chart-bar"
+                    :href="route('finance.reports', $this->currentBranch)"
+                    :current="request()->routeIs('finance.reports')"
+                    wire:navigate
+                >
+                    {{ __('Reports') }}
                 </flux:navlist.item>
             @endif
         </flux:navlist.group>

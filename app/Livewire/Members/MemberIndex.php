@@ -25,6 +25,8 @@ class MemberIndex extends Component
 
     public string $statusFilter = '';
 
+    public string $smsOptOutFilter = '';
+
     public string $viewFilter = 'active';
 
     public bool $showCreateModal = false;
@@ -107,6 +109,10 @@ class MemberIndex extends Component
 
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->smsOptOutFilter !== '') {
+            $query->where('sms_opt_out', $this->smsOptOutFilter === 'opted_out');
         }
 
         return $query->orderBy('last_name')->orderBy('first_name')->get();

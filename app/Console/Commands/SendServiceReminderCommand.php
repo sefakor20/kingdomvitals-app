@@ -224,7 +224,8 @@ class SendServiceReminderCommand extends Command
 
         $query = Member::where('primary_branch_id', $branch->id)
             ->whereNotNull('phone')
-            ->where('status', MembershipStatus::Active);
+            ->where('status', MembershipStatus::Active)
+            ->where('sms_opt_out', false);
 
         if ($recipientType === 'attendees') {
             // Only members who have attended this service before

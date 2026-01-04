@@ -389,6 +389,17 @@ class MemberShow extends Component
         $this->redirect(route('members.index', $this->branch), navigate: true);
     }
 
+    public function toggleSmsOptOut(): void
+    {
+        $this->authorize('update', $this->member);
+
+        $this->member->sms_opt_out = ! $this->member->sms_opt_out;
+        $this->member->save();
+        $this->member->refresh();
+
+        $this->dispatch('sms-opt-out-updated');
+    }
+
     public function render()
     {
         return view('livewire.members.member-show');

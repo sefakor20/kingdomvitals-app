@@ -65,6 +65,7 @@ class SendBirthdaySmsCommand extends Command
                     ->whereMonth('date_of_birth', $todayMonth)
                     ->whereDay('date_of_birth', $todayDay)
                     ->where('status', 'active')
+                    ->where('sms_opt_out', false)
                     ->get();
 
                 if ($members->isEmpty()) {

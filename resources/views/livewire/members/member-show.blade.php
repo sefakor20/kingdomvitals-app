@@ -228,6 +228,27 @@
                         @endif
                     </dd>
                 </div>
+
+                <!-- SMS Preferences -->
+                <div class="col-span-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('SMS Preferences') }}</dt>
+                    <dd class="mt-2">
+                        <div class="flex items-center gap-3">
+                            @if($member->sms_opt_out)
+                                <flux:badge color="yellow">{{ __('Opted Out') }}</flux:badge>
+                                <flux:text class="text-sm text-zinc-500">{{ __('Will not receive automated SMS') }}</flux:text>
+                            @else
+                                <flux:badge color="green">{{ __('Subscribed') }}</flux:badge>
+                                <flux:text class="text-sm text-zinc-500">{{ __('Receives automated SMS') }}</flux:text>
+                            @endif
+                            @if($this->canEdit)
+                                <flux:button variant="ghost" size="sm" wire:click="toggleSmsOptOut">
+                                    {{ $member->sms_opt_out ? __('Opt In') : __('Opt Out') }}
+                                </flux:button>
+                            @endif
+                        </div>
+                    </dd>
+                </div>
             </dl>
         </div>
 
@@ -485,5 +506,9 @@
 
     <x-toast on="cluster-updated" type="success">
         {{ __('Cluster role updated.') }}
+    </x-toast>
+
+    <x-toast on="sms-opt-out-updated" type="success">
+        {{ __('SMS preference updated.') }}
     </x-toast>
 </section>
