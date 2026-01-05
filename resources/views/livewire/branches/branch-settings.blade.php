@@ -353,17 +353,136 @@
         </div>
     </div>
 
+    <!-- Paystack Configuration Section -->
+    <div class="mt-6 rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="border-b border-zinc-200 p-6 dark:border-zinc-700">
+            <div class="flex items-center gap-3">
+                <div class="rounded-full bg-green-100 p-2 dark:bg-green-900">
+                    <flux:icon icon="credit-card" class="size-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                    <flux:heading size="lg">{{ __('Online Giving (Paystack)') }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('Configure Paystack credentials to accept online donations.') }}
+                    </flux:text>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6 p-6">
+            <!-- Public Key -->
+            <div>
+                <flux:input
+                    wire:model="paystackPublicKey"
+                    type="text"
+                    :label="__('Public Key')"
+                    placeholder="{{ $hasExistingPaystackKeys ? __('Enter new public key to replace existing') : __('pk_test_... or pk_live_...') }}"
+                />
+                <flux:text class="mt-1 text-xs text-zinc-500">
+                    {{ __('Starts with pk_test_ (test mode) or pk_live_ (live mode)') }}
+                </flux:text>
+            </div>
+
+            <!-- Secret Key -->
+            <div>
+                <flux:input
+                    wire:model="paystackSecretKey"
+                    type="{{ $showPaystackSecretKey ? 'text' : 'password' }}"
+                    :label="__('Secret Key')"
+                    placeholder="{{ $hasExistingPaystackKeys ? __('Enter new secret key to replace existing') : __('sk_test_... or sk_live_...') }}"
+                />
+                <flux:text class="mt-1 text-xs text-zinc-500">
+                    {{ __('Starts with sk_test_ (test mode) or sk_live_ (live mode). Keep this secret!') }}
+                </flux:text>
+            </div>
+
+            @if($hasExistingPaystackKeys)
+                <div class="flex items-center gap-2">
+                    <flux:badge color="green" size="sm">{{ __('Configured') }}</flux:badge>
+                    <flux:button variant="ghost" size="sm" wire:click="clearPaystackKeys" class="text-red-600 hover:text-red-700">
+                        {{ __('Clear Keys') }}
+                    </flux:button>
+                </div>
+            @endif
+
+            <!-- Test Mode Toggle -->
+            <div class="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                <div>
+                    <flux:heading size="sm">{{ __('Test Mode') }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('Enable test mode to process test payments without real money.') }}
+                    </flux:text>
+                </div>
+                <flux:switch wire:model="paystackTestMode" />
+            </div>
+
+            <!-- Giving URL -->
+            @if($hasExistingPaystackKeys)
+                <div class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/30">
+                    <flux:heading size="sm" class="mb-2 text-green-700 dark:text-green-300">{{ __('Your Giving Page') }}</flux:heading>
+                    <div class="flex items-center gap-2">
+                        <code class="flex-1 rounded bg-white px-3 py-2 text-sm dark:bg-zinc-800">{{ $this->givingUrl }}</code>
+                        <flux:button variant="ghost" size="sm" icon="clipboard" onclick="navigator.clipboard.writeText('{{ $this->givingUrl }}')">
+                            {{ __('Copy') }}
+                        </flux:button>
+                    </div>
+                    <flux:text class="mt-2 text-xs text-green-600 dark:text-green-400">
+                        {{ __('Share this link with your congregation to receive online donations.') }}
+                    </flux:text>
+                </div>
+            @endif
+
+            <!-- Test Connection Result -->
+            @if($paystackTestConnectionResult)
+                <div class="rounded-lg border p-4 {{ $paystackTestConnectionStatus === 'success' ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/30' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/30' }}">
+                    <div class="flex items-center gap-2">
+                        <flux:icon
+                            icon="{{ $paystackTestConnectionStatus === 'success' ? 'check-circle' : 'x-circle' }}"
+                            class="size-5 {{ $paystackTestConnectionStatus === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}"
+                        />
+                        <flux:text class="{{ $paystackTestConnectionStatus === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300' }}">
+                            {{ $paystackTestConnectionResult }}
+                        </flux:text>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                <flux:button variant="ghost" wire:click="testPaystackConnection" icon="signal" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="testPaystackConnection">{{ __('Test Connection') }}</span>
+                    <span wire:loading wire:target="testPaystackConnection">{{ __('Testing...') }}</span>
+                </flux:button>
+
+                <flux:button variant="primary" wire:click="savePaystackSettings" icon="check" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="savePaystackSettings">{{ __('Save Paystack Settings') }}</span>
+                    <span wire:loading wire:target="savePaystackSettings">{{ __('Saving...') }}</span>
+                </flux:button>
+            </div>
+        </div>
+    </div>
+
     <!-- Help Section -->
     <div class="mt-6 rounded-xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800">
         <flux:heading size="sm" class="mb-3">{{ __('Need Help?') }}</flux:heading>
-        <div class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <p>{{ __('To get your TextTango API credentials:') }}</p>
-            <ol class="ml-4 list-decimal space-y-1">
-                <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango') }}</a> {{ __('account') }}</li>
-                <li>{{ __('Navigate to Developer > Access Tokens') }}</li>
-                <li>{{ __('Create a new API key or copy your existing one') }}</li>
-                <li>{{ __('For Sender ID, use your organization name (max 11 characters)') }}</li>
-            </ol>
+        <div class="space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
+            <div>
+                <p class="font-medium">{{ __('TextTango SMS:') }}</p>
+                <ol class="ml-4 list-decimal space-y-1">
+                    <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango') }}</a> {{ __('account') }}</li>
+                    <li>{{ __('Navigate to Developer > Access Tokens') }}</li>
+                    <li>{{ __('Create a new API key or copy your existing one') }}</li>
+                </ol>
+            </div>
+            <div>
+                <p class="font-medium">{{ __('Paystack:') }}</p>
+                <ol class="ml-4 list-decimal space-y-1">
+                    <li>{{ __('Log in to your') }} <a href="https://dashboard.paystack.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('Paystack Dashboard') }}</a></li>
+                    <li>{{ __('Go to Settings > API Keys & Webhooks') }}</li>
+                    <li>{{ __('Copy your Public Key and Secret Key') }}</li>
+                    <li>{{ __('Use Test keys for testing, Live keys for real payments') }}</li>
+                </ol>
+            </div>
         </div>
     </div>
 
@@ -374,5 +493,13 @@
 
     <x-toast on="api-key-cleared" type="success">
         {{ __('API key cleared.') }}
+    </x-toast>
+
+    <x-toast on="paystack-settings-saved" type="success">
+        {{ __('Paystack settings saved successfully.') }}
+    </x-toast>
+
+    <x-toast on="paystack-keys-cleared" type="success">
+        {{ __('Paystack keys cleared.') }}
     </x-toast>
 </section>

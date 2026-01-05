@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Donation extends Model
 {
@@ -26,8 +27,14 @@ class Donation extends Model
         'receipt_number',
         'receipt_sent_at',
         'donor_name',
+        'donor_email',
+        'donor_phone',
+        'paystack_customer_code',
         'notes',
         'is_anonymous',
+        'is_recurring',
+        'recurring_interval',
+        'paystack_subscription_code',
         'recorded_by',
     ];
 
@@ -38,6 +45,7 @@ class Donation extends Model
             'donation_date' => 'date',
             'receipt_sent_at' => 'datetime',
             'is_anonymous' => 'boolean',
+            'is_recurring' => 'boolean',
             'donation_type' => DonationType::class,
             'payment_method' => PaymentMethod::class,
         ];
@@ -61,6 +69,11 @@ class Donation extends Model
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'recorded_by');
+    }
+
+    public function paymentTransactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
     }
 
     /**
@@ -93,7 +106,7 @@ class Donation extends Model
      */
     public function getDonorEmail(): ?string
     {
-        return $this->member?->email;
+        return $this->member?->email ?? $this->donor_email;
     }
 
     /**
@@ -102,5 +115,13 @@ class Donation extends Model
     public function canSendReceipt(): bool
     {
         return ! $this->is_anonymous && $this->getDonorEmail() !== null;
+    }
+
+    /**
+     * Check if this is an online payment (via Paystack).
+     */
+    public function isOnlinePayment(): bool
+    {
+        return $this->payment_method === PaymentMethod::Paystack;
     }
 }

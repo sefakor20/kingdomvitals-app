@@ -42,6 +42,15 @@ Route::middleware([
     Route::get('/checkin/{token}', \App\Livewire\Attendance\MobileSelfCheckIn::class)
         ->name('checkin.qr');
 
+    // Public giving page (no auth required)
+    Route::get('/branches/{branch}/give', \App\Livewire\Giving\PublicGivingForm::class)
+        ->name('giving.form');
+
+    // Paystack webhook (no auth, no CSRF)
+    Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
+        ->name('webhooks.paystack')
+        ->withoutMiddleware(['web']);
+
     // Authenticated routes
     Route::middleware(['auth'])->group(function () {
         // Settings

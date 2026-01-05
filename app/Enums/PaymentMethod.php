@@ -9,4 +9,5 @@ enum PaymentMethod: string
     case Card = 'card';
     case MobileMoney = 'mobile_money';
     case BankTransfer = 'bank_transfer';
+    case Paystack = 'paystack';
 }
