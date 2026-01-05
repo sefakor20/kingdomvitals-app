@@ -34,13 +34,6 @@
                 <flux:icon icon="credit-card" class="size-4" />
                 {{ __('Payment Gateway') }}
             </button>
-            <button
-                wire:click="setActiveTab('help')"
-                class="flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {{ $activeTab === 'help' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' }}"
-            >
-                <flux:icon icon="information-circle" class="size-4" />
-                {{ __('Help') }}
-            </button>
         </nav>
     </div>
 
@@ -114,6 +107,16 @@
                         </div>
                     </div>
                 @endif
+
+                <!-- Help Section -->
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                    <p class="mb-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ __('Where to find your API key:') }}</p>
+                    <ol class="ml-4 list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango account') }}</a></li>
+                        <li>{{ __('Navigate to Developer > Access Tokens') }}</li>
+                        <li>{{ __('Create a new API key or copy your existing one') }}</li>
+                    </ol>
+                </div>
 
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-between border-t border-zinc-200 pt-6 dark:border-zinc-700">
@@ -487,6 +490,17 @@
                     </div>
                 @endif
 
+                <!-- Help Section -->
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                    <p class="mb-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ __('Where to find your API keys:') }}</p>
+                    <ol class="ml-4 list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>{{ __('Log in to your') }} <a href="https://dashboard.paystack.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('Paystack Dashboard') }}</a></li>
+                        <li>{{ __('Go to Settings > API Keys & Webhooks') }}</li>
+                        <li>{{ __('Copy your Public Key and Secret Key') }}</li>
+                        <li>{{ __('Use Test keys for testing, Live keys for real payments') }}</li>
+                    </ol>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-between border-t border-zinc-200 pt-6 dark:border-zinc-700">
                     <flux:button variant="ghost" wire:click="testPaystackConnection" icon="signal" wire:loading.attr="disabled">
@@ -498,51 +512,6 @@
                         <span wire:loading.remove wire:target="savePaystackSettings">{{ __('Save Paystack Settings') }}</span>
                         <span wire:loading wire:target="savePaystackSettings">{{ __('Saving...') }}</span>
                     </flux:button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if($activeTab === 'help')
-        <!-- Help Section -->
-        <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-6 flex items-center gap-3">
-                <div class="rounded-full bg-zinc-100 p-2 dark:bg-zinc-800">
-                    <flux:icon icon="information-circle" class="size-5 text-zinc-600 dark:text-zinc-400" />
-                </div>
-                <flux:heading size="lg">{{ __('Need Help?') }}</flux:heading>
-            </div>
-
-            <div class="space-y-6 text-sm text-zinc-600 dark:text-zinc-400">
-                <div class="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
-                    <p class="mb-3 font-medium text-zinc-900 dark:text-zinc-100">{{ __('TextTango SMS Setup') }}</p>
-                    <ol class="ml-4 list-decimal space-y-2">
-                        <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango') }}</a> {{ __('account') }}</li>
-                        <li>{{ __('Navigate to Developer > Access Tokens') }}</li>
-                        <li>{{ __('Create a new API key or copy your existing one') }}</li>
-                    </ol>
-                </div>
-
-                <div class="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
-                    <p class="mb-3 font-medium text-zinc-900 dark:text-zinc-100">{{ __('Paystack Setup') }}</p>
-                    <ol class="ml-4 list-decimal space-y-2">
-                        <li>{{ __('Log in to your') }} <a href="https://dashboard.paystack.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('Paystack Dashboard') }}</a></li>
-                        <li>{{ __('Go to Settings > API Keys & Webhooks') }}</li>
-                        <li>{{ __('Copy your Public Key and Secret Key') }}</li>
-                        <li>{{ __('Use Test keys for testing, Live keys for real payments') }}</li>
-                    </ol>
-                </div>
-
-                <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/30">
-                    <div class="flex items-start gap-2">
-                        <flux:icon icon="light-bulb" class="mt-0.5 size-5 text-amber-600 dark:text-amber-400" />
-                        <div>
-                            <p class="font-medium text-amber-800 dark:text-amber-200">{{ __('Pro Tip') }}</p>
-                            <p class="mt-1 text-amber-700 dark:text-amber-300">
-                                {{ __('Always test your integrations with test credentials before going live. This helps you verify everything works correctly without affecting real transactions.') }}
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
