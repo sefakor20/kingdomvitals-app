@@ -7,12 +7,16 @@ namespace App\Livewire\Attendance;
 use App\Enums\CheckInMethod;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\Visitor;
+use App\Services\FamilyCheckInService;
+use App\Services\QrCodeService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
@@ -28,12 +32,40 @@ class LiveCheckIn extends Component
 
     public ?string $lastCheckedInName = null;
 
+    // Tab state
+    public string $activeTab = 'search';
+
+    // QR scanning
+    public bool $isScanning = false;
+
+    public ?string $qrError = null;
+
+    // Family check-in
+    public bool $showFamilyModal = false;
+
+    public ?string $selectedHouseholdId = null;
+
+    /** @var array<string> */
+    public array $selectedFamilyMembers = [];
+
+    public string $familySearchQuery = '';
+
     public function mount(Branch $branch, Service $service): void
     {
         $this->authorize('create', [Attendance::class, $branch]);
         $this->branch = $branch;
         $this->service = $service;
         $this->selectedDate = now()->format('Y-m-d');
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+        $this->qrError = null;
+
+        if ($tab !== 'qr') {
+            $this->isScanning = false;
+        }
     }
 
     #[Computed]
@@ -116,6 +148,35 @@ class LiveCheckIn extends Component
         ];
     }
 
+    #[Computed]
+    public function householdSearchResults(): Collection
+    {
+        if (strlen($this->familySearchQuery) < 2) {
+            return collect();
+        }
+
+        return Household::query()
+            ->where('branch_id', $this->branch->id)
+            ->where('name', 'like', "%{$this->familySearchQuery}%")
+            ->withCount('members')
+            ->limit(10)
+            ->get();
+    }
+
+    #[Computed]
+    public function selectedHousehold(): ?Household
+    {
+        if (! $this->selectedHouseholdId) {
+            return null;
+        }
+
+        return Household::with(['members' => function ($query) {
+            $query->where('status', 'active')
+                ->orderByRaw("CASE WHEN household_role = 'head' THEN 1 WHEN household_role = 'spouse' THEN 2 WHEN household_role = 'child' THEN 3 ELSE 4 END")
+                ->orderBy('first_name');
+        }])->find($this->selectedHouseholdId);
+    }
+
     public function checkIn(string $id, string $type): void
     {
         $this->authorize('create', [Attendance::class, $this->branch]);
@@ -183,6 +244,123 @@ class LiveCheckIn extends Component
         $this->dispatch('check-in-success', name: $name);
     }
 
+    #[On('qr-scanned')]
+    public function processQrCode(string $code): void
+    {
+        $this->qrError = null;
+
+        $qrService = app(QrCodeService::class);
+        $member = $qrService->validateToken($code);
+
+        if (! $member) {
+            $this->qrError = __('Invalid QR code. Please try again.');
+            $this->dispatch('qr-error');
+
+            return;
+        }
+
+        if ($member->primary_branch_id !== $this->branch->id) {
+            $this->qrError = __('This member belongs to a different branch.');
+            $this->dispatch('qr-error');
+
+            return;
+        }
+
+        if ($member->status->value !== 'active') {
+            $this->qrError = __('This member is not active.');
+            $this->dispatch('qr-error');
+
+            return;
+        }
+
+        if ($this->isAlreadyCheckedIn('member', $member->id)) {
+            $this->qrError = __(':name is already checked in.', ['name' => $member->fullName()]);
+            $this->dispatch('already-checked-in');
+
+            return;
+        }
+
+        // Create attendance with QR method
+        Attendance::create([
+            'service_id' => $this->service->id,
+            'branch_id' => $this->branch->id,
+            'member_id' => $member->id,
+            'date' => $this->selectedDate,
+            'check_in_time' => now()->format('H:i'),
+            'check_in_method' => CheckInMethod::Qr,
+        ]);
+
+        $this->lastCheckedInName = $member->fullName();
+
+        unset($this->recentCheckIns);
+        unset($this->todayStats);
+
+        $this->dispatch('check-in-success', name: $member->fullName());
+    }
+
+    public function openFamilyModal(string $householdId): void
+    {
+        $this->selectedHouseholdId = $householdId;
+        $this->selectedFamilyMembers = [];
+        $this->showFamilyModal = true;
+
+        // Pre-select all members that aren't already checked in
+        $household = $this->selectedHousehold;
+        if ($household) {
+            foreach ($household->members as $member) {
+                if (! $this->isAlreadyCheckedIn('member', $member->id)) {
+                    $this->selectedFamilyMembers[] = $member->id;
+                }
+            }
+        }
+    }
+
+    public function closeFamilyModal(): void
+    {
+        $this->showFamilyModal = false;
+        $this->selectedHouseholdId = null;
+        $this->selectedFamilyMembers = [];
+        $this->familySearchQuery = '';
+    }
+
+    public function toggleFamilyMember(string $memberId): void
+    {
+        if (in_array($memberId, $this->selectedFamilyMembers)) {
+            $this->selectedFamilyMembers = array_diff($this->selectedFamilyMembers, [$memberId]);
+        } else {
+            $this->selectedFamilyMembers[] = $memberId;
+        }
+    }
+
+    public function checkInSelectedFamily(): void
+    {
+        $this->authorize('create', [Attendance::class, $this->branch]);
+
+        if (empty($this->selectedFamilyMembers) || ! $this->selectedHousehold) {
+            return;
+        }
+
+        $familyService = app(FamilyCheckInService::class);
+        $checkedIn = $familyService->checkInFamily(
+            $this->selectedHousehold,
+            $this->service,
+            $this->branch,
+            $this->selectedFamilyMembers
+        );
+
+        $count = $checkedIn->count();
+
+        if ($count > 0) {
+            $this->dispatch('family-check-in-success', count: $count);
+        }
+
+        $this->closeFamilyModal();
+
+        unset($this->recentCheckIns);
+        unset($this->todayStats);
+        unset($this->householdSearchResults);
+    }
+
     protected function isAlreadyCheckedIn(string $type, string $id): bool
     {
         $query = Attendance::where('service_id', $this->service->id)
@@ -193,6 +371,17 @@ class LiveCheckIn extends Component
         }
 
         return $query->where('visitor_id', $id)->exists();
+    }
+
+    public function startScanning(): void
+    {
+        $this->isScanning = true;
+        $this->qrError = null;
+    }
+
+    public function stopScanning(): void
+    {
+        $this->isScanning = false;
     }
 
     public function render()

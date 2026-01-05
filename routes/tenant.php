@@ -38,6 +38,19 @@ Route::middleware([
         ->middleware(['auth', 'verified'])
         ->name('dashboard');
 
+    // Mobile Self Check-in (public access via token)
+    Route::get('/checkin/{token}', \App\Livewire\Attendance\MobileSelfCheckIn::class)
+        ->name('checkin.qr');
+
+    // Public giving page (no auth required)
+    Route::get('/branches/{branch}/give', \App\Livewire\Giving\PublicGivingForm::class)
+        ->name('giving.form');
+
+    // Paystack webhook (no auth, no CSRF)
+    Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
+        ->name('webhooks.paystack')
+        ->withoutMiddleware(['web']);
+
     // Authenticated routes
     Route::middleware(['auth'])->group(function () {
         // Settings
@@ -76,7 +89,17 @@ Route::middleware([
         Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
             ->name('attendance.index');
         Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
-            ->name('attendance.checkin');
+            ->name('attendance.live-check-in');
+        Route::get('/branches/{branch}/services/{service}/dashboard', \App\Livewire\Attendance\AttendanceDashboard::class)
+            ->name('attendance.dashboard');
+        Route::get('/branches/{branch}/services/{service}/children', \App\Livewire\Attendance\ChildrenCheckIn::class)
+            ->name('attendance.children');
+
+        // Household Management
+        Route::get('/branches/{branch}/households', \App\Livewire\Households\HouseholdIndex::class)
+            ->name('households.index');
+        Route::get('/branches/{branch}/households/{household}', \App\Livewire\Households\HouseholdShow::class)
+            ->name('households.show');
 
         // Visitor Management
         Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
@@ -97,6 +120,8 @@ Route::middleware([
             ->name('expenses.recurring');
         Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
             ->name('pledges.index');
+        Route::get('/branches/{branch}/campaigns', \App\Livewire\Pledges\CampaignIndex::class)
+            ->name('campaigns.index');
         Route::get('/branches/{branch}/budgets', \App\Livewire\Budgets\BudgetIndex::class)
             ->name('budgets.index');
         Route::get('/branches/{branch}/finance/reports', \App\Livewire\Finance\FinanceReports::class)
@@ -111,6 +136,46 @@ Route::middleware([
             ->name('sms.templates');
         Route::get('/branches/{branch}/sms/analytics', \App\Livewire\Sms\SmsAnalytics::class)
             ->name('sms.analytics');
+
+        // Equipment Management
+        Route::get('/branches/{branch}/equipment', \App\Livewire\Equipment\EquipmentIndex::class)
+            ->name('equipment.index');
+        Route::get('/branches/{branch}/equipment/{equipment}', \App\Livewire\Equipment\EquipmentShow::class)
+            ->name('equipment.show');
+
+        // Prayer Request Management
+        Route::get('/branches/{branch}/prayer-requests', \App\Livewire\PrayerRequests\PrayerRequestIndex::class)
+            ->name('prayer-requests.index');
+        Route::get('/branches/{branch}/prayer-requests/{prayerRequest}', \App\Livewire\PrayerRequests\PrayerRequestShow::class)
+            ->name('prayer-requests.show');
+
+        // Report Center
+        Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)
+            ->name('reports.index');
+
+        // Membership Reports
+        Route::get('/branches/{branch}/reports/membership/directory', \App\Livewire\Reports\Membership\MemberDirectory::class)
+            ->name('reports.membership.directory');
+        Route::get('/branches/{branch}/reports/membership/new-members', \App\Livewire\Reports\Membership\NewMembersReport::class)
+            ->name('reports.membership.new-members');
+        Route::get('/branches/{branch}/reports/membership/inactive', \App\Livewire\Reports\Membership\InactiveMembersReport::class)
+            ->name('reports.membership.inactive');
+        Route::get('/branches/{branch}/reports/membership/demographics', \App\Livewire\Reports\Membership\MemberDemographics::class)
+            ->name('reports.membership.demographics');
+        Route::get('/branches/{branch}/reports/membership/growth', \App\Livewire\Reports\Membership\MemberGrowthTrends::class)
+            ->name('reports.membership.growth');
+
+        // Attendance Reports
+        Route::get('/branches/{branch}/reports/attendance/weekly', \App\Livewire\Reports\Attendance\WeeklyAttendanceSummary::class)
+            ->name('reports.attendance.weekly');
+        Route::get('/branches/{branch}/reports/attendance/monthly', \App\Livewire\Reports\Attendance\MonthlyAttendanceComparison::class)
+            ->name('reports.attendance.monthly');
+        Route::get('/branches/{branch}/reports/attendance/by-service', \App\Livewire\Reports\Attendance\ServiceWiseAttendance::class)
+            ->name('reports.attendance.by-service');
+        Route::get('/branches/{branch}/reports/attendance/absent-members', \App\Livewire\Reports\Attendance\AbsentMembersReport::class)
+            ->name('reports.attendance.absent-members');
+        Route::get('/branches/{branch}/reports/attendance/visitors', \App\Livewire\Reports\Attendance\FirstTimeVisitorsReport::class)
+            ->name('reports.attendance.visitors');
 
         // Branch Settings
         Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)

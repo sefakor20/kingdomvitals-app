@@ -169,7 +169,7 @@
                     <flux:button
                         variant="ghost"
                         size="sm"
-                        :href="route('attendance.checkin', [$branch, $service])"
+                        :href="route('attendance.live-check-in', [$branch, $service])"
                         icon="hand-raised"
                         wire:navigate
                     >

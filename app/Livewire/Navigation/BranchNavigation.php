@@ -7,9 +7,12 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
+use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
@@ -118,6 +121,34 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('viewAny', [SmsLog::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewEquipment(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Equipment::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewHouseholds(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Household::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewPrayerRequests(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [PrayerRequest::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewReports(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewReports', $this->currentBranch);
     }
 
     #[Computed]

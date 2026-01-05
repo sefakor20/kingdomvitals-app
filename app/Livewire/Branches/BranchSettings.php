@@ -7,6 +7,7 @@ namespace App\Livewire\Branches;
 use App\Enums\SmsType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsTemplate;
+use App\Services\PaystackService;
 use App\Services\TextTangoService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
@@ -18,6 +19,9 @@ use Livewire\Component;
 class BranchSettings extends Component
 {
     public Branch $branch;
+
+    // Tab State
+    public string $activeTab = 'sms';
 
     // SMS Credentials
     public string $smsApiKey = '';
@@ -62,6 +66,21 @@ class BranchSettings extends Component
 
     public ?string $attendanceFollowupTemplateId = null;
 
+    // Paystack Credentials
+    public string $paystackPublicKey = '';
+
+    public string $paystackSecretKey = '';
+
+    public bool $paystackTestMode = true;
+
+    public bool $hasExistingPaystackKeys = false;
+
+    public bool $showPaystackSecretKey = false;
+
+    public ?string $paystackTestConnectionResult = null;
+
+    public ?string $paystackTestConnectionStatus = null;
+
     public function mount(Branch $branch): void
     {
         $this->authorize('update', $branch);
@@ -104,6 +123,41 @@ class BranchSettings extends Component
         $this->attendanceFollowupRecipients = $this->branch->getSetting('attendance_followup_recipients', 'regular');
         $this->attendanceFollowupMinAttendance = (int) $this->branch->getSetting('attendance_followup_min_attendance', 3);
         $this->attendanceFollowupTemplateId = $this->branch->getSetting('attendance_followup_template_id');
+
+        // Load Paystack settings
+        $this->loadPaystackSettings();
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
+    protected function loadPaystackSettings(): void
+    {
+        $existingPublicKey = $this->branch->getSetting('paystack_public_key');
+        $existingSecretKey = $this->branch->getSetting('paystack_secret_key');
+        $this->hasExistingPaystackKeys = ! empty($existingPublicKey) && ! empty($existingSecretKey);
+
+        if (! empty($existingPublicKey)) {
+            try {
+                $decrypted = Crypt::decryptString($existingPublicKey);
+                $this->paystackPublicKey = str_repeat('•', max(0, strlen($decrypted) - 8)).substr($decrypted, -8);
+            } catch (\Exception $e) {
+                $this->paystackPublicKey = str_repeat('•', max(0, strlen($existingPublicKey) - 8)).substr($existingPublicKey, -8);
+            }
+        }
+
+        if (! empty($existingSecretKey)) {
+            try {
+                $decrypted = Crypt::decryptString($existingSecretKey);
+                $this->paystackSecretKey = str_repeat('•', max(0, strlen($decrypted) - 8)).substr($decrypted, -8);
+            } catch (\Exception $e) {
+                $this->paystackSecretKey = str_repeat('•', max(0, strlen($existingSecretKey) - 8)).substr($existingSecretKey, -8);
+            }
+        }
+
+        $this->paystackTestMode = (bool) $this->branch->getSetting('paystack_test_mode', true);
     }
 
     #[Computed]
@@ -279,6 +333,131 @@ class BranchSettings extends Component
         $this->branch->save();
 
         $this->dispatch('api-key-cleared');
+    }
+
+    // Paystack Methods
+
+    public function savePaystackSettings(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        // Only update keys if new ones were entered (not the masked version)
+        if ($this->paystackPublicKey && ! str_contains($this->paystackPublicKey, '•')) {
+            $encryptedKey = Crypt::encryptString($this->paystackPublicKey);
+            $this->branch->setSetting('paystack_public_key', $encryptedKey);
+        }
+
+        if ($this->paystackSecretKey && ! str_contains($this->paystackSecretKey, '•')) {
+            $encryptedKey = Crypt::encryptString($this->paystackSecretKey);
+            $this->branch->setSetting('paystack_secret_key', $encryptedKey);
+        }
+
+        $this->branch->setSetting('paystack_test_mode', $this->paystackTestMode);
+        $this->branch->save();
+
+        $this->hasExistingPaystackKeys = $this->branch->hasPaystackConfigured();
+
+        // Mask the keys after saving
+        if ($this->paystackPublicKey && ! str_contains($this->paystackPublicKey, '•')) {
+            $this->paystackPublicKey = str_repeat('•', max(0, strlen($this->paystackPublicKey) - 8)).substr($this->paystackPublicKey, -8);
+        }
+
+        if ($this->paystackSecretKey && ! str_contains($this->paystackSecretKey, '•')) {
+            $this->paystackSecretKey = str_repeat('•', max(0, strlen($this->paystackSecretKey) - 8)).substr($this->paystackSecretKey, -8);
+        }
+
+        $this->dispatch('paystack-settings-saved');
+    }
+
+    public function testPaystackConnection(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->paystackTestConnectionResult = null;
+        $this->paystackTestConnectionStatus = null;
+
+        // Get the keys to test with
+        $publicKey = null;
+        $secretKey = null;
+
+        if ($this->paystackPublicKey && ! str_contains($this->paystackPublicKey, '•')) {
+            $publicKey = $this->paystackPublicKey;
+        } else {
+            $existingKey = $this->branch->getSetting('paystack_public_key');
+            if ($existingKey) {
+                try {
+                    $publicKey = Crypt::decryptString($existingKey);
+                } catch (\Exception $e) {
+                    $publicKey = $existingKey;
+                }
+            }
+        }
+
+        if ($this->paystackSecretKey && ! str_contains($this->paystackSecretKey, '•')) {
+            $secretKey = $this->paystackSecretKey;
+        } else {
+            $existingKey = $this->branch->getSetting('paystack_secret_key');
+            if ($existingKey) {
+                try {
+                    $secretKey = Crypt::decryptString($existingKey);
+                } catch (\Exception $e) {
+                    $secretKey = $existingKey;
+                }
+            }
+        }
+
+        if (empty($publicKey) || empty($secretKey)) {
+            $this->paystackTestConnectionResult = __('Please enter both Public Key and Secret Key first.');
+            $this->paystackTestConnectionStatus = 'error';
+
+            return;
+        }
+
+        // Test the connection by initializing a small transaction (won't be charged)
+        $service = new PaystackService($secretKey, $publicKey, $this->paystackTestMode);
+
+        // Try to verify a non-existent reference - if we get "Transaction not found" it means the connection works
+        $result = $service->verifyTransaction('test-connection-'.time());
+
+        // A "Transaction reference not found" error means the API is working
+        if (! $result['success'] && str_contains($result['error'] ?? '', 'not found')) {
+            $this->paystackTestConnectionResult = __('Connection successful! Paystack API is working.');
+            $this->paystackTestConnectionStatus = 'success';
+        } elseif (! $result['success']) {
+            // Check if it's an authentication error
+            if (str_contains($result['error'] ?? '', 'Invalid key') || str_contains($result['error'] ?? '', 'Unauthorized')) {
+                $this->paystackTestConnectionResult = __('Invalid API keys. Please check your credentials.');
+            } else {
+                $this->paystackTestConnectionResult = __('Connection test completed. Error: :error', [
+                    'error' => $result['error'] ?? 'Unknown',
+                ]);
+            }
+            $this->paystackTestConnectionStatus = 'error';
+        } else {
+            $this->paystackTestConnectionResult = __('Connection successful!');
+            $this->paystackTestConnectionStatus = 'success';
+        }
+    }
+
+    public function clearPaystackKeys(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->paystackPublicKey = '';
+        $this->paystackSecretKey = '';
+        $this->hasExistingPaystackKeys = false;
+        $this->branch->setSetting('paystack_public_key', null);
+        $this->branch->setSetting('paystack_secret_key', null);
+        $this->branch->save();
+
+        $this->dispatch('paystack-keys-cleared');
+    }
+
+    #[Computed]
+    public function givingUrl(): string
+    {
+        // return url("/branches/{$this->branch->id}/give");
+        return route('giving.form', $this->branch->id);
     }
 
     public function render()

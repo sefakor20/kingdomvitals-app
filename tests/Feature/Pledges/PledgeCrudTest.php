@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\PledgeCampaign;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -740,23 +741,39 @@ test('can filter pledges by campaign', function () {
 
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
-    Pledge::factory()->forCampaign('Building Fund')->create([
+    // Create campaigns
+    $buildingFundCampaign = PledgeCampaign::factory()->active()->create([
         'branch_id' => $this->branch->id,
-        'member_id' => $member->id,
+        'name' => 'Building Fund',
     ]);
 
-    Pledge::factory()->forCampaign('Missions')->create([
+    $missionsCampaign = PledgeCampaign::factory()->active()->create([
+        'branch_id' => $this->branch->id,
+        'name' => 'Missions',
+    ]);
+
+    // Create pledges linked to campaigns
+    Pledge::factory()->create([
         'branch_id' => $this->branch->id,
         'member_id' => $member->id,
+        'pledge_campaign_id' => $buildingFundCampaign->id,
+        'campaign_name' => 'Building Fund',
+    ]);
+
+    Pledge::factory()->create([
+        'branch_id' => $this->branch->id,
+        'member_id' => $member->id,
+        'pledge_campaign_id' => $missionsCampaign->id,
+        'campaign_name' => 'Missions',
     ]);
 
     $this->actingAs($user);
 
     $component = Livewire::test(PledgeIndex::class, ['branch' => $this->branch])
-        ->set('campaignFilter', 'Building Fund');
+        ->set('campaignFilter', $buildingFundCampaign->id);
 
     expect($component->instance()->pledges->count())->toBe(1);
-    expect($component->instance()->pledges->first()->campaign_name)->toBe('Building Fund');
+    expect($component->instance()->pledges->first()->pledge_campaign_id)->toBe($buildingFundCampaign->id);
 });
 
 // ============================================

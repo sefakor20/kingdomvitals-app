@@ -45,6 +45,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewHouseholds)
+                <flux:navlist.item
+                    icon="home"
+                    :href="route('households.index', $this->currentBranch)"
+                    :current="request()->routeIs('households.*')"
+                    wire:navigate
+                >
+                    {{ __('Households') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewAttendance)
                 <flux:navlist.item
                     icon="clipboard-document-check"
@@ -53,6 +64,28 @@
                     wire:navigate
                 >
                     {{ __('Attendance') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewEquipment)
+                <flux:navlist.item
+                    icon="wrench-screwdriver"
+                    :href="route('equipment.index', $this->currentBranch)"
+                    :current="request()->routeIs('equipment.*')"
+                    wire:navigate
+                >
+                    {{ __('Equipment') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewPrayerRequests)
+                <flux:navlist.item
+                    icon="sparkles"
+                    :href="route('prayer-requests.index', $this->currentBranch)"
+                    :current="request()->routeIs('prayer-requests.*')"
+                    wire:navigate
+                >
+                    {{ __('Prayer Requests') }}
                 </flux:navlist.item>
             @endif
         </flux:navlist.group>
@@ -108,6 +141,14 @@
                 >
                     {{ __('Pledges') }}
                 </flux:navlist.item>
+                <flux:navlist.item
+                    icon="flag"
+                    :href="route('campaigns.index', $this->currentBranch)"
+                    :current="request()->routeIs('campaigns.*')"
+                    wire:navigate
+                >
+                    {{ __('Campaigns') }}
+                </flux:navlist.item>
             @endif
 
             @if($this->canViewBudgets)
@@ -150,6 +191,19 @@
                     wire:navigate
                 >
                     {{ __('Templates') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
+
+        @if($this->canViewReports)
+            <flux:navlist.group :heading="__('Analytics')" class="grid">
+                <flux:navlist.item
+                    icon="chart-bar-square"
+                    :href="route('reports.index', $this->currentBranch)"
+                    :current="request()->routeIs('reports.*')"
+                    wire:navigate
+                >
+                    {{ __('Report Center') }}
                 </flux:navlist.item>
             </flux:navlist.group>
         @endif

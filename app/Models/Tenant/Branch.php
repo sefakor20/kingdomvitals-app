@@ -146,4 +146,23 @@ class Branch extends Model
     {
         return $this->getSetting('sms_sender_id');
     }
+
+    /**
+     * Check if Paystack is configured for this branch.
+     */
+    public function hasPaystackConfigured(): bool
+    {
+        $secretKey = $this->getSetting('paystack_secret_key');
+        $publicKey = $this->getSetting('paystack_public_key');
+
+        return ! empty($secretKey) && ! empty($publicKey);
+    }
+
+    /**
+     * Get the Paystack public key for this branch.
+     */
+    public function getPaystackPublicKey(): ?string
+    {
+        return $this->getSetting('paystack_public_key');
+    }
 }
