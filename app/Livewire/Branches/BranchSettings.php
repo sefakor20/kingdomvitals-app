@@ -20,6 +20,9 @@ class BranchSettings extends Component
 {
     public Branch $branch;
 
+    // Tab State
+    public string $activeTab = 'sms';
+
     // SMS Credentials
     public string $smsApiKey = '';
 
@@ -123,6 +126,11 @@ class BranchSettings extends Component
 
         // Load Paystack settings
         $this->loadPaystackSettings();
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
     }
 
     protected function loadPaystackSettings(): void
