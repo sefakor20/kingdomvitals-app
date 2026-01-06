@@ -7,6 +7,7 @@ use App\Livewire\Giving\PublicGivingForm;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\Member;
 use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -451,4 +452,108 @@ test('paystack service is not configured without credentials', function () {
     $service = PaystackService::forBranch($this->branch);
 
     expect($service->isConfigured())->toBeFalse();
+});
+
+// ============================================
+// AUTO-LINKING TESTS
+// ============================================
+
+test('donation is auto-linked to member when donor email matches', function () {
+    $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
+    $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
+    $this->branch->save();
+
+    // Create a member with matching email
+    $member = Member::factory()->create([
+        'primary_branch_id' => $this->branch->id,
+        'email' => 'member@example.com',
+    ]);
+
+    // Create a pending transaction
+    $transaction = PaymentTransaction::create([
+        'branch_id' => $this->branch->id,
+        'paystack_reference' => 'auto-link-test-ref',
+        'amount' => 100,
+        'currency' => 'GHS',
+        'status' => PaymentTransactionStatus::Pending,
+        'metadata' => [
+            'donor_name' => 'Test Member',
+            'donor_email' => 'member@example.com',
+            'donation_type' => 'tithe',
+            'is_anonymous' => false,
+            'is_recurring' => false,
+        ],
+    ]);
+
+    // Mock Paystack verification
+    Http::fake([
+        'api.paystack.co/transaction/verify/*' => Http::response([
+            'status' => true,
+            'data' => [
+                'id' => 99999,
+                'status' => 'success',
+                'amount' => 10000,
+                'channel' => 'mobile_money',
+                'customer' => [
+                    'customer_code' => 'CUS_AUTO',
+                ],
+            ],
+        ]),
+    ]);
+
+    Livewire::test(PublicGivingForm::class, ['branch' => $this->branch])
+        ->call('handlePaymentSuccess', 'auto-link-test-ref')
+        ->assertSet('showThankYou', true);
+
+    // Check donation was created and linked to member
+    $donation = Donation::where('reference_number', 'auto-link-test-ref')->first();
+    expect($donation)->not->toBeNull();
+    expect($donation->member_id)->toBe($member->id);
+});
+
+test('donation is not linked when no matching member exists', function () {
+    $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
+    $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
+    $this->branch->save();
+
+    // Create a pending transaction with email that doesn't match any member
+    $transaction = PaymentTransaction::create([
+        'branch_id' => $this->branch->id,
+        'paystack_reference' => 'no-link-test-ref',
+        'amount' => 50,
+        'currency' => 'GHS',
+        'status' => PaymentTransactionStatus::Pending,
+        'metadata' => [
+            'donor_name' => 'Guest Donor',
+            'donor_email' => 'guest@example.com',
+            'donation_type' => 'offering',
+            'is_anonymous' => false,
+            'is_recurring' => false,
+        ],
+    ]);
+
+    // Mock Paystack verification
+    Http::fake([
+        'api.paystack.co/transaction/verify/*' => Http::response([
+            'status' => true,
+            'data' => [
+                'id' => 88888,
+                'status' => 'success',
+                'amount' => 5000,
+                'channel' => 'card',
+                'customer' => [
+                    'customer_code' => 'CUS_GUEST',
+                ],
+            ],
+        ]),
+    ]);
+
+    Livewire::test(PublicGivingForm::class, ['branch' => $this->branch])
+        ->call('handlePaymentSuccess', 'no-link-test-ref')
+        ->assertSet('showThankYou', true);
+
+    // Check donation was created but NOT linked to a member
+    $donation = Donation::where('reference_number', 'no-link-test-ref')->first();
+    expect($donation)->not->toBeNull();
+    expect($donation->member_id)->toBeNull();
 });

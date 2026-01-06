@@ -110,6 +110,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewGivingHistory)
+                <flux:navlist.item
+                    icon="gift"
+                    :href="route('giving.history', $this->currentBranch)"
+                    :current="request()->routeIs('giving.history')"
+                    wire:navigate
+                >
+                    {{ __('My Giving') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewDonations)
                 <flux:navlist.item
                     icon="banknotes"

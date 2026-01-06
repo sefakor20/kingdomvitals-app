@@ -46,6 +46,17 @@ Route::middleware([
     Route::get('/branches/{branch}/give', \App\Livewire\Giving\PublicGivingForm::class)
         ->name('giving.form');
 
+    // Also accessible at /give for convenience
+    Route::get('/give', function () {
+        // Redirect to the main branch giving page
+        $mainBranch = \App\Models\Tenant\Branch::where('is_main', true)->first();
+        if ($mainBranch) {
+            return redirect()->route('giving.form', $mainBranch);
+        }
+
+        return redirect()->route('dashboard');
+    })->name('giving.public');
+
     // Paystack webhook (no auth, no CSRF)
     Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
         ->name('webhooks.paystack')
@@ -114,6 +125,10 @@ Route::middleware([
             ->name('finance.donor-engagement');
         Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
             ->name('donations.index');
+
+        // Member Giving History
+        Route::get('/branches/{branch}/my-giving', \App\Livewire\Giving\MemberGivingHistory::class)
+            ->name('giving.history');
         Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
             ->name('expenses.index');
         Route::get('/branches/{branch}/expenses/recurring', \App\Livewire\Expenses\RecurringExpenseIndex::class)

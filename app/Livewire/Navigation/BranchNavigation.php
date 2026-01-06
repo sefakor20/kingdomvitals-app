@@ -145,6 +145,13 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewGivingHistory(): bool
+    {
+        // All authenticated users can view their own giving history
+        return $this->currentBranch && auth()->check();
+    }
+
+    #[Computed]
     public function canViewReports(): bool
     {
         return $this->currentBranch &&
