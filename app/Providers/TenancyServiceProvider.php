@@ -121,8 +121,19 @@ class TenancyServiceProvider extends ServiceProvider
     protected function mapRoutes()
     {
         $this->app->booted(function () {
+            // Skip tenant routes for central domains
+            $centralDomains = config('tenancy.central_domains', []);
+            $currentDomain = request()->getHost();
+
+            if (in_array($currentDomain, $centralDomains)) {
+                return;
+            }
+
             if (file_exists(base_path('routes/tenant.php'))) {
-                Route::namespace(static::$controllerNamespace)
+                Route::middleware([
+                    Middleware\InitializeTenancyByDomain::class,
+                ])
+                    ->namespace(static::$controllerNamespace)
                     ->group(base_path('routes/tenant.php'));
             }
         });

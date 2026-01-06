@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Super Admin Domain
+    |--------------------------------------------------------------------------
+    |
+    | This is the domain used for the Super Admin platform management panel.
+    | In production, this would be admin.kingdomvitals.com
+    |
+    */
+
+    'superadmin_domain' => env('SUPERADMIN_DOMAIN', 'admin.localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
