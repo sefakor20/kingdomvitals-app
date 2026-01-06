@@ -9,6 +9,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentTransactionStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\Member;
 use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
 use Livewire\Attributes\Computed;
@@ -198,8 +199,18 @@ class PublicGivingForm extends Component
         // Create the donation record
         $metadata = $transaction->metadata ?? [];
 
+        // Try to find a matching member by email
+        $member = null;
+        $donorEmail = $metadata['donor_email'] ?? null;
+        if ($donorEmail) {
+            $member = Member::where('email', $donorEmail)
+                ->where('primary_branch_id', $this->branch->id)
+                ->first();
+        }
+
         $donation = Donation::create([
             'branch_id' => $this->branch->id,
+            'member_id' => $member?->id,
             'amount' => $transaction->amount,
             'currency' => $transaction->currency,
             'donation_type' => $metadata['donation_type'] ?? 'offering',
@@ -207,7 +218,7 @@ class PublicGivingForm extends Component
             'donation_date' => now()->toDateString(),
             'reference_number' => $reference,
             'donor_name' => $metadata['is_anonymous'] ? null : ($metadata['donor_name'] ?? null),
-            'donor_email' => $metadata['donor_email'] ?? null,
+            'donor_email' => $donorEmail,
             'donor_phone' => $metadata['donor_phone'] ?? null,
             'is_anonymous' => $metadata['is_anonymous'] ?? false,
             'is_recurring' => $metadata['is_recurring'] ?? false,

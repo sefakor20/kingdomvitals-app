@@ -6,8 +6,6 @@ use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,11 +19,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 |
 */
 
-Route::middleware([
-    'web',
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
-])->group(function () {
+Route::middleware(['web'])->group(function () {
     // Include all Fortify authentication routes (login, register, password reset, 2FA, etc.)
     require base_path('vendor/laravel/fortify/routes/routes.php');
 
@@ -45,6 +39,17 @@ Route::middleware([
     // Public giving page (no auth required)
     Route::get('/branches/{branch}/give', \App\Livewire\Giving\PublicGivingForm::class)
         ->name('giving.form');
+
+    // Also accessible at /give for convenience
+    Route::get('/give', function () {
+        // Redirect to the main branch giving page
+        $mainBranch = \App\Models\Tenant\Branch::where('is_main', true)->first();
+        if ($mainBranch) {
+            return redirect()->route('giving.form', $mainBranch);
+        }
+
+        return redirect()->route('dashboard');
+    })->name('giving.public');
 
     // Paystack webhook (no auth, no CSRF)
     Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
@@ -114,6 +119,10 @@ Route::middleware([
             ->name('finance.donor-engagement');
         Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
             ->name('donations.index');
+
+        // Member Giving History
+        Route::get('/branches/{branch}/my-giving', \App\Livewire\Giving\MemberGivingHistory::class)
+            ->name('giving.history');
         Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
             ->name('expenses.index');
         Route::get('/branches/{branch}/expenses/recurring', \App\Livewire\Expenses\RecurringExpenseIndex::class)

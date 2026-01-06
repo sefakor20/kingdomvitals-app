@@ -16,6 +16,7 @@ return [
     'central_domains' => [
         '127.0.0.1',
         'localhost',
+        'admin.localhost', // Super admin local development
         'admin.kingdomvitals.com',
         'kingdomvitals-app.test', // For local development
         'admin.kingdomvitals-app.test', // For local development

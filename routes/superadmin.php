@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Controllers\SuperAdmin\Auth\AuthenticatedSessionController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Super Admin Routes
+|--------------------------------------------------------------------------
+|
+| These routes handle the super admin platform management functionality.
+| They are accessed via the admin subdomain (admin.kingdomvitals.com).
+|
+*/
+
+// Guest routes (not authenticated as super admin)
+Route::middleware('guest:superadmin')->group(function () {
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+        ->name('superadmin.login');
+
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+});
+
+// Authenticated super admin routes
+Route::middleware('superadmin')->group(function () {
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('superadmin.logout');
+
+    // Dashboard
+    Route::get('/', \App\Livewire\SuperAdmin\Dashboard::class)
+        ->name('superadmin.dashboard');
+
+    // Tenant Management
+    Route::get('tenants', \App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->name('superadmin.tenants.index');
+
+    Route::get('tenants/create', \App\Livewire\SuperAdmin\Tenants\TenantCreate::class)
+        ->name('superadmin.tenants.create');
+
+    Route::get('tenants/{tenant}', \App\Livewire\SuperAdmin\Tenants\TenantShow::class)
+        ->name('superadmin.tenants.show');
+
+    // Subscription Plans
+    Route::get('plans', \App\Livewire\SuperAdmin\Plans\PlanIndex::class)
+        ->name('superadmin.plans.index');
+
+    // Activity Logs
+    Route::get('activity-logs', \App\Livewire\SuperAdmin\ActivityLogs::class)
+        ->name('superadmin.activity-logs');
+});

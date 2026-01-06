@@ -18,7 +18,11 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Skip Fortify routes for central domains (super admin uses its own auth)
+        $centralDomains = config('tenancy.central_domains', []);
+        if (in_array(request()->getHost(), $centralDomains)) {
+            Fortify::ignoreRoutes();
+        }
     }
 
     /**
