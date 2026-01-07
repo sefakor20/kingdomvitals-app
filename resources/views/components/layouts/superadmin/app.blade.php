@@ -77,6 +77,12 @@
 
                     <flux:menu.separator />
 
+                    <flux:menu.item :href="route('superadmin.profile.security')" icon="shield-check" wire:navigate>
+                        {{ __('Security') }}
+                    </flux:menu.item>
+
+                    <flux:menu.separator />
+
                     <form method="POST" action="{{ route('superadmin.logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
@@ -116,6 +122,12 @@
                             </div>
                         </div>
                     </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    <flux:menu.item :href="route('superadmin.profile.security')" icon="shield-check" wire:navigate>
+                        {{ __('Security') }}
+                    </flux:menu.item>
 
                     <flux:menu.separator />
 

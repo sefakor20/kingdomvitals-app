@@ -65,7 +65,17 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        // Log in the super admin
+        // Check if 2FA is enabled - redirect to challenge instead of logging in
+        if ($superAdmin->hasEnabledTwoFactorAuthentication()) {
+            $request->session()->put([
+                'superadmin.login.id' => $superAdmin->id,
+                'superadmin.login.remember' => $request->boolean('remember'),
+            ]);
+
+            return redirect()->route('superadmin.two-factor.challenge');
+        }
+
+        // Log in the super admin (no 2FA)
         Auth::guard('superadmin')->login($superAdmin, $request->boolean('remember'));
 
         $request->session()->regenerate();

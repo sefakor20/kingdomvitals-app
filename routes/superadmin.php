@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\SuperAdmin\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\SuperAdmin\Auth\TwoFactorChallengeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,6 +22,12 @@ Route::middleware('guest:superadmin')->group(function () {
         ->name('superadmin.login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    // Two-factor authentication challenge
+    Route::get('two-factor-challenge', [TwoFactorChallengeController::class, 'create'])
+        ->name('superadmin.two-factor.challenge');
+
+    Route::post('two-factor-challenge', [TwoFactorChallengeController::class, 'store']);
 });
 
 // Authenticated super admin routes
@@ -47,4 +54,8 @@ Route::middleware('superadmin')->group(function () {
     // Activity Logs
     Route::get('activity-logs', \App\Livewire\SuperAdmin\ActivityLogs::class)
         ->name('superadmin.activity-logs');
+
+    // Profile/Security
+    Route::get('profile/security', \App\Livewire\SuperAdmin\Profile\Security::class)
+        ->name('superadmin.profile.security');
 });
