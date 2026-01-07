@@ -31,6 +31,11 @@
                 </flux:navlist.group>
 
                 <flux:navlist.group :heading="__('System')" class="grid">
+                    @if(auth('superadmin')->user()->role->canManageSuperAdmins())
+                        <flux:navlist.item icon="users" :href="route('superadmin.admins.index')" :current="request()->routeIs('superadmin.admins.*')" wire:navigate>
+                            {{ __('Admins') }}
+                        </flux:navlist.item>
+                    @endif
                     <flux:navlist.item icon="clipboard-document-list" :href="route('superadmin.activity-logs')" :current="request()->routeIs('superadmin.activity-logs')" wire:navigate>
                         {{ __('Activity Logs') }}
                     </flux:navlist.item>
