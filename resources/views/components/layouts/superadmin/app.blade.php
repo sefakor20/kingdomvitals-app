@@ -31,6 +31,11 @@
                 </flux:navlist.group>
 
                 <flux:navlist.group :heading="__('System')" class="grid">
+                    @if(auth('superadmin')->user()->role->canViewSettings())
+                        <flux:navlist.item icon="cog-6-tooth" :href="route('superadmin.settings')" :current="request()->routeIs('superadmin.settings')" wire:navigate>
+                            {{ __('Settings') }}
+                        </flux:navlist.item>
+                    @endif
                     @if(auth('superadmin')->user()->role->canManageSuperAdmins())
                         <flux:navlist.item icon="users" :href="route('superadmin.admins.index')" :current="request()->routeIs('superadmin.admins.*')" wire:navigate>
                             {{ __('Admins') }}

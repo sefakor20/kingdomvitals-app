@@ -63,6 +63,10 @@ Route::middleware('superadmin')->group(function () {
     Route::get('revenue', \App\Livewire\SuperAdmin\Revenue\RevenueDashboard::class)
         ->name('superadmin.revenue');
 
+    // System Settings
+    Route::get('settings', \App\Livewire\SuperAdmin\Settings\SystemSettings::class)
+        ->name('superadmin.settings');
+
     // Profile/Security
     Route::get('profile/security', \App\Livewire\SuperAdmin\Profile\Security::class)
         ->name('superadmin.profile.security');

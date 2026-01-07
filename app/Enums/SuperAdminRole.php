@@ -43,4 +43,14 @@ enum SuperAdminRole: string
     {
         return $this === self::Owner || $this === self::Admin;
     }
+
+    public function canViewSettings(): bool
+    {
+        return $this === self::Owner || $this === self::Admin;
+    }
+
+    public function canModifySettings(): bool
+    {
+        return $this === self::Owner;
+    }
 }

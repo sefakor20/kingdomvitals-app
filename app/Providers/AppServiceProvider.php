@@ -33,6 +33,7 @@ use App\Policies\SmsLogPolicy;
 use App\Policies\SmsTemplatePolicy;
 use App\Policies\UserBranchAccessPolicy;
 use App\Policies\VisitorFollowUpPolicy;
+use App\Services\SystemSettingService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -45,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SystemSettingService::class);
     }
 
     /**
