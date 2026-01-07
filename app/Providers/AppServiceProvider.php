@@ -80,13 +80,22 @@ class AppServiceProvider extends ServiceProvider
             database_path('migrations/landlord'),
         ]);
 
-        // Configure Livewire to use tenant middleware for AJAX updates
+        // Configure Livewire update route for multi-tenancy
         Livewire::setUpdateRoute(function ($handle) {
+            $centralDomains = config('tenancy.central_domains', []);
+            $currentDomain = request()->getHost();
+
+            // For central domains (super admin, etc.), use only web middleware
+            if (in_array($currentDomain, $centralDomains)) {
+                return Route::post('/livewire/update', $handle)
+                    ->middleware(['web']);
+            }
+
+            // For tenant domains, include tenancy middleware
             return Route::post('/livewire/update', $handle)
                 ->middleware([
                     'web',
                     \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
-                    \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
                 ]);
         });
     }

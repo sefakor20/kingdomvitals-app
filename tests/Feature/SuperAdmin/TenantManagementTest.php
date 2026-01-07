@@ -70,26 +70,27 @@ it('can filter tenants by status', function () {
         ->assertDontSee('Trial Church');
 });
 
-it('can view tenant create form', function () {
+it('can open tenant create modal', function () {
     $admin = SuperAdmin::factory()->create();
 
-    $response = $this->actingAs($admin, 'superadmin')
-        ->get(route('superadmin.tenants.create'));
-
-    $response->assertOk();
-    $response->assertSee('Create Tenant');
+    Livewire::actingAs($admin, 'superadmin')
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->assertSet('showCreateModal', false)
+        ->set('showCreateModal', true)
+        ->assertSet('showCreateModal', true);
 });
 
 it('can create a new tenant', function () {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantCreate::class)
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->set('showCreateModal', true)
         ->set('name', 'New Test Church')
         ->set('domain', 'newtest.kingdomvitals.test')
         ->set('contact_email', 'contact@newtest.com')
         ->set('trial_days', 14)
-        ->call('save')
+        ->call('createTenant')
         ->assertRedirect();
 
     $this->assertDatabaseHas('tenants', [
@@ -106,10 +107,11 @@ it('validates required fields when creating tenant', function () {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantCreate::class)
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->set('showCreateModal', true)
         ->set('name', '')
         ->set('domain', '')
-        ->call('save')
+        ->call('createTenant')
         ->assertHasErrors(['name', 'domain']);
 });
 
@@ -186,14 +188,76 @@ it('logs tenant creation activity', function () {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantCreate::class)
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->set('showCreateModal', true)
         ->set('name', 'Logged Church')
         ->set('domain', 'logged.kingdomvitals.test')
         ->set('trial_days', 14)
-        ->call('save');
+        ->call('createTenant');
 
     $this->assertDatabaseHas('super_admin_activity_logs', [
         'super_admin_id' => $admin->id,
         'action' => 'tenant_created',
+    ]);
+});
+
+it('can open tenant edit modal', function () {
+    $admin = SuperAdmin::factory()->create();
+    $tenant = Tenant::create([
+        'id' => 'edit-modal-church-123',
+        'name' => 'Edit Modal Church',
+        'status' => TenantStatus::Active,
+        'contact_email' => 'edit@church.com',
+    ]);
+
+    Livewire::actingAs($admin, 'superadmin')
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->assertSet('showEditModal', false)
+        ->call('openEditModal')
+        ->assertSet('showEditModal', true)
+        ->assertSet('editName', 'Edit Modal Church')
+        ->assertSet('editContactEmail', 'edit@church.com');
+});
+
+it('can update a tenant', function () {
+    $admin = SuperAdmin::factory()->create();
+    $tenant = Tenant::create([
+        'id' => 'update-church-123',
+        'name' => 'Original Church',
+        'status' => TenantStatus::Active,
+        'contact_email' => 'original@church.com',
+    ]);
+
+    Livewire::actingAs($admin, 'superadmin')
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->call('openEditModal')
+        ->set('editName', 'Updated Church')
+        ->set('editContactEmail', 'updated@church.com')
+        ->call('updateTenant')
+        ->assertSet('showEditModal', false);
+
+    $tenant->refresh();
+    expect($tenant->name)->toBe('Updated Church');
+    expect($tenant->contact_email)->toBe('updated@church.com');
+});
+
+it('logs tenant update activity', function () {
+    $admin = SuperAdmin::factory()->create();
+    $tenant = Tenant::create([
+        'id' => 'log-update-church-123',
+        'name' => 'Log Update Church',
+        'status' => TenantStatus::Active,
+    ]);
+
+    Livewire::actingAs($admin, 'superadmin')
+        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->call('openEditModal')
+        ->set('editName', 'Log Update Church - Updated')
+        ->call('updateTenant');
+
+    $this->assertDatabaseHas('super_admin_activity_logs', [
+        'super_admin_id' => $admin->id,
+        'action' => 'tenant_updated',
+        'tenant_id' => $tenant->id,
     ]);
 });

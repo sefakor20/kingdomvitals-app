@@ -36,11 +36,9 @@ Route::middleware('superadmin')->group(function () {
     Route::get('tenants', \App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
         ->name('superadmin.tenants.index');
 
-    Route::get('tenants/create', \App\Livewire\SuperAdmin\Tenants\TenantCreate::class)
-        ->name('superadmin.tenants.create');
-
     Route::get('tenants/{tenant}', \App\Livewire\SuperAdmin\Tenants\TenantShow::class)
-        ->name('superadmin.tenants.show');
+        ->name('superadmin.tenants.show')
+        ->withTrashed();
 
     // Subscription Plans
     Route::get('plans', \App\Livewire\SuperAdmin\Plans\PlanIndex::class)

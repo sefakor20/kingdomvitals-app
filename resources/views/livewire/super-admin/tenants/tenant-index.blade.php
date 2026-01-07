@@ -6,8 +6,7 @@
                 Manage all tenant organizations
             </flux:text>
         </div>
-        <flux:button variant="primary" :href="route('superadmin.tenants.create')" wire:navigate>
-            <flux:icon.plus class="size-4 mr-2" />
+        <flux:button variant="primary" wire:click="$set('showCreateModal', true)" icon="plus">
             Create Tenant
         </flux:button>
     </div>
@@ -23,12 +22,15 @@
             />
         </div>
         <div class="w-full sm:w-48">
-            <flux:select wire:model.live="status">
+            <flux:select wire:model.live="status" :disabled="$showDeleted">
                 <option value="">All Statuses</option>
                 @foreach($statuses as $statusOption)
                     <option value="{{ $statusOption->value }}">{{ $statusOption->label() }}</option>
                 @endforeach
             </flux:select>
+        </div>
+        <div class="flex items-center">
+            <flux:checkbox wire:model.live="showDeleted" label="Show deleted" />
         </div>
     </div>
 
@@ -101,7 +103,7 @@
                                 @endif
                             </flux:text>
                             @if(!$search && !$status)
-                                <flux:button variant="primary" :href="route('superadmin.tenants.create')" wire:navigate class="mt-4">
+                                <flux:button variant="primary" wire:click="$set('showCreateModal', true)" icon="plus" class="mt-4">
                                     Create Tenant
                                 </flux:button>
                             @endif
@@ -118,4 +120,72 @@
             {{ $tenants->links() }}
         </div>
     @endif
+
+    <!-- Create Tenant Modal -->
+    <flux:modal wire:model="showCreateModal" class="max-w-lg">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Create New Tenant</flux:heading>
+                <flux:text class="mt-2 text-zinc-500">
+                    Set up a new tenant organization with their initial domain.
+                </flux:text>
+            </div>
+
+            <div class="space-y-4">
+                <flux:input
+                    wire:model="name"
+                    label="Organization Name"
+                    placeholder="Church of Example"
+                    required
+                />
+
+                <flux:input
+                    wire:model="domain"
+                    label="Domain"
+                    placeholder="example.kingdomvitals-app.test"
+                    description="The subdomain or domain for tenant access"
+                    required
+                />
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input
+                        wire:model="contact_email"
+                        label="Contact Email"
+                        type="email"
+                        placeholder="admin@example.com"
+                    />
+
+                    <flux:input
+                        wire:model="contact_phone"
+                        label="Contact Phone"
+                        placeholder="+1 234 567 8900"
+                    />
+                </div>
+
+                <flux:textarea
+                    wire:model="address"
+                    label="Address"
+                    placeholder="123 Main Street, City, State"
+                    rows="2"
+                />
+
+                <flux:input
+                    wire:model="trial_days"
+                    label="Trial Period (Days)"
+                    type="number"
+                    min="0"
+                    max="365"
+                />
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">
+                    Cancel
+                </flux:button>
+                <flux:button wire:click="createTenant" variant="primary">
+                    Create Tenant
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>
