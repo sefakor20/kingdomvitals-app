@@ -1,14 +1,19 @@
 <div>
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <flux:heading size="xl">Tenants</flux:heading>
+            <flux:heading size="xl">{{ __('Tenants') }}</flux:heading>
             <flux:text class="mt-2 text-slate-600 dark:text-slate-400">
-                Manage all tenant organizations
+                {{ __('Manage all tenant organizations') }}
             </flux:text>
         </div>
-        <flux:button variant="primary" wire:click="$set('showCreateModal', true)" icon="plus">
-            Create Tenant
-        </flux:button>
+        <div class="flex items-center gap-2">
+            <flux:button variant="ghost" icon="arrow-down-tray" wire:click="exportCsv">
+                {{ __('Export CSV') }}
+            </flux:button>
+            <flux:button variant="primary" wire:click="$set('showCreateModal', true)" icon="plus">
+                {{ __('Create Tenant') }}
+            </flux:button>
+        </div>
     </div>
 
     <!-- Filters -->

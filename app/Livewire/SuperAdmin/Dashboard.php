@@ -21,7 +21,7 @@ class Dashboard extends Component
             'suspendedTenants' => Tenant::where('status', TenantStatus::Suspended)->count(),
             'recentActivity' => SuperAdminActivityLog::with('superAdmin')
                 ->latest('created_at')
-                ->take(10)
+                ->take(5)
                 ->get(),
             'recentTenants' => Tenant::latest()
                 ->take(5)

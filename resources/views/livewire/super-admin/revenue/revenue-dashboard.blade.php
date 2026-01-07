@@ -1,9 +1,14 @@
 <div>
-    <div class="mb-8">
-        <flux:heading size="xl">{{ __('Revenue Dashboard') }}</flux:heading>
-        <flux:text class="mt-2 text-zinc-600 dark:text-zinc-400">
-            {{ __('Subscription revenue overview and analytics') }}
-        </flux:text>
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <flux:heading size="xl">{{ __('Revenue Dashboard') }}</flux:heading>
+            <flux:text class="mt-2 text-zinc-600 dark:text-zinc-400">
+                {{ __('Subscription revenue overview and analytics') }}
+            </flux:text>
+        </div>
+        <flux:button variant="ghost" icon="arrow-down-tray" wire:click="exportCsv">
+            {{ __('Export CSV') }}
+        </flux:button>
     </div>
 
     <!-- Key Revenue Metrics -->

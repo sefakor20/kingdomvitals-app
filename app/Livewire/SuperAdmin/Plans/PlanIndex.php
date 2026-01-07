@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Plans;
 
 use App\Enums\SupportLevel;
+use App\Livewire\Concerns\HasReportExport;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PlanIndex extends Component
 {
+    use HasReportExport;
+
     // Modal states
     public bool $showCreateModal = false;
 
@@ -297,6 +302,50 @@ class PlanIndex extends Component
         );
 
         $this->dispatch('plan-default-changed');
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        $plans = SubscriptionPlan::orderBy('display_order')->orderBy('price_monthly')->get();
+
+        $data = $plans->map(fn (SubscriptionPlan $plan) => [
+            'name' => $plan->name,
+            'slug' => $plan->slug,
+            'price_monthly' => Number::currency((float) $plan->price_monthly, in: 'GHS'),
+            'price_annual' => Number::currency((float) $plan->price_annual, in: 'GHS'),
+            'max_members' => $plan->max_members ?? 'Unlimited',
+            'max_branches' => $plan->max_branches ?? 'Unlimited',
+            'storage_quota_gb' => $plan->storage_quota_gb,
+            'sms_credits_monthly' => $plan->sms_credits_monthly ?? 'N/A',
+            'support_level' => $plan->support_level->label(),
+            'is_active' => $plan->is_active ? 'Yes' : 'No',
+            'is_default' => $plan->is_default ? 'Yes' : 'No',
+        ]);
+
+        $headers = [
+            'Name',
+            'Slug',
+            'Monthly Price (GHS)',
+            'Annual Price (GHS)',
+            'Max Members',
+            'Max Branches',
+            'Storage (GB)',
+            'SMS Credits/Month',
+            'Support Level',
+            'Active',
+            'Default',
+        ];
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'export_plans',
+            description: 'Exported subscription plans to CSV',
+            metadata: ['record_count' => $plans->count()],
+        );
+
+        $filename = 'subscription-plans-'.now()->format('Y-m-d').'.csv';
+
+        return $this->exportToCsv($data, $headers, $filename);
     }
 
     /**

@@ -5,15 +5,58 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Revenue;
 
 use App\Enums\TenantStatus;
+use App\Livewire\Concerns\HasReportExport;
 use App\Models\SubscriptionPlan;
+use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Number;
 use Illuminate\View\View;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RevenueDashboard extends Component
 {
+    use HasReportExport;
+
+    public function exportCsv(): StreamedResponse
+    {
+        $planDistribution = $this->getPlanDistribution();
+        $metrics = $this->getRevenueMetrics();
+
+        $data = $planDistribution->map(fn (array $item) => [
+            'plan_name' => $item['plan']->name,
+            'monthly_price' => Number::currency((float) $item['plan']->price_monthly, in: 'GHS'),
+            'active_subscribers' => $item['tenantCount'],
+            'monthly_revenue' => $item['revenueFormatted'],
+            'percentage_of_total' => $item['percentage'].'%',
+        ]);
+
+        $headers = [
+            'Plan Name',
+            'Monthly Price (GHS)',
+            'Active Subscribers',
+            'Monthly Revenue (GHS)',
+            '% of Total',
+        ];
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'export_revenue',
+            description: 'Exported revenue report to CSV',
+            metadata: [
+                'mrr' => $metrics['mrrRaw'],
+                'arr' => $metrics['arrRaw'],
+                'plan_count' => $planDistribution->count(),
+            ],
+        );
+
+        $filename = 'revenue-report-'.now()->format('Y-m-d').'.csv';
+
+        return $this->exportToCsv($data, $headers, $filename);
+    }
+
     public function render(): View
     {
         return view('livewire.super-admin.revenue.revenue-dashboard', [

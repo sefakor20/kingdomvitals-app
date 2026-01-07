@@ -8,11 +8,16 @@
             </flux:text>
         </div>
 
-        @if($canManage)
-            <flux:button variant="primary" icon="plus" wire:click="$set('showCreateModal', true)">
-                {{ __('Add Plan') }}
+        <div class="flex items-center gap-2">
+            <flux:button variant="ghost" icon="arrow-down-tray" wire:click="exportCsv">
+                {{ __('Export CSV') }}
             </flux:button>
-        @endif
+            @if($canManage)
+                <flux:button variant="primary" icon="plus" wire:click="$set('showCreateModal', true)">
+                    {{ __('Add Plan') }}
+                </flux:button>
+            @endif
+        </div>
     </div>
 
     <!-- Plans Grid -->

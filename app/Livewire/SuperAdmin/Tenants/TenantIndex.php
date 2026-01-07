@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Tenants;
 
 use App\Enums\TenantStatus;
+use App\Livewire\Concerns\HasReportExport;
 use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
@@ -13,9 +14,11 @@ use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TenantIndex extends Component
 {
+    use HasReportExport;
     use WithPagination;
 
     #[Url]
@@ -112,9 +115,56 @@ class TenantIndex extends Component
         $this->redirect(route('superadmin.tenants.show', $tenant), navigate: true);
     }
 
-    public function render(): View
+    public function exportCsv(): StreamedResponse
     {
-        $query = Tenant::query()
+        $tenants = $this->getFilteredTenants()->get();
+
+        $data = $tenants->map(fn (Tenant $tenant) => [
+            'id' => $tenant->id,
+            'name' => $tenant->name,
+            'status' => $tenant->status?->label() ?? 'Unknown',
+            'contact_email' => $tenant->contact_email ?? '',
+            'contact_phone' => $tenant->contact_phone ?? '',
+            'subscription_plan' => $tenant->subscriptionPlan?->name ?? 'None',
+            'created_at' => $tenant->created_at->format('Y-m-d H:i:s'),
+        ]);
+
+        $headers = [
+            'ID',
+            'Name',
+            'Status',
+            'Contact Email',
+            'Contact Phone',
+            'Subscription Plan',
+            'Created At',
+        ];
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'export_tenants',
+            description: 'Exported tenant list to CSV',
+            metadata: [
+                'record_count' => $tenants->count(),
+                'filters' => [
+                    'search' => $this->search,
+                    'status' => $this->status,
+                    'show_deleted' => $this->showDeleted,
+                ],
+            ],
+        );
+
+        $filename = 'tenants-'.now()->format('Y-m-d').'.csv';
+
+        return $this->exportToCsv($data, $headers, $filename);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<Tenant>
+     */
+    private function getFilteredTenants(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Tenant::query()
+            ->with('subscriptionPlan')
             ->when($this->showDeleted, function ($query) {
                 $query->onlyTrashed();
             })
@@ -129,9 +179,12 @@ class TenantIndex extends Component
                 $query->where('status', $this->status);
             })
             ->latest();
+    }
 
+    public function render(): View
+    {
         return view('livewire.super-admin.tenants.tenant-index', [
-            'tenants' => $query->paginate(15),
+            'tenants' => $this->getFilteredTenants()->paginate(15),
             'statuses' => TenantStatus::cases(),
         ])->layout('components.layouts.superadmin.app');
     }
