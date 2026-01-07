@@ -75,6 +75,25 @@ Route::middleware('superadmin')->group(function () {
     Route::get('settings', \App\Livewire\SuperAdmin\Settings\SystemSettings::class)
         ->name('superadmin.settings');
 
+    // Billing Management
+    Route::get('billing', \App\Livewire\SuperAdmin\Billing\BillingDashboard::class)
+        ->name('superadmin.billing.dashboard');
+
+    Route::get('billing/invoices', \App\Livewire\SuperAdmin\Billing\InvoiceIndex::class)
+        ->name('superadmin.billing.invoices');
+
+    Route::get('billing/invoices/create', \App\Livewire\SuperAdmin\Billing\InvoiceCreate::class)
+        ->name('superadmin.billing.invoices.create');
+
+    Route::get('billing/invoices/{invoice}', \App\Livewire\SuperAdmin\Billing\InvoiceShow::class)
+        ->name('superadmin.billing.invoices.show');
+
+    Route::get('billing/payments', \App\Livewire\SuperAdmin\Billing\PaymentIndex::class)
+        ->name('superadmin.billing.payments');
+
+    Route::get('billing/overdue', \App\Livewire\SuperAdmin\Billing\OverdueInvoices::class)
+        ->name('superadmin.billing.overdue');
+
     // Profile/Security
     Route::get('profile/security', \App\Livewire\SuperAdmin\Profile\Security::class)
         ->name('superadmin.profile.security');

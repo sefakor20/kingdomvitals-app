@@ -28,6 +28,9 @@
                     <flux:navlist.item icon="credit-card" :href="route('superadmin.plans.index')" :current="request()->routeIs('superadmin.plans.*')" wire:navigate>
                         {{ __('Subscription Plans') }}
                     </flux:navlist.item>
+                    <flux:navlist.item icon="banknotes" :href="route('superadmin.billing.dashboard')" :current="request()->routeIs('superadmin.billing.*')" wire:navigate>
+                        {{ __('Billing') }}
+                    </flux:navlist.item>
                     <flux:navlist.item icon="megaphone" :href="route('superadmin.announcements.index')" :current="request()->routeIs('superadmin.announcements.*')" wire:navigate>
                         {{ __('Announcements') }}
                     </flux:navlist.item>

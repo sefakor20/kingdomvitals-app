@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -120,5 +121,21 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         }
 
         return max(0, now()->diffInDays($this->trial_ends_at, false));
+    }
+
+    /**
+     * Get platform invoices for this tenant.
+     */
+    public function platformInvoices(): HasMany
+    {
+        return $this->hasMany(PlatformInvoice::class, 'tenant_id');
+    }
+
+    /**
+     * Get platform payments for this tenant.
+     */
+    public function platformPayments(): HasMany
+    {
+        return $this->hasMany(PlatformPayment::class, 'tenant_id');
     }
 }

@@ -58,3 +58,23 @@ Schedule::call(function () {
 Schedule::command('analytics:aggregate-usage')
     ->hourly()
     ->withoutOverlapping();
+
+// Generate monthly invoices on the 1st of each month at 1 AM
+Schedule::command('billing:generate-invoices')
+    ->monthlyOn(1, '01:00')
+    ->withoutOverlapping();
+
+// Check for overdue invoices daily at 6 AM
+Schedule::command('billing:check-overdue')
+    ->dailyAt('06:00')
+    ->withoutOverlapping();
+
+// Send payment reminders daily at 9 AM
+Schedule::command('billing:send-reminders')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();
+
+// Reconcile payments weekly on Sunday at midnight
+Schedule::command('billing:reconcile-payments')
+    ->weeklyOn(0, '00:00')
+    ->withoutOverlapping();
