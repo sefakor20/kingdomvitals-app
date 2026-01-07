@@ -53,3 +53,8 @@ Schedule::call(function () {
         ->where('scheduled_at', '<=', now())
         ->each(fn (Announcement $announcement) => ProcessAnnouncementJob::dispatch($announcement->id));
 })->everyMinute()->name('process-scheduled-announcements');
+
+// Aggregate usage analytics hourly
+Schedule::command('analytics:aggregate-usage')
+    ->hourly()
+    ->withoutOverlapping();

@@ -50,6 +50,9 @@
                     <flux:navlist.item icon="chart-bar" :href="route('superadmin.revenue')" :current="request()->routeIs('superadmin.revenue')" wire:navigate>
                         {{ __('Revenue') }}
                     </flux:navlist.item>
+                    <flux:navlist.item icon="chart-pie" :href="route('superadmin.analytics.usage')" :current="request()->routeIs('superadmin.analytics.*')" wire:navigate>
+                        {{ __('Usage Analytics') }}
+                    </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
