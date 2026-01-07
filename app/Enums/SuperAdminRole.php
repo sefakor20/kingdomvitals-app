@@ -53,4 +53,14 @@ enum SuperAdminRole: string
     {
         return $this === self::Owner;
     }
+
+    public function canCreateAnnouncements(): bool
+    {
+        return $this === self::Owner || $this === self::Admin;
+    }
+
+    public function canSendAnnouncements(): bool
+    {
+        return $this === self::Owner || $this === self::Admin;
+    }
 }

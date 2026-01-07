@@ -51,6 +51,10 @@ Route::middleware('superadmin')->group(function () {
     Route::get('plans', \App\Livewire\SuperAdmin\Plans\PlanIndex::class)
         ->name('superadmin.plans.index');
 
+    // Announcements
+    Route::get('announcements', \App\Livewire\SuperAdmin\Announcements\AnnouncementIndex::class)
+        ->name('superadmin.announcements.index');
+
     // Super Admin Management
     Route::get('admins', \App\Livewire\SuperAdmin\Admins\AdminIndex::class)
         ->name('superadmin.admins.index');

@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\AnnouncementStatus;
+use App\Jobs\ProcessAnnouncementJob;
+use App\Models\Announcement;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -42,3 +45,11 @@ Schedule::command('budgets:check-thresholds')
 Schedule::command('expenses:generate-recurring')
     ->dailyAt('07:00')
     ->withoutOverlapping();
+
+// Process scheduled announcements every minute
+Schedule::call(function () {
+    Announcement::query()
+        ->where('status', AnnouncementStatus::Scheduled)
+        ->where('scheduled_at', '<=', now())
+        ->each(fn (Announcement $announcement) => ProcessAnnouncementJob::dispatch($announcement->id));
+})->everyMinute()->name('process-scheduled-announcements');
