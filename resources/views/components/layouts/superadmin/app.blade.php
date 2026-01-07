@@ -28,11 +28,33 @@
                     <flux:navlist.item icon="credit-card" :href="route('superadmin.plans.index')" :current="request()->routeIs('superadmin.plans.*')" wire:navigate>
                         {{ __('Subscription Plans') }}
                     </flux:navlist.item>
+                    <flux:navlist.item icon="banknotes" :href="route('superadmin.billing.dashboard')" :current="request()->routeIs('superadmin.billing.*')" wire:navigate>
+                        {{ __('Billing') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="megaphone" :href="route('superadmin.announcements.index')" :current="request()->routeIs('superadmin.announcements.*')" wire:navigate>
+                        {{ __('Announcements') }}
+                    </flux:navlist.item>
                 </flux:navlist.group>
 
                 <flux:navlist.group :heading="__('System')" class="grid">
+                    @if(auth('superadmin')->user()->role->canViewSettings())
+                        <flux:navlist.item icon="cog-6-tooth" :href="route('superadmin.settings')" :current="request()->routeIs('superadmin.settings')" wire:navigate>
+                            {{ __('Settings') }}
+                        </flux:navlist.item>
+                    @endif
+                    @if(auth('superadmin')->user()->role->canManageSuperAdmins())
+                        <flux:navlist.item icon="users" :href="route('superadmin.admins.index')" :current="request()->routeIs('superadmin.admins.*')" wire:navigate>
+                            {{ __('Admins') }}
+                        </flux:navlist.item>
+                    @endif
                     <flux:navlist.item icon="clipboard-document-list" :href="route('superadmin.activity-logs')" :current="request()->routeIs('superadmin.activity-logs')" wire:navigate>
                         {{ __('Activity Logs') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="chart-bar" :href="route('superadmin.revenue')" :current="request()->routeIs('superadmin.revenue')" wire:navigate>
+                        {{ __('Revenue') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="chart-pie" :href="route('superadmin.analytics.usage')" :current="request()->routeIs('superadmin.analytics.*')" wire:navigate>
+                        {{ __('Usage Analytics') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
@@ -77,6 +99,12 @@
 
                     <flux:menu.separator />
 
+                    <flux:menu.item :href="route('superadmin.profile.security')" icon="shield-check" wire:navigate>
+                        {{ __('Security') }}
+                    </flux:menu.item>
+
+                    <flux:menu.separator />
+
                     <form method="POST" action="{{ route('superadmin.logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
@@ -116,6 +144,12 @@
                             </div>
                         </div>
                     </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    <flux:menu.item :href="route('superadmin.profile.security')" icon="shield-check" wire:navigate>
+                        {{ __('Security') }}
+                    </flux:menu.item>
 
                     <flux:menu.separator />
 

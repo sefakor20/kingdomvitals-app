@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin;
 
+use App\Livewire\Concerns\HasReportExport;
 use App\Models\SuperAdminActivityLog;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ActivityLogs extends Component
 {
+    use HasReportExport;
     use WithPagination;
 
     #[Url]
@@ -19,6 +23,12 @@ class ActivityLogs extends Component
 
     #[Url]
     public string $action = '';
+
+    #[Url]
+    public string $startDate = '';
+
+    #[Url]
+    public string $endDate = '';
 
     public function updatedSearch(): void
     {
@@ -30,9 +40,64 @@ class ActivityLogs extends Component
         $this->resetPage();
     }
 
-    public function render(): View
+    public function updatedStartDate(): void
     {
-        $query = SuperAdminActivityLog::query()
+        $this->resetPage();
+    }
+
+    public function updatedEndDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        $logs = $this->getFilteredLogs()->get();
+
+        $data = $logs->map(fn (SuperAdminActivityLog $log) => [
+            'timestamp' => $log->created_at->format('Y-m-d H:i:s'),
+            'admin_name' => $log->superAdmin?->name ?? 'System',
+            'action' => str_replace('_', ' ', $log->action),
+            'description' => $log->description ?? '',
+            'tenant_name' => $log->tenant?->name ?? '',
+            'ip_address' => $log->ip_address ?? '',
+        ]);
+
+        $headers = [
+            'Timestamp',
+            'Admin Name',
+            'Action',
+            'Description',
+            'Tenant Name',
+            'IP Address',
+        ];
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'export_activity_logs',
+            description: 'Exported activity logs to CSV',
+            metadata: [
+                'record_count' => $logs->count(),
+                'filters' => [
+                    'search' => $this->search,
+                    'action' => $this->action,
+                    'start_date' => $this->startDate,
+                    'end_date' => $this->endDate,
+                ],
+            ],
+        );
+
+        $filename = 'activity-logs-'.now()->format('Y-m-d').'.csv';
+
+        return $this->exportToCsv($data, $headers, $filename);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<SuperAdminActivityLog>
+     */
+    private function getFilteredLogs(): \Illuminate\Database\Eloquent\Builder
+    {
+        return SuperAdminActivityLog::query()
             ->with(['superAdmin', 'tenant'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
@@ -45,15 +110,24 @@ class ActivityLogs extends Component
             ->when($this->action, function ($query) {
                 $query->where('action', $this->action);
             })
+            ->when($this->startDate, function ($query) {
+                $query->whereDate('created_at', '>=', $this->startDate);
+            })
+            ->when($this->endDate, function ($query) {
+                $query->whereDate('created_at', '<=', $this->endDate);
+            })
             ->latest('created_at');
+    }
 
+    public function render(): View
+    {
         $actions = SuperAdminActivityLog::distinct()
             ->pluck('action')
             ->sort()
             ->values();
 
         return view('livewire.super-admin.activity-logs', [
-            'logs' => $query->paginate(25),
+            'logs' => $this->getFilteredLogs()->paginate(25),
             'actions' => $actions,
         ])->layout('components.layouts.superadmin.app');
     }

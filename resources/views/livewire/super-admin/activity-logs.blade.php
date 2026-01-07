@@ -1,9 +1,14 @@
 <div>
-    <div class="mb-8">
-        <flux:heading size="xl">Activity Logs</flux:heading>
-        <flux:text class="mt-2 text-slate-600 dark:text-slate-400">
-            View all super admin activity on the platform
-        </flux:text>
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <flux:heading size="xl">{{ __('Activity Logs') }}</flux:heading>
+            <flux:text class="mt-2 text-slate-600 dark:text-slate-400">
+                {{ __('View all super admin activity on the platform') }}
+            </flux:text>
+        </div>
+        <flux:button variant="ghost" icon="arrow-down-tray" wire:click="exportCsv">
+            {{ __('Export CSV') }}
+        </flux:button>
     </div>
 
     <!-- Filters -->
@@ -12,17 +17,31 @@
             <flux:input
                 wire:model.live.debounce.300ms="search"
                 type="search"
-                placeholder="Search by description or admin name..."
+                placeholder="{{ __('Search by description or admin name...') }}"
                 icon="magnifying-glass"
             />
         </div>
         <div class="w-full sm:w-48">
             <flux:select wire:model.live="action">
-                <option value="">All Actions</option>
+                <option value="">{{ __('All Actions') }}</option>
                 @foreach($actions as $actionOption)
                     <option value="{{ $actionOption }}">{{ str_replace('_', ' ', ucfirst($actionOption)) }}</option>
                 @endforeach
             </flux:select>
+        </div>
+        <div class="w-full sm:w-40">
+            <flux:input
+                wire:model.live="startDate"
+                type="date"
+                placeholder="{{ __('Start Date') }}"
+            />
+        </div>
+        <div class="w-full sm:w-40">
+            <flux:input
+                wire:model.live="endDate"
+                type="date"
+                placeholder="{{ __('End Date') }}"
+            />
         </div>
     </div>
 

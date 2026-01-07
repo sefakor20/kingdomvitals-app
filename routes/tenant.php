@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -20,6 +21,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['web'])->group(function () {
+    // Impersonation routes (before auth middleware)
+    Route::get('/impersonate/enter', [ImpersonationController::class, 'enter'])
+        ->name('impersonate.enter');
+    Route::post('/impersonate/exit', [ImpersonationController::class, 'exit'])
+        ->name('impersonate.exit');
+
     // Include all Fortify authentication routes (login, register, password reset, 2FA, etc.)
     require base_path('vendor/laravel/fortify/routes/routes.php');
 
