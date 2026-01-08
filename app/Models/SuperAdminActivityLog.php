@@ -12,6 +12,8 @@ class SuperAdminActivityLog extends Model
 {
     use HasUuids;
 
+    protected $connection = 'mysql';
+
     protected $table = 'super_admin_activity_logs';
 
     public $timestamps = false;

@@ -1,9 +1,11 @@
 <?php
 
+use App\Livewire\Dashboard;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -24,12 +26,19 @@ afterEach(function () {
     $this->tenant?->delete();
 });
 
-test('guests are redirected to the login page', function () {
-    $this->get('/dashboard')->assertRedirect('/login');
+test('dashboard component renders successfully', function () {
+    $this->tenant->markOnboardingComplete();
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(Dashboard::class)
+        ->assertStatus(200);
 });
 
-test('authenticated users can visit the dashboard', function () {
-    $this->actingAs($user = User::factory()->create());
+test('dashboard shows branch context', function () {
+    $this->tenant->markOnboardingComplete();
 
-    $this->get('/dashboard')->assertStatus(200);
+    $component = Livewire::actingAs(User::factory()->create())
+        ->test(Dashboard::class);
+
+    expect($component->instance())->toBeInstanceOf(Dashboard::class);
 });

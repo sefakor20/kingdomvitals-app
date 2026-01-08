@@ -12,6 +12,8 @@ class TenantImpersonationLog extends Model
 {
     use HasUuids;
 
+    protected $connection = 'mysql';
+
     public $timestamps = false;
 
     protected $fillable = [
