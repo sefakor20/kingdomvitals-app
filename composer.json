@@ -10,25 +10,25 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "barryvdh/laravel-dompdf": "^3.1",
+        "barryvdh/laravel-dompdf": "^3.1.1",
         "laravel/fortify": "^1.33",
-        "laravel/framework": "^12.44",
-        "laravel/tinker": "^2.10.2",
+        "laravel/framework": "^12.46",
+        "laravel/tinker": "^2.11.0",
         "livewire/flux": "^2.10.2",
-        "maatwebsite/excel": "^3.1",
+        "maatwebsite/excel": "^3.1.67",
         "propaganistas/laravel-phone": "^6.0.2",
         "stancl/tenancy": "^3.9.1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16.3",
         "fakerphp/faker": "^1.24.1",
-        "laravel/boost": "^1.8.7",
+        "laravel/boost": "^1.8.9",
         "laravel/pail": "^1.2.4",
-        "laravel/pint": "^1.26",
-        "laravel/sail": "^1.51",
+        "laravel/pint": "^1.27",
+        "laravel/sail": "^1.52",
         "mockery/mockery": "^1.6.12",
         "nunomaduro/collision": "^8.8.3",
-        "pestphp/pest": "^4.3",
+        "pestphp/pest": "^4.3.1",
         "pestphp/pest-plugin-laravel": "^4.0"
     },
     "autoload": {
