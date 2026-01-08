@@ -105,14 +105,12 @@
     </div>
 
     <div class="flex justify-between pt-4">
-        <flux:button wire:click="goBack" variant="ghost">
-            <flux:icon name="arrow-left" variant="micro" class="mr-2" />
+        <flux:button wire:click="goBack" variant="ghost" icon="arrow-left">
             Back
         </flux:button>
 
-        <flux:button wire:click="completeOnboarding" variant="primary">
+        <flux:button wire:click="completeOnboarding" variant="primary" icon:trailing="arrow-right">
             Go to Dashboard
-            <flux:icon name="arrow-right" variant="micro" class="ml-2" />
         </flux:button>
     </div>
 </div>

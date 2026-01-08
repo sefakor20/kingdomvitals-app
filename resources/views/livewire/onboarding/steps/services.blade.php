@@ -50,8 +50,7 @@
             </div>
 
             <div class="mt-4">
-                <flux:button wire:click="addService" variant="ghost" size="sm">
-                    <flux:icon name="plus" variant="micro" class="mr-1" />
+                <flux:button wire:click="addService" variant="ghost" size="sm" icon="plus">
                     Add Service
                 </flux:button>
             </div>
@@ -95,14 +94,12 @@
     </div>
 
     <div class="flex justify-between pt-4">
-        <flux:button wire:click="goBack" variant="ghost">
-            <flux:icon name="arrow-left" variant="micro" class="mr-2" />
+        <flux:button wire:click="goBack" variant="ghost" icon="arrow-left">
             Back
         </flux:button>
 
-        <flux:button wire:click="completeServicesStep" variant="primary">
+        <flux:button wire:click="completeServicesStep" variant="primary" icon:trailing="arrow-right">
             Continue
-            <flux:icon name="arrow-right" variant="micro" class="ml-2" />
         </flux:button>
     </div>
 </div>

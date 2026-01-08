@@ -81,9 +81,8 @@
         </div>
 
         <div class="flex justify-end pt-4">
-            <flux:button type="submit" variant="primary">
+            <flux:button type="submit" variant="primary" icon:trailing="arrow-right">
                 Continue
-                <flux:icon name="arrow-right" variant="micro" class="ml-2" />
             </flux:button>
         </div>
     </form>
