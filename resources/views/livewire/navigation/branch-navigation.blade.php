@@ -1,3 +1,4 @@
+<div>
 @if($this->currentBranch)
     <flux:navlist variant="outline">
         <flux:navlist.group :heading="__('Branch')" class="grid">
@@ -233,3 +234,4 @@
         @endif
     </flux:navlist>
 @endif
+</div>

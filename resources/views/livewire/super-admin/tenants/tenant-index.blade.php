@@ -152,12 +152,40 @@
                     required
                 />
 
+                <flux:separator />
+
+                <div>
+                    <flux:heading size="sm">Admin Account</flux:heading>
+                    <flux:text class="text-sm text-zinc-500">
+                        An invitation email will be sent to set up their password.
+                    </flux:text>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input
+                        wire:model="admin_name"
+                        label="Admin Name"
+                        placeholder="John Doe"
+                        required
+                    />
+
+                    <flux:input
+                        wire:model="admin_email"
+                        label="Admin Email"
+                        type="email"
+                        placeholder="admin@example.com"
+                        required
+                    />
+                </div>
+
+                <flux:separator />
+
                 <div class="grid grid-cols-2 gap-4">
                     <flux:input
                         wire:model="contact_email"
                         label="Contact Email"
                         type="email"
-                        placeholder="admin@example.com"
+                        placeholder="contact@example.com"
                     />
 
                     <flux:input

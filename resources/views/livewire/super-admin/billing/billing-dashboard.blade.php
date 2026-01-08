@@ -7,6 +7,9 @@
             </flux:text>
         </div>
         <div class="flex items-center gap-3">
+            <flux:button href="{{ route('superadmin.billing.invoices') }}" variant="ghost" icon="document-text" wire:navigate>
+                {{ __('View Invoices') }}
+            </flux:button>
             <flux:button href="{{ route('superadmin.billing.invoices.create') }}" icon="plus" wire:navigate>
                 {{ __('Create Invoice') }}
             </flux:button>

@@ -110,8 +110,8 @@ class InvoiceIndex extends Component
             superAdmin: Auth::guard('superadmin')->user(),
             action: 'send_invoice',
             description: "Sent invoice {$invoice->invoice_number} to {$invoice->tenant?->name}",
-            targetType: PlatformInvoice::class,
-            targetId: $invoice->id,
+            tenant: $invoice->tenant,
+            metadata: ['invoice_id' => $invoice->id],
         );
 
         $this->dispatch('notification', [

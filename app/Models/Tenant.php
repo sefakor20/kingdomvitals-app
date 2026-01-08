@@ -138,4 +138,146 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return $this->hasMany(PlatformPayment::class, 'tenant_id');
     }
+
+    /**
+     * Get the onboarding data from the data JSON column.
+     *
+     * @return array{completed: bool, completed_at: string|null, current_step: int, steps: array, branch_id: string|null}
+     */
+    public function getOnboardingData(): array
+    {
+        $default = [
+            'completed' => false,
+            'completed_at' => null,
+            'current_step' => 1,
+            'steps' => [
+                'organization' => ['completed' => false, 'skipped' => false],
+                'team' => ['completed' => false, 'skipped' => false],
+                'integrations' => ['completed' => false, 'skipped' => false],
+                'services' => ['completed' => false, 'skipped' => false],
+            ],
+            'branch_id' => null,
+        ];
+
+        return array_merge($default, $this->getAttribute('onboarding') ?? []);
+    }
+
+    /**
+     * Update the onboarding data in the data JSON column.
+     */
+    public function setOnboardingData(array $data): void
+    {
+        $current = $this->getOnboardingData();
+        $this->setAttribute('onboarding', array_merge($current, $data));
+        $this->save();
+    }
+
+    /**
+     * Check if tenant has completed onboarding.
+     */
+    public function isOnboardingComplete(): bool
+    {
+        return $this->getOnboardingData()['completed'] === true;
+    }
+
+    /**
+     * Check if tenant needs to complete onboarding.
+     */
+    public function needsOnboarding(): bool
+    {
+        return ! $this->isOnboardingComplete();
+    }
+
+    /**
+     * Get the current onboarding step (1-5).
+     */
+    public function getCurrentOnboardingStep(): int
+    {
+        return $this->getOnboardingData()['current_step'];
+    }
+
+    /**
+     * Set the current onboarding step.
+     */
+    public function setCurrentOnboardingStep(int $step): void
+    {
+        $this->setOnboardingData(['current_step' => $step]);
+    }
+
+    /**
+     * Mark a specific onboarding step as completed.
+     */
+    public function completeOnboardingStep(string $step): void
+    {
+        $data = $this->getOnboardingData();
+        $data['steps'][$step] = ['completed' => true, 'skipped' => false];
+        $this->setOnboardingData($data);
+    }
+
+    /**
+     * Mark a specific onboarding step as skipped.
+     */
+    public function skipOnboardingStep(string $step): void
+    {
+        $data = $this->getOnboardingData();
+        $data['steps'][$step] = ['completed' => false, 'skipped' => true];
+        $this->setOnboardingData($data);
+    }
+
+    /**
+     * Check if a specific step is completed or skipped.
+     */
+    public function isOnboardingStepDone(string $step): bool
+    {
+        $data = $this->getOnboardingData();
+        $stepData = $data['steps'][$step] ?? ['completed' => false, 'skipped' => false];
+
+        return $stepData['completed'] || $stepData['skipped'];
+    }
+
+    /**
+     * Mark the entire onboarding as complete.
+     */
+    public function markOnboardingComplete(): void
+    {
+        $this->setOnboardingData([
+            'completed' => true,
+            'completed_at' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Initialize onboarding for a new tenant.
+     */
+    public function initializeOnboarding(): void
+    {
+        $this->setOnboardingData([
+            'completed' => false,
+            'completed_at' => null,
+            'current_step' => 1,
+            'steps' => [
+                'organization' => ['completed' => false, 'skipped' => false],
+                'team' => ['completed' => false, 'skipped' => false],
+                'integrations' => ['completed' => false, 'skipped' => false],
+                'services' => ['completed' => false, 'skipped' => false],
+            ],
+            'branch_id' => null,
+        ]);
+    }
+
+    /**
+     * Set the main branch ID created during onboarding.
+     */
+    public function setOnboardingBranchId(string $branchId): void
+    {
+        $this->setOnboardingData(['branch_id' => $branchId]);
+    }
+
+    /**
+     * Get the main branch ID created during onboarding.
+     */
+    public function getOnboardingBranchId(): ?string
+    {
+        return $this->getOnboardingData()['branch_id'];
+    }
 }

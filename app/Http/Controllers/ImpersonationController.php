@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\BranchRole;
 use App\Models\User;
 use App\Services\TenantImpersonationService;
 use Illuminate\Http\RedirectResponse;
@@ -31,10 +32,10 @@ class ImpersonationController extends Controller
             abort(403, 'Impersonation session expired or invalid');
         }
 
-        // Get the first admin/owner user in the tenant to impersonate
-        $user = User::where('role', 'owner')
-            ->orWhere('role', 'admin')
-            ->first() ?? User::first();
+        // Get a user with admin branch access, or fall back to any user
+        $user = User::whereHas('branchAccess', function ($query) {
+            $query->where('role', BranchRole::Admin->value);
+        })->first() ?? User::first();
 
         if (! $user) {
             abort(404, 'No users found in tenant');

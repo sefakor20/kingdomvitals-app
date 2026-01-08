@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Super admin middleware alias
         $middleware->alias([
             'superadmin' => \App\Http\Middleware\SuperAdminAuthenticate::class,
+            'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
         ]);
 
         // Exclude webhook routes from CSRF verification

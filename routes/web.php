@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Webhooks\TextTangoWebhookController;
+use App\Livewire\Onboarding\OnboardingWizard;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -12,11 +13,16 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Onboarding routes (auth but no onboarding.complete middleware)
+Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::get('/', OnboardingWizard::class)->name('index');
+});
+
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'onboarding.complete'])
     ->name('dashboard');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'onboarding.complete'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Route::get('settings/profile', Profile::class)->name('profile.edit');

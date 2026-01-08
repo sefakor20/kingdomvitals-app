@@ -30,13 +30,18 @@ Route::middleware(['web'])->group(function () {
     // Include all Fortify authentication routes (login, register, password reset, 2FA, etc.)
     require base_path('vendor/laravel/fortify/routes/routes.php');
 
+    // Onboarding routes (auth but no onboarding.complete middleware)
+    Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/', \App\Livewire\Onboarding\OnboardingWizard::class)->name('index');
+    });
+
     Route::get('/', function () {
         return redirect()->route('dashboard');
     })->name('home');
 
     // Dashboard
     Route::get('/dashboard', \App\Livewire\Dashboard::class)
-        ->middleware(['auth', 'verified'])
+        ->middleware(['auth', 'verified', 'onboarding.complete'])
         ->name('dashboard');
 
     // Mobile Self Check-in (public access via token)
@@ -63,8 +68,8 @@ Route::middleware(['web'])->group(function () {
         ->name('webhooks.paystack')
         ->withoutMiddleware(['web']);
 
-    // Authenticated routes
-    Route::middleware(['auth'])->group(function () {
+    // Authenticated routes (require completed onboarding)
+    Route::middleware(['auth', 'onboarding.complete'])->group(function () {
         // Settings
         Route::redirect('settings', 'settings/profile');
         Route::get('settings/profile', Profile::class)->name('profile.edit');

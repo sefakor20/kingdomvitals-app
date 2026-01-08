@@ -13,8 +13,8 @@
                 <x-app-logo />
             </a>
 
-            <!-- Branch Selector (only in tenant context) -->
-            @if(tenant() && auth()->check())
+            <!-- Branch Selector (only in tenant context with completed onboarding) -->
+            @if(tenant() && auth()->check() && tenant()->isOnboardingComplete())
                 <div class="mb-4">
                     <livewire:branches.branch-selector />
                 </div>
@@ -29,8 +29,8 @@
                 </flux:navlist.group>
             </flux:navlist>
 
-            <!-- Branch Context Navigation -->
-            @if(tenant() && auth()->check())
+            <!-- Branch Context Navigation (only with completed onboarding) -->
+            @if(tenant() && auth()->check() && tenant()->isOnboardingComplete())
                 <livewire:navigation.branch-navigation />
             @endif
 
