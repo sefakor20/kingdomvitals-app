@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\TenantStatus;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 it('can view tenants list', function () {
@@ -81,6 +82,7 @@ it('can open tenant create modal', function () {
 });
 
 it('can create a new tenant', function () {
+    Notification::fake();
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -89,6 +91,8 @@ it('can create a new tenant', function () {
         ->set('name', 'New Test Church')
         ->set('domain', 'newtest.kingdomvitals.test')
         ->set('contact_email', 'contact@newtest.com')
+        ->set('admin_name', 'Test Admin')
+        ->set('admin_email', 'admin@newtest.com')
         ->set('trial_days', 14)
         ->call('createTenant')
         ->assertRedirect();
@@ -111,8 +115,10 @@ it('validates required fields when creating tenant', function () {
         ->set('showCreateModal', true)
         ->set('name', '')
         ->set('domain', '')
+        ->set('admin_name', '')
+        ->set('admin_email', '')
         ->call('createTenant')
-        ->assertHasErrors(['name', 'domain']);
+        ->assertHasErrors(['name', 'domain', 'admin_name', 'admin_email']);
 });
 
 it('can view tenant details', function () {
@@ -185,6 +191,7 @@ it('can change tenant status', function () {
 });
 
 it('logs tenant creation activity', function () {
+    Notification::fake();
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -192,6 +199,8 @@ it('logs tenant creation activity', function () {
         ->set('showCreateModal', true)
         ->set('name', 'Logged Church')
         ->set('domain', 'logged.kingdomvitals.test')
+        ->set('admin_name', 'Logged Admin')
+        ->set('admin_email', 'admin@logged.com')
         ->set('trial_days', 14)
         ->call('createTenant');
 

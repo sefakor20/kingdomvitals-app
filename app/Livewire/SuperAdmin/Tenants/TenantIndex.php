@@ -8,8 +8,8 @@ use App\Enums\TenantStatus;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
+use App\Services\TenantCreationService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -44,6 +44,10 @@ class TenantIndex extends Component
 
     public int $trial_days = 14;
 
+    public string $admin_name = '';
+
+    public string $admin_email = '';
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -67,35 +71,46 @@ class TenantIndex extends Component
         $this->contact_phone = '';
         $this->address = '';
         $this->trial_days = 14;
+        $this->admin_name = '';
+        $this->admin_email = '';
         $this->resetValidation();
     }
 
-    public function createTenant(): void
+    public function createTenant(TenantCreationService $tenantCreationService): void
     {
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'domain' => ['required', 'string', 'max:255', 'unique:domains,domain'],
+            'domain' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:domains,domain',
+                'regex:/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/',
+            ],
             'contact_email' => ['nullable', 'email', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:500'],
             'trial_days' => ['required', 'integer', 'min:0', 'max:365'],
+            'admin_name' => ['required', 'string', 'max:255'],
+            'admin_email' => ['required', 'email', 'max:255'],
+        ], [
+            'domain.regex' => 'The domain must be a valid domain format (e.g., tenant.example.com).',
         ]);
 
-        $tenantId = Str::slug($this->name).'-'.Str::random(6);
-
-        $tenant = Tenant::create([
-            'id' => $tenantId,
-            'name' => $this->name,
-            'status' => TenantStatus::Trial,
-            'contact_email' => $this->contact_email ?: null,
-            'contact_phone' => $this->contact_phone ?: null,
-            'address' => $this->address ?: null,
-            'trial_ends_at' => now()->addDays($this->trial_days),
-        ]);
-
-        $tenant->domains()->create([
-            'domain' => $this->domain,
-        ]);
+        $tenant = $tenantCreationService->createTenantWithAdmin(
+            tenantData: [
+                'name' => $this->name,
+                'domain' => $this->domain,
+                'contact_email' => $this->contact_email ?: null,
+                'contact_phone' => $this->contact_phone ?: null,
+                'address' => $this->address ?: null,
+                'trial_days' => $this->trial_days,
+            ],
+            adminData: [
+                'name' => $this->admin_name,
+                'email' => $this->admin_email,
+            ],
+        );
 
         SuperAdminActivityLog::log(
             superAdmin: Auth::guard('superadmin')->user(),
@@ -105,13 +120,14 @@ class TenantIndex extends Component
             metadata: [
                 'domain' => $this->domain,
                 'trial_days' => $this->trial_days,
+                'admin_email' => $this->admin_email,
             ],
         );
 
         $this->showCreateModal = false;
         $this->resetCreateForm();
 
-        session()->flash('success', 'Tenant created successfully.');
+        session()->flash('success', 'Tenant created successfully. An invitation email has been sent to the admin.');
         $this->redirect(route('superadmin.tenants.show', $tenant), navigate: true);
     }
 

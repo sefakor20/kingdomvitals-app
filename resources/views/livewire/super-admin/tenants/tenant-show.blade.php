@@ -107,6 +107,45 @@
                 </div>
             </div>
 
+            <!-- Tenant Users -->
+            <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                <div class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                    <flux:heading size="lg">Users</flux:heading>
+                </div>
+                <div class="p-6">
+                    @if($this->tenantUsers->isNotEmpty())
+                        <ul class="space-y-3">
+                            @foreach($this->tenantUsers as $user)
+                                <li class="flex items-center justify-between" wire:key="user-{{ $user->id }}">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-700">
+                                            <flux:icon.user class="size-4 text-zinc-600 dark:text-zinc-400" />
+                                        </div>
+                                        <div>
+                                            <flux:text class="font-medium">{{ $user->name }}</flux:text>
+                                            <flux:text class="text-sm text-zinc-500">{{ $user->email }}</flux:text>
+                                        </div>
+                                    </div>
+                                    @unless($tenant->trashed())
+                                        <flux:button
+                                            wire:click="resendInvitation('{{ $user->id }}')"
+                                            wire:confirm="Are you sure you want to resend the invitation email to {{ $user->email }}?"
+                                            variant="ghost"
+                                            size="sm"
+                                            icon="envelope"
+                                        >
+                                            Resend Invite
+                                        </flux:button>
+                                    @endunless
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <flux:text class="text-zinc-500">No users found</flux:text>
+                    @endif
+                </div>
+            </div>
+
             <!-- Recent Activity -->
             <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-700">

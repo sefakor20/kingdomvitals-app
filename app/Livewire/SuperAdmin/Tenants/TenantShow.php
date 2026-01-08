@@ -8,9 +8,13 @@ use App\Enums\TenantStatus;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
+use App\Models\User;
+use App\Notifications\TenantAdminInvitationNotification;
 use App\Services\TenantImpersonationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class TenantShow extends Component
@@ -55,6 +59,15 @@ class TenantShow extends Component
     {
         $this->tenant = $tenant;
         $this->selectedPlanId = $tenant->subscription_id;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, User>
+     */
+    #[Computed]
+    public function tenantUsers(): \Illuminate\Support\Collection
+    {
+        return $this->tenant->run(fn () => User::all());
     }
 
     public function suspend(): void
@@ -295,6 +308,42 @@ class TenantShow extends Component
         $this->editContactPhone = $this->tenant->contact_phone ?? '';
         $this->editAddress = $this->tenant->address ?? '';
         $this->showEditModal = true;
+    }
+
+    public function resendInvitation(string $userId): void
+    {
+        $tenant = $this->tenant;
+
+        $tenant->run(function () use ($tenant, $userId) {
+            $user = User::find($userId);
+
+            if (! $user) {
+                session()->flash('error', 'User not found.');
+
+                return;
+            }
+
+            // Generate new password reset token
+            $token = Password::broker('users')->createToken($user);
+
+            // Build reset URL for tenant domain
+            $domain = $tenant->domains->first()->domain;
+            $scheme = app()->isProduction() ? 'https' : 'http';
+            $resetUrl = "{$scheme}://{$domain}/reset-password/{$token}?email=".urlencode($user->email);
+
+            // Send invitation notification
+            $user->notify(new TenantAdminInvitationNotification($tenant, $resetUrl));
+        });
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'invitation_resent',
+            description: "Resent invitation email for tenant: {$this->tenant->name}",
+            tenant: $this->tenant,
+            metadata: ['user_id' => $userId],
+        );
+
+        session()->flash('success', 'Invitation email has been resent.');
     }
 
     public function updateTenant(): void
