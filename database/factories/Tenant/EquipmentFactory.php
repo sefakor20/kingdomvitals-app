@@ -29,6 +29,7 @@ class EquipmentFactory extends Factory
             'manufacturer' => fake()->optional(0.7)->company(),
             'purchase_date' => fake()->optional(0.8)->dateTimeBetween('-5 years', 'now'),
             'purchase_price' => fake()->optional(0.7)->randomFloat(2, 100, 10000),
+            'source_of_equipment' => fake()->optional(0.7)->randomElement(['Purchased', 'Donated', 'Church fund', 'Member donation', 'Leased']),
             'currency' => 'GHS',
             'condition' => fake()->randomElement(EquipmentCondition::cases()),
             'location' => fake()->optional(0.6)->randomElement(['Main Hall', 'Office', 'Storage Room', 'Sanctuary', 'Youth Room']),

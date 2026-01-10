@@ -9,5 +9,8 @@ enum ServiceType: string
     case Prayer = 'prayer';
     case Youth = 'youth';
     case Children = 'children';
+    case Revival = 'revival';
+    case Retreat = 'retreat';
+    case Practice = 'practice';
     case Special = 'special';
 }

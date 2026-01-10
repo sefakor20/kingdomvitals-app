@@ -43,6 +43,8 @@ class EquipmentShow extends Component
 
     public ?string $purchase_price = null;
 
+    public string $source_of_equipment = '';
+
     public string $currency = 'GHS';
 
     public string $condition = '';
@@ -187,6 +189,7 @@ class EquipmentShow extends Component
             'manufacturer' => ['nullable', 'string', 'max:100'],
             'purchase_date' => ['nullable', 'date'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'source_of_equipment' => ['nullable', 'string', 'max:255'],
             'currency' => ['required', 'string', 'max:3'],
             'condition' => ['required', 'string'],
             'location' => ['nullable', 'string', 'max:255'],
@@ -210,6 +213,7 @@ class EquipmentShow extends Component
             'manufacturer' => $this->equipment->manufacturer ?? '',
             'purchase_date' => $this->equipment->purchase_date?->format('Y-m-d'),
             'purchase_price' => $this->equipment->purchase_price,
+            'source_of_equipment' => $this->equipment->source_of_equipment ?? '',
             'currency' => $this->equipment->currency ?? 'GHS',
             'condition' => $this->equipment->condition->value,
             'location' => $this->equipment->location ?? '',
@@ -230,7 +234,7 @@ class EquipmentShow extends Component
         // Convert empty strings to null for nullable fields
         $nullableFields = [
             'description', 'serial_number', 'model_number', 'manufacturer',
-            'purchase_date', 'purchase_price', 'location', 'assigned_to',
+            'purchase_date', 'purchase_price', 'source_of_equipment', 'location', 'assigned_to',
             'warranty_expiry', 'next_maintenance_date', 'notes',
         ];
         foreach ($nullableFields as $field) {

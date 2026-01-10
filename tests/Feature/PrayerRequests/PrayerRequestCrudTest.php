@@ -699,7 +699,7 @@ test('prayer request description is required', function () {
         ->assertHasErrors(['description' => 'required']);
 });
 
-test('prayer request member is required', function () {
+test('prayer request member is required when not anonymous', function () {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -715,9 +715,35 @@ test('prayer request member is required', function () {
         ->set('description', 'Test description')
         ->set('category', PrayerRequestCategory::Health->value)
         ->set('privacy', PrayerRequestPrivacy::Public->value)
+        ->set('is_anonymous', false)
         ->set('member_id', '')
         ->call('store')
-        ->assertHasErrors(['member_id' => 'required']);
+        ->assertHasErrors(['member_id' => 'required_if']);
+});
+
+test('prayer request can be submitted anonymously', function () {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(PrayerRequestIndex::class, ['branch' => $this->branch])
+        ->call('create')
+        ->set('title', 'Anonymous Prayer')
+        ->set('description', 'This is an anonymous prayer request')
+        ->set('category', PrayerRequestCategory::Personal->value)
+        ->set('privacy', PrayerRequestPrivacy::Public->value)
+        ->set('is_anonymous', true)
+        ->call('store')
+        ->assertDispatched('prayer-request-created');
+
+    expect(PrayerRequest::where('title', 'Anonymous Prayer')
+        ->whereNull('member_id')
+        ->exists())->toBeTrue();
 });
 
 // ============================================

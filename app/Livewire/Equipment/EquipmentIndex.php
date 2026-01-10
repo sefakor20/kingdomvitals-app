@@ -59,6 +59,8 @@ class EquipmentIndex extends Component
 
     public string $purchase_price = '';
 
+    public string $source_of_equipment = '';
+
     public string $condition = 'good';
 
     public string $location = '';
@@ -220,6 +222,7 @@ class EquipmentIndex extends Component
             'manufacturer' => ['nullable', 'string', 'max:255'],
             'purchase_date' => ['nullable', 'date'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'source_of_equipment' => ['nullable', 'string', 'max:255'],
             'condition' => ['required', 'string', 'in:'.$conditions],
             'location' => ['nullable', 'string', 'max:255'],
             'assigned_to' => ['nullable', 'uuid', 'exists:members,id'],
@@ -245,7 +248,7 @@ class EquipmentIndex extends Component
         $validated['currency'] = 'GHS';
 
         // Convert empty strings to null
-        foreach (['description', 'serial_number', 'model_number', 'manufacturer', 'purchase_date', 'purchase_price', 'location', 'assigned_to', 'warranty_expiry', 'next_maintenance_date', 'notes'] as $field) {
+        foreach (['description', 'serial_number', 'model_number', 'manufacturer', 'purchase_date', 'purchase_price', 'source_of_equipment', 'location', 'assigned_to', 'warranty_expiry', 'next_maintenance_date', 'notes'] as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {
                 $validated[$field] = null;
             }
@@ -274,6 +277,7 @@ class EquipmentIndex extends Component
             'manufacturer' => $equipment->manufacturer ?? '',
             'purchase_date' => $equipment->purchase_date?->format('Y-m-d'),
             'purchase_price' => $equipment->purchase_price ? (string) $equipment->purchase_price : '',
+            'source_of_equipment' => $equipment->source_of_equipment ?? '',
             'condition' => $equipment->condition->value,
             'location' => $equipment->location ?? '',
             'assigned_to' => $equipment->assigned_to,
@@ -290,7 +294,7 @@ class EquipmentIndex extends Component
         $validated = $this->validate();
 
         // Convert empty strings to null
-        foreach (['description', 'serial_number', 'model_number', 'manufacturer', 'purchase_date', 'purchase_price', 'location', 'assigned_to', 'warranty_expiry', 'next_maintenance_date', 'notes'] as $field) {
+        foreach (['description', 'serial_number', 'model_number', 'manufacturer', 'purchase_date', 'purchase_price', 'source_of_equipment', 'location', 'assigned_to', 'warranty_expiry', 'next_maintenance_date', 'notes'] as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {
                 $validated[$field] = null;
             }
@@ -538,7 +542,7 @@ class EquipmentIndex extends Component
     {
         $this->reset([
             'name', 'category', 'description', 'serial_number', 'model_number',
-            'manufacturer', 'purchase_date', 'purchase_price', 'location',
+            'manufacturer', 'purchase_date', 'purchase_price', 'source_of_equipment', 'location',
             'assigned_to', 'warranty_expiry', 'next_maintenance_date', 'notes',
         ]);
         $this->condition = 'good';

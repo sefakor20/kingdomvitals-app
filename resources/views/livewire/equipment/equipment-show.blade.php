@@ -234,6 +234,16 @@
                         @endif
                     </dd>
                 </div>
+                <div class="col-span-2">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Source of Equipment') }}</dt>
+                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                        @if($editing)
+                            <flux:input wire:model="source_of_equipment" placeholder="{{ __('e.g., Purchased, Donated, Church fund') }}" />
+                        @else
+                            {{ $equipment->source_of_equipment ?? '-' }}
+                        @endif
+                    </dd>
+                </div>
                 <div>
                     <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Warranty Expiry') }}</dt>
                     <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">

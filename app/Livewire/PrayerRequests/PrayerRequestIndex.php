@@ -56,6 +56,8 @@ class PrayerRequestIndex extends Component
 
     public ?string $cluster_id = null;
 
+    public bool $is_anonymous = false;
+
     // Mark as answered form
     public string $answer_details = '';
 
@@ -184,7 +186,8 @@ class PrayerRequestIndex extends Component
             'description' => ['required', 'string'],
             'category' => ['required', 'string', 'in:'.$categories],
             'privacy' => ['required', 'string', 'in:'.$privacyOptions],
-            'member_id' => ['required', 'uuid', 'exists:members,id'],
+            'is_anonymous' => ['boolean'],
+            'member_id' => ['nullable', 'required_if:is_anonymous,false', 'uuid', 'exists:members,id'],
             'cluster_id' => ['nullable', 'uuid', 'exists:clusters,id'],
         ];
     }
@@ -208,6 +211,14 @@ class PrayerRequestIndex extends Component
         if ($validated['cluster_id'] === '') {
             $validated['cluster_id'] = null;
         }
+
+        // Handle anonymous submissions
+        if ($this->is_anonymous) {
+            $validated['member_id'] = null;
+        }
+
+        // Remove is_anonymous from validated data as it's not a model field
+        unset($validated['is_anonymous']);
 
         $prayerRequest = PrayerRequest::create($validated);
 
@@ -242,6 +253,7 @@ class PrayerRequestIndex extends Component
             'privacy' => $prayerRequest->privacy->value,
             'member_id' => $prayerRequest->member_id,
             'cluster_id' => $prayerRequest->cluster_id,
+            'is_anonymous' => $prayerRequest->isAnonymous(),
         ]);
         $this->showEditModal = true;
     }
@@ -254,6 +266,14 @@ class PrayerRequestIndex extends Component
         if ($validated['cluster_id'] === '') {
             $validated['cluster_id'] = null;
         }
+
+        // Handle anonymous submissions
+        if ($this->is_anonymous) {
+            $validated['member_id'] = null;
+        }
+
+        // Remove is_anonymous from validated data as it's not a model field
+        unset($validated['is_anonymous']);
 
         $this->editingPrayerRequest->update($validated);
 
@@ -360,7 +380,7 @@ class PrayerRequestIndex extends Component
     private function resetForm(): void
     {
         $this->reset([
-            'title', 'description', 'category', 'member_id', 'cluster_id',
+            'title', 'description', 'category', 'member_id', 'cluster_id', 'is_anonymous',
         ]);
         $this->privacy = 'public';
         $this->resetValidation();

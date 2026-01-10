@@ -284,6 +284,8 @@
                     </flux:select>
                 </div>
 
+                <flux:input wire:model="source_of_equipment" :label="__('Source of Equipment')" placeholder="{{ __('e.g., Purchased, Donated, Church fund') }}" />
+
                 <div class="grid grid-cols-2 gap-4">
                     <flux:input wire:model="location" :label="__('Location')" placeholder="{{ __('e.g., Main Hall, Storage Room') }}" />
                     <flux:input wire:model="warranty_expiry" type="date" :label="__('Warranty Expiry')" />
@@ -338,6 +340,8 @@
                         @endforeach
                     </flux:select>
                 </div>
+
+                <flux:input wire:model="source_of_equipment" :label="__('Source of Equipment')" placeholder="{{ __('e.g., Purchased, Donated, Church fund') }}" />
 
                 <div class="grid grid-cols-2 gap-4">
                     <flux:input wire:model="location" :label="__('Location')" />

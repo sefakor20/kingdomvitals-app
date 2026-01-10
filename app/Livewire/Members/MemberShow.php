@@ -3,6 +3,7 @@
 namespace App\Livewire\Members;
 
 use App\Enums\ClusterRole;
+use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
@@ -66,6 +67,21 @@ class MemberShow extends Component
     public ?string $baptized_at = null;
 
     public string $notes = '';
+
+    // New additional fields
+    public string $maiden_name = '';
+
+    public string $profession = '';
+
+    public string $employment_status = '';
+
+    public string $hometown = '';
+
+    public string $gps_address = '';
+
+    public string $previous_congregation = '';
+
+    public ?string $confirmation_date = null;
 
     // Cluster management properties
     public bool $showAddClusterModal = false;
@@ -144,26 +160,89 @@ class MemberShow extends Component
         return ClusterRole::cases();
     }
 
+    #[Computed]
+    public function employmentStatuses(): array
+    {
+        return EmploymentStatus::cases();
+    }
+
+    #[Computed]
+    public function memberAttendance(): Collection
+    {
+        return $this->member->attendance()
+            ->with('service')
+            ->orderBy('date', 'desc')
+            ->limit(20)
+            ->get();
+    }
+
+    #[Computed]
+    public function memberDonations(): Collection
+    {
+        return $this->member->donations()
+            ->orderBy('donation_date', 'desc')
+            ->limit(20)
+            ->get();
+    }
+
+    #[Computed]
+    public function memberPledges(): Collection
+    {
+        return $this->member->pledges()
+            ->with('campaign')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    #[Computed]
+    public function givingStats(): array
+    {
+        return [
+            'totalDonations' => $this->member->donations()->sum('amount'),
+            'thisYear' => $this->member->donations()
+                ->whereYear('donation_date', now()->year)->sum('amount'),
+            'activePledges' => $this->member->pledges()
+                ->where('status', 'active')->count(),
+        ];
+    }
+
+    #[Computed]
+    public function attendanceStats(): array
+    {
+        return [
+            'total' => $this->member->attendance()->count(),
+            'last30Days' => $this->member->attendance()
+                ->where('date', '>=', now()->subDays(30))->count(),
+        ];
+    }
+
     protected function rules(): array
     {
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],
+            'maiden_name' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'date_of_birth' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'in:male,female'],
             'marital_status' => ['nullable', 'string', 'in:single,married,divorced,widowed'],
+            'profession' => ['nullable', 'string', 'max:100'],
+            'employment_status' => ['nullable', 'string', 'in:employed,self_employed,unemployed,student,retired'],
             'status' => ['required', 'string', 'in:active,inactive,pending,deceased,transferred'],
             'address' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'zip' => ['nullable', 'string', 'max:20'],
             'country' => ['nullable', 'string', 'max:100'],
+            'hometown' => ['nullable', 'string', 'max:100'],
+            'gps_address' => ['nullable', 'string', 'max:100'],
             'joined_at' => ['nullable', 'date'],
             'baptized_at' => ['nullable', 'date'],
+            'confirmation_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'previous_congregation' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ];
     }
@@ -179,20 +258,27 @@ class MemberShow extends Component
             'first_name' => $this->member->first_name,
             'last_name' => $this->member->last_name,
             'middle_name' => $this->member->middle_name ?? '',
+            'maiden_name' => $this->member->maiden_name ?? '',
             'email' => $this->member->email ?? '',
             'phone' => $this->member->phone ?? '',
             'date_of_birth' => $this->member->date_of_birth?->format('Y-m-d'),
             'gender' => $this->member->gender?->value ?? '',
             'marital_status' => $this->member->marital_status?->value ?? '',
+            'profession' => $this->member->profession ?? '',
+            'employment_status' => $this->member->employment_status?->value ?? '',
             'status' => $this->member->status->value,
             'address' => $this->member->address ?? '',
             'city' => $this->member->city ?? '',
             'state' => $this->member->state ?? '',
             'zip' => $this->member->zip ?? '',
             'country' => $this->member->country ?? '',
+            'hometown' => $this->member->hometown ?? '',
+            'gps_address' => $this->member->gps_address ?? '',
             'joined_at' => $this->member->joined_at?->format('Y-m-d'),
             'baptized_at' => $this->member->baptized_at?->format('Y-m-d'),
+            'confirmation_date' => $this->member->confirmation_date?->format('Y-m-d'),
             'notes' => $this->member->notes ?? '',
+            'previous_congregation' => $this->member->previous_congregation ?? '',
         ]);
 
         $this->editing = true;
@@ -205,9 +291,10 @@ class MemberShow extends Component
 
         // Convert empty strings to null for nullable fields
         $nullableFields = [
-            'middle_name', 'email', 'phone', 'gender', 'marital_status',
-            'address', 'city', 'state', 'zip', 'country',
-            'date_of_birth', 'joined_at', 'baptized_at', 'notes',
+            'middle_name', 'maiden_name', 'email', 'phone', 'gender', 'marital_status',
+            'profession', 'employment_status', 'address', 'city', 'state', 'zip', 'country',
+            'hometown', 'gps_address', 'date_of_birth', 'joined_at', 'baptized_at',
+            'confirmation_date', 'notes', 'previous_congregation',
         ];
         foreach ($nullableFields as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {

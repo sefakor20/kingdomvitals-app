@@ -28,6 +28,7 @@ class Equipment extends Model
         'manufacturer',
         'purchase_date',
         'purchase_price',
+        'source_of_equipment',
         'currency',
         'condition',
         'location',

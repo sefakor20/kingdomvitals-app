@@ -155,4 +155,11 @@ class PrayerRequestFactory extends Factory
             ]),
         ]);
     }
+
+    public function anonymous(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'member_id' => null,
+        ]);
+    }
 }

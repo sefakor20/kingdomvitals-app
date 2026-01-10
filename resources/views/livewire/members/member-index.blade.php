@@ -215,7 +215,7 @@
 
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input wire:model="date_of_birth" type="date" :label="__('Date of Birth')" />
-                    <flux:select wire:model="gender" :label="__('Gender')">
+                    <flux:select wire:model.live="gender" :label="__('Gender')">
                         <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
                         @foreach($this->genders as $genderOption)
                             <flux:select.option value="{{ $genderOption->value }}">
@@ -223,11 +223,27 @@
                             </flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model="marital_status" :label="__('Marital Status')">
+                    <flux:select wire:model.live="marital_status" :label="__('Marital Status')">
                         <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
                         @foreach($this->maritalStatuses as $maritalOption)
                             <flux:select.option value="{{ $maritalOption->value }}">
                                 {{ ucfirst($maritalOption->value) }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                @if($marital_status === 'married' && $gender === 'female')
+                    <flux:input wire:model="maiden_name" :label="__('Maiden Name')" />
+                @endif
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input wire:model="profession" :label="__('Profession')" />
+                    <flux:select wire:model="employment_status" :label="__('Employment Status')">
+                        <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
+                        @foreach($this->employmentStatuses as $empStatus)
+                            <flux:select.option value="{{ $empStatus->value }}">
+                                {{ str_replace('_', '-', ucfirst($empStatus->value)) }}
                             </flux:select.option>
                         @endforeach
                     </flux:select>
@@ -245,17 +261,26 @@
                     <flux:input wire:model="country" :label="__('Country')" />
                 </div>
 
+                <flux:input wire:model="gps_address" :label="__('GPS Address')" />
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input wire:model="hometown" :label="__('Hometown')" />
+                    <flux:input wire:model="previous_congregation" :label="__('Previous Congregation')" />
+                </div>
+
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input wire:model="joined_at" type="date" :label="__('Joined Date')" />
                     <flux:input wire:model="baptized_at" type="date" :label="__('Baptized Date')" />
-                    <flux:select wire:model="status" :label="__('Status')">
-                        @foreach($this->statuses as $statusOption)
-                            <flux:select.option value="{{ $statusOption->value }}">
-                                {{ ucfirst($statusOption->value) }}
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
+                    <flux:input wire:model="confirmation_date" type="date" :label="__('Confirmation Date')" />
                 </div>
+
+                <flux:select wire:model="status" :label="__('Status')">
+                    @foreach($this->statuses as $statusOption)
+                        <flux:select.option value="{{ $statusOption->value }}">
+                            {{ ucfirst($statusOption->value) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <flux:textarea wire:model="notes" :label="__('Notes')" rows="2" />
 
@@ -311,7 +336,7 @@
 
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input wire:model="date_of_birth" type="date" :label="__('Date of Birth')" />
-                    <flux:select wire:model="gender" :label="__('Gender')">
+                    <flux:select wire:model.live="gender" :label="__('Gender')">
                         <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
                         @foreach($this->genders as $genderOption)
                             <flux:select.option value="{{ $genderOption->value }}">
@@ -319,11 +344,27 @@
                             </flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model="marital_status" :label="__('Marital Status')">
+                    <flux:select wire:model.live="marital_status" :label="__('Marital Status')">
                         <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
                         @foreach($this->maritalStatuses as $maritalOption)
                             <flux:select.option value="{{ $maritalOption->value }}">
                                 {{ ucfirst($maritalOption->value) }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                @if($marital_status === 'married' && $gender === 'female')
+                    <flux:input wire:model="maiden_name" :label="__('Maiden Name')" />
+                @endif
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input wire:model="profession" :label="__('Profession')" />
+                    <flux:select wire:model="employment_status" :label="__('Employment Status')">
+                        <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
+                        @foreach($this->employmentStatuses as $empStatus)
+                            <flux:select.option value="{{ $empStatus->value }}">
+                                {{ str_replace('_', '-', ucfirst($empStatus->value)) }}
                             </flux:select.option>
                         @endforeach
                     </flux:select>
@@ -341,17 +382,26 @@
                     <flux:input wire:model="country" :label="__('Country')" />
                 </div>
 
+                <flux:input wire:model="gps_address" :label="__('GPS Address')" />
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input wire:model="hometown" :label="__('Hometown')" />
+                    <flux:input wire:model="previous_congregation" :label="__('Previous Congregation')" />
+                </div>
+
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input wire:model="joined_at" type="date" :label="__('Joined Date')" />
                     <flux:input wire:model="baptized_at" type="date" :label="__('Baptized Date')" />
-                    <flux:select wire:model="status" :label="__('Status')">
-                        @foreach($this->statuses as $statusOption)
-                            <flux:select.option value="{{ $statusOption->value }}">
-                                {{ ucfirst($statusOption->value) }}
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
+                    <flux:input wire:model="confirmation_date" type="date" :label="__('Confirmation Date')" />
                 </div>
+
+                <flux:select wire:model="status" :label="__('Status')">
+                    @foreach($this->statuses as $statusOption)
+                        <flux:select.option value="{{ $statusOption->value }}">
+                            {{ ucfirst($statusOption->value) }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <flux:textarea wire:model="notes" :label="__('Notes')" rows="2" />
 

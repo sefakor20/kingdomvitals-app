@@ -92,13 +92,13 @@
                     @endif
                     <div class="mt-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                         @if($editing)
-                            <flux:select wire:model="gender" placeholder="{{ __('Gender') }}" class="w-28">
+                            <flux:select wire:model.live="gender" placeholder="{{ __('Gender') }}" class="w-28">
                                 <flux:select.option value="">{{ __('Select') }}</flux:select.option>
                                 @foreach($this->genders as $genderOption)
                                     <flux:select.option value="{{ $genderOption->value }}">{{ ucfirst($genderOption->value) }}</flux:select.option>
                                 @endforeach
                             </flux:select>
-                            <flux:select wire:model="marital_status" placeholder="{{ __('Marital Status') }}" class="w-32">
+                            <flux:select wire:model.live="marital_status" placeholder="{{ __('Marital Status') }}" class="w-32">
                                 <flux:select.option value="">{{ __('Select') }}</flux:select.option>
                                 @foreach($this->maritalStatuses as $maritalOption)
                                     <flux:select.option value="{{ $maritalOption->value }}">{{ ucfirst($maritalOption->value) }}</flux:select.option>
@@ -142,283 +142,555 @@
         </div>
     </div>
 
-    <!-- Content Grid -->
-    <div class="grid gap-6 lg:grid-cols-2">
-        <!-- Personal Information -->
-        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:heading size="lg" class="mb-4">{{ __('Personal Information') }}</flux:heading>
-            <dl class="grid grid-cols-2 gap-4">
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Date of Birth') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:input type="date" wire:model="date_of_birth" />
-                        @else
-                            {{ $member->date_of_birth?->format('M d, Y') ?? '-' }}
-                        @endif
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Gender') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:select wire:model="gender">
-                                <flux:select.option value="">{{ __('Select') }}</flux:select.option>
-                                @foreach($this->genders as $genderOption)
-                                    <flux:select.option value="{{ $genderOption->value }}">{{ ucfirst($genderOption->value) }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        @else
-                            {{ $member->gender ? ucfirst($member->gender->value) : '-' }}
-                        @endif
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Marital Status') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:select wire:model="marital_status">
-                                <flux:select.option value="">{{ __('Select') }}</flux:select.option>
-                                @foreach($this->maritalStatuses as $maritalOption)
-                                    <flux:select.option value="{{ $maritalOption->value }}">{{ ucfirst($maritalOption->value) }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        @else
-                            {{ $member->marital_status ? ucfirst($member->marital_status->value) : '-' }}
-                        @endif
-                    </dd>
-                </div>
-            </dl>
+    <!-- Tabs Navigation -->
+    <div x-data="{ activeTab: 'overview' }">
+        <div class="mb-6 flex gap-1 border-b border-zinc-200 dark:border-zinc-700">
+            <button @click="activeTab = 'overview'"
+                    :class="activeTab === 'overview' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    class="px-4 py-2 text-sm font-medium transition-colors">
+                {{ __('Overview') }}
+            </button>
+            <button @click="activeTab = 'attendance'"
+                    :class="activeTab === 'attendance' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    class="px-4 py-2 text-sm font-medium transition-colors">
+                {{ __('Attendance') }}
+            </button>
+            <button @click="activeTab = 'giving'"
+                    :class="activeTab === 'giving' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    class="px-4 py-2 text-sm font-medium transition-colors">
+                {{ __('Giving') }}
+            </button>
+            <button @click="activeTab = 'activity'"
+                    :class="activeTab === 'activity' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    class="px-4 py-2 text-sm font-medium transition-colors">
+                {{ __('Activity') }}
+            </button>
         </div>
 
-        <!-- Contact Information -->
-        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:heading size="lg" class="mb-4">{{ __('Contact Information') }}</flux:heading>
-            <dl class="grid grid-cols-2 gap-4">
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Email') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:input type="email" wire:model="email" placeholder="{{ __('Email') }}" />
-                            @error('email') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
-                        @else
-                            @if($member->email)
-                                <a href="mailto:{{ $member->email }}" class="text-blue-600 hover:underline dark:text-blue-400">
-                                    {{ $member->email }}
-                                </a>
-                            @else
-                                -
-                            @endif
-                        @endif
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Phone') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:input type="tel" wire:model="phone" placeholder="{{ __('Phone') }}" />
-                        @else
-                            @if($member->phone)
-                                <a href="tel:{{ $member->phone }}" class="text-blue-600 hover:underline dark:text-blue-400">
-                                    {{ $member->phone }}
-                                </a>
-                            @else
-                                -
-                            @endif
-                        @endif
-                    </dd>
-                </div>
-
-                <!-- SMS Preferences -->
-                <div class="col-span-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('SMS Preferences') }}</dt>
-                    <dd class="mt-2">
-                        <div class="flex items-center gap-3">
-                            @if($member->sms_opt_out)
-                                <flux:badge color="yellow">{{ __('Opted Out') }}</flux:badge>
-                                <flux:text class="text-sm text-zinc-500">{{ __('Will not receive automated SMS') }}</flux:text>
-                            @else
-                                <flux:badge color="green">{{ __('Subscribed') }}</flux:badge>
-                                <flux:text class="text-sm text-zinc-500">{{ __('Receives automated SMS') }}</flux:text>
-                            @endif
-                            @if($this->canEdit)
-                                <flux:button variant="ghost" size="sm" wire:click="toggleSmsOptOut">
-                                    {{ $member->sms_opt_out ? __('Opt In') : __('Opt Out') }}
-                                </flux:button>
-                            @endif
-                        </div>
-                    </dd>
-                </div>
-            </dl>
-        </div>
-
-        <!-- Address -->
-        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:heading size="lg" class="mb-4">{{ __('Address') }}</flux:heading>
-            @if($editing)
-                <div class="grid gap-4">
-                    <flux:input wire:model="address" placeholder="{{ __('Street Address') }}" />
-                    <div class="grid grid-cols-2 gap-4">
-                        <flux:input wire:model="city" placeholder="{{ __('City') }}" />
-                        <flux:input wire:model="state" placeholder="{{ __('State/Region') }}" />
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <flux:input wire:model="zip" placeholder="{{ __('ZIP/Postal Code') }}" />
-                        <flux:input wire:model="country" placeholder="{{ __('Country') }}" />
-                    </div>
-                </div>
-            @else
-                @if($member->address || $member->city || $member->state || $member->zip || $member->country)
-                    <address class="not-italic text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($member->address)
-                            <div>{{ $member->address }}</div>
-                        @endif
-                        @if($member->city || $member->state || $member->zip)
-                            <div>
-                                {{ collect([$member->city, $member->state])->filter()->implode(', ') }}
-                                @if($member->zip)
-                                    {{ $member->zip }}
+        <!-- Overview Tab -->
+        <div x-show="activeTab === 'overview'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+            <!-- Content Grid -->
+            <div class="grid gap-6 lg:grid-cols-2">
+                <!-- Personal Information -->
+                <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:heading size="lg" class="mb-4">{{ __('Personal Information') }}</flux:heading>
+                    <dl class="grid grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Date of Birth') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input type="date" wire:model="date_of_birth" />
+                                @else
+                                    {{ $member->date_of_birth?->format('M d, Y') ?? '-' }}
                                 @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Gender') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:select wire:model.live="gender">
+                                        <flux:select.option value="">{{ __('Select') }}</flux:select.option>
+                                        @foreach($this->genders as $genderOption)
+                                            <flux:select.option value="{{ $genderOption->value }}">{{ ucfirst($genderOption->value) }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                @else
+                                    {{ $member->gender ? ucfirst($member->gender->value) : '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Marital Status') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:select wire:model.live="marital_status">
+                                        <flux:select.option value="">{{ __('Select') }}</flux:select.option>
+                                        @foreach($this->maritalStatuses as $maritalOption)
+                                            <flux:select.option value="{{ $maritalOption->value }}">{{ ucfirst($maritalOption->value) }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                @else
+                                    {{ $member->marital_status ? ucfirst($member->marital_status->value) : '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        @if($editing && $gender === 'female' && $marital_status === 'married')
+                            <div>
+                                <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Maiden Name') }}</dt>
+                                <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                    <flux:input wire:model="maiden_name" placeholder="{{ __('Maiden Name') }}" />
+                                </dd>
+                            </div>
+                        @elseif(!$editing && $member->maiden_name)
+                            <div>
+                                <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Maiden Name') }}</dt>
+                                <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                    {{ $member->maiden_name }}
+                                </dd>
                             </div>
                         @endif
-                        @if($member->country)
-                            <div>{{ $member->country }}</div>
-                        @endif
-                    </address>
-                @else
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No address on file') }}</p>
-                @endif
-            @endif
-        </div>
-
-        <!-- Church Information -->
-        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:heading size="lg" class="mb-4">{{ __('Church Information') }}</flux:heading>
-            <dl class="grid grid-cols-2 gap-4">
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Joined') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:input type="date" wire:model="joined_at" />
-                        @else
-                            {{ $member->joined_at?->format('M d, Y') ?? '-' }}
-                        @endif
-                    </dd>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Profession') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input wire:model="profession" placeholder="{{ __('Profession') }}" />
+                                @else
+                                    {{ $member->profession ?? '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Employment Status') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:select wire:model="employment_status">
+                                        <flux:select.option value="">{{ __('Select') }}</flux:select.option>
+                                        @foreach($this->employmentStatuses as $empStatus)
+                                            <flux:select.option value="{{ $empStatus->value }}">{{ str_replace('_', ' ', ucwords($empStatus->value, '_')) }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                @else
+                                    {{ $member->employment_status ? str_replace('_', ' ', ucwords($member->employment_status->value, '_')) : '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Hometown') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input wire:model="hometown" placeholder="{{ __('Hometown') }}" />
+                                @else
+                                    {{ $member->hometown ?? '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                    </dl>
                 </div>
-                <div>
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Baptized') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        @if($editing)
-                            <flux:input type="date" wire:model="baptized_at" />
-                        @else
-                            {{ $member->baptized_at?->format('M d, Y') ?? '-' }}
-                        @endif
-                    </dd>
-                </div>
-                <div class="col-span-2">
-                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Primary Branch') }}</dt>
-                    <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                        {{ $branch->name }}
-                    </dd>
-                </div>
-            </dl>
-        </div>
 
-        <!-- Clusters / Groups -->
-        <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-4 flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Groups & Clusters') }}</flux:heading>
-                @if($editing && $this->canEdit)
-                    <flux:button variant="ghost" size="sm" wire:click="openAddClusterModal" icon="plus">
-                        {{ __('Add to Group') }}
-                    </flux:button>
-                @endif
-            </div>
+                <!-- Contact Information -->
+                <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:heading size="lg" class="mb-4">{{ __('Contact Information') }}</flux:heading>
+                    <dl class="grid grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Email') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input type="email" wire:model="email" placeholder="{{ __('Email') }}" />
+                                    @error('email') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
+                                @else
+                                    @if($member->email)
+                                        <a href="mailto:{{ $member->email }}" class="text-blue-600 hover:underline dark:text-blue-400">
+                                            {{ $member->email }}
+                                        </a>
+                                    @else
+                                        -
+                                    @endif
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Phone') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input type="tel" wire:model="phone" placeholder="{{ __('Phone') }}" />
+                                @else
+                                    @if($member->phone)
+                                        <a href="tel:{{ $member->phone }}" class="text-blue-600 hover:underline dark:text-blue-400">
+                                            {{ $member->phone }}
+                                        </a>
+                                    @else
+                                        -
+                                    @endif
+                                @endif
+                            </dd>
+                        </div>
 
-            @if($this->memberClusters->isEmpty())
-                <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                    {{ __('Not assigned to any groups') }}
-                </p>
-            @else
-                <div class="space-y-3">
-                    @foreach($this->memberClusters as $cluster)
-                        <div wire:key="cluster-{{ $cluster->id }}" class="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
-                            <div class="flex items-center gap-3">
-                                <div>
-                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">
-                                        {{ $cluster->name }}
+                        <!-- SMS Preferences -->
+                        <div class="col-span-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('SMS Preferences') }}</dt>
+                            <dd class="mt-2">
+                                <div class="flex items-center gap-3">
+                                    @if($member->sms_opt_out)
+                                        <flux:badge color="yellow">{{ __('Opted Out') }}</flux:badge>
+                                        <flux:text class="text-sm text-zinc-500">{{ __('Will not receive automated SMS') }}</flux:text>
+                                    @else
+                                        <flux:badge color="green">{{ __('Subscribed') }}</flux:badge>
+                                        <flux:text class="text-sm text-zinc-500">{{ __('Receives automated SMS') }}</flux:text>
+                                    @endif
+                                    @if($this->canEdit)
+                                        <flux:button variant="ghost" size="sm" wire:click="toggleSmsOptOut">
+                                            {{ $member->sms_opt_out ? __('Opt In') : __('Opt Out') }}
+                                        </flux:button>
+                                    @endif
+                                </div>
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <!-- Address -->
+                <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:heading size="lg" class="mb-4">{{ __('Address') }}</flux:heading>
+                    @if($editing)
+                        <div class="grid gap-4">
+                            <flux:input wire:model="address" placeholder="{{ __('Street Address') }}" />
+                            <flux:input wire:model="gps_address" placeholder="{{ __('GPS/Digital Address') }}" />
+                            <div class="grid grid-cols-2 gap-4">
+                                <flux:input wire:model="city" placeholder="{{ __('City') }}" />
+                                <flux:input wire:model="state" placeholder="{{ __('State/Region') }}" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <flux:input wire:model="zip" placeholder="{{ __('ZIP/Postal Code') }}" />
+                                <flux:input wire:model="country" placeholder="{{ __('Country') }}" />
+                            </div>
+                        </div>
+                    @else
+                        @if($member->address || $member->city || $member->state || $member->zip || $member->country || $member->gps_address)
+                            <address class="not-italic text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($member->address)
+                                    <div>{{ $member->address }}</div>
+                                @endif
+                                @if($member->gps_address)
+                                    <div class="text-zinc-500 dark:text-zinc-400">{{ __('GPS') }}: {{ $member->gps_address }}</div>
+                                @endif
+                                @if($member->city || $member->state || $member->zip)
+                                    <div>
+                                        {{ collect([$member->city, $member->state])->filter()->implode(', ') }}
+                                        @if($member->zip)
+                                            {{ $member->zip }}
+                                        @endif
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <span>{{ str_replace('_', ' ', ucwords($cluster->cluster_type->value, '_')) }}</span>
-                                        @if($cluster->pivot->joined_at)
-                                            <span>&bull;</span>
-                                            <span>{{ __('Joined') }} {{ \Carbon\Carbon::parse($cluster->pivot->joined_at)->format('M d, Y') }}</span>
+                                @endif
+                                @if($member->country)
+                                    <div>{{ $member->country }}</div>
+                                @endif
+                            </address>
+                        @else
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No address on file') }}</p>
+                        @endif
+                    @endif
+                </div>
+
+                <!-- Church Information -->
+                <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:heading size="lg" class="mb-4">{{ __('Church Information') }}</flux:heading>
+                    <dl class="grid grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Joined') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input type="date" wire:model="joined_at" />
+                                @else
+                                    {{ $member->joined_at?->format('M d, Y') ?? '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Baptized') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input type="date" wire:model="baptized_at" />
+                                @else
+                                    {{ $member->baptized_at?->format('M d, Y') ?? '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Confirmation Date') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input type="date" wire:model="confirmation_date" />
+                                @else
+                                    {{ $member->confirmation_date?->format('M d, Y') ?? '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Primary Branch') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                {{ $branch->name }}
+                            </dd>
+                        </div>
+                        <div class="col-span-2">
+                            <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Previous Congregation') }}</dt>
+                            <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
+                                @if($editing)
+                                    <flux:input wire:model="previous_congregation" placeholder="{{ __('Previous Church/Congregation') }}" />
+                                @else
+                                    {{ $member->previous_congregation ?? '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <!-- Clusters / Groups -->
+                <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="mb-4 flex items-center justify-between">
+                        <flux:heading size="lg">{{ __('Groups & Clusters') }}</flux:heading>
+                        @if($editing && $this->canEdit)
+                            <flux:button variant="ghost" size="sm" wire:click="openAddClusterModal" icon="plus">
+                                {{ __('Add to Group') }}
+                            </flux:button>
+                        @endif
+                    </div>
+
+                    @if($this->memberClusters->isEmpty())
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Not assigned to any groups') }}
+                        </p>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($this->memberClusters as $cluster)
+                                <div wire:key="cluster-{{ $cluster->id }}" class="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
+                                    <div class="flex items-center gap-3">
+                                        <div>
+                                            <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                                {{ $cluster->name }}
+                                            </div>
+                                            <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                                <span>{{ str_replace('_', ' ', ucwords($cluster->cluster_type->value, '_')) }}</span>
+                                                @if($cluster->pivot->joined_at)
+                                                    <span>&bull;</span>
+                                                    <span>{{ __('Joined') }} {{ \Carbon\Carbon::parse($cluster->pivot->joined_at)->format('M d, Y') }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        @if($editing && $this->canEdit)
+                                            <flux:select
+                                                wire:change="updateClusterRole('{{ $cluster->id }}', $event.target.value)"
+                                                size="sm"
+                                                class="w-28"
+                                            >
+                                                @foreach($this->clusterRoles as $role)
+                                                    <flux:select.option
+                                                        value="{{ $role->value }}"
+                                                        :selected="($cluster->pivot->role->value ?? $cluster->pivot->role) === $role->value"
+                                                    >
+                                                        {{ ucfirst($role->value) }}
+                                                    </flux:select.option>
+                                                @endforeach
+                                            </flux:select>
+                                            <flux:button
+                                                variant="ghost"
+                                                size="sm"
+                                                wire:click="removeFromCluster('{{ $cluster->id }}')"
+                                                wire:confirm="{{ __('Are you sure you want to remove this member from :cluster?', ['cluster' => $cluster->name]) }}"
+                                                icon="x-mark"
+                                                class="text-red-600 hover:text-red-700"
+                                            />
+                                        @else
+                                            <flux:badge
+                                                :color="match($cluster->pivot->role->value ?? $cluster->pivot->role) {
+                                                    'leader' => 'blue',
+                                                    'assistant' => 'yellow',
+                                                    'member' => 'zinc',
+                                                    default => 'zinc',
+                                                }"
+                                                size="sm"
+                                            >
+                                                {{ ucfirst($cluster->pivot->role->value ?? $cluster->pivot->role) }}
+                                            </flux:badge>
                                         @endif
                                     </div>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                @if($editing && $this->canEdit)
-                                    <flux:select
-                                        wire:change="updateClusterRole('{{ $cluster->id }}', $event.target.value)"
-                                        size="sm"
-                                        class="w-28"
-                                    >
-                                        @foreach($this->clusterRoles as $role)
-                                            <flux:select.option
-                                                value="{{ $role->value }}"
-                                                :selected="($cluster->pivot->role->value ?? $cluster->pivot->role) === $role->value"
-                                            >
-                                                {{ ucfirst($role->value) }}
-                                            </flux:select.option>
-                                        @endforeach
-                                    </flux:select>
-                                    <flux:button
-                                        variant="ghost"
-                                        size="sm"
-                                        wire:click="removeFromCluster('{{ $cluster->id }}')"
-                                        wire:confirm="{{ __('Are you sure you want to remove this member from :cluster?', ['cluster' => $cluster->name]) }}"
-                                        icon="x-mark"
-                                        class="text-red-600 hover:text-red-700"
-                                    />
-                                @else
-                                    <flux:badge
-                                        :color="match($cluster->pivot->role->value ?? $cluster->pivot->role) {
-                                            'leader' => 'blue',
-                                            'assistant' => 'yellow',
-                                            'member' => 'zinc',
-                                            default => 'zinc',
-                                        }"
-                                        size="sm"
-                                    >
-                                        {{ ucfirst($cluster->pivot->role->value ?? $cluster->pivot->role) }}
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Notes -->
+                <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:heading size="lg" class="mb-4">{{ __('Notes') }}</flux:heading>
+                    @if($editing)
+                        <flux:textarea wire:model="notes" placeholder="{{ __('Add notes about this member...') }}" rows="4" />
+                    @else
+                        @if($member->notes)
+                            <p class="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-100">{{ $member->notes }}</p>
+                        @else
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No notes') }}</p>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Tab -->
+        <div x-show="activeTab === 'attendance'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+            <!-- Attendance Stats -->
+            <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Total Attendance') }}</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ $this->attendanceStats['total'] }}
+                    </dd>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Last 30 Days') }}</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ $this->attendanceStats['last30Days'] }}
+                    </dd>
+                </div>
+            </div>
+
+            <!-- Attendance List -->
+            <div class="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                    <flux:heading size="lg">{{ __('Recent Attendance') }}</flux:heading>
+                </div>
+                @if($this->memberAttendance->isEmpty())
+                    <div class="p-6 text-center">
+                        <flux:icon.calendar-days class="mx-auto size-12 text-zinc-300 dark:text-zinc-600" />
+                        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('No attendance records found') }}</p>
+                    </div>
+                @else
+                    <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                        @foreach($this->memberAttendance as $attendance)
+                            <div wire:key="attendance-{{ $attendance->id }}" class="flex items-center justify-between px-6 py-4">
+                                <div>
+                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $attendance->service?->name ?? __('Service') }}
+                                    </div>
+                                    <div class="text-sm text-zinc-500 dark:text-zinc-400">
+                                        {{ $attendance->date?->format('M d, Y') }}
+                                        @if($attendance->check_in_time)
+                                            &bull; {{ __('Check-in') }}: {{ \Carbon\Carbon::parse($attendance->check_in_time)->format('g:i A') }}
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($attendance->check_in_method)
+                                    <flux:badge color="zinc" size="sm">
+                                        {{ ucfirst($attendance->check_in_method->value) }}
                                     </flux:badge>
                                 @endif
                             </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
-    </div>
 
-    <!-- Notes -->
-    <div class="mt-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:heading size="lg" class="mb-4">{{ __('Notes') }}</flux:heading>
-        @if($editing)
-            <flux:textarea wire:model="notes" placeholder="{{ __('Add notes about this member...') }}" rows="4" />
-        @else
-            @if($member->notes)
-                <p class="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-100">{{ $member->notes }}</p>
-            @else
-                <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No notes') }}</p>
-            @endif
-        @endif
-    </div>
+        <!-- Giving Tab -->
+        <div x-show="activeTab === 'giving'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+            <!-- Giving Stats -->
+            <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Total Donations') }}</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ number_format($this->givingStats['totalDonations'], 2) }}
+                    </dd>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('This Year') }}</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ number_format($this->givingStats['thisYear'], 2) }}
+                    </dd>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Active Pledges') }}</dt>
+                    <dd class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ $this->givingStats['activePledges'] }}
+                    </dd>
+                </div>
+            </div>
 
-    <!-- Activity History -->
-    <div class="mt-6">
-        <livewire:members.member-activity-log :member="$member" />
+            <div class="grid gap-6 lg:grid-cols-2">
+                <!-- Donations List -->
+                <div class="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                        <flux:heading size="lg">{{ __('Recent Donations') }}</flux:heading>
+                    </div>
+                    @if($this->memberDonations->isEmpty())
+                        <div class="p-6 text-center">
+                            <flux:icon.banknotes class="mx-auto size-12 text-zinc-300 dark:text-zinc-600" />
+                            <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('No donation records found') }}</p>
+                        </div>
+                    @else
+                        <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                            @foreach($this->memberDonations as $donation)
+                                <div wire:key="donation-{{ $donation->id }}" class="flex items-center justify-between px-6 py-4">
+                                    <div>
+                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ number_format($donation->amount, 2) }}
+                                        </div>
+                                        <div class="text-sm text-zinc-500 dark:text-zinc-400">
+                                            {{ $donation->donation_date?->format('M d, Y') }}
+                                            @if($donation->donation_type)
+                                                &bull; {{ ucfirst($donation->donation_type) }}
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @if($donation->payment_method)
+                                        <flux:badge color="zinc" size="sm">
+                                            {{ ucfirst($donation->payment_method) }}
+                                        </flux:badge>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Pledges List -->
+                <div class="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                        <flux:heading size="lg">{{ __('Pledges') }}</flux:heading>
+                    </div>
+                    @if($this->memberPledges->isEmpty())
+                        <div class="p-6 text-center">
+                            <flux:icon.clipboard-document-list class="mx-auto size-12 text-zinc-300 dark:text-zinc-600" />
+                            <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('No pledge records found') }}</p>
+                        </div>
+                    @else
+                        <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                            @foreach($this->memberPledges as $pledge)
+                                <div wire:key="pledge-{{ $pledge->id }}" class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ $pledge->campaign?->name ?? __('Pledge') }}
+                                        </div>
+                                        <flux:badge
+                                            :color="match($pledge->status) {
+                                                'active' => 'green',
+                                                'completed' => 'blue',
+                                                'cancelled' => 'red',
+                                                default => 'zinc',
+                                            }"
+                                            size="sm"
+                                        >
+                                            {{ ucfirst($pledge->status) }}
+                                        </flux:badge>
+                                    </div>
+                                    <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                                        {{ __('Amount') }}: {{ number_format($pledge->amount, 2) }}
+                                        &bull; {{ __('Fulfilled') }}: {{ number_format($pledge->amount_fulfilled ?? 0, 2) }}
+                                    </div>
+                                    @if($pledge->amount > 0)
+                                        <div class="mt-2">
+                                            <div class="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                                <div class="h-full rounded-full bg-blue-600"
+                                                     style="width: {{ min(100, ($pledge->amount_fulfilled / $pledge->amount) * 100) }}%"></div>
+                                            </div>
+                                            <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                                {{ round(min(100, ($pledge->amount_fulfilled / $pledge->amount) * 100)) }}% {{ __('complete') }}
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Tab -->
+        <div x-show="activeTab === 'activity'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+            <livewire:members.member-activity-log :member="$member" />
+        </div>
     </div>
 
     <!-- Add to Cluster Modal -->
