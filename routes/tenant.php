@@ -131,6 +131,8 @@ Route::middleware(['web'])->group(function () {
             ->name('finance.donor-engagement');
         Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
             ->name('donations.index');
+        Route::get('/branches/{branch}/offerings', \App\Livewire\Offerings\OfferingIndex::class)
+            ->name('offerings.index');
 
         // Member Giving History
         Route::get('/branches/{branch}/my-giving', \App\Livewire\Giving\MemberGivingHistory::class)

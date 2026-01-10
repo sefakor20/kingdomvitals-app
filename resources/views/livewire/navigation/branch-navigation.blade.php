@@ -131,6 +131,14 @@
                 >
                     {{ __('Donations') }}
                 </flux:navlist.item>
+                <flux:navlist.item
+                    icon="currency-dollar"
+                    :href="route('offerings.index', $this->currentBranch)"
+                    :current="request()->routeIs('offerings.*')"
+                    wire:navigate
+                >
+                    {{ __('Offerings') }}
+                </flux:navlist.item>
             @endif
 
             @if($this->canViewExpenses)
