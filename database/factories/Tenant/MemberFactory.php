@@ -2,6 +2,7 @@
 
 namespace Database\Factories\Tenant;
 
+use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
@@ -21,25 +22,35 @@ class MemberFactory extends Factory
     public function definition(): array
     {
         $gender = fake()->randomElement(Gender::cases());
+        $maritalStatus = fake()->randomElement(MaritalStatus::cases());
 
         return [
             'first_name' => fake()->firstName($gender === Gender::Male ? 'male' : 'female'),
             'last_name' => fake()->lastName(),
             'middle_name' => fake()->optional(0.3)->firstName(),
+            'maiden_name' => ($gender === Gender::Female && $maritalStatus === MaritalStatus::Married)
+                ? fake()->optional(0.7)->lastName()
+                : null,
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'date_of_birth' => fake()->dateTimeBetween('-70 years', '-18 years'),
             'gender' => $gender,
-            'marital_status' => fake()->randomElement(MaritalStatus::cases()),
+            'marital_status' => $maritalStatus,
+            'profession' => fake()->optional(0.7)->jobTitle(),
+            'employment_status' => fake()->optional(0.7)->randomElement(EmploymentStatus::cases()),
             'status' => MembershipStatus::Active,
             'address' => fake()->streetAddress(),
             'city' => fake()->city(),
             'state' => fake()->state(),
             'zip' => fake()->postcode(),
             'country' => 'Ghana',
+            'hometown' => fake()->optional(0.6)->city(),
+            'gps_address' => fake()->optional(0.4)->regexify('[A-Z]{2}-[0-9]{3}-[0-9]{4}'),
             'joined_at' => fake()->dateTimeBetween('-5 years', 'now'),
             'baptized_at' => fake()->optional(0.7)->dateTimeBetween('-5 years', 'now'),
+            'confirmation_date' => fake()->optional(0.5)->dateTimeBetween('-5 years', 'now'),
             'notes' => fake()->optional(0.2)->sentence(),
+            'previous_congregation' => fake()->optional(0.3)->company().' Church',
             'photo_url' => null,
             'sms_opt_out' => false,
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Models\Tenant;
 
+use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\HouseholdRole;
 use App\Enums\MaritalStatus;
@@ -35,6 +36,7 @@ class Member extends Model
         'household_role',
         'first_name',
         'last_name',
+        'maiden_name',
         'middle_name',
         'email',
         'phone',
@@ -42,6 +44,8 @@ class Member extends Model
         'date_of_birth',
         'gender',
         'marital_status',
+        'profession',
+        'employment_status',
         'status',
         'qr_token',
         'qr_token_generated_at',
@@ -50,9 +54,13 @@ class Member extends Model
         'state',
         'zip',
         'country',
+        'hometown',
+        'gps_address',
         'joined_at',
         'baptized_at',
+        'confirmation_date',
         'notes',
+        'previous_congregation',
         'photo_url',
     ];
 
@@ -62,9 +70,11 @@ class Member extends Model
             'date_of_birth' => 'date',
             'joined_at' => 'date',
             'baptized_at' => 'date',
+            'confirmation_date' => 'date',
             'qr_token_generated_at' => 'datetime',
             'gender' => Gender::class,
             'marital_status' => MaritalStatus::class,
+            'employment_status' => EmploymentStatus::class,
             'status' => MembershipStatus::class,
             'household_role' => HouseholdRole::class,
             'sms_opt_out' => 'boolean',

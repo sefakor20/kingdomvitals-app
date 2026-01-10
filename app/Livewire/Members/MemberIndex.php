@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Members;
 
+use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
@@ -74,6 +75,20 @@ class MemberIndex extends Component
 
     public string $notes = '';
 
+    public string $maiden_name = '';
+
+    public string $profession = '';
+
+    public string $employment_status = '';
+
+    public string $hometown = '';
+
+    public string $gps_address = '';
+
+    public string $previous_congregation = '';
+
+    public ?string $confirmation_date = null;
+
     public ?Member $editingMember = null;
 
     public ?Member $deletingMember = null;
@@ -137,6 +152,12 @@ class MemberIndex extends Component
     }
 
     #[Computed]
+    public function employmentStatuses(): array
+    {
+        return EmploymentStatus::cases();
+    }
+
+    #[Computed]
     public function canCreate(): bool
     {
         return auth()->user()->can('create', [Member::class, $this->branch]);
@@ -154,20 +175,27 @@ class MemberIndex extends Component
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],
+            'maiden_name' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'date_of_birth' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'in:male,female'],
             'marital_status' => ['nullable', 'string', 'in:single,married,divorced,widowed'],
+            'profession' => ['nullable', 'string', 'max:100'],
+            'employment_status' => ['nullable', 'string', 'in:employed,self_employed,unemployed,student,retired'],
             'status' => ['required', 'string', 'in:active,inactive,pending,deceased,transferred'],
             'address' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'zip' => ['nullable', 'string', 'max:20'],
             'country' => ['nullable', 'string', 'max:100'],
+            'hometown' => ['nullable', 'string', 'max:100'],
+            'gps_address' => ['nullable', 'string', 'max:100'],
             'joined_at' => ['nullable', 'date'],
             'baptized_at' => ['nullable', 'date'],
+            'confirmation_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'previous_congregation' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ];
     }
@@ -188,9 +216,10 @@ class MemberIndex extends Component
 
         // Convert empty strings to null for nullable fields
         $nullableFields = [
-            'middle_name', 'email', 'phone', 'gender', 'marital_status',
-            'address', 'city', 'state', 'zip', 'country',
-            'date_of_birth', 'joined_at', 'baptized_at', 'notes',
+            'middle_name', 'maiden_name', 'email', 'phone', 'gender', 'marital_status',
+            'profession', 'employment_status', 'address', 'city', 'state', 'zip', 'country',
+            'hometown', 'gps_address', 'date_of_birth', 'joined_at', 'baptized_at',
+            'confirmation_date', 'notes', 'previous_congregation',
         ];
         foreach ($nullableFields as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {
@@ -223,20 +252,27 @@ class MemberIndex extends Component
             'first_name' => $member->first_name,
             'last_name' => $member->last_name,
             'middle_name' => $member->middle_name ?? '',
+            'maiden_name' => $member->maiden_name ?? '',
             'email' => $member->email ?? '',
             'phone' => $member->phone ?? '',
             'date_of_birth' => $member->date_of_birth?->format('Y-m-d'),
             'gender' => $member->gender?->value ?? '',
             'marital_status' => $member->marital_status?->value ?? '',
+            'profession' => $member->profession ?? '',
+            'employment_status' => $member->employment_status?->value ?? '',
             'status' => $member->status->value,
             'address' => $member->address ?? '',
             'city' => $member->city ?? '',
             'state' => $member->state ?? '',
             'zip' => $member->zip ?? '',
             'country' => $member->country ?? 'Ghana',
+            'hometown' => $member->hometown ?? '',
+            'gps_address' => $member->gps_address ?? '',
             'joined_at' => $member->joined_at?->format('Y-m-d'),
             'baptized_at' => $member->baptized_at?->format('Y-m-d'),
+            'confirmation_date' => $member->confirmation_date?->format('Y-m-d'),
             'notes' => $member->notes ?? '',
+            'previous_congregation' => $member->previous_congregation ?? '',
         ]);
         $this->showEditModal = true;
     }
@@ -382,9 +418,10 @@ class MemberIndex extends Component
     private function resetForm(): void
     {
         $this->reset([
-            'first_name', 'last_name', 'middle_name', 'email', 'phone',
-            'date_of_birth', 'gender', 'marital_status', 'address',
-            'city', 'state', 'zip', 'joined_at', 'baptized_at', 'notes',
+            'first_name', 'last_name', 'middle_name', 'maiden_name', 'email', 'phone',
+            'date_of_birth', 'gender', 'marital_status', 'profession', 'employment_status',
+            'address', 'city', 'state', 'zip', 'hometown', 'gps_address',
+            'joined_at', 'baptized_at', 'confirmation_date', 'notes', 'previous_congregation',
             'photo', 'existingPhotoUrl',
         ]);
         $this->status = 'active';
