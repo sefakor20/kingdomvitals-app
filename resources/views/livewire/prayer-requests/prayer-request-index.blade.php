@@ -170,12 +170,14 @@
                                     <flux:icon icon="tag" class="size-4" />
                                     {{ ucfirst(str_replace('_', ' ', $prayerRequest->category->value)) }}
                                 </div>
-                                @if($prayerRequest->member)
-                                    <div class="flex items-center gap-1">
-                                        <flux:icon icon="user" class="size-4" />
+                                <div class="flex items-center gap-1">
+                                    <flux:icon icon="user" class="size-4" />
+                                    @if($prayerRequest->isAnonymous())
+                                        <span class="italic text-zinc-500 dark:text-zinc-400">{{ __('Anonymous') }}</span>
+                                    @else
                                         {{ $prayerRequest->member->fullName() }}
-                                    </div>
-                                @endif
+                                    @endif
+                                </div>
                                 @if($prayerRequest->cluster)
                                     <div class="flex items-center gap-1">
                                         <flux:icon icon="user-group" class="size-4" />
@@ -259,21 +261,23 @@
                     </flux:select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <flux:checkbox wire:model.live="is_anonymous" :label="__('Submit Anonymously')" :description="__('Hide the identity of the person submitting this request')" />
+
+                @if(!$is_anonymous)
                     <flux:select wire:model="member_id" :label="__('Submitted By')" required>
                         <flux:select.option value="">{{ __('Select member...') }}</flux:select.option>
                         @foreach($this->members as $member)
                             <flux:select.option value="{{ $member->id }}">{{ $member->fullName() }}</flux:select.option>
                         @endforeach
                     </flux:select>
+                @endif
 
-                    <flux:select wire:model="cluster_id" :label="__('Cluster (Optional)')">
-                        <flux:select.option value="">{{ __('No cluster') }}</flux:select.option>
-                        @foreach($this->clusters as $cluster)
-                            <flux:select.option value="{{ $cluster->id }}">{{ $cluster->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
+                <flux:select wire:model="cluster_id" :label="__('Cluster (Optional)')">
+                    <flux:select.option value="">{{ __('No cluster') }}</flux:select.option>
+                    @foreach($this->clusters as $cluster)
+                        <flux:select.option value="{{ $cluster->id }}">{{ $cluster->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="cancelCreate" type="button">
@@ -312,21 +316,23 @@
                     </flux:select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <flux:checkbox wire:model.live="is_anonymous" :label="__('Submit Anonymously')" :description="__('Hide the identity of the person submitting this request')" />
+
+                @if(!$is_anonymous)
                     <flux:select wire:model="member_id" :label="__('Submitted By')" required>
                         <flux:select.option value="">{{ __('Select member...') }}</flux:select.option>
                         @foreach($this->members as $member)
                             <flux:select.option value="{{ $member->id }}">{{ $member->fullName() }}</flux:select.option>
                         @endforeach
                     </flux:select>
+                @endif
 
-                    <flux:select wire:model="cluster_id" :label="__('Cluster (Optional)')">
-                        <flux:select.option value="">{{ __('No cluster') }}</flux:select.option>
-                        @foreach($this->clusters as $cluster)
-                            <flux:select.option value="{{ $cluster->id }}">{{ $cluster->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
+                <flux:select wire:model="cluster_id" :label="__('Cluster (Optional)')">
+                    <flux:select.option value="">{{ __('No cluster') }}</flux:select.option>
+                    @foreach($this->clusters as $cluster)
+                        <flux:select.option value="{{ $cluster->id }}">{{ $cluster->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="cancelEdit" type="button">

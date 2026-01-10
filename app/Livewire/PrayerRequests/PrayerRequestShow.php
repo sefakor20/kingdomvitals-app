@@ -40,6 +40,8 @@ class PrayerRequestShow extends Component
 
     public ?string $cluster_id = null;
 
+    public bool $is_anonymous = false;
+
     // Delete modal
     public bool $showDeleteModal = false;
 
@@ -139,7 +141,8 @@ class PrayerRequestShow extends Component
             'description' => ['required', 'string'],
             'category' => ['required', 'string', 'in:'.$categories],
             'privacy' => ['required', 'string', 'in:'.$privacyOptions],
-            'member_id' => ['required', 'uuid', 'exists:members,id'],
+            'is_anonymous' => ['boolean'],
+            'member_id' => ['nullable', 'required_if:is_anonymous,false', 'uuid', 'exists:members,id'],
             'cluster_id' => ['nullable', 'uuid', 'exists:clusters,id'],
         ];
     }
@@ -155,6 +158,7 @@ class PrayerRequestShow extends Component
             'privacy' => $this->prayerRequest->privacy->value,
             'member_id' => $this->prayerRequest->member_id,
             'cluster_id' => $this->prayerRequest->cluster_id,
+            'is_anonymous' => $this->prayerRequest->isAnonymous(),
         ]);
 
         $this->editing = true;
@@ -168,6 +172,14 @@ class PrayerRequestShow extends Component
         if ($validated['cluster_id'] === '') {
             $validated['cluster_id'] = null;
         }
+
+        // Handle anonymous submissions
+        if ($this->is_anonymous) {
+            $validated['member_id'] = null;
+        }
+
+        // Remove is_anonymous from validated data as it's not a model field
+        unset($validated['is_anonymous']);
 
         $this->prayerRequest->update($validated);
         $this->prayerRequest->refresh();

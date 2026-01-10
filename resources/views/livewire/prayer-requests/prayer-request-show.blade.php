@@ -30,20 +30,22 @@
                             </flux:select>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <flux:checkbox wire:model.live="is_anonymous" :label="__('Submit Anonymously')" :description="__('Hide the identity of the person submitting this request')" />
+
+                        @if(!$is_anonymous)
                             <flux:select wire:model="member_id" :label="__('Submitted By')" required>
                                 @foreach($this->members as $member)
                                     <flux:select.option value="{{ $member->id }}">{{ $member->fullName() }}</flux:select.option>
                                 @endforeach
                             </flux:select>
+                        @endif
 
-                            <flux:select wire:model="cluster_id" :label="__('Cluster (Optional)')">
-                                <flux:select.option value="">{{ __('No cluster') }}</flux:select.option>
-                                @foreach($this->clusters as $cluster)
-                                    <flux:select.option value="{{ $cluster->id }}">{{ $cluster->name }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </div>
+                        <flux:select wire:model="cluster_id" :label="__('Cluster (Optional)')">
+                            <flux:select.option value="">{{ __('No cluster') }}</flux:select.option>
+                            @foreach($this->clusters as $cluster)
+                                <flux:select.option value="{{ $cluster->id }}">{{ $cluster->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
 
                         <div class="flex justify-end gap-3 pt-4">
                             <flux:button variant="ghost" wire:click="cancel" type="button">
@@ -185,7 +187,11 @@
                     <div class="flex justify-between">
                         <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Submitted By') }}</dt>
                         <dd class="font-medium text-zinc-900 dark:text-zinc-100">
-                            {{ $prayerRequest->member?->fullName() ?? __('Unknown') }}
+                            @if($prayerRequest->isAnonymous())
+                                <span class="italic text-zinc-500 dark:text-zinc-400">{{ __('Anonymous') }}</span>
+                            @else
+                                {{ $prayerRequest->member->fullName() }}
+                            @endif
                         </dd>
                     </div>
 

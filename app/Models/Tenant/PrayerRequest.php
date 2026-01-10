@@ -91,6 +91,16 @@ class PrayerRequest extends Model
         return $this->privacy === PrayerRequestPrivacy::LeadersOnly;
     }
 
+    public function isAnonymous(): bool
+    {
+        return $this->member_id === null;
+    }
+
+    public function getSubmitterName(): string
+    {
+        return $this->isAnonymous() ? __('Anonymous') : $this->member->fullName();
+    }
+
     public function markAsAnswered(?string $details = null): void
     {
         $this->update([
