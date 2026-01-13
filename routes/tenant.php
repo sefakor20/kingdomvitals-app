@@ -172,6 +172,14 @@ Route::middleware(['web'])->group(function () {
         Route::get('/branches/{branch}/prayer-requests/{prayerRequest}', \App\Livewire\PrayerRequests\PrayerRequestShow::class)
             ->name('prayer-requests.show');
 
+        // Children's Ministry Management
+        Route::get('/branches/{branch}/children', \App\Livewire\Children\ChildrenDirectory::class)
+            ->name('children.index');
+        Route::get('/branches/{branch}/children/dashboard', \App\Livewire\Children\ChildrenDashboard::class)
+            ->name('children.dashboard');
+        Route::get('/branches/{branch}/children/age-groups', \App\Livewire\Children\AgeGroupIndex::class)
+            ->name('children.age-groups');
+
         // Report Center
         Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)
             ->name('reports.index');

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([MemberObserver::class])]
@@ -33,6 +34,7 @@ class Member extends Model
     protected $fillable = [
         'primary_branch_id',
         'household_id',
+        'age_group_id',
         'household_role',
         'first_name',
         'last_name',
@@ -94,6 +96,26 @@ class Member extends Model
     public function household(): BelongsTo
     {
         return $this->belongsTo(Household::class);
+    }
+
+    public function ageGroup(): BelongsTo
+    {
+        return $this->belongsTo(AgeGroup::class);
+    }
+
+    public function emergencyContacts(): HasMany
+    {
+        return $this->hasMany(ChildEmergencyContact::class);
+    }
+
+    public function primaryEmergencyContact(): HasOne
+    {
+        return $this->hasOne(ChildEmergencyContact::class)->where('is_primary', true);
+    }
+
+    public function medicalInfo(): HasOne
+    {
+        return $this->hasOne(ChildMedicalInfo::class);
     }
 
     public function familyMembers(): HasMany
@@ -243,5 +265,39 @@ class Member extends Model
             $q->whereNull('date_of_birth')
                 ->orWhereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= 18');
         });
+    }
+
+    /**
+     * Scope to get children in a specific age group.
+     */
+    public function scopeInAgeGroup(Builder $query, string $ageGroupId): Builder
+    {
+        return $query->where('age_group_id', $ageGroupId);
+    }
+
+    /**
+     * Auto-assign this member to an age group based on their date of birth.
+     */
+    public function assignAgeGroupByAge(): ?AgeGroup
+    {
+        if (! $this->date_of_birth || ! $this->isChild()) {
+            return null;
+        }
+
+        $age = $this->date_of_birth->age;
+
+        $ageGroup = AgeGroup::query()
+            ->where('branch_id', $this->primary_branch_id)
+            ->where('is_active', true)
+            ->where('min_age', '<=', $age)
+            ->where('max_age', '>=', $age)
+            ->orderBy('sort_order')
+            ->first();
+
+        if ($ageGroup) {
+            $this->update(['age_group_id' => $ageGroup->id]);
+        }
+
+        return $ageGroup;
     }
 }

@@ -145,6 +145,13 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewChildren(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Member::class, $this->currentBranch]);
+    }
+
+    #[Computed]
     public function canViewGivingHistory(): bool
     {
         // All authenticated users can view their own giving history
