@@ -124,6 +124,7 @@ class HouseholdIndex extends Component
         $this->showCreateModal = false;
         $this->resetForm();
         unset($this->households);
+        $this->dispatch('household-created');
     }
 
     public function edit(Household $household): void
@@ -172,6 +173,7 @@ class HouseholdIndex extends Component
         $this->editingHousehold = null;
         $this->resetForm();
         unset($this->households);
+        $this->dispatch('household-updated');
     }
 
     public function confirmDelete(Household $household): void
@@ -195,6 +197,7 @@ class HouseholdIndex extends Component
         $this->showDeleteModal = false;
         $this->deletingHousehold = null;
         unset($this->households);
+        $this->dispatch('household-deleted');
     }
 
     public function cancelCreate(): void

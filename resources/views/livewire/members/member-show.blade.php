@@ -619,13 +619,13 @@
                                         <div class="text-sm text-zinc-500 dark:text-zinc-400">
                                             {{ $donation->donation_date?->format('M d, Y') }}
                                             @if($donation->donation_type)
-                                                &bull; {{ ucfirst($donation->donation_type) }}
+                                                &bull; {{ ucfirst($donation->donation_type?->value) }}
                                             @endif
                                         </div>
                                     </div>
                                     @if($donation->payment_method)
                                         <flux:badge color="zinc" size="sm">
-                                            {{ ucfirst($donation->payment_method) }}
+                                            {{ ucfirst($donation->payment_method?->value) }}
                                         </flux:badge>
                                     @endif
                                 </div>
@@ -661,7 +661,7 @@
                                             }"
                                             size="sm"
                                         >
-                                            {{ ucfirst($pledge->status) }}
+                                            {{ ucfirst($pledge->status?->value) }}
                                         </flux:badge>
                                     </div>
                                     <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">

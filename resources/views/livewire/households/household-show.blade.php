@@ -266,4 +266,17 @@
             </div>
         @endif
     </flux:modal>
+
+    {{-- Success Toasts --}}
+    <x-toast on="member-added" type="success">
+        {{ __('Member added to household successfully.') }}
+    </x-toast>
+
+    <x-toast on="role-updated" type="success">
+        {{ __('Member role updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="member-removed" type="success">
+        {{ __('Member removed from household successfully.') }}
+    </x-toast>
 </div>

@@ -221,4 +221,21 @@
             </div>
         </div>
     </flux:modal>
+
+    <!-- Success Toasts -->
+    <x-toast on="age-group-created" type="success">
+        {{ __('Age group created successfully.') }}
+    </x-toast>
+
+    <x-toast on="age-group-updated" type="success">
+        {{ __('Age group updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="age-group-deleted" type="success">
+        {{ __('Age group deleted successfully.') }}
+    </x-toast>
+
+    <x-toast on="children-auto-assigned" type="success">
+        {{ __('Children assigned to age groups successfully.') }}
+    </x-toast>
 </section>

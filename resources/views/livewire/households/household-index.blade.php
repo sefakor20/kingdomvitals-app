@@ -76,12 +76,12 @@
                                     {{ __('View') }}
                                 </flux:menu.item>
                                 @can('update', $household)
-                                    <flux:menu.item wire:click="edit({{ $household->id }})" icon="pencil">
+                                    <flux:menu.item wire:click="edit('{{ $household->id }}')" icon="pencil">
                                         {{ __('Edit') }}
                                     </flux:menu.item>
                                 @endcan
                                 @can('delete', $household)
-                                    <flux:menu.item wire:click="confirmDelete({{ $household->id }})" icon="trash" variant="danger">
+                                    <flux:menu.item wire:click="confirmDelete('{{ $household->id }}')" icon="trash" variant="danger">
                                         {{ __('Delete') }}
                                     </flux:menu.item>
                                 @endcan
@@ -215,4 +215,17 @@
             </div>
         </div>
     </flux:modal>
+
+    {{-- Success Toasts --}}
+    <x-toast on="household-created" type="success">
+        {{ __('Household created successfully.') }}
+    </x-toast>
+
+    <x-toast on="household-updated" type="success">
+        {{ __('Household updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="household-deleted" type="success">
+        {{ __('Household deleted successfully.') }}
+    </x-toast>
 </div>

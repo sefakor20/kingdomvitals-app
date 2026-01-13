@@ -142,6 +142,7 @@ class HouseholdShow extends Component
         $this->memberSearch = '';
         unset($this->members);
         unset($this->availableMembers);
+        $this->dispatch('member-added');
     }
 
     public function cancelAddMember(): void
@@ -163,7 +164,7 @@ class HouseholdShow extends Component
     {
         $this->authorize('update', $this->household);
 
-        if (!$this->editingMember instanceof \App\Models\Tenant\Member) {
+        if (! $this->editingMember instanceof \App\Models\Tenant\Member) {
             return;
         }
 
@@ -190,6 +191,7 @@ class HouseholdShow extends Component
         $this->showEditRoleModal = false;
         $this->editingMember = null;
         unset($this->members);
+        $this->dispatch('role-updated');
     }
 
     public function cancelEditRole(): void
@@ -209,7 +211,7 @@ class HouseholdShow extends Component
     {
         $this->authorize('update', $this->household);
 
-        if (!$this->removingMember instanceof \App\Models\Tenant\Member) {
+        if (! $this->removingMember instanceof \App\Models\Tenant\Member) {
             return;
         }
 
@@ -226,6 +228,7 @@ class HouseholdShow extends Component
         $this->showRemoveMemberModal = false;
         $this->removingMember = null;
         unset($this->members);
+        $this->dispatch('member-removed');
     }
 
     public function cancelRemoveMember(): void
