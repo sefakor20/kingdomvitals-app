@@ -67,7 +67,7 @@ class BudgetIndex extends Component
     {
         $this->authorize('viewAny', [Budget::class, $branch]);
         $this->branch = $branch;
-        $this->fiscal_year = (string) date('Y');
+        $this->fiscal_year = date('Y');
     }
 
     #[Computed]
@@ -75,23 +75,23 @@ class BudgetIndex extends Component
     {
         $query = Budget::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('notes', 'like', "%{$search}%");
             });
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
             $query->where('category', $this->categoryFilter);
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
-        if ($this->yearFilter) {
+        if ($this->yearFilter !== '' && $this->yearFilter !== '0') {
             $query->where('fiscal_year', $this->yearFilter);
         }
 
@@ -349,7 +349,7 @@ class BudgetIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($budgets) {
+        return response()->streamDownload(function () use ($budgets): void {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, [
@@ -401,7 +401,7 @@ class BudgetIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.budgets.budget-index');
     }

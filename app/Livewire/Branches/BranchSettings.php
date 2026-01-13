@@ -460,7 +460,7 @@ class BranchSettings extends Component
         return route('giving.form', $this->branch->id);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.branches.branch-settings');
     }

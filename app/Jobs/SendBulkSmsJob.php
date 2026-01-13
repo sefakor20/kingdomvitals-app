@@ -73,7 +73,7 @@ class SendBulkSmsJob implements ShouldQueue
         }
 
         // Send the bulk SMS
-        $isScheduled = ! empty($this->scheduledAt);
+        $isScheduled = !in_array($this->scheduledAt, [null, '', '0'], true);
         $result = $service->sendBulkSms(
             $this->phoneNumbers,
             $this->message,

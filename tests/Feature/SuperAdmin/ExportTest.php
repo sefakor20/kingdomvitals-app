@@ -17,7 +17,7 @@ use Livewire\Livewire;
 // Tenant Export Tests
 // ============================================
 
-it('can export tenants to CSV', function () {
+it('can export tenants to CSV', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     DB::table('tenants')->insert([
@@ -39,7 +39,7 @@ it('can export tenants to CSV', function () {
     expect($component->effects['download']['name'])->toContain('.csv');
 });
 
-it('logs tenant export activity', function () {
+it('logs tenant export activity', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     DB::table('tenants')->insert([
@@ -61,7 +61,7 @@ it('logs tenant export activity', function () {
     ]);
 });
 
-it('exports filtered tenants when search is active', function () {
+it('exports filtered tenants when search is active', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     DB::table('tenants')->insert([
@@ -97,7 +97,7 @@ it('exports filtered tenants when search is active', function () {
 // Plan Export Tests
 // ============================================
 
-it('can export plans to CSV', function () {
+it('can export plans to CSV', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     SubscriptionPlan::create([
@@ -118,7 +118,7 @@ it('can export plans to CSV', function () {
     expect($component->effects['download']['name'])->toContain('.csv');
 });
 
-it('logs plan export activity', function () {
+it('logs plan export activity', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     SubscriptionPlan::create([
@@ -140,7 +140,7 @@ it('logs plan export activity', function () {
     ]);
 });
 
-it('includes record count in export metadata', function () {
+it('includes record count in export metadata', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     SubscriptionPlan::create([
@@ -168,7 +168,7 @@ it('includes record count in export metadata', function () {
 // Activity Log Export Tests
 // ============================================
 
-it('can export activity logs to CSV', function () {
+it('can export activity logs to CSV', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create some activity logs
@@ -187,7 +187,7 @@ it('can export activity logs to CSV', function () {
     expect($component->effects['download']['name'])->toContain('.csv');
 });
 
-it('logs activity log export', function () {
+it('logs activity log export', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -200,7 +200,7 @@ it('logs activity log export', function () {
     ]);
 });
 
-it('can filter activity logs by date range', function () {
+it('can filter activity logs by date range', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $component = Livewire::actingAs($admin, 'superadmin')
@@ -212,7 +212,7 @@ it('can filter activity logs by date range', function () {
     expect($component->get('endDate'))->toBe('2024-12-31');
 });
 
-it('exports activity logs with applied filters in metadata', function () {
+it('exports activity logs with applied filters in metadata', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -231,7 +231,7 @@ it('exports activity logs with applied filters in metadata', function () {
     expect($log->metadata['filters']['start_date'])->toBe('2024-01-01');
 });
 
-it('can filter activity logs by action type', function () {
+it('can filter activity logs by action type', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create logs with different actions
@@ -258,7 +258,7 @@ it('can filter activity logs by action type', function () {
 // Revenue Export Tests
 // ============================================
 
-it('can export revenue data to CSV', function () {
+it('can export revenue data to CSV', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $plan = SubscriptionPlan::create([
@@ -289,7 +289,7 @@ it('can export revenue data to CSV', function () {
     expect($component->effects['download']['name'])->toContain('.csv');
 });
 
-it('logs revenue export activity', function () {
+it('logs revenue export activity', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -302,7 +302,7 @@ it('logs revenue export activity', function () {
     ]);
 });
 
-it('includes MRR and ARR in revenue export metadata', function () {
+it('includes MRR and ARR in revenue export metadata', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $plan = SubscriptionPlan::create([
@@ -338,7 +338,7 @@ it('includes MRR and ARR in revenue export metadata', function () {
     expect($log->metadata)->toHaveKey('plan_count');
 });
 
-it('exports revenue data for all active plans', function () {
+it('exports revenue data for all active plans', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create multiple active plans
@@ -389,22 +389,22 @@ it('exports revenue data for all active plans', function () {
 // Authorization Tests
 // ============================================
 
-it('requires authentication to export tenants', function () {
+it('requires authentication to export tenants', function (): void {
     $this->get(route('superadmin.tenants.index'))
         ->assertRedirect(route('superadmin.login'));
 });
 
-it('requires authentication to export plans', function () {
+it('requires authentication to export plans', function (): void {
     $this->get(route('superadmin.plans.index'))
         ->assertRedirect(route('superadmin.login'));
 });
 
-it('requires authentication to export activity logs', function () {
+it('requires authentication to export activity logs', function (): void {
     $this->get(route('superadmin.activity-logs'))
         ->assertRedirect(route('superadmin.login'));
 });
 
-it('requires authentication to export revenue', function () {
+it('requires authentication to export revenue', function (): void {
     $this->get(route('superadmin.revenue'))
         ->assertRedirect(route('superadmin.login'));
 });

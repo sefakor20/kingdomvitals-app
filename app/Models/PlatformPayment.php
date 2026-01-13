@@ -44,7 +44,7 @@ class PlatformPayment extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (PlatformPayment $payment) {
+        static::creating(function (PlatformPayment $payment): void {
             if (empty($payment->payment_reference)) {
                 $payment->payment_reference = self::generatePaymentReference();
             }

@@ -172,7 +172,7 @@ class BranchNavigation extends Component
             auth()->user()?->can('update', $this->currentBranch);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.navigation.branch-navigation');
     }

@@ -86,7 +86,7 @@ class BranchIndex extends Component
 
     public function updatedName(string $value): void
     {
-        if (! $this->editingBranch) {
+        if (!$this->editingBranch instanceof \App\Models\Tenant\Branch) {
             $this->slug = Str::slug($value);
         }
     }
@@ -205,7 +205,7 @@ class BranchIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.branches.branch-index');
     }

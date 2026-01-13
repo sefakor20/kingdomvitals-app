@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -39,7 +39,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view campaigns page', function () {
+test('authenticated user with branch access can view campaigns page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -53,7 +53,7 @@ test('authenticated user with branch access can view campaigns page', function (
         ->assertSeeLivewire(CampaignIndex::class);
 });
 
-test('user without branch access cannot view campaigns page', function () {
+test('user without branch access cannot view campaigns page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -68,7 +68,7 @@ test('user without branch access cannot view campaigns page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view campaigns page', function () {
+test('unauthenticated user cannot view campaigns page', function (): void {
     $this->get("/branches/{$this->branch->id}/campaigns")
         ->assertRedirect('/login');
 });
@@ -77,7 +77,7 @@ test('unauthenticated user cannot view campaigns page', function () {
 // VIEW CAMPAIGNS AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view campaigns list', function () {
+test('admin can view campaigns list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -95,7 +95,7 @@ test('admin can view campaigns list', function () {
         ->assertSee($campaign->name);
 });
 
-test('volunteer can view campaigns list', function () {
+test('volunteer can view campaigns list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -117,7 +117,7 @@ test('volunteer can view campaigns list', function () {
 // CREATE CAMPAIGN AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a campaign', function () {
+test('admin can create a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -149,7 +149,7 @@ test('admin can create a campaign', function () {
     expect($campaign->goal_participants)->toBe(50);
 });
 
-test('staff can create a campaign', function () {
+test('staff can create a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -169,7 +169,7 @@ test('staff can create a campaign', function () {
     expect(PledgeCampaign::where('name', 'Missions 2026')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create a campaign', function () {
+test('volunteer cannot create a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -188,7 +188,7 @@ test('volunteer cannot create a campaign', function () {
 // UPDATE CAMPAIGN AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a campaign', function () {
+test('admin can update a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -214,7 +214,7 @@ test('admin can update a campaign', function () {
     expect($campaign->fresh()->name)->toBe('Updated Campaign Name');
 });
 
-test('volunteer cannot update a campaign', function () {
+test('volunteer cannot update a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -237,7 +237,7 @@ test('volunteer cannot update a campaign', function () {
 // DELETE CAMPAIGN AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a campaign', function () {
+test('admin can delete a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -262,7 +262,7 @@ test('admin can delete a campaign', function () {
     expect(PledgeCampaign::find($campaignId))->toBeNull();
 });
 
-test('staff cannot delete a campaign', function () {
+test('staff cannot delete a campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -285,7 +285,7 @@ test('staff cannot delete a campaign', function () {
 // STATUS TRANSITION TESTS
 // ============================================
 
-test('can activate draft campaign', function () {
+test('can activate draft campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -306,7 +306,7 @@ test('can activate draft campaign', function () {
     expect($campaign->fresh()->status)->toBe(CampaignStatus::Active);
 });
 
-test('can complete active campaign', function () {
+test('can complete active campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -327,7 +327,7 @@ test('can complete active campaign', function () {
     expect($campaign->fresh()->status)->toBe(CampaignStatus::Completed);
 });
 
-test('can cancel active campaign', function () {
+test('can cancel active campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -352,7 +352,7 @@ test('can cancel active campaign', function () {
 // CAMPAIGN PROGRESS TESTS
 // ============================================
 
-test('campaign progress is calculated correctly', function () {
+test('campaign progress is calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -396,7 +396,7 @@ test('campaign progress is calculated correctly', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search campaigns by name', function () {
+test('can search campaigns by name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -423,7 +423,7 @@ test('can search campaigns by name', function () {
         ->assertDontSeeHtml('campaign-'.$missionsCampaign->id);
 });
 
-test('can filter campaigns by status', function () {
+test('can filter campaigns by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -452,7 +452,7 @@ test('can filter campaigns by status', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('campaign name is required', function () {
+test('campaign name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -470,7 +470,7 @@ test('campaign name is required', function () {
         ->assertHasErrors(['name']);
 });
 
-test('start date is required', function () {
+test('start date is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -492,7 +492,7 @@ test('start date is required', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no campaigns exist', function () {
+test('empty state is shown when no campaigns exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -506,7 +506,7 @@ test('empty state is shown when no campaigns exist', function () {
         ->assertSee('No campaigns found');
 });
 
-test('campaign stats are calculated correctly', function () {
+test('campaign stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -543,7 +543,7 @@ test('campaign stats are calculated correctly', function () {
 // VIEW DETAILS TESTS
 // ============================================
 
-test('can view campaign details with pledges', function () {
+test('can view campaign details with pledges', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

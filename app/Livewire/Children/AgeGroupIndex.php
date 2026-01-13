@@ -203,7 +203,7 @@ class AgeGroupIndex extends Component
             ->where('primary_branch_id', $this->branch->id)
             ->children()
             ->whereNull('age_group_id')
-            ->each(fn (Member $child) => $child->assignAgeGroupByAge());
+            ->each(fn (Member $child): ?\App\Models\Tenant\AgeGroup => $child->assignAgeGroupByAge());
 
         unset($this->ageGroups);
         unset($this->unassignedChildrenCount);
@@ -222,7 +222,7 @@ class AgeGroupIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.children.age-group-index');
     }

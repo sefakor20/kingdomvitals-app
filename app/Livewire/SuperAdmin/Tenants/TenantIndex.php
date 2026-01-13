@@ -135,7 +135,7 @@ class TenantIndex extends Component
     {
         $tenants = $this->getFilteredTenants()->get();
 
-        $data = $tenants->map(fn (Tenant $tenant) => [
+        $data = $tenants->map(fn (Tenant $tenant): array => [
             'id' => $tenant->id,
             'name' => $tenant->name,
             'status' => $tenant->status?->label() ?? 'Unknown',
@@ -181,17 +181,17 @@ class TenantIndex extends Component
     {
         return Tenant::query()
             ->with('subscriptionPlan')
-            ->when($this->showDeleted, function ($query) {
+            ->when($this->showDeleted, function ($query): void {
                 $query->onlyTrashed();
             })
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
+            ->when($this->search, function ($query): void {
+                $query->where(function ($q): void {
                     $q->where('id', 'like', "%{$this->search}%")
                         ->orWhere('name', 'like', "%{$this->search}%")
                         ->orWhere('contact_email', 'like', "%{$this->search}%");
                 });
             })
-            ->when($this->status && ! $this->showDeleted, function ($query) {
+            ->when($this->status && ! $this->showDeleted, function ($query): void {
                 $query->where('status', $this->status);
             })
             ->latest();

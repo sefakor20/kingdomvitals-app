@@ -105,8 +105,10 @@ class RecurringExpense extends Model
         if ($this->next_generation_date === null) {
             return false;
         }
-
-        return $this->next_generation_date->isToday() || $this->next_generation_date->isPast();
+        if ($this->next_generation_date->isToday()) {
+            return true;
+        }
+        return (bool) $this->next_generation_date->isPast();
     }
 
     public function calculateNextGenerationDate(?Carbon $fromDate = null): ?Carbon
@@ -125,7 +127,7 @@ class RecurringExpense extends Model
             default => null,
         };
 
-        if ($nextDate !== null && $this->end_date !== null && $nextDate->gt($this->end_date)) {
+        if ($nextDate instanceof \Carbon\Carbon && $this->end_date !== null && $nextDate->gt($this->end_date)) {
             return null;
         }
 
@@ -134,13 +136,10 @@ class RecurringExpense extends Model
 
     private function calculateNextWeeklyDate(Carbon $from): Carbon
     {
-        $nextDate = $from->copy()->addWeek();
-
         if ($this->day_of_week !== null) {
-            $nextDate = $from->copy()->next($this->day_of_week);
+            return $from->copy()->next($this->day_of_week);
         }
-
-        return $nextDate;
+        return $from->copy()->addWeek();
     }
 
     private function calculateNextMonthlyDate(Carbon $from): Carbon
@@ -208,7 +207,7 @@ class RecurringExpense extends Model
         ]);
 
         // Mark as completed if no more dates
-        if ($nextDate === null) {
+        if (!$nextDate instanceof \Carbon\Carbon) {
             $this->update(['status' => RecurringExpenseStatus::Completed]);
         }
 

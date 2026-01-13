@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -39,7 +39,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view donations page', function () {
+test('authenticated user with branch access can view donations page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -53,7 +53,7 @@ test('authenticated user with branch access can view donations page', function (
         ->assertSeeLivewire(DonationIndex::class);
 });
 
-test('user without branch access cannot view donations page', function () {
+test('user without branch access cannot view donations page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -68,7 +68,7 @@ test('user without branch access cannot view donations page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view donations page', function () {
+test('unauthenticated user cannot view donations page', function (): void {
     $this->get("/branches/{$this->branch->id}/donations")
         ->assertRedirect('/login');
 });
@@ -77,7 +77,7 @@ test('unauthenticated user cannot view donations page', function () {
 // VIEW DONATIONS AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view donations list', function () {
+test('admin can view donations list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -93,7 +93,7 @@ test('admin can view donations list', function () {
         ->assertSee(number_format((float) $donation->amount, 2));
 });
 
-test('volunteer can view donations list', function () {
+test('volunteer can view donations list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -113,7 +113,7 @@ test('volunteer can view donations list', function () {
 // CREATE DONATION AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a donation', function () {
+test('admin can create a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -139,7 +139,7 @@ test('admin can create a donation', function () {
     expect(Donation::where('donor_name', 'John Doe')->exists())->toBeTrue();
 });
 
-test('manager can create a donation', function () {
+test('manager can create a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -162,7 +162,7 @@ test('manager can create a donation', function () {
     expect(Donation::where('amount', 1000.00)->exists())->toBeTrue();
 });
 
-test('staff can create a donation', function () {
+test('staff can create a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -185,7 +185,7 @@ test('staff can create a donation', function () {
     expect(Donation::where('amount', 250.00)->exists())->toBeTrue();
 });
 
-test('volunteer cannot create a donation', function () {
+test('volunteer cannot create a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -204,7 +204,7 @@ test('volunteer cannot create a donation', function () {
 // CREATE DONATION WITH MEMBER TESTS
 // ============================================
 
-test('can create donation linked to member', function () {
+test('can create donation linked to member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -230,7 +230,7 @@ test('can create donation linked to member', function () {
     expect($donation->member_id)->toBe($member->id);
 });
 
-test('can create anonymous donation', function () {
+test('can create anonymous donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -260,7 +260,7 @@ test('can create anonymous donation', function () {
 // UPDATE DONATION AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a donation', function () {
+test('admin can update a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -284,7 +284,7 @@ test('admin can update a donation', function () {
     expect((float) $donation->fresh()->amount)->toBe(999.99);
 });
 
-test('manager can update a donation', function () {
+test('manager can update a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -306,7 +306,7 @@ test('manager can update a donation', function () {
     expect((float) $donation->fresh()->amount)->toBe(888.88);
 });
 
-test('staff can update a donation', function () {
+test('staff can update a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -327,7 +327,7 @@ test('staff can update a donation', function () {
     expect((float) $donation->fresh()->amount)->toBe(777.77);
 });
 
-test('volunteer cannot update a donation', function () {
+test('volunteer cannot update a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -348,7 +348,7 @@ test('volunteer cannot update a donation', function () {
 // DELETE DONATION AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a donation', function () {
+test('admin can delete a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -371,7 +371,7 @@ test('admin can delete a donation', function () {
     expect(Donation::find($donationId))->toBeNull();
 });
 
-test('manager can delete a donation', function () {
+test('manager can delete a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -392,7 +392,7 @@ test('manager can delete a donation', function () {
     expect(Donation::find($donationId))->toBeNull();
 });
 
-test('staff cannot delete a donation', function () {
+test('staff cannot delete a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -409,7 +409,7 @@ test('staff cannot delete a donation', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot delete a donation', function () {
+test('volunteer cannot delete a donation', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -430,7 +430,7 @@ test('volunteer cannot delete a donation', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search donations by donor name', function () {
+test('can search donations by donor name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -462,7 +462,7 @@ test('can search donations by donor name', function () {
         ->assertDontSeeHtml('donation-'.$hidden->id);
 });
 
-test('can filter donations by type', function () {
+test('can filter donations by type', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -489,7 +489,7 @@ test('can filter donations by type', function () {
     expect($component->instance()->donations->first()->donation_type)->toBe(DonationType::Tithe);
 });
 
-test('can filter donations by payment method', function () {
+test('can filter donations by payment method', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -516,7 +516,7 @@ test('can filter donations by payment method', function () {
     expect($component->instance()->donations->first()->payment_method)->toBe(PaymentMethod::Cash);
 });
 
-test('can filter donations by date range', function () {
+test('can filter donations by date range', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -546,7 +546,7 @@ test('can filter donations by date range', function () {
     expect((float) $component->instance()->donations->first()->amount)->toBe(100.0);
 });
 
-test('can filter anonymous donations', function () {
+test('can filter anonymous donations', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -578,7 +578,7 @@ test('can filter anonymous donations', function () {
 // STATS TESTS
 // ============================================
 
-test('donation stats are calculated correctly', function () {
+test('donation stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -618,7 +618,7 @@ test('donation stats are calculated correctly', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('amount is required', function () {
+test('amount is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -638,7 +638,7 @@ test('amount is required', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('amount must be greater than zero', function () {
+test('amount must be greater than zero', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -658,7 +658,7 @@ test('amount must be greater than zero', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('donation date is required', function () {
+test('donation date is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -678,7 +678,7 @@ test('donation date is required', function () {
         ->assertHasErrors(['donation_date']);
 });
 
-test('donation type must be valid', function () {
+test('donation type must be valid', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -702,7 +702,7 @@ test('donation type must be valid', function () {
 // MODAL CANCEL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -721,7 +721,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('amount', '');
 });
 
-test('cancel edit modal closes modal', function () {
+test('cancel edit modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -741,7 +741,7 @@ test('cancel edit modal closes modal', function () {
         ->assertSet('editingDonation', null);
 });
 
-test('cancel delete modal closes modal', function () {
+test('cancel delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -765,7 +765,7 @@ test('cancel delete modal closes modal', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no donations exist', function () {
+test('empty state is shown when no donations exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -779,7 +779,7 @@ test('empty state is shown when no donations exist', function () {
         ->assertSee('No donations found');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -793,7 +793,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Record Donation');
 });
 
-test('create button is hidden for volunteers', function () {
+test('create button is hidden for volunteers', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -811,7 +811,7 @@ test('create button is hidden for volunteers', function () {
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update donation from different branch', function () {
+test('user cannot update donation from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -830,7 +830,7 @@ test('user cannot update donation from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot delete donation from different branch', function () {
+test('user cannot delete donation from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 

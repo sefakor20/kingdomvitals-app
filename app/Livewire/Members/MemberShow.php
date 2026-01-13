@@ -487,7 +487,7 @@ class MemberShow extends Component
         $this->dispatch('sms-opt-out-updated');
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.members.member-show');
     }

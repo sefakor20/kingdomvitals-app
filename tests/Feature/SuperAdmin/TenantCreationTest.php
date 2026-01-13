@@ -11,7 +11,7 @@ use App\Services\TenantCreationService;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
-it('creates tenant with admin user and sends invitation', function () {
+it('creates tenant with admin user and sends invitation', function (): void {
     Notification::fake();
 
     $admin = SuperAdmin::factory()->create();
@@ -40,7 +40,7 @@ it('creates tenant with admin user and sends invitation', function () {
 
     // Admin user was created in tenant database
     $tenant = Tenant::where('name', 'New Church')->first();
-    $tenant->run(function () {
+    $tenant->run(function (): void {
         $user = User::where('email', 'pastor@newchurch.com')->first();
         expect($user)->not->toBeNull()
             ->and($user->name)->toBe('John Pastor')
@@ -54,7 +54,7 @@ it('creates tenant with admin user and sends invitation', function () {
     );
 });
 
-it('validates admin name is required', function () {
+it('validates admin name is required', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -69,7 +69,7 @@ it('validates admin name is required', function () {
         ->assertHasErrors(['admin_name']);
 });
 
-it('validates admin email is required', function () {
+it('validates admin email is required', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -84,7 +84,7 @@ it('validates admin email is required', function () {
         ->assertHasErrors(['admin_email']);
 });
 
-it('validates admin email format', function () {
+it('validates admin email format', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -99,7 +99,7 @@ it('validates admin email format', function () {
         ->assertHasErrors(['admin_email']);
 });
 
-it('resets admin fields when form is reset', function () {
+it('resets admin fields when form is reset', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -111,8 +111,8 @@ it('resets admin fields when form is reset', function () {
         ->assertSet('admin_email', '');
 });
 
-describe('TenantCreationService', function () {
-    it('creates tenant with admin user', function () {
+describe('TenantCreationService', function (): void {
+    it('creates tenant with admin user', function (): void {
         Notification::fake();
 
         $service = app(TenantCreationService::class);
@@ -141,7 +141,7 @@ describe('TenantCreationService', function () {
             ->and($tenant->domains->first()->domain)->toBe('servicetest.kingdomvitals.test');
 
         // Check user was created in tenant context
-        $tenant->run(function () {
+        $tenant->run(function (): void {
             $user = User::where('email', 'admin@servicetest.com')->first();
             expect($user)->not->toBeNull()
                 ->and($user->name)->toBe('Service Admin')
@@ -155,7 +155,7 @@ describe('TenantCreationService', function () {
         );
     });
 
-    it('generates correct reset url with tenant domain', function () {
+    it('generates correct reset url with tenant domain', function (): void {
         Notification::fake();
 
         $service = app(TenantCreationService::class);
@@ -178,7 +178,7 @@ describe('TenantCreationService', function () {
         Notification::assertSentTo(
             [$tenant->run(fn () => User::where('email', 'admin@urltest.com')->first())],
             TenantAdminInvitationNotification::class,
-            function ($notification) {
+            function ($notification): true {
                 expect($notification->setupUrl)->toContain('urltest.kingdomvitals.test')
                     ->and($notification->setupUrl)->toContain('reset-password')
                     ->and($notification->setupUrl)->toContain('email=');

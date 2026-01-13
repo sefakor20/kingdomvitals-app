@@ -183,7 +183,7 @@ class OnboardingService
     {
         $tenant = tenant();
 
-        DB::transaction(function () use ($teamMembers, $branch, $tenant) {
+        DB::transaction(function () use ($teamMembers, $branch, $tenant): void {
             foreach ($teamMembers as $member) {
                 // Create placeholder user or send invite
                 // For now, we'll just create the user with a random password
@@ -253,7 +253,7 @@ class OnboardingService
     {
         $tenant = tenant();
 
-        DB::transaction(function () use ($data, $branch, $tenant) {
+        DB::transaction(function () use ($data, $branch, $tenant): void {
             // Save SMS settings
             if (! empty($data['sms_api_key']) && ! empty($data['sms_sender_id'])) {
                 $branch->setSetting('sms_api_key', $data['sms_api_key']);
@@ -307,7 +307,7 @@ class OnboardingService
     {
         $tenant = tenant();
 
-        DB::transaction(function () use ($services, $branch, $tenant) {
+        DB::transaction(function () use ($services, $branch, $tenant): void {
             foreach ($services as $serviceData) {
                 Service::create([
                     'branch_id' => $branch->id,

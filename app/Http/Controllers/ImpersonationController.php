@@ -28,12 +28,12 @@ class ImpersonationController extends Controller
 
         $log = $this->impersonationService->getActiveSession($token);
 
-        if (! $log) {
+        if (!$log instanceof \App\Models\TenantImpersonationLog) {
             abort(403, 'Impersonation session expired or invalid');
         }
 
         // Get a user with admin branch access, or fall back to any user
-        $user = User::whereHas('branchAccess', function ($query) {
+        $user = User::whereHas('branchAccess', function ($query): void {
             $query->where('role', BranchRole::Admin->value);
         })->first() ?? User::first();
 

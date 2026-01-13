@@ -202,7 +202,7 @@ class FirstTimeVisitorsReport extends Component
             ->when($this->source, fn ($q) => $q->where('how_did_you_hear', $this->source))
             ->orderBy($this->sortBy, $this->sortDirection)
             ->get()
-            ->map(fn (Visitor $visitor) => [
+            ->map(fn (Visitor $visitor): array => [
                 $visitor->fullName(),
                 $visitor->email ?? '',
                 $visitor->phone ?? '',
@@ -214,7 +214,7 @@ class FirstTimeVisitorsReport extends Component
             ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.attendance.first-time-visitors-report');
     }

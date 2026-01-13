@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['web'])->group(function () {
+Route::middleware(['web'])->group(function (): void {
     // Impersonation routes (before auth middleware)
     Route::get('/impersonate/enter', [ImpersonationController::class, 'enter'])
         ->name('impersonate.enter');
@@ -31,7 +31,7 @@ Route::middleware(['web'])->group(function () {
     require base_path('vendor/laravel/fortify/routes/routes.php');
 
     // Onboarding routes (auth but no onboarding.complete middleware)
-    Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function (): void {
         Route::get('/', \App\Livewire\Onboarding\OnboardingWizard::class)->name('index');
     });
 
@@ -69,7 +69,7 @@ Route::middleware(['web'])->group(function () {
         ->withoutMiddleware(['web']);
 
     // Authenticated routes (require completed onboarding)
-    Route::middleware(['auth', 'onboarding.complete'])->group(function () {
+    Route::middleware(['auth', 'onboarding.complete'])->group(function (): void {
         // Settings
         Route::redirect('settings', 'settings/profile');
         Route::get('settings/profile', Profile::class)->name('profile.edit');

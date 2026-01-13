@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -49,14 +49,14 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Alert Factory State Tests
 
-test('budget factory creates budget with default alert settings', function () {
+test('budget factory creates budget with default alert settings', function (): void {
     $budget = Budget::factory()->create(['branch_id' => $this->branch->id]);
 
     expect($budget->alerts_enabled)->toBeTrue();
@@ -67,30 +67,30 @@ test('budget factory creates budget with default alert settings', function () {
     expect($budget->last_exceeded_sent_at)->toBeNull();
 });
 
-test('budget factory withAlertsDisabled state works', function () {
+test('budget factory withAlertsDisabled state works', function (): void {
     $budget = Budget::factory()->withAlertsDisabled()->create(['branch_id' => $this->branch->id]);
     expect($budget->alerts_enabled)->toBeFalse();
 });
 
-test('budget factory withCustomThresholds state works', function () {
+test('budget factory withCustomThresholds state works', function (): void {
     $budget = Budget::factory()->withCustomThresholds(60, 85)->create(['branch_id' => $this->branch->id]);
     expect($budget->alert_threshold_warning)->toBe(60);
     expect($budget->alert_threshold_critical)->toBe(85);
 });
 
-test('budget factory withWarningSentAt state works', function () {
+test('budget factory withWarningSentAt state works', function (): void {
     $date = now()->subDays(3);
     $budget = Budget::factory()->withWarningSentAt($date)->create(['branch_id' => $this->branch->id]);
     expect($budget->last_warning_sent_at->toDateString())->toBe($date->toDateString());
 });
 
-test('budget factory withCriticalSentAt state works', function () {
+test('budget factory withCriticalSentAt state works', function (): void {
     $date = now()->subHours(12);
     $budget = Budget::factory()->withCriticalSentAt($date)->create(['branch_id' => $this->branch->id]);
     expect($budget->last_critical_sent_at->toDateString())->toBe($date->toDateString());
 });
 
-test('budget factory withExceededSentAt state works', function () {
+test('budget factory withExceededSentAt state works', function (): void {
     $date = now()->subHours(6);
     $budget = Budget::factory()->withExceededSentAt($date)->create(['branch_id' => $this->branch->id]);
     expect($budget->last_exceeded_sent_at->toDateString())->toBe($date->toDateString());
@@ -98,7 +98,7 @@ test('budget factory withExceededSentAt state works', function () {
 
 // Threshold Command Tests
 
-test('command sends warning alert when budget reaches warning threshold', function () {
+test('command sends warning alert when budget reaches warning threshold', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -127,7 +127,7 @@ test('command sends warning alert when budget reaches warning threshold', functi
     Notification::assertNotSentTo($this->staffUser, BudgetThresholdNotification::class);
 });
 
-test('command sends critical alert when budget reaches critical threshold', function () {
+test('command sends critical alert when budget reaches critical threshold', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -154,13 +154,13 @@ test('command sends critical alert when budget reaches critical threshold', func
     Notification::assertSentTo(
         $this->adminUser,
         BudgetThresholdNotification::class,
-        function ($notification) {
+        function ($notification): bool {
             return $notification->alertLevel === 'critical';
         }
     );
 });
 
-test('command sends exceeded alert when budget exceeds 100%', function () {
+test('command sends exceeded alert when budget exceeds 100%', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -185,13 +185,13 @@ test('command sends exceeded alert when budget exceeds 100%', function () {
     Notification::assertSentTo(
         $this->adminUser,
         BudgetThresholdNotification::class,
-        function ($notification) {
+        function ($notification): bool {
             return $notification->alertLevel === 'exceeded';
         }
     );
 });
 
-test('command does not send duplicate alerts within cooldown period', function () {
+test('command does not send duplicate alerts within cooldown period', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -217,7 +217,7 @@ test('command does not send duplicate alerts within cooldown period', function (
     Notification::assertNothingSent();
 });
 
-test('command sends alert after cooldown period expires', function () {
+test('command sends alert after cooldown period expires', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -242,7 +242,7 @@ test('command sends alert after cooldown period expires', function () {
     Notification::assertSentTo($this->adminUser, BudgetThresholdNotification::class);
 });
 
-test('command respects disabled alerts setting', function () {
+test('command respects disabled alerts setting', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->withAlertsDisabled()->create([
@@ -266,7 +266,7 @@ test('command respects disabled alerts setting', function () {
     Notification::assertNothingSent();
 });
 
-test('command only processes active budgets', function () {
+test('command only processes active budgets', function (): void {
     Notification::fake();
 
     // Draft budget with exceeded spending
@@ -308,7 +308,7 @@ test('command only processes active budgets', function () {
     Notification::assertNothingSent();
 });
 
-test('command respects custom alert thresholds', function () {
+test('command respects custom alert thresholds', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -335,13 +335,13 @@ test('command respects custom alert thresholds', function () {
     Notification::assertSentTo(
         $this->adminUser,
         BudgetThresholdNotification::class,
-        function ($notification) {
+        function ($notification): bool {
             return $notification->alertLevel === 'warning';
         }
     );
 });
 
-test('command updates last_sent_at timestamp after sending alert', function () {
+test('command updates last_sent_at timestamp after sending alert', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -371,7 +371,7 @@ test('command updates last_sent_at timestamp after sending alert', function () {
     expect($budget->last_warning_sent_at)->not->toBeNull();
 });
 
-test('command does not send alert when utilization is below warning threshold', function () {
+test('command does not send alert when utilization is below warning threshold', function (): void {
     Notification::fake();
 
     $budget = Budget::factory()->active()->create([
@@ -399,7 +399,7 @@ test('command does not send alert when utilization is below warning threshold', 
 
 // Notification Tests
 
-test('notification contains correct budget details', function () {
+test('notification contains correct budget details', function (): void {
     $budget = Budget::factory()->active()->create([
         'branch_id' => $this->branch->id,
         'name' => 'Test Budget',
@@ -428,7 +428,7 @@ test('notification contains correct budget details', function () {
     expect($arrayData['utilization_percent'])->toBe(80.0);
 });
 
-test('notification uses correct email subject for each alert level', function () {
+test('notification uses correct email subject for each alert level', function (): void {
     $budget = Budget::factory()->active()->create([
         'branch_id' => $this->branch->id,
         'name' => 'Test Budget',
@@ -449,12 +449,12 @@ test('notification uses correct email subject for each alert level', function ()
 
 // Command Output Tests
 
-test('command returns success exit code', function () {
+test('command returns success exit code', function (): void {
     $exitCode = Artisan::call('budgets:check-thresholds');
     expect($exitCode)->toBe(0);
 });
 
-test('command outputs correct message', function () {
+test('command outputs correct message', function (): void {
     Notification::fake();
 
     Budget::factory()->active()->create([

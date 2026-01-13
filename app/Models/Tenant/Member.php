@@ -261,7 +261,7 @@ class Member extends Model
      */
     public function scopeAdults(Builder $query): Builder
     {
-        return $query->where(function ($q) {
+        return $query->where(function ($q): void {
             $q->whereNull('date_of_birth')
                 ->orWhereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= 18');
         });

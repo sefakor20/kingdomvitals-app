@@ -18,7 +18,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -39,12 +39,12 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('authenticated user can view children directory', function () {
+test('authenticated user can view children directory', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -58,7 +58,7 @@ test('authenticated user can view children directory', function () {
         ->assertSeeLivewire(ChildrenDirectory::class);
 });
 
-test('children directory shows only children members', function () {
+test('children directory shows only children members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -91,7 +91,7 @@ test('children directory shows only children members', function () {
     expect($children->pluck('id')->contains($adult->id))->toBeFalse();
 });
 
-test('children can be filtered by age group', function () {
+test('children can be filtered by age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -126,7 +126,7 @@ test('children can be filtered by age group', function () {
     expect($children->pluck('id')->contains($childNotInGroup->id))->toBeFalse();
 });
 
-test('children can be filtered to show unassigned only', function () {
+test('children can be filtered to show unassigned only', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -158,7 +158,7 @@ test('children can be filtered to show unassigned only', function () {
     expect($children->pluck('id')->contains($unassignedChild->id))->toBeTrue();
 });
 
-test('staff can assign age group to child', function () {
+test('staff can assign age group to child', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -185,7 +185,7 @@ test('staff can assign age group to child', function () {
     expect($child->fresh()->age_group_id)->toBe($ageGroup->id);
 });
 
-test('staff can add emergency contact to child', function () {
+test('staff can add emergency contact to child', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -218,7 +218,7 @@ test('staff can add emergency contact to child', function () {
     expect($child->emergencyContacts()->first()->is_primary)->toBeTrue();
 });
 
-test('can edit emergency contact', function () {
+test('can edit emergency contact', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -249,7 +249,7 @@ test('can edit emergency contact', function () {
     expect($contact->fresh()->name)->toBe('Updated Name');
 });
 
-test('can delete emergency contact', function () {
+test('can delete emergency contact', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -278,7 +278,7 @@ test('can delete emergency contact', function () {
     expect(ChildEmergencyContact::find($contact->id))->toBeNull();
 });
 
-test('staff can save medical info for child', function () {
+test('staff can save medical info for child', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -308,7 +308,7 @@ test('staff can save medical info for child', function () {
     expect($medicalInfo->blood_type)->toBe('A+');
 });
 
-test('stats are computed correctly', function () {
+test('stats are computed correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -344,7 +344,7 @@ test('stats are computed correctly', function () {
     expect($stats['withMedicalInfo'])->toBe(1);
 });
 
-test('search filters children by name', function () {
+test('search filters children by name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -376,7 +376,7 @@ test('search filters children by name', function () {
     expect($children->pluck('id')->contains($jane->id))->toBeFalse();
 });
 
-test('clear filters resets all filters', function () {
+test('clear filters resets all filters', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -398,7 +398,7 @@ test('clear filters resets all filters', function () {
         ->assertSet('maxAge', null);
 });
 
-test('can filter children by household', function () {
+test('can filter children by household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -434,7 +434,7 @@ test('can filter children by household', function () {
 // CREATE CHILD TESTS
 // ============================================
 
-test('staff can create a new child', function () {
+test('staff can create a new child', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -459,7 +459,7 @@ test('staff can create a new child', function () {
     expect(Member::where('first_name', 'Test')->where('last_name', 'Child')->exists())->toBeTrue();
 });
 
-test('create child validates required fields', function () {
+test('create child validates required fields', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -473,12 +473,12 @@ test('create child validates required fields', function () {
         ->call('createChild')
         ->set('firstName', '')
         ->set('lastName', '')
-        ->set('childDateOfBirth', null)
+        ->set('childDateOfBirth')
         ->call('storeChild')
         ->assertHasErrors(['firstName', 'lastName', 'childDateOfBirth']);
 });
 
-test('create child validates date of birth must be under 18', function () {
+test('create child validates date of birth must be under 18', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -497,7 +497,7 @@ test('create child validates date of birth must be under 18', function () {
         ->assertHasErrors(['childDateOfBirth']);
 });
 
-test('create child auto-assigns age group when not selected', function () {
+test('create child auto-assigns age group when not selected', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -526,7 +526,7 @@ test('create child auto-assigns age group when not selected', function () {
     expect($child->age_group_id)->toBe($ageGroup->id);
 });
 
-test('cancel create child closes modal and resets form', function () {
+test('cancel create child closes modal and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -549,7 +549,7 @@ test('cancel create child closes modal and resets form', function () {
 // EDIT CHILD TESTS
 // ============================================
 
-test('staff can edit a child', function () {
+test('staff can edit a child', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -579,7 +579,7 @@ test('staff can edit a child', function () {
     expect($child->fresh()->first_name)->toBe('Updated');
 });
 
-test('edit child validates date of birth must be under 18', function () {
+test('edit child validates date of birth must be under 18', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -601,7 +601,7 @@ test('edit child validates date of birth must be under 18', function () {
         ->assertHasErrors(['childDateOfBirth']);
 });
 
-test('cancel edit child closes modal and resets form', function () {
+test('cancel edit child closes modal and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

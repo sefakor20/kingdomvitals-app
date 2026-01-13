@@ -65,7 +65,7 @@ class LinkDonationsToMembersCommand extends Command
 
         Donation::whereNull('member_id')
             ->whereNotNull('donor_email')
-            ->chunk(100, function ($donations) use (&$linked) {
+            ->chunk(100, function ($donations) use (&$linked): void {
                 foreach ($donations as $donation) {
                     $member = Member::where('email', $donation->donor_email)
                         ->where('primary_branch_id', $donation->branch_id)

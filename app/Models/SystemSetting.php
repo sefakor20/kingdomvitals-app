@@ -106,7 +106,7 @@ class SystemSetting extends Model
     {
         return static::where('group', $group)
             ->get()
-            ->mapWithKeys(fn (SystemSetting $setting) => [
+            ->mapWithKeys(fn (SystemSetting $setting): array => [
                 $setting->key => $setting->is_encrypted
                     ? static::get($setting->key)
                     : ($setting->value === 'true' ? true : ($setting->value === 'false' ? false : $setting->value)),

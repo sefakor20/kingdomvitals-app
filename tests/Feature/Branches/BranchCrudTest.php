@@ -12,7 +12,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -30,12 +30,12 @@ beforeEach(function () {
     $this->mainBranch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('authenticated user can view branches page', function () {
+test('authenticated user can view branches page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -49,7 +49,7 @@ test('authenticated user can view branches page', function () {
         ->assertSeeLivewire(BranchIndex::class);
 });
 
-test('admin can create a new branch', function () {
+test('admin can create a new branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -74,7 +74,7 @@ test('admin can create a new branch', function () {
     expect(Branch::where('slug', 'west-campus')->exists())->toBeTrue();
 });
 
-test('non-admin cannot create a branch', function () {
+test('non-admin cannot create a branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -89,7 +89,7 @@ test('non-admin cannot create a branch', function () {
         ->assertForbidden();
 });
 
-test('admin can edit a branch', function () {
+test('admin can edit a branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -110,7 +110,7 @@ test('admin can edit a branch', function () {
     expect($this->mainBranch->fresh()->name)->toBe('Updated Main Campus');
 });
 
-test('manager can edit their branch', function () {
+test('manager can edit their branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -130,7 +130,7 @@ test('manager can edit their branch', function () {
     expect($this->mainBranch->fresh()->name)->toBe('Manager Updated Campus');
 });
 
-test('staff cannot edit a branch', function () {
+test('staff cannot edit a branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -145,7 +145,7 @@ test('staff cannot edit a branch', function () {
         ->assertForbidden();
 });
 
-test('main branch cannot be deleted', function () {
+test('main branch cannot be deleted', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -161,7 +161,7 @@ test('main branch cannot be deleted', function () {
         ->assertForbidden();
 });
 
-test('admin can delete a non-main branch', function () {
+test('admin can delete a non-main branch', function (): void {
     $user = User::factory()->create();
     $secondaryBranch = Branch::factory()->create(['name' => 'Secondary Campus']);
 
@@ -188,7 +188,7 @@ test('admin can delete a non-main branch', function () {
     expect(Branch::find($secondaryBranch->id))->toBeNull();
 });
 
-test('branch name updates slug automatically on create', function () {
+test('branch name updates slug automatically on create', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -204,7 +204,7 @@ test('branch name updates slug automatically on create', function () {
         ->assertSet('slug', 'north-campus-location');
 });
 
-test('branch validation requires name and slug', function () {
+test('branch validation requires name and slug', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -222,7 +222,7 @@ test('branch validation requires name and slug', function () {
         ->assertHasErrors(['name', 'slug']);
 });
 
-test('branch slug must be unique', function () {
+test('branch slug must be unique', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -244,7 +244,7 @@ test('branch slug must be unique', function () {
 // NEW FUNCTIONALITY TESTS
 // ============================================
 
-test('creating a branch grants creator admin access', function () {
+test('creating a branch grants creator admin access', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -273,7 +273,7 @@ test('creating a branch grants creator admin access', function () {
     expect($access->role)->toBe(BranchRole::Admin);
 });
 
-test('branch-created event is dispatched after successful create', function () {
+test('branch-created event is dispatched after successful create', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -292,7 +292,7 @@ test('branch-created event is dispatched after successful create', function () {
         ->assertDispatched('branch-created');
 });
 
-test('branch-updated event is dispatched after successful update', function () {
+test('branch-updated event is dispatched after successful update', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -309,7 +309,7 @@ test('branch-updated event is dispatched after successful update', function () {
         ->assertDispatched('branch-updated');
 });
 
-test('branch-deleted event is dispatched after successful delete', function () {
+test('branch-deleted event is dispatched after successful delete', function (): void {
     $user = User::factory()->create();
     $secondaryBranch = Branch::factory()->create(['name' => 'To Delete']);
 
@@ -337,7 +337,7 @@ test('branch-deleted event is dispatched after successful delete', function () {
 // MODAL CANCEL OPERATION TESTS
 // ============================================
 
-test('cancel create modal closes modal and resets form', function () {
+test('cancel create modal closes modal and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -360,7 +360,7 @@ test('cancel create modal closes modal and resets form', function () {
         ->assertSet('city', '');
 });
 
-test('cancel edit modal closes modal and clears editing branch', function () {
+test('cancel edit modal closes modal and clears editing branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -379,7 +379,7 @@ test('cancel edit modal closes modal and clears editing branch', function () {
         ->assertSet('editingBranch', null);
 });
 
-test('cancel delete modal closes modal and clears deleting branch', function () {
+test('cancel delete modal closes modal and clears deleting branch', function (): void {
     $user = User::factory()->create();
     $secondaryBranch = Branch::factory()->create();
 
@@ -410,7 +410,7 @@ test('cancel delete modal closes modal and clears deleting branch', function () 
 // AUTHORIZATION EDGE CASE TESTS
 // ============================================
 
-test('manager cannot delete a branch', function () {
+test('manager cannot delete a branch', function (): void {
     $user = User::factory()->create();
     $secondaryBranch = Branch::factory()->create();
 
@@ -427,7 +427,7 @@ test('manager cannot delete a branch', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot edit a branch', function () {
+test('volunteer cannot edit a branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -442,7 +442,7 @@ test('volunteer cannot edit a branch', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot delete a branch', function () {
+test('volunteer cannot delete a branch', function (): void {
     $user = User::factory()->create();
     $secondaryBranch = Branch::factory()->create();
 
@@ -459,7 +459,7 @@ test('volunteer cannot delete a branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot edit branch without access', function () {
+test('user cannot edit branch without access', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -478,7 +478,7 @@ test('user cannot edit branch without access', function () {
         ->assertForbidden();
 });
 
-test('user cannot delete branch without access', function () {
+test('user cannot delete branch without access', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -501,7 +501,7 @@ test('user cannot delete branch without access', function () {
 // VALIDATION EDGE CASE TESTS
 // ============================================
 
-test('email must be valid format', function () {
+test('email must be valid format', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -521,7 +521,7 @@ test('email must be valid format', function () {
         ->assertHasErrors(['email']);
 });
 
-test('capacity must be zero or positive', function () {
+test('capacity must be zero or positive', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -541,7 +541,7 @@ test('capacity must be zero or positive', function () {
         ->assertHasErrors(['capacity']);
 });
 
-test('status must be valid status value', function () {
+test('status must be valid status value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -560,7 +560,7 @@ test('status must be valid status value', function () {
         ->assertHasErrors(['status']);
 });
 
-test('slug does not auto-update when editing', function () {
+test('slug does not auto-update when editing', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -578,7 +578,7 @@ test('slug does not auto-update when editing', function () {
         ->assertSet('slug', $originalSlug); // Slug should remain unchanged
 });
 
-test('can update branch with same slug', function () {
+test('can update branch with same slug', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -598,7 +598,7 @@ test('can update branch with same slug', function () {
     expect($this->mainBranch->fresh()->name)->toBe('Updated Name Same Slug');
 });
 
-test('all optional fields can be empty', function () {
+test('all optional fields can be empty', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -629,7 +629,7 @@ test('all optional fields can be empty', function () {
 // COMPUTED PROPERTY TESTS
 // ============================================
 
-test('branches are ordered with main first then by name', function () {
+test('branches are ordered with main first then by name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -648,7 +648,7 @@ test('branches are ordered with main first then by name', function () {
         ->assertSeeInOrder(['Main Campus', 'Alpha Campus', 'Zebra Campus']);
 });
 
-test('statuses dropdown shows all status options', function () {
+test('statuses dropdown shows all status options', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

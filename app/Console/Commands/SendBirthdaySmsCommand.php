@@ -34,13 +34,13 @@ class SendBirthdaySmsCommand extends Command
         $totalSent = 0;
         $totalSkipped = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalSent, &$totalSkipped) {
+        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalSent, &$totalSkipped): void {
             tenancy()->initialize($tenant);
 
             $this->line("Processing tenant: {$tenant->id}");
 
             // Get all branches with auto birthday SMS enabled
-            Branch::all()->each(function (Branch $branch) use ($dryRun, &$totalSent, &$totalSkipped) {
+            Branch::all()->each(function (Branch $branch) use ($dryRun, &$totalSent, &$totalSkipped): void {
                 // Check if branch has SMS configured
                 if (! $branch->hasSmsConfigured()) {
                     $this->line("  Branch {$branch->name}: SMS not configured, skipping");

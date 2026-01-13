@@ -64,7 +64,7 @@ class TenantUsageSnapshot extends Model
 
     public function scopeApproachingLimits(Builder $query, float $threshold = 80): Builder
     {
-        return $query->where(function (Builder $q) use ($threshold) {
+        return $query->where(function (Builder $q) use ($threshold): void {
             $q->where('member_quota_usage_percent', '>=', $threshold)
                 ->orWhere('branch_quota_usage_percent', '>=', $threshold)
                 ->orWhere('sms_quota_usage_percent', '>=', $threshold)
@@ -74,7 +74,7 @@ class TenantUsageSnapshot extends Model
 
     public function scopeWithActiveTenants(Builder $query): Builder
     {
-        return $query->whereHas('tenant', function (Builder $q) {
+        return $query->whereHas('tenant', function (Builder $q): void {
             $q->whereIn('status', ['active', 'trial']);
         });
     }

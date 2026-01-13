@@ -78,7 +78,7 @@ class ChildrenDashboard extends Component
             ->whereNull('age_group_id')
             ->count();
 
-        $data = $ageGroups->map(fn ($ag) => [
+        $data = $ageGroups->map(fn ($ag): array => [
             'name' => $ag->name,
             'count' => $ag->children_count,
             'color' => $ag->color ?? '#6b7280',
@@ -104,7 +104,7 @@ class ChildrenDashboard extends Component
             ->count();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.children.children-dashboard');
     }

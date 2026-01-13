@@ -76,19 +76,19 @@ class PledgeIndex extends Component
     {
         $query = Pledge::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('campaign_name', 'like', "%{$search}%")
                     ->orWhere('notes', 'like', "%{$search}%")
-                    ->orWhereHas('member', function ($memberQuery) use ($search) {
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
                         $memberQuery->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     });
             });
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
@@ -96,7 +96,7 @@ class PledgeIndex extends Component
             $query->where('member_id', $this->memberFilter);
         }
 
-        if ($this->campaignFilter) {
+        if ($this->campaignFilter !== '' && $this->campaignFilter !== '0') {
             $query->where('pledge_campaign_id', $this->campaignFilter);
         }
 
@@ -463,7 +463,7 @@ class PledgeIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($pledges) {
+        return response()->streamDownload(function () use ($pledges): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -515,7 +515,7 @@ class PledgeIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.pledges.pledge-index');
     }

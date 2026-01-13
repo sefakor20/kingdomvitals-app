@@ -42,7 +42,7 @@ class TenantCreationService
         ]);
 
         // Run in tenant context to create the admin user
-        $tenant->run(function () use ($adminData, $tenant) {
+        $tenant->run(function () use ($adminData, $tenant): void {
             $user = User::create([
                 'name' => $adminData['name'],
                 'email' => $adminData['email'],

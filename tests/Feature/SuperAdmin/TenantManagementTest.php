@@ -8,7 +8,7 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
-it('can view tenants list', function () {
+it('can view tenants list', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $response = $this->actingAs($admin, 'superadmin')
@@ -18,7 +18,7 @@ it('can view tenants list', function () {
     $response->assertSee('Tenants');
 });
 
-it('displays tenants in the list', function () {
+it('displays tenants in the list', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'test-church-123',
@@ -31,7 +31,7 @@ it('displays tenants in the list', function () {
         ->assertSee('Test Church');
 });
 
-it('can search tenants', function () {
+it('can search tenants', function (): void {
     $admin = SuperAdmin::factory()->create();
     Tenant::create([
         'id' => 'searchable-church-123',
@@ -51,7 +51,7 @@ it('can search tenants', function () {
         ->assertDontSee('Other Church');
 });
 
-it('can filter tenants by status', function () {
+it('can filter tenants by status', function (): void {
     $admin = SuperAdmin::factory()->create();
     Tenant::create([
         'id' => 'active-church-123',
@@ -71,7 +71,7 @@ it('can filter tenants by status', function () {
         ->assertDontSee('Trial Church');
 });
 
-it('can open tenant create modal', function () {
+it('can open tenant create modal', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -81,7 +81,7 @@ it('can open tenant create modal', function () {
         ->assertSet('showCreateModal', true);
 });
 
-it('can create a new tenant', function () {
+it('can create a new tenant', function (): void {
     Notification::fake();
     $admin = SuperAdmin::factory()->create();
 
@@ -107,7 +107,7 @@ it('can create a new tenant', function () {
     ]);
 });
 
-it('validates required fields when creating tenant', function () {
+it('validates required fields when creating tenant', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -121,7 +121,7 @@ it('validates required fields when creating tenant', function () {
         ->assertHasErrors(['name', 'domain', 'admin_name', 'admin_email']);
 });
 
-it('can view tenant details', function () {
+it('can view tenant details', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'view-church-123',
@@ -136,7 +136,7 @@ it('can view tenant details', function () {
         ->assertSee('contact@viewchurch.com');
 });
 
-it('can suspend a tenant', function () {
+it('can suspend a tenant', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'suspend-church-123',
@@ -155,7 +155,7 @@ it('can suspend a tenant', function () {
     expect($tenant->suspension_reason)->toBe('Non-payment of fees');
 });
 
-it('can reactivate a suspended tenant', function () {
+it('can reactivate a suspended tenant', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'reactivate-church-123',
@@ -174,7 +174,7 @@ it('can reactivate a suspended tenant', function () {
     expect($tenant->suspension_reason)->toBeNull();
 });
 
-it('can change tenant status', function () {
+it('can change tenant status', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'status-church-123',
@@ -190,7 +190,7 @@ it('can change tenant status', function () {
     expect($tenant->status)->toBe(TenantStatus::Active);
 });
 
-it('logs tenant creation activity', function () {
+it('logs tenant creation activity', function (): void {
     Notification::fake();
     $admin = SuperAdmin::factory()->create();
 
@@ -210,7 +210,7 @@ it('logs tenant creation activity', function () {
     ]);
 });
 
-it('can open tenant edit modal', function () {
+it('can open tenant edit modal', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'edit-modal-church-123',
@@ -228,7 +228,7 @@ it('can open tenant edit modal', function () {
         ->assertSet('editContactEmail', 'edit@church.com');
 });
 
-it('can update a tenant', function () {
+it('can update a tenant', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'update-church-123',
@@ -250,7 +250,7 @@ it('can update a tenant', function () {
     expect($tenant->contact_email)->toBe('updated@church.com');
 });
 
-it('logs tenant update activity', function () {
+it('logs tenant update activity', function (): void {
     $admin = SuperAdmin::factory()->create();
     $tenant = Tenant::create([
         'id' => 'log-update-church-123',

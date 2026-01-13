@@ -14,7 +14,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -32,12 +32,12 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('authenticated user can view age groups page', function () {
+test('authenticated user can view age groups page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -51,7 +51,7 @@ test('authenticated user can view age groups page', function () {
         ->assertSeeLivewire(AgeGroupIndex::class);
 });
 
-test('admin can create a new age group', function () {
+test('admin can create a new age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -77,7 +77,7 @@ test('admin can create a new age group', function () {
     expect(AgeGroup::where('name', 'Nursery')->exists())->toBeTrue();
 });
 
-test('manager can create age group', function () {
+test('manager can create age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -99,7 +99,7 @@ test('manager can create age group', function () {
     expect(AgeGroup::where('name', 'Toddlers')->exists())->toBeTrue();
 });
 
-test('staff cannot create age group', function () {
+test('staff cannot create age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -114,7 +114,7 @@ test('staff cannot create age group', function () {
         ->assertForbidden();
 });
 
-test('admin can edit an age group', function () {
+test('admin can edit an age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -141,7 +141,7 @@ test('admin can edit an age group', function () {
     expect($ageGroup->fresh()->name)->toBe('Updated Name');
 });
 
-test('only admin can delete an age group', function () {
+test('only admin can delete an age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -165,7 +165,7 @@ test('only admin can delete an age group', function () {
     expect(AgeGroup::find($ageGroup->id))->toBeNull();
 });
 
-test('manager cannot delete an age group', function () {
+test('manager cannot delete an age group', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -184,7 +184,7 @@ test('manager cannot delete an age group', function () {
         ->assertForbidden();
 });
 
-test('validation requires name, min age, and max age', function () {
+test('validation requires name, min age, and max age', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -201,7 +201,7 @@ test('validation requires name, min age, and max age', function () {
         ->assertHasErrors(['name']);
 });
 
-test('max age must be greater than or equal to min age', function () {
+test('max age must be greater than or equal to min age', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -220,7 +220,7 @@ test('max age must be greater than or equal to min age', function () {
         ->assertHasErrors(['maxAge']);
 });
 
-test('auto assign assigns children to matching age groups', function () {
+test('auto assign assigns children to matching age groups', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -266,7 +266,7 @@ test('auto assign assigns children to matching age groups', function () {
     expect($child2->fresh()->age_group_id)->toBe($preschool->id);
 });
 
-test('cancel create modal closes and resets form', function () {
+test('cancel create modal closes and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -285,7 +285,7 @@ test('cancel create modal closes and resets form', function () {
         ->assertSet('name', '');
 });
 
-test('unassigned children count is computed correctly', function () {
+test('unassigned children count is computed correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

@@ -18,7 +18,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -39,7 +39,7 @@ beforeEach(function () {
     $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -48,7 +48,7 @@ afterEach(function () {
 // AUTHORIZATION TESTS
 // ============================================
 
-test('admin can add follow-up', function () {
+test('admin can add follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -76,7 +76,7 @@ test('admin can add follow-up', function () {
     ]);
 });
 
-test('manager can add follow-up', function () {
+test('manager can add follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -101,7 +101,7 @@ test('manager can add follow-up', function () {
     ]);
 });
 
-test('staff can add follow-up', function () {
+test('staff can add follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -125,7 +125,7 @@ test('staff can add follow-up', function () {
     ]);
 });
 
-test('volunteer cannot add follow-up', function () {
+test('volunteer cannot add follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -144,7 +144,7 @@ test('volunteer cannot add follow-up', function () {
 // SCHEDULE FOLLOW-UP TESTS
 // ============================================
 
-test('admin can schedule follow-up', function () {
+test('admin can schedule follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -175,7 +175,7 @@ test('admin can schedule follow-up', function () {
     ]);
 });
 
-test('scheduled follow-up updates visitor next_follow_up_at', function () {
+test('scheduled follow-up updates visitor next_follow_up_at', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -198,7 +198,7 @@ test('scheduled follow-up updates visitor next_follow_up_at', function () {
     expect($this->visitor->next_follow_up_at->format('Y-m-d'))->toBe($scheduledAt->format('Y-m-d'));
 });
 
-test('cannot schedule follow-up in the past', function () {
+test('cannot schedule follow-up in the past', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -222,7 +222,7 @@ test('cannot schedule follow-up in the past', function () {
 // COMPLETE FOLLOW-UP TESTS
 // ============================================
 
-test('admin can complete scheduled follow-up', function () {
+test('admin can complete scheduled follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -255,7 +255,7 @@ test('admin can complete scheduled follow-up', function () {
     expect($followUp->notes)->toBe('Call completed successfully');
 });
 
-test('completing follow-up updates visitor stats', function () {
+test('completing follow-up updates visitor stats', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -282,7 +282,7 @@ test('completing follow-up updates visitor stats', function () {
     expect($this->visitor->last_follow_up_at)->not->toBeNull();
 });
 
-test('completing follow-up on new visitor updates status to followed_up', function () {
+test('completing follow-up on new visitor updates status to followed_up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -315,7 +315,7 @@ test('completing follow-up on new visitor updates status to followed_up', functi
 // CANCEL FOLLOW-UP TESTS
 // ============================================
 
-test('admin can cancel scheduled follow-up', function () {
+test('admin can cancel scheduled follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -339,7 +339,7 @@ test('admin can cancel scheduled follow-up', function () {
     $this->assertDatabaseMissing('visitor_follow_ups', ['id' => $followUp->id]);
 });
 
-test('manager can cancel scheduled follow-up', function () {
+test('manager can cancel scheduled follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -363,7 +363,7 @@ test('manager can cancel scheduled follow-up', function () {
     $this->assertDatabaseMissing('visitor_follow_ups', ['id' => $followUp->id]);
 });
 
-test('staff cannot cancel scheduled follow-up', function () {
+test('staff cannot cancel scheduled follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -389,7 +389,7 @@ test('staff cannot cancel scheduled follow-up', function () {
 // ADD FOLLOW-UP WITH MEMBER ASSIGNMENT TESTS
 // ============================================
 
-test('follow-up can be assigned to a member', function () {
+test('follow-up can be assigned to a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -421,7 +421,7 @@ test('follow-up can be assigned to a member', function () {
 // FOLLOW-UP TYPES TESTS
 // ============================================
 
-test('all follow-up types can be used', function (string $type) {
+test('all follow-up types can be used', function (string $type): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -455,7 +455,7 @@ test('all follow-up types can be used', function (string $type) {
 // FOLLOW-UP OUTCOMES TESTS
 // ============================================
 
-test('all follow-up outcomes can be recorded', function (string $outcome) {
+test('all follow-up outcomes can be recorded', function (string $outcome): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -490,7 +490,7 @@ test('all follow-up outcomes can be recorded', function (string $outcome) {
 // FOLLOW-UP HISTORY DISPLAY TESTS
 // ============================================
 
-test('follow-up history is displayed on visitor show page', function () {
+test('follow-up history is displayed on visitor show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -513,7 +513,7 @@ test('follow-up history is displayed on visitor show page', function () {
         ->assertSee('Great conversation with the visitor');
 });
 
-test('pending follow-ups are displayed separately', function () {
+test('pending follow-ups are displayed separately', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

@@ -64,9 +64,9 @@ class HouseholdShow extends Component
             ->where('status', 'active')
             ->whereNull('household_id');
 
-        if ($this->memberSearch) {
+        if ($this->memberSearch !== '' && $this->memberSearch !== '0') {
             $search = $this->memberSearch;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
             });
@@ -163,7 +163,7 @@ class HouseholdShow extends Component
     {
         $this->authorize('update', $this->household);
 
-        if (! $this->editingMember) {
+        if (!$this->editingMember instanceof \App\Models\Tenant\Member) {
             return;
         }
 
@@ -209,7 +209,7 @@ class HouseholdShow extends Component
     {
         $this->authorize('update', $this->household);
 
-        if (! $this->removingMember) {
+        if (!$this->removingMember instanceof \App\Models\Tenant\Member) {
             return;
         }
 
@@ -234,7 +234,7 @@ class HouseholdShow extends Component
         $this->removingMember = null;
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.households.household-show');
     }

@@ -62,7 +62,7 @@ class InvoiceCreate extends Component
     #[Computed]
     public function selectedTenant(): ?Tenant
     {
-        if (! $this->tenantId) {
+        if ($this->tenantId === '' || $this->tenantId === '0') {
             return null;
         }
 
@@ -73,7 +73,7 @@ class InvoiceCreate extends Component
     public function estimatedAmount(): float
     {
         if ($this->useCustomItems) {
-            return collect($this->customItems)->sum(fn ($item) => ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0));
+            return collect($this->customItems)->sum(fn ($item): float => ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0));
         }
 
         $tenant = $this->selectedTenant;
@@ -111,9 +111,9 @@ class InvoiceCreate extends Component
         $billingService = app(PlatformBillingService::class);
         $cycle = BillingCycle::from($this->billingCycle);
 
-        if ($this->useCustomItems && ! empty($this->customItems)) {
+        if ($this->useCustomItems && $this->customItems !== []) {
             // Create custom invoice
-            $subtotal = collect($this->customItems)->sum(fn ($item) => $item['quantity'] * $item['unit_price']);
+            $subtotal = collect($this->customItems)->sum(fn ($item): float => $item['quantity'] * $item['unit_price']);
 
             $invoice = PlatformInvoice::create([
                 'tenant_id' => $tenant->id,
@@ -144,7 +144,7 @@ class InvoiceCreate extends Component
             // Generate standard invoice
             $invoice = $billingService->generateInvoiceForTenant($tenant, $cycle);
 
-            if ($this->notes) {
+            if ($this->notes !== '' && $this->notes !== '0') {
                 $invoice->update(['notes' => $this->notes]);
             }
 

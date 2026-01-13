@@ -6,7 +6,7 @@ use App\Models\SuperAdmin;
 use Livewire\Livewire;
 use PragmaRX\Google2FA\Google2FA;
 
-it('can view security settings page', function () {
+it('can view security settings page', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $this->actingAs($admin, 'superadmin')
@@ -15,7 +15,7 @@ it('can view security settings page', function () {
         ->assertSee('Security Settings');
 });
 
-it('shows 2FA as disabled by default', function () {
+it('shows 2FA as disabled by default', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -24,7 +24,7 @@ it('shows 2FA as disabled by default', function () {
         ->assertSee('Disabled');
 });
 
-it('can enable 2FA and show QR code modal', function () {
+it('can enable 2FA and show QR code modal', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -38,7 +38,7 @@ it('can enable 2FA and show QR code modal', function () {
     expect($admin->two_factor_secret)->not->toBeNull();
 });
 
-it('can confirm 2FA with valid code', function () {
+it('can confirm 2FA with valid code', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable 2FA first (which generates the secret)
@@ -64,7 +64,7 @@ it('can confirm 2FA with valid code', function () {
     expect($admin->two_factor_confirmed_at)->not->toBeNull();
 });
 
-it('can disable 2FA', function () {
+it('can disable 2FA', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable and confirm 2FA first
@@ -88,7 +88,7 @@ it('can disable 2FA', function () {
     expect($admin->two_factor_secret)->toBeNull();
 });
 
-it('shows recovery codes when 2FA is enabled', function () {
+it('shows recovery codes when 2FA is enabled', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable and confirm 2FA
@@ -108,7 +108,7 @@ it('shows recovery codes when 2FA is enabled', function () {
         ->assertSee('ABCD-EFGH-IJKL');
 });
 
-it('can regenerate recovery codes', function () {
+it('can regenerate recovery codes', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable and confirm 2FA
@@ -132,7 +132,7 @@ it('can regenerate recovery codes', function () {
     expect($newCodes)->not->toContain('OLD-CODE-1');
 });
 
-it('redirects to 2FA challenge when logging in with 2FA enabled', function () {
+it('redirects to 2FA challenge when logging in with 2FA enabled', function (): void {
     $admin = SuperAdmin::factory()->create([
         'password' => bcrypt('password'),
     ]);
@@ -156,7 +156,7 @@ it('redirects to 2FA challenge when logging in with 2FA enabled', function () {
     expect(auth('superadmin')->check())->toBeFalse();
 });
 
-it('can view 2FA challenge page', function () {
+it('can view 2FA challenge page', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Simulate the session state after password verification
@@ -168,12 +168,12 @@ it('can view 2FA challenge page', function () {
         ->assertSee('Authentication Code');
 });
 
-it('redirects to login if no session data on 2FA challenge', function () {
+it('redirects to login if no session data on 2FA challenge', function (): void {
     $this->get(route('superadmin.two-factor.challenge'))
         ->assertRedirect(route('superadmin.login'));
 });
 
-it('can complete 2FA challenge with valid code', function () {
+it('can complete 2FA challenge with valid code', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable and confirm 2FA
@@ -199,7 +199,7 @@ it('can complete 2FA challenge with valid code', function () {
     expect(auth('superadmin')->check())->toBeTrue();
 });
 
-it('can complete 2FA challenge with recovery code', function () {
+it('can complete 2FA challenge with recovery code', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable and confirm 2FA with specific recovery codes
@@ -228,7 +228,7 @@ it('can complete 2FA challenge with recovery code', function () {
     expect($remainingCodes)->not->toContain('ABCD-EFGH-IJKL');
 });
 
-it('rejects invalid 2FA code', function () {
+it('rejects invalid 2FA code', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Enable and confirm 2FA
@@ -251,7 +251,7 @@ it('rejects invalid 2FA code', function () {
     expect(auth('superadmin')->check())->toBeFalse();
 });
 
-it('logs in without 2FA redirect when 2FA not enabled', function () {
+it('logs in without 2FA redirect when 2FA not enabled', function (): void {
     $admin = SuperAdmin::factory()->create([
         'password' => bcrypt('password'),
     ]);

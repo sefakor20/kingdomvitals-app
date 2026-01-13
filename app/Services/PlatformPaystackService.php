@@ -121,7 +121,7 @@ class PlatformPaystackService
      */
     public function isConfigured(): bool
     {
-        return ! empty($this->secretKey);
+        return $this->secretKey !== '' && $this->secretKey !== '0';
     }
 
     /**

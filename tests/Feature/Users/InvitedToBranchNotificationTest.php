@@ -14,7 +14,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -27,12 +27,12 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('invitation email is sent when user is added to branch', function () {
+test('invitation email is sent when user is added to branch', function (): void {
     Notification::fake();
 
     $admin = User::factory()->create();
@@ -56,7 +56,7 @@ test('invitation email is sent when user is added to branch', function () {
     Notification::assertSentTo($userToInvite, InvitedToBranchNotification::class);
 });
 
-test('invitation email contains correct branch and role info', function () {
+test('invitation email contains correct branch and role info', function (): void {
     Notification::fake();
 
     $admin = User::factory()->create(['name' => 'Admin User']);
@@ -79,7 +79,7 @@ test('invitation email contains correct branch and role info', function () {
     Notification::assertSentTo(
         $userToInvite,
         InvitedToBranchNotification::class,
-        function ($notification) use ($admin) {
+        function ($notification) use ($admin): true {
             expect($notification->branch->id)->toBe($this->branch->id);
             expect($notification->role)->toBe('manager');
             expect($notification->invitedBy->id)->toBe($admin->id);
@@ -89,7 +89,7 @@ test('invitation email contains correct branch and role info', function () {
     );
 });
 
-test('invitation email is not sent when user does not exist', function () {
+test('invitation email is not sent when user does not exist', function (): void {
     Notification::fake();
 
     $admin = User::factory()->create();
@@ -112,7 +112,7 @@ test('invitation email is not sent when user does not exist', function () {
     Notification::assertNothingSent();
 });
 
-test('invitation email is not sent when user already has access', function () {
+test('invitation email is not sent when user already has access', function (): void {
     Notification::fake();
 
     $admin = User::factory()->create();
@@ -142,7 +142,7 @@ test('invitation email is not sent when user already has access', function () {
     Notification::assertNothingSent();
 });
 
-test('notification toArray returns correct data', function () {
+test('notification toArray returns correct data', function (): void {
     $admin = User::factory()->create();
     $userToInvite = User::factory()->create();
 

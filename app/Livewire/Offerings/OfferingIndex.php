@@ -83,24 +83,24 @@ class OfferingIndex extends Component
         $query = Donation::where('branch_id', $this->branch->id)
             ->where('donation_type', DonationType::Offering);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('donor_name', 'like', "%{$search}%")
                     ->orWhere('reference_number', 'like', "%{$search}%")
                     ->orWhere('notes', 'like', "%{$search}%")
-                    ->orWhereHas('member', function ($memberQuery) use ($search) {
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
                         $memberQuery->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     });
             });
         }
 
-        if ($this->serviceFilter) {
+        if ($this->serviceFilter !== '' && $this->serviceFilter !== '0') {
             $query->where('service_id', $this->serviceFilter);
         }
 
-        if ($this->paymentMethodFilter) {
+        if ($this->paymentMethodFilter !== '' && $this->paymentMethodFilter !== '0') {
             $query->where('payment_method', $this->paymentMethodFilter);
         }
 
@@ -132,7 +132,7 @@ class OfferingIndex extends Component
         $query = Donation::where('branch_id', $this->branch->id)
             ->where('donation_type', DonationType::Offering);
 
-        if ($this->serviceFilter) {
+        if ($this->serviceFilter !== '' && $this->serviceFilter !== '0') {
             $query->where('service_id', $this->serviceFilter);
         }
 
@@ -423,7 +423,7 @@ class OfferingIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($offerings) {
+        return response()->streamDownload(function () use ($offerings): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -544,7 +544,7 @@ class OfferingIndex extends Component
         unset($this->selectedOfferingsCount);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.offerings.offering-index');
     }

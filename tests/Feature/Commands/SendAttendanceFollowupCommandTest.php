@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Crypt;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -35,12 +35,12 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('command detects missed services within follow-up window', function () {
+test('command detects missed services within follow-up window', function (): void {
     // Create a service that occurred 26 hours ago (within 24h-48h window after 24h delay)
     $pastTime = now()->subHours(26);
     $service = Service::factory()->create([
@@ -66,7 +66,7 @@ test('command detects missed services within follow-up window', function () {
         ->assertSuccessful();
 });
 
-test('command skips services outside follow-up window', function () {
+test('command skips services outside follow-up window', function (): void {
     // Create a service that occurred 2 hours ago (outside follow-up window)
     $pastTime = now()->subHours(2);
     Service::factory()->create([
@@ -88,7 +88,7 @@ test('command skips services outside follow-up window', function () {
         ->assertSuccessful();
 });
 
-test('command skips branches without SMS configured', function () {
+test('command skips branches without SMS configured', function (): void {
     $branchNoSms = Branch::factory()->create([
         'settings' => ['auto_attendance_followup' => true],
     ]);
@@ -98,7 +98,7 @@ test('command skips branches without SMS configured', function () {
         ->assertSuccessful();
 });
 
-test('command skips branches with attendance follow-up disabled', function () {
+test('command skips branches with attendance follow-up disabled', function (): void {
     $this->branch->setSetting('auto_attendance_followup', false);
     $this->branch->save();
 
@@ -107,7 +107,7 @@ test('command skips branches with attendance follow-up disabled', function () {
         ->assertSuccessful();
 });
 
-test('command excludes members who attended the service', function () {
+test('command excludes members who attended the service', function (): void {
     // Create a service that occurred 26 hours ago
     $pastTime = now()->subHours(26);
     $service = Service::factory()->create([
@@ -149,7 +149,7 @@ test('command excludes members who attended the service', function () {
         ->assertSuccessful();
 });
 
-test('command filters regular attendees only when configured', function () {
+test('command filters regular attendees only when configured', function (): void {
     $this->branch->setSetting('attendance_followup_recipients', 'regular');
     $this->branch->setSetting('attendance_followup_min_attendance', 2);
     $this->branch->save();
@@ -197,7 +197,7 @@ test('command filters regular attendees only when configured', function () {
         ->assertSuccessful();
 });
 
-test('command sends to all members when configured', function () {
+test('command sends to all members when configured', function (): void {
     $this->branch->setSetting('attendance_followup_recipients', 'all');
     $this->branch->save();
 
@@ -233,7 +233,7 @@ test('command sends to all members when configured', function () {
         ->assertSuccessful();
 });
 
-test('command prevents duplicate follow-ups', function () {
+test('command prevents duplicate follow-ups', function (): void {
     // Create a service that occurred 26 hours ago
     $pastTime = now()->subHours(26);
     $service = Service::factory()->create([
@@ -266,7 +266,7 @@ test('command prevents duplicate follow-ups', function () {
         ->assertSuccessful();
 });
 
-test('command uses custom template when configured', function () {
+test('command uses custom template when configured', function (): void {
     $pastTime = now()->subHours(26);
     Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -299,7 +299,7 @@ test('command uses custom template when configured', function () {
         ->assertSuccessful();
 });
 
-test('dry run mode does not send actual SMS', function () {
+test('dry run mode does not send actual SMS', function (): void {
     $pastTime = now()->subHours(26);
     Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -320,7 +320,7 @@ test('dry run mode does not send actual SMS', function () {
         ->assertSuccessful();
 });
 
-test('command skips inactive services', function () {
+test('command skips inactive services', function (): void {
     $pastTime = now()->subHours(26);
     Service::factory()->inactive()->create([
         'branch_id' => $this->branch->id,
@@ -340,7 +340,7 @@ test('command skips inactive services', function () {
         ->assertSuccessful();
 });
 
-test('command skips members without phone numbers', function () {
+test('command skips members without phone numbers', function (): void {
     $pastTime = now()->subHours(26);
     Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -362,7 +362,7 @@ test('command skips members without phone numbers', function () {
         ->assertSuccessful();
 });
 
-test('command skips inactive members', function () {
+test('command skips inactive members', function (): void {
     $pastTime = now()->subHours(26);
     Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -383,7 +383,7 @@ test('command skips inactive members', function () {
         ->assertSuccessful();
 });
 
-test('command respects configurable follow-up hours', function () {
+test('command respects configurable follow-up hours', function (): void {
     // Set follow-up to 6 hours
     $this->branch->setSetting('attendance_followup_hours', 6);
     $this->branch->save();

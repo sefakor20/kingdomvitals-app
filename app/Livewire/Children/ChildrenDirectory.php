@@ -127,15 +127,15 @@ class ChildrenDirectory extends Component
             ->children()
             ->with(['household', 'ageGroup', 'emergencyContacts', 'medicalInfo']);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
             });
         }
 
-        if ($this->ageGroupFilter) {
+        if ($this->ageGroupFilter !== '' && $this->ageGroupFilter !== '0') {
             if ($this->ageGroupFilter === 'unassigned') {
                 $query->whereNull('age_group_id');
             } else {
@@ -143,7 +143,7 @@ class ChildrenDirectory extends Component
             }
         }
 
-        if ($this->householdFilter) {
+        if ($this->householdFilter !== '' && $this->householdFilter !== '0') {
             $query->where('household_id', $this->householdFilter);
         }
 
@@ -234,7 +234,7 @@ class ChildrenDirectory extends Component
     // Child Creation & Editing
     protected function childRules(): array
     {
-        $maxDate = now()->format('Y-m-d');
+        now()->format('Y-m-d');
         $minDate = now()->subYears(17)->format('Y-m-d');
 
         return [
@@ -617,7 +617,7 @@ class ChildrenDirectory extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.children.children-directory');
     }

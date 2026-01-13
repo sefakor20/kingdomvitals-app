@@ -154,7 +154,7 @@ class SystemSettingService
     {
         $credentials = $this->getDefaultPaystackCredentials();
 
-        return ! empty($credentials['public_key']) && ! empty($credentials['secret_key']);
+        return ! empty($credentials['public_key']) && (isset($credentials['secret_key']) && ($credentials['secret_key'] !== '' && $credentials['secret_key'] !== '0'));
     }
 
     /**

@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -50,14 +50,14 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Receipt Number Generation Tests
 
-test('receipt number is generated with correct format', function () {
+test('receipt number is generated with correct format', function (): void {
     $donation = Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'donation_date' => now(),
@@ -69,7 +69,7 @@ test('receipt number is generated with correct format', function () {
     expect($receiptNumber)->toMatch('/^REC-[A-Z]{2}-\d{6}-\d{5}$/');
 });
 
-test('receipt numbers are sequential within branch and month', function () {
+test('receipt numbers are sequential within branch and month', function (): void {
     $donation1 = Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'donation_date' => now(),
@@ -88,7 +88,7 @@ test('receipt numbers are sequential within branch and month', function () {
     expect((int) substr($receipt2, -5))->toBe((int) substr($receipt1, -5) + 1);
 });
 
-test('donation model generates receipt number on first access', function () {
+test('donation model generates receipt number on first access', function (): void {
     $donation = Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'donation_date' => now(),
@@ -104,7 +104,7 @@ test('donation model generates receipt number on first access', function () {
 
 // Download Receipt Tests
 
-test('admin can download donation receipt', function () {
+test('admin can download donation receipt', function (): void {
     $donation = Donation::factory()->create(['branch_id' => $this->branch->id]);
 
     Livewire::actingAs($this->adminUser)
@@ -113,7 +113,7 @@ test('admin can download donation receipt', function () {
         ->assertFileDownloaded();
 });
 
-test('volunteer can download donation receipt', function () {
+test('volunteer can download donation receipt', function (): void {
     $donation = Donation::factory()->create(['branch_id' => $this->branch->id]);
 
     Livewire::actingAs($this->volunteerUser)
@@ -124,7 +124,7 @@ test('volunteer can download donation receipt', function () {
 
 // Email Receipt Tests
 
-test('admin can email donation receipt to member with email', function () {
+test('admin can email donation receipt to member with email', function (): void {
     Mail::fake();
 
     $member = Member::factory()->create([
@@ -147,7 +147,7 @@ test('admin can email donation receipt to member with email', function () {
     expect($donation->refresh()->receipt_sent_at)->not->toBeNull();
 });
 
-test('staff can email donation receipt', function () {
+test('staff can email donation receipt', function (): void {
     Mail::fake();
 
     $member = Member::factory()->create([
@@ -169,7 +169,7 @@ test('staff can email donation receipt', function () {
     Mail::assertQueued(DonationReceiptMail::class);
 });
 
-test('cannot email receipt for anonymous donation', function () {
+test('cannot email receipt for anonymous donation', function (): void {
     Mail::fake();
 
     $donation = Donation::factory()->create([
@@ -185,7 +185,7 @@ test('cannot email receipt for anonymous donation', function () {
     Mail::assertNothingQueued();
 });
 
-test('cannot email receipt when donor has no email', function () {
+test('cannot email receipt when donor has no email', function (): void {
     Mail::fake();
 
     $member = Member::factory()->create([
@@ -207,7 +207,7 @@ test('cannot email receipt when donor has no email', function () {
     Mail::assertNothingQueued();
 });
 
-test('volunteer cannot email donation receipt', function () {
+test('volunteer cannot email donation receipt', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'email' => 'donor@example.com',
@@ -226,7 +226,7 @@ test('volunteer cannot email donation receipt', function () {
 
 // Bulk Operations Tests
 
-test('can bulk download receipts as zip', function () {
+test('can bulk download receipts as zip', function (): void {
     $donations = Donation::factory()->count(3)->create([
         'branch_id' => $this->branch->id,
     ]);
@@ -238,7 +238,7 @@ test('can bulk download receipts as zip', function () {
         ->assertFileDownloaded();
 });
 
-test('can bulk email receipts to eligible donors', function () {
+test('can bulk email receipts to eligible donors', function (): void {
     Mail::fake();
 
     $member = Member::factory()->create([
@@ -268,7 +268,7 @@ test('can bulk email receipts to eligible donors', function () {
 
 // Selection Tests
 
-test('can toggle donation selection', function () {
+test('can toggle donation selection', function (): void {
     $donation = Donation::factory()->create(['branch_id' => $this->branch->id]);
 
     $component = Livewire::actingAs($this->adminUser)
@@ -283,7 +283,7 @@ test('can toggle donation selection', function () {
     expect($component->get('selectedDonations'))->not->toContain($donation->id);
 });
 
-test('can select all donations', function () {
+test('can select all donations', function (): void {
     Donation::factory()->count(3)->create(['branch_id' => $this->branch->id]);
 
     $component = Livewire::actingAs($this->adminUser)
@@ -293,7 +293,7 @@ test('can select all donations', function () {
     expect(count($component->get('selectedDonations')))->toBe(3);
 });
 
-test('can deselect all donations', function () {
+test('can deselect all donations', function (): void {
     $donations = Donation::factory()->count(3)->create(['branch_id' => $this->branch->id]);
 
     Livewire::actingAs($this->adminUser)
@@ -305,7 +305,7 @@ test('can deselect all donations', function () {
 
 // Donor Display Name Tests
 
-test('getDonorDisplayName returns member name for non-anonymous donations', function () {
+test('getDonorDisplayName returns member name for non-anonymous donations', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'John',
@@ -323,7 +323,7 @@ test('getDonorDisplayName returns member name for non-anonymous donations', func
     expect($donation->getDonorDisplayName())->toBe($member->fullName());
 });
 
-test('getDonorDisplayName returns Anonymous Donor for anonymous donations', function () {
+test('getDonorDisplayName returns Anonymous Donor for anonymous donations', function (): void {
     $donation = Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'is_anonymous' => true,
@@ -332,7 +332,7 @@ test('getDonorDisplayName returns Anonymous Donor for anonymous donations', func
     expect($donation->getDonorDisplayName())->toBe(__('Anonymous Donor'));
 });
 
-test('getDonorDisplayName returns donor_name when no member', function () {
+test('getDonorDisplayName returns donor_name when no member', function (): void {
     $donation = Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'member_id' => null,
@@ -345,7 +345,7 @@ test('getDonorDisplayName returns donor_name when no member', function () {
 
 // canSendReceipt Tests
 
-test('canSendReceipt returns true for non-anonymous with email', function () {
+test('canSendReceipt returns true for non-anonymous with email', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'email' => 'donor@example.com',
@@ -360,7 +360,7 @@ test('canSendReceipt returns true for non-anonymous with email', function () {
     expect($donation->canSendReceipt())->toBeTrue();
 });
 
-test('canSendReceipt returns false for anonymous donations', function () {
+test('canSendReceipt returns false for anonymous donations', function (): void {
     $donation = Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'is_anonymous' => true,
@@ -369,7 +369,7 @@ test('canSendReceipt returns false for anonymous donations', function () {
     expect($donation->canSendReceipt())->toBeFalse();
 });
 
-test('canSendReceipt returns false when donor has no email', function () {
+test('canSendReceipt returns false when donor has no email', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'email' => null,

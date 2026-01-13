@@ -20,7 +20,7 @@ class GenericReportExport implements FromCollection, ShouldAutoSize, WithHeading
 
     public function collection(): Collection
     {
-        return $this->data->map(function ($row) {
+        return $this->data->map(function ($row): array {
             if (is_array($row)) {
                 return $row;
             }

@@ -293,7 +293,7 @@ class SystemSettings extends Component
         $publicKey = $this->getCredentialForTesting('default_paystack_public_key', $this->defaultPaystackPublicKey);
         $secretKey = $this->getCredentialForTesting('default_paystack_secret_key', $this->defaultPaystackSecretKey);
 
-        if (empty($publicKey) || empty($secretKey)) {
+        if (in_array($publicKey, [null, '', '0'], true) || in_array($secretKey, [null, '', '0'], true)) {
             $this->paystackTestResult = __('Please enter both Public Key and Secret Key first.');
             $this->paystackTestStatus = 'error';
 
@@ -331,7 +331,7 @@ class SystemSettings extends Component
 
         $apiKey = $this->getCredentialForTesting('default_sms_api_key', $this->defaultSmsApiKey);
 
-        if (empty($apiKey)) {
+        if (in_array($apiKey, [null, '', '0'], true)) {
             $this->smsTestResult = __('Please enter an API key first.');
             $this->smsTestStatus = 'error';
 
@@ -340,7 +340,7 @@ class SystemSettings extends Component
 
         $senderId = $this->defaultSmsSenderId ?: (string) SystemSetting::get('default_sms_sender_id');
 
-        if (empty($senderId)) {
+        if ($senderId === '' || $senderId === '0') {
             $this->smsTestResult = __('Please enter a Sender ID first.');
             $this->smsTestStatus = 'error';
 

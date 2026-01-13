@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Guest routes (not authenticated as super admin)
-Route::middleware('guest:superadmin')->group(function () {
+Route::middleware('guest:superadmin')->group(function (): void {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('superadmin.login');
 
@@ -31,7 +31,7 @@ Route::middleware('guest:superadmin')->group(function () {
 });
 
 // Authenticated super admin routes
-Route::middleware('superadmin')->group(function () {
+Route::middleware('superadmin')->group(function (): void {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('superadmin.logout');
 

@@ -18,7 +18,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -36,7 +36,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -45,7 +45,7 @@ afterEach(function () {
 // ACCESS TESTS
 // ============================================
 
-test('authenticated user can view dashboard', function () {
+test('authenticated user can view dashboard', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -59,7 +59,7 @@ test('authenticated user can view dashboard', function () {
         ->assertSeeLivewire(Dashboard::class);
 });
 
-test('unauthenticated user is redirected to login', function () {
+test('unauthenticated user is redirected to login', function (): void {
     $this->get('/dashboard')
         ->assertRedirect('/login');
 });
@@ -68,7 +68,7 @@ test('unauthenticated user is redirected to login', function () {
 // MEMBER METRICS TESTS
 // ============================================
 
-test('displays correct active member count', function () {
+test('displays correct active member count', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -96,7 +96,7 @@ test('displays correct active member count', function () {
     expect($component->instance()->totalActiveMembers)->toBe(5);
 });
 
-test('displays new members this month', function () {
+test('displays new members this month', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -128,7 +128,7 @@ test('displays new members this month', function () {
 // VISITOR METRICS TESTS
 // ============================================
 
-test('displays new visitors this month', function () {
+test('displays new visitors this month', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -156,7 +156,7 @@ test('displays new visitors this month', function () {
     expect($component->instance()->newVisitorsThisMonth)->toBe(4);
 });
 
-test('calculates correct conversion rate', function () {
+test('calculates correct conversion rate', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -179,7 +179,7 @@ test('calculates correct conversion rate', function () {
     expect($component->instance()->conversionRate)->toBe(30.0);
 });
 
-test('conversion rate is zero when no visitors', function () {
+test('conversion rate is zero when no visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -199,7 +199,7 @@ test('conversion rate is zero when no visitors', function () {
 // FOLLOW-UP METRICS TESTS
 // ============================================
 
-test('counts overdue follow-ups correctly', function () {
+test('counts overdue follow-ups correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -241,7 +241,7 @@ test('counts overdue follow-ups correctly', function () {
     expect($component->instance()->overdueFollowUps)->toBe(1);
 });
 
-test('pending follow-ups returns top 5 ordered by scheduled date', function () {
+test('pending follow-ups returns top 5 ordered by scheduled date', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -273,7 +273,7 @@ test('pending follow-ups returns top 5 ordered by scheduled date', function () {
 // BRANCH SCOPING TESTS
 // ============================================
 
-test('metrics are scoped to selected branch', function () {
+test('metrics are scoped to selected branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -303,7 +303,7 @@ test('metrics are scoped to selected branch', function () {
     expect($component->instance()->totalActiveMembers)->toBe(5);
 });
 
-test('updates metrics when branch is switched', function () {
+test('updates metrics when branch is switched', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -344,7 +344,7 @@ test('updates metrics when branch is switched', function () {
 // EMPTY STATE TESTS
 // ============================================
 
-test('shows empty state when no branch exists', function () {
+test('shows empty state when no branch exists', function (): void {
     // Delete the main branch created in beforeEach
     $this->branch->delete();
 
@@ -359,7 +359,7 @@ test('shows empty state when no branch exists', function () {
         ->assertSee('No Branch Selected');
 });
 
-test('shows zero values when branch has no data', function () {
+test('shows zero values when branch has no data', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -382,7 +382,7 @@ test('shows zero values when branch has no data', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('dashboard displays all kpi sections', function () {
+test('dashboard displays all kpi sections', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

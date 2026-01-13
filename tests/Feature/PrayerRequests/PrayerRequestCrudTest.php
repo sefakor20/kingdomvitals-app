@@ -22,7 +22,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -37,7 +37,7 @@ beforeEach(function () {
     $this->member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -46,7 +46,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view prayer requests page', function () {
+test('authenticated user with branch access can view prayer requests page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -60,7 +60,7 @@ test('authenticated user with branch access can view prayer requests page', func
         ->assertSeeLivewire(PrayerRequestIndex::class);
 });
 
-test('user without branch access cannot view prayer requests page', function () {
+test('user without branch access cannot view prayer requests page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
     UserBranchAccess::factory()->create([
@@ -74,7 +74,7 @@ test('user without branch access cannot view prayer requests page', function () 
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view prayer requests page', function () {
+test('unauthenticated user cannot view prayer requests page', function (): void {
     $this->get(route('prayer-requests.index', $this->branch))
         ->assertRedirect();
 });
@@ -83,7 +83,7 @@ test('unauthenticated user cannot view prayer requests page', function () {
 // VIEW PRAYER REQUEST TESTS
 // ============================================
 
-test('admin can view prayer request list', function () {
+test('admin can view prayer request list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -103,7 +103,7 @@ test('admin can view prayer request list', function () {
     expect($component->instance()->prayerRequests->count())->toBe(3);
 });
 
-test('volunteer can view prayer request list', function () {
+test('volunteer can view prayer request list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -127,7 +127,7 @@ test('volunteer can view prayer request list', function () {
 // PRIVACY TESTS
 // ============================================
 
-test('admin can view private prayer requests', function () {
+test('admin can view private prayer requests', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -145,7 +145,7 @@ test('admin can view private prayer requests', function () {
         ->assertSuccessful();
 });
 
-test('staff can view leaders only prayer requests', function () {
+test('staff can view leaders only prayer requests', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -163,7 +163,7 @@ test('staff can view leaders only prayer requests', function () {
         ->assertSuccessful();
 });
 
-test('volunteer cannot view private prayer requests', function () {
+test('volunteer cannot view private prayer requests', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -185,7 +185,7 @@ test('volunteer cannot view private prayer requests', function () {
 // CREATE PRAYER REQUEST TESTS
 // ============================================
 
-test('admin can create prayer request', function () {
+test('admin can create prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -208,7 +208,7 @@ test('admin can create prayer request', function () {
     expect(PrayerRequest::where('title', 'Prayer for healing')->exists())->toBeTrue();
 });
 
-test('staff can create prayer request', function () {
+test('staff can create prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -231,7 +231,7 @@ test('staff can create prayer request', function () {
     expect(PrayerRequest::where('title', 'Prayer for family')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create prayer request', function () {
+test('volunteer cannot create prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -246,7 +246,7 @@ test('volunteer cannot create prayer request', function () {
         ->assertForbidden();
 });
 
-test('prayer request can be assigned to a cluster', function () {
+test('prayer request can be assigned to a cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -277,7 +277,7 @@ test('prayer request can be assigned to a cluster', function () {
 // UPDATE PRAYER REQUEST TESTS
 // ============================================
 
-test('admin can update prayer request', function () {
+test('admin can update prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -302,7 +302,7 @@ test('admin can update prayer request', function () {
     expect($prayerRequest->fresh()->title)->toBe('Updated Title');
 });
 
-test('volunteer cannot update prayer request', function () {
+test('volunteer cannot update prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -326,7 +326,7 @@ test('volunteer cannot update prayer request', function () {
 // DELETE PRAYER REQUEST TESTS
 // ============================================
 
-test('admin can delete prayer request', function () {
+test('admin can delete prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -349,7 +349,7 @@ test('admin can delete prayer request', function () {
     expect(PrayerRequest::find($prayerRequest->id))->toBeNull();
 });
 
-test('manager can delete prayer request', function () {
+test('manager can delete prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -372,7 +372,7 @@ test('manager can delete prayer request', function () {
     expect(PrayerRequest::find($prayerRequest->id))->toBeNull();
 });
 
-test('staff cannot delete prayer request', function () {
+test('staff cannot delete prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -396,7 +396,7 @@ test('staff cannot delete prayer request', function () {
 // MARK AS ANSWERED TESTS
 // ============================================
 
-test('staff can mark prayer request as answered', function () {
+test('staff can mark prayer request as answered', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -423,7 +423,7 @@ test('staff can mark prayer request as answered', function () {
     expect($prayerRequest->answered_at)->not->toBeNull();
 });
 
-test('prayer request can be marked answered from show page', function () {
+test('prayer request can be marked answered from show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -451,7 +451,7 @@ test('prayer request can be marked answered from show page', function () {
 // PRAYER UPDATE TESTS
 // ============================================
 
-test('staff can add update to prayer request', function () {
+test('staff can add update to prayer request', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -479,7 +479,7 @@ test('staff can add update to prayer request', function () {
 // PRAYER CHAIN SMS TESTS
 // ============================================
 
-test('staff can send prayer chain sms', function () {
+test('staff can send prayer chain sms', function (): void {
     Queue::fake();
 
     $user = User::factory()->create();
@@ -500,7 +500,7 @@ test('staff can send prayer chain sms', function () {
         ->call('sendPrayerChain', $prayerRequest)
         ->assertDispatched('prayer-chain-sent');
 
-    Queue::assertPushed(SendPrayerChainSmsJob::class, function ($job) use ($prayerRequest) {
+    Queue::assertPushed(SendPrayerChainSmsJob::class, function ($job) use ($prayerRequest): bool {
         return $job->prayerRequest->id === $prayerRequest->id;
     });
 });
@@ -509,7 +509,7 @@ test('staff can send prayer chain sms', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search prayer requests by title', function () {
+test('can search prayer requests by title', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -538,7 +538,7 @@ test('can search prayer requests by title', function () {
     expect($component->instance()->prayerRequests->first()->title)->toBe('Healing from sickness');
 });
 
-test('can filter prayer requests by category', function () {
+test('can filter prayer requests by category', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -565,7 +565,7 @@ test('can filter prayer requests by category', function () {
     expect($component->instance()->prayerRequests->first()->category)->toBe(PrayerRequestCategory::Health);
 });
 
-test('can filter prayer requests by status', function () {
+test('can filter prayer requests by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -592,7 +592,7 @@ test('can filter prayer requests by status', function () {
     expect($component->instance()->prayerRequests->first()->status)->toBe(PrayerRequestStatus::Answered);
 });
 
-test('can filter prayer requests by privacy', function () {
+test('can filter prayer requests by privacy', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -623,7 +623,7 @@ test('can filter prayer requests by privacy', function () {
 // STATS TESTS
 // ============================================
 
-test('prayer request stats are calculated correctly', function () {
+test('prayer request stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -657,7 +657,7 @@ test('prayer request stats are calculated correctly', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('prayer request title is required', function () {
+test('prayer request title is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -678,7 +678,7 @@ test('prayer request title is required', function () {
         ->assertHasErrors(['title' => 'required']);
 });
 
-test('prayer request description is required', function () {
+test('prayer request description is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -699,7 +699,7 @@ test('prayer request description is required', function () {
         ->assertHasErrors(['description' => 'required']);
 });
 
-test('prayer request member is required when not anonymous', function () {
+test('prayer request member is required when not anonymous', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -721,7 +721,7 @@ test('prayer request member is required when not anonymous', function () {
         ->assertHasErrors(['member_id' => 'required_if']);
 });
 
-test('prayer request can be submitted anonymously', function () {
+test('prayer request can be submitted anonymously', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -750,7 +750,7 @@ test('prayer request can be submitted anonymously', function () {
 // EMPTY STATE TESTS
 // ============================================
 
-test('empty state is shown when no prayer requests exist', function () {
+test('empty state is shown when no prayer requests exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -770,7 +770,7 @@ test('empty state is shown when no prayer requests exist', function () {
 // CROSS-BRANCH ACCESS TESTS
 // ============================================
 
-test('user cannot update prayer request from different branch', function () {
+test('user cannot update prayer request from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
     $otherMember = Member::factory()->create(['primary_branch_id' => $otherBranch->id]);
@@ -797,7 +797,7 @@ test('user cannot update prayer request from different branch', function () {
 // MODAL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -814,7 +814,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('showCreateModal', false);
 });
 
-test('cancel delete modal closes modal', function () {
+test('cancel delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

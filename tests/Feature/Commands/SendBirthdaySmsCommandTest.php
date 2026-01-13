@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Crypt;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -31,12 +31,12 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('command sends birthday SMS to members with birthday today', function () {
+test('command sends birthday SMS to members with birthday today', function (): void {
     // Create a member with birthday today
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
@@ -55,7 +55,7 @@ test('command sends birthday SMS to members with birthday today', function () {
         ->assertSuccessful();
 });
 
-test('command skips members without birthday today', function () {
+test('command skips members without birthday today', function (): void {
     // Create a member with birthday yesterday
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
@@ -69,7 +69,7 @@ test('command skips members without birthday today', function () {
         ->assertSuccessful();
 });
 
-test('command skips branch without SMS configured', function () {
+test('command skips branch without SMS configured', function (): void {
     // Create branch without SMS config
     $branchNoSms = Branch::factory()->create([
         'settings' => [],
@@ -87,7 +87,7 @@ test('command skips branch without SMS configured', function () {
         ->assertSuccessful();
 });
 
-test('command skips branch with auto birthday sms disabled', function () {
+test('command skips branch with auto birthday sms disabled', function (): void {
     // Update branch to disable auto birthday SMS
     $this->branch->setSetting('auto_birthday_sms', false);
     $this->branch->save();
@@ -104,7 +104,7 @@ test('command skips branch with auto birthday sms disabled', function () {
         ->assertSuccessful();
 });
 
-test('command skips members without phone number', function () {
+test('command skips members without phone number', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'phone' => null,
@@ -116,7 +116,7 @@ test('command skips members without phone number', function () {
         ->assertSuccessful();
 });
 
-test('command skips inactive members', function () {
+test('command skips inactive members', function (): void {
     $member = Member::factory()->inactive()->create([
         'primary_branch_id' => $this->branch->id,
         'phone' => '+233241234567',
@@ -128,7 +128,7 @@ test('command skips inactive members', function () {
         ->assertSuccessful();
 });
 
-test('command skips members already sent birthday SMS today', function () {
+test('command skips members already sent birthday SMS today', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'Jane',
@@ -149,7 +149,7 @@ test('command skips members already sent birthday SMS today', function () {
         ->assertSuccessful();
 });
 
-test('command uses birthday template when configured', function () {
+test('command uses birthday template when configured', function (): void {
     // Create a birthday template
     $template = SmsTemplate::factory()->create([
         'branch_id' => $this->branch->id,
@@ -176,7 +176,7 @@ test('command uses birthday template when configured', function () {
         ->assertSuccessful();
 });
 
-test('command personalizes message with member details', function () {
+test('command personalizes message with member details', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'Mary',
@@ -191,7 +191,7 @@ test('command personalizes message with member details', function () {
         ->assertSuccessful();
 });
 
-test('dry run mode does not send actual SMS', function () {
+test('dry run mode does not send actual SMS', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'Test',
@@ -206,7 +206,7 @@ test('dry run mode does not send actual SMS', function () {
         ->assertSuccessful();
 });
 
-test('command handles multiple members with birthdays', function () {
+test('command handles multiple members with birthdays', function (): void {
     // Create multiple members with birthday today
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,

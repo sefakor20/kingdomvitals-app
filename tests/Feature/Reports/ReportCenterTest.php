@@ -12,7 +12,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -37,18 +37,18 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('admin can access report center', function () {
+test('admin can access report center', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.index', $this->branch))
         ->assertStatus(200);
 });
 
-test('manager can access report center', function () {
+test('manager can access report center', function (): void {
     $managerUser = User::factory()->create();
     $managerUser->branchAccess()->create([
         'branch_id' => $this->branch->id,
@@ -60,18 +60,18 @@ test('manager can access report center', function () {
         ->assertStatus(200);
 });
 
-test('volunteer cannot access report center', function () {
+test('volunteer cannot access report center', function (): void {
     $this->actingAs($this->volunteerUser)
         ->get(route('reports.index', $this->branch))
         ->assertForbidden();
 });
 
-test('unauthenticated user is redirected to login', function () {
+test('unauthenticated user is redirected to login', function (): void {
     $this->get(route('reports.index', $this->branch))
         ->assertRedirect(route('login'));
 });
 
-test('report center renders correctly', function () {
+test('report center renders correctly', function (): void {
     Livewire::actingAs($this->adminUser)
         ->test(ReportCenter::class, ['branch' => $this->branch])
         ->assertStatus(200)
@@ -80,7 +80,7 @@ test('report center renders correctly', function () {
         ->assertSee('Financial');
 });
 
-test('membership stats are computed correctly', function () {
+test('membership stats are computed correctly', function (): void {
     Member::factory()->count(5)->create([
         'primary_branch_id' => $this->branch->id,
         'status' => 'active',

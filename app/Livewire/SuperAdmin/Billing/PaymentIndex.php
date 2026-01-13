@@ -76,19 +76,19 @@ class PaymentIndex extends Component
     {
         $query = PlatformPayment::with(['invoice', 'tenant']);
 
-        if ($this->search) {
-            $query->where(function ($q) {
+        if ($this->search !== '' && $this->search !== '0') {
+            $query->where(function ($q): void {
                 $q->where('payment_reference', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"))
                     ->orWhereHas('invoice', fn ($i) => $i->where('invoice_number', 'like', "%{$this->search}%"));
             });
         }
 
-        if ($this->status) {
+        if ($this->status !== '' && $this->status !== '0') {
             $query->where('status', $this->status);
         }
 
-        if ($this->method) {
+        if ($this->method !== '' && $this->method !== '0') {
             $query->where('payment_method', $this->method);
         }
 
@@ -101,7 +101,7 @@ class PaymentIndex extends Component
     public function statusOptions(): array
     {
         return collect(PlatformPaymentStatus::cases())
-            ->mapWithKeys(fn (PlatformPaymentStatus $status) => [$status->value => $status->label()])
+            ->mapWithKeys(fn (PlatformPaymentStatus $status): array => [$status->value => $status->label()])
             ->toArray();
     }
 
@@ -109,7 +109,7 @@ class PaymentIndex extends Component
     public function methodOptions(): array
     {
         return collect(PlatformPaymentMethod::cases())
-            ->mapWithKeys(fn (PlatformPaymentMethod $method) => [$method->value => $method->label()])
+            ->mapWithKeys(fn (PlatformPaymentMethod $method): array => [$method->value => $method->label()])
             ->toArray();
     }
 
@@ -117,25 +117,25 @@ class PaymentIndex extends Component
     {
         $query = PlatformPayment::with(['invoice', 'tenant']);
 
-        if ($this->search) {
-            $query->where(function ($q) {
+        if ($this->search !== '' && $this->search !== '0') {
+            $query->where(function ($q): void {
                 $q->where('payment_reference', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"))
                     ->orWhereHas('invoice', fn ($i) => $i->where('invoice_number', 'like', "%{$this->search}%"));
             });
         }
 
-        if ($this->status) {
+        if ($this->status !== '' && $this->status !== '0') {
             $query->where('status', $this->status);
         }
 
-        if ($this->method) {
+        if ($this->method !== '' && $this->method !== '0') {
             $query->where('payment_method', $this->method);
         }
 
         $payments = $query->orderBy($this->sortBy, $this->sortDirection)->get();
 
-        $data = $payments->map(fn (PlatformPayment $payment) => [
+        $data = $payments->map(fn (PlatformPayment $payment): array => [
             'date' => $payment->paid_at?->format('Y-m-d H:i:s') ?? $payment->created_at->format('Y-m-d H:i:s'),
             'reference' => $payment->payment_reference,
             'tenant' => $payment->tenant?->name ?? 'Unknown',

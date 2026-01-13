@@ -48,11 +48,11 @@ class HouseholdIndex extends Component
         $query = Household::where('branch_id', $this->branch->id)
             ->withCount('members');
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhereHas('head', function ($hq) use ($search) {
+                    ->orWhereHas('head', function ($hq) use ($search): void {
                         $hq->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     });
@@ -222,7 +222,7 @@ class HouseholdIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.households.household-index');
     }

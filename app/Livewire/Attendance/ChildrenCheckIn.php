@@ -69,14 +69,14 @@ class ChildrenCheckIn extends Component
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
             ->children()
-            ->where(function ($q) use ($search) {
+            ->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
             })
             ->with('household')
             ->limit(10)
             ->get()
-            ->map(fn ($m) => [
+            ->map(fn ($m): array => [
                 'id' => $m->id,
                 'name' => $m->fullName(),
                 'age' => $m->date_of_birth?->age,
@@ -90,7 +90,7 @@ class ChildrenCheckIn extends Component
     public function checkedInChildren(): Collection
     {
         return ChildrenCheckinSecurity::query()
-            ->whereHas('attendance', function ($q) {
+            ->whereHas('attendance', function ($q): void {
                 $q->where('service_id', $this->service->id)
                     ->where('date', $this->selectedDate);
             })
@@ -104,7 +104,7 @@ class ChildrenCheckIn extends Component
     public function checkedOutChildren(): Collection
     {
         return ChildrenCheckinSecurity::query()
-            ->whereHas('attendance', function ($q) {
+            ->whereHas('attendance', function ($q): void {
                 $q->where('service_id', $this->service->id)
                     ->where('date', $this->selectedDate);
             })
@@ -219,7 +219,7 @@ class ChildrenCheckIn extends Component
 
     public function confirmCheckout(): void
     {
-        if (! $this->checkoutRecord) {
+        if (!$this->checkoutRecord instanceof \App\Models\Tenant\ChildrenCheckinSecurity) {
             return;
         }
 
@@ -249,7 +249,7 @@ class ChildrenCheckIn extends Component
             ->exists();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.attendance.children-check-in');
     }

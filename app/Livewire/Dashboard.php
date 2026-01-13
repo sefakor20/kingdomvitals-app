@@ -147,7 +147,7 @@ class Dashboard extends Component
             return 0;
         }
 
-        return VisitorFollowUp::whereHas('visitor', function ($query) {
+        return VisitorFollowUp::whereHas('visitor', function ($query): void {
             $query->where('branch_id', $this->currentBranchId);
         })
             ->where('is_scheduled', true)
@@ -164,7 +164,7 @@ class Dashboard extends Component
         }
 
         return VisitorFollowUp::with(['visitor', 'performedBy'])
-            ->whereHas('visitor', function ($query) {
+            ->whereHas('visitor', function ($query): void {
                 $query->where('branch_id', $this->currentBranchId);
             })
             ->where('is_scheduled', true)
@@ -232,7 +232,7 @@ class Dashboard extends Component
         }
 
         return MemberActivity::with(['member', 'user'])
-            ->whereHas('member', function ($query) {
+            ->whereHas('member', function ($query): void {
                 $query->where('primary_branch_id', $this->currentBranchId);
             })
             ->latest()
@@ -240,7 +240,7 @@ class Dashboard extends Component
             ->get();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.dashboard');
     }

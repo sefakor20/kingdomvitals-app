@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Config;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -35,12 +35,12 @@ beforeEach(function () {
     Config::set('services.texttango.webhook_secret', 'test-secret');
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('webhook updates sms status to delivered', function () {
+test('webhook updates sms status to delivered', function (): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
         'phone_number' => '+233241234567',
@@ -64,7 +64,7 @@ test('webhook updates sms status to delivered', function () {
     expect($this->smsLog->delivered_at)->not->toBeNull();
 });
 
-test('webhook updates sms status to failed with error message', function () {
+test('webhook updates sms status to failed with error message', function (): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
         'phone_number' => '+233241234567',
@@ -87,7 +87,7 @@ test('webhook updates sms status to failed with error message', function () {
     expect($this->smsLog->error_message)->toBe('Invalid phone number');
 });
 
-test('webhook rejects request with invalid signature', function () {
+test('webhook rejects request with invalid signature', function (): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
         'status' => 'delivered',
@@ -100,7 +100,7 @@ test('webhook rejects request with invalid signature', function () {
     $response->assertForbidden();
 });
 
-test('webhook rejects request without signature', function () {
+test('webhook rejects request without signature', function (): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
         'status' => 'delivered',
@@ -111,7 +111,7 @@ test('webhook rejects request without signature', function () {
     $response->assertForbidden();
 });
 
-test('webhook ignores request when sms log not found', function () {
+test('webhook ignores request when sms log not found', function (): void {
     $payload = [
         'tracking_id' => 'non-existent-tracking-id',
         'status' => 'delivered',
@@ -127,7 +127,7 @@ test('webhook ignores request when sms log not found', function () {
         ->assertJson(['status' => 'ignored', 'reason' => 'not_found']);
 });
 
-test('webhook requires status field', function () {
+test('webhook requires status field', function (): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
     ];
@@ -142,7 +142,7 @@ test('webhook requires status field', function () {
         ->assertJsonValidationErrors(['status']);
 });
 
-test('webhook handles various status mappings', function (string $inputStatus, SmsStatus $expectedStatus) {
+test('webhook handles various status mappings', function (string $inputStatus, SmsStatus $expectedStatus): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
         'phone_number' => '+233241234567',
@@ -170,8 +170,8 @@ test('webhook handles various status mappings', function (string $inputStatus, S
     'accepted' => ['accepted', SmsStatus::Sent],
 ]);
 
-test('webhook allows requests in local environment without secret configured', function () {
-    Config::set('services.texttango.webhook_secret', null);
+test('webhook allows requests in local environment without secret configured', function (): void {
+    Config::set('services.texttango.webhook_secret');
     Config::set('app.env', 'local');
 
     $payload = [
@@ -185,7 +185,7 @@ test('webhook allows requests in local environment without secret configured', f
     $response->assertOk();
 });
 
-test('webhook handles campaign with multiple recipients', function () {
+test('webhook handles campaign with multiple recipients', function (): void {
     tenancy()->initialize($this->tenant);
 
     // Create multiple SmsLogs with same tracking_id (campaign)
@@ -227,7 +227,7 @@ test('webhook handles campaign with multiple recipients', function () {
     expect($smsLog3->status)->toBe(SmsStatus::Sent); // Unchanged
 });
 
-test('webhook ignores request with missing identifiers', function () {
+test('webhook ignores request with missing identifiers', function (): void {
     $payload = [
         'status' => 'delivered',
         'phone_number' => '+233241234567',

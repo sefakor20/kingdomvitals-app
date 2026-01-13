@@ -93,7 +93,7 @@ class BranchSelector extends Component
         $this->dispatch('branch-switched', branchId: $branchId);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.branches.branch-selector');
     }

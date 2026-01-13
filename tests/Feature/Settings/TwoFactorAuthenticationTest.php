@@ -9,7 +9,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -30,12 +30,12 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('two factor settings page can be rendered', function () {
+test('two factor settings page can be rendered', function (): void {
     $user = User::factory()->withoutTwoFactor()->create();
 
     $this->actingAs($user)
@@ -46,7 +46,7 @@ test('two factor settings page can be rendered', function () {
         ->assertSee('Disabled');
 });
 
-test('two factor settings page requires password confirmation when enabled', function () {
+test('two factor settings page requires password confirmation when enabled', function (): void {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
@@ -55,7 +55,7 @@ test('two factor settings page requires password confirmation when enabled', fun
     $response->assertRedirect(route('password.confirm'));
 });
 
-test('two factor settings page returns forbidden response when two factor is disabled', function () {
+test('two factor settings page returns forbidden response when two factor is disabled', function (): void {
     config(['fortify.features' => []]);
 
     $user = User::factory()->create();
@@ -67,7 +67,7 @@ test('two factor settings page returns forbidden response when two factor is dis
     $response->assertForbidden();
 });
 
-test('two factor authentication disabled when confirmation abandoned between requests', function () {
+test('two factor authentication disabled when confirmation abandoned between requests', function (): void {
     $user = User::factory()->create();
 
     $user->forceFill([

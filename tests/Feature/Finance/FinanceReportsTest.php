@@ -19,7 +19,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -46,33 +46,33 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Authorization Tests
 
-test('admin can access finance reports', function () {
+test('admin can access finance reports', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('finance.reports', $this->branch))
         ->assertStatus(200);
 });
 
-test('volunteer cannot access finance reports', function () {
+test('volunteer cannot access finance reports', function (): void {
     $this->actingAs($this->volunteerUser)
         ->get(route('finance.reports', $this->branch))
         ->assertForbidden();
 });
 
-test('unauthenticated user is redirected to login', function () {
+test('unauthenticated user is redirected to login', function (): void {
     $this->get(route('finance.reports', $this->branch))
         ->assertRedirect(route('login'));
 });
 
 // Summary Stats Tests
 
-test('summary stats calculates total income correctly', function () {
+test('summary stats calculates total income correctly', function (): void {
     Donation::factory()->count(3)->create([
         'branch_id' => $this->branch->id,
         'amount' => 100.00,
@@ -87,7 +87,7 @@ test('summary stats calculates total income correctly', function () {
     expect($stats['donation_count'])->toBe(3);
 });
 
-test('summary stats calculates total expenses correctly', function () {
+test('summary stats calculates total expenses correctly', function (): void {
     Expense::factory()->count(2)->create([
         'branch_id' => $this->branch->id,
         'amount' => 50.00,
@@ -110,7 +110,7 @@ test('summary stats calculates total expenses correctly', function () {
     expect($stats['total_expenses'])->toBe(100.00);
 });
 
-test('summary stats calculates net position correctly', function () {
+test('summary stats calculates net position correctly', function (): void {
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'amount' => 500.00,
@@ -131,7 +131,7 @@ test('summary stats calculates net position correctly', function () {
     expect($stats['net_position'])->toBe(300.00);
 });
 
-test('summary stats calculates pledge fulfillment rate correctly', function () {
+test('summary stats calculates pledge fulfillment rate correctly', function (): void {
     Pledge::factory()->create([
         'branch_id' => $this->branch->id,
         'amount' => 1000.00,
@@ -156,7 +156,7 @@ test('summary stats calculates pledge fulfillment rate correctly', function () {
 
 // Period Filtering Tests
 
-test('period filtering works correctly', function () {
+test('period filtering works correctly', function (): void {
     // Old donation (outside 7-day period)
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
@@ -181,7 +181,7 @@ test('period filtering works correctly', function () {
 
 // Report Type Switching Tests
 
-test('can switch between report types', function () {
+test('can switch between report types', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch])
         ->assertSet('reportType', 'summary')
@@ -195,7 +195,7 @@ test('can switch between report types', function () {
 
 // Donations Report Tests
 
-test('donations by type data is calculated correctly', function () {
+test('donations by type data is calculated correctly', function (): void {
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'donation_type' => DonationType::Tithe,
@@ -219,7 +219,7 @@ test('donations by type data is calculated correctly', function () {
     expect(count($data['data']))->toBe(2);
 });
 
-test('top donors data returns correct members', function () {
+test('top donors data returns correct members', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -249,7 +249,7 @@ test('top donors data returns correct members', function () {
 
 // Expenses Report Tests
 
-test('expenses by category data is calculated correctly', function () {
+test('expenses by category data is calculated correctly', function (): void {
     Expense::factory()->create([
         'branch_id' => $this->branch->id,
         'category' => ExpenseCategory::Utilities,
@@ -274,7 +274,7 @@ test('expenses by category data is calculated correctly', function () {
 
 // Pledges Report Tests
 
-test('pledge fulfillment data is calculated correctly', function () {
+test('pledge fulfillment data is calculated correctly', function (): void {
     Pledge::factory()->create([
         'branch_id' => $this->branch->id,
         'amount' => 1000.00,
@@ -292,7 +292,7 @@ test('pledge fulfillment data is calculated correctly', function () {
     expect($data['fulfillment_rate'])->toBe(75.0);
 });
 
-test('outstanding pledges data returns correct pledges', function () {
+test('outstanding pledges data returns correct pledges', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     Pledge::factory()->create([
@@ -322,7 +322,7 @@ test('outstanding pledges data returns correct pledges', function () {
 
 // Empty State Tests
 
-test('handles empty data gracefully', function () {
+test('handles empty data gracefully', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 

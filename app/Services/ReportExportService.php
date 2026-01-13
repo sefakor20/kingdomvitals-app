@@ -16,7 +16,7 @@ class ReportExportService
      */
     public function exportToCsv(Collection $data, array $headers, string $filename): StreamedResponse
     {
-        return response()->streamDownload(function () use ($data, $headers) {
+        return response()->streamDownload(function () use ($data, $headers): void {
             $handle = fopen('php://output', 'w');
 
             // Write headers
@@ -56,7 +56,7 @@ class ReportExportService
         $pdf = Pdf::loadView($view, $data)
             ->setPaper('a4', 'portrait');
 
-        return response()->streamDownload(function () use ($pdf) {
+        return response()->streamDownload(function () use ($pdf): void {
             echo $pdf->output();
         }, $filename, [
             'Content-Type' => 'application/pdf',
@@ -71,7 +71,7 @@ class ReportExportService
         $pdf = Pdf::loadView($view, $data)
             ->setPaper('a4', 'landscape');
 
-        return response()->streamDownload(function () use ($pdf) {
+        return response()->streamDownload(function () use ($pdf): void {
             echo $pdf->output();
         }, $filename, [
             'Content-Type' => 'application/pdf',

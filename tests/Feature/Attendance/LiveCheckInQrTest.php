@@ -18,7 +18,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -33,7 +33,7 @@ beforeEach(function () {
     $this->service = Service::factory()->create(['branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -42,7 +42,7 @@ afterEach(function () {
 // QR CODE CHECK-IN TESTS
 // ============================================
 
-test('can check in member via qr code', function () {
+test('can check in member via qr code', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -72,7 +72,7 @@ test('can check in member via qr code', function () {
     expect($attendance->check_in_method)->toBe(CheckInMethod::Qr);
 });
 
-test('shows error for invalid qr code', function () {
+test('shows error for invalid qr code', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -91,7 +91,7 @@ test('shows error for invalid qr code', function () {
         ->assertSet('qrError', __('Invalid QR code. Please try again.'));
 });
 
-test('shows error for member from different branch', function () {
+test('shows error for member from different branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -118,7 +118,7 @@ test('shows error for member from different branch', function () {
         ->assertSet('qrError', __('This member belongs to a different branch.'));
 });
 
-test('shows error for inactive member', function () {
+test('shows error for inactive member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -144,7 +144,7 @@ test('shows error for inactive member', function () {
         ->assertSet('qrError', __('This member is not active.'));
 });
 
-test('shows error for already checked in member via qr', function () {
+test('shows error for already checked in member via qr', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -183,7 +183,7 @@ test('shows error for already checked in member via qr', function () {
 // TAB SWITCHING TESTS
 // ============================================
 
-test('can switch between tabs', function () {
+test('can switch between tabs', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -206,7 +206,7 @@ test('can switch between tabs', function () {
         ->assertSet('activeTab', 'search');
 });
 
-test('switching away from qr tab stops scanning', function () {
+test('switching away from qr tab stops scanning', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -231,7 +231,7 @@ test('switching away from qr tab stops scanning', function () {
 // SEARCH CHECK-IN TESTS
 // ============================================
 
-test('can search and check in member', function () {
+test('can search and check in member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -259,7 +259,7 @@ test('can search and check in member', function () {
     expect(Attendance::where('member_id', $member->id)->exists())->toBeTrue();
 });
 
-test('cannot check in already checked in member', function () {
+test('cannot check in already checked in member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -296,7 +296,7 @@ test('cannot check in already checked in member', function () {
 // FAMILY CHECK-IN TESTS
 // ============================================
 
-test('can search for households', function () {
+test('can search for households', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -322,7 +322,7 @@ test('can search for households', function () {
     expect($component->instance()->householdSearchResults->first()->name)->toBe('Smith Family');
 });
 
-test('can open family check-in modal', function () {
+test('can open family check-in modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -349,7 +349,7 @@ test('can open family check-in modal', function () {
         ->assertSet('selectedHouseholdId', $household->id);
 });
 
-test('can check in selected family members', function () {
+test('can check in selected family members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -387,7 +387,7 @@ test('can check in selected family members', function () {
     expect(Attendance::where('member_id', $member2->id)->exists())->toBeTrue();
 });
 
-test('pre-selects unchecked members when opening family modal', function () {
+test('pre-selects unchecked members when opening family modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -432,7 +432,7 @@ test('pre-selects unchecked members when opening family modal', function () {
     expect($component->get('selectedFamilyMembers'))->not->toContain($member1->id);
 });
 
-test('can toggle family member selection', function () {
+test('can toggle family member selection', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -468,7 +468,7 @@ test('can toggle family member selection', function () {
     expect($component->get('selectedFamilyMembers'))->toContain($member->id);
 });
 
-test('can close family modal', function () {
+test('can close family modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -497,7 +497,7 @@ test('can close family modal', function () {
 // STATS TESTS
 // ============================================
 
-test('shows correct attendance stats', function () {
+test('shows correct attendance stats', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -545,7 +545,7 @@ test('shows correct attendance stats', function () {
 // SCANNING STATE TESTS
 // ============================================
 
-test('can start and stop scanning', function () {
+test('can start and stop scanning', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

@@ -12,7 +12,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -25,7 +25,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -34,7 +34,7 @@ afterEach(function () {
 // AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view branch users page', function () {
+test('admin can view branch users page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -48,7 +48,7 @@ test('admin can view branch users page', function () {
         ->assertSeeLivewire(BranchUserIndex::class);
 });
 
-test('manager cannot view branch users page', function () {
+test('manager cannot view branch users page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -61,7 +61,7 @@ test('manager cannot view branch users page', function () {
         ->assertForbidden();
 });
 
-test('staff cannot view branch users page', function () {
+test('staff cannot view branch users page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -74,7 +74,7 @@ test('staff cannot view branch users page', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot view branch users page', function () {
+test('volunteer cannot view branch users page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -91,7 +91,7 @@ test('volunteer cannot view branch users page', function () {
 // INVITE USER TESTS
 // ============================================
 
-test('admin can invite existing user to branch', function () {
+test('admin can invite existing user to branch', function (): void {
     $admin = User::factory()->create();
     $userToInvite = User::factory()->create(['email' => 'invite@example.com']);
 
@@ -121,7 +121,7 @@ test('admin can invite existing user to branch', function () {
     expect($access->role)->toBe(BranchRole::Staff);
 });
 
-test('cannot invite user who does not exist', function () {
+test('cannot invite user who does not exist', function (): void {
     $admin = User::factory()->create();
 
     UserBranchAccess::factory()->create([
@@ -140,7 +140,7 @@ test('cannot invite user who does not exist', function () {
         ->assertHasErrors(['inviteEmail']);
 });
 
-test('cannot invite user who already has access', function () {
+test('cannot invite user who already has access', function (): void {
     $admin = User::factory()->create();
     $existingUser = User::factory()->create(['email' => 'existing@example.com']);
 
@@ -166,7 +166,7 @@ test('cannot invite user who already has access', function () {
         ->assertHasErrors(['inviteEmail']);
 });
 
-test('invite requires valid email format', function () {
+test('invite requires valid email format', function (): void {
     $admin = User::factory()->create();
 
     UserBranchAccess::factory()->create([
@@ -185,7 +185,7 @@ test('invite requires valid email format', function () {
         ->assertHasErrors(['inviteEmail']);
 });
 
-test('invite requires valid role', function () {
+test('invite requires valid role', function (): void {
     $admin = User::factory()->create();
     $userToInvite = User::factory()->create(['email' => 'invite@example.com']);
 
@@ -209,7 +209,7 @@ test('invite requires valid role', function () {
 // EDIT USER ACCESS TESTS
 // ============================================
 
-test('admin can edit user role', function () {
+test('admin can edit user role', function (): void {
     $admin = User::factory()->create();
     $targetUser = User::factory()->create();
 
@@ -240,7 +240,7 @@ test('admin can edit user role', function () {
     expect($targetAccess->fresh()->role)->toBe(BranchRole::Manager);
 });
 
-test('admin can set user primary branch', function () {
+test('admin can set user primary branch', function (): void {
     $admin = User::factory()->create();
     $targetUser = User::factory()->create();
 
@@ -268,7 +268,7 @@ test('admin can set user primary branch', function () {
     expect($targetAccess->fresh()->is_primary)->toBeTrue();
 });
 
-test('setting primary clears other primary flags for same user', function () {
+test('setting primary clears other primary flags for same user', function (): void {
     $admin = User::factory()->create();
     $targetUser = User::factory()->create();
     $otherBranch = Branch::factory()->create();
@@ -305,7 +305,7 @@ test('setting primary clears other primary flags for same user', function () {
     expect($primaryAccess->fresh()->is_primary)->toBeFalse();
 });
 
-test('admin cannot edit own access', function () {
+test('admin cannot edit own access', function (): void {
     $admin = User::factory()->create();
 
     $adminAccess = UserBranchAccess::factory()->create([
@@ -325,7 +325,7 @@ test('admin cannot edit own access', function () {
 // REVOKE ACCESS TESTS
 // ============================================
 
-test('admin can revoke user access', function () {
+test('admin can revoke user access', function (): void {
     $admin = User::factory()->create();
     $targetUser = User::factory()->create();
 
@@ -353,7 +353,7 @@ test('admin can revoke user access', function () {
     expect(UserBranchAccess::find($targetAccess->id))->toBeNull();
 });
 
-test('admin cannot revoke own access', function () {
+test('admin cannot revoke own access', function (): void {
     $admin = User::factory()->create();
 
     $adminAccess = UserBranchAccess::factory()->create([
@@ -373,7 +373,7 @@ test('admin cannot revoke own access', function () {
 // SEARCH TESTS
 // ============================================
 
-test('can search users by name', function () {
+test('can search users by name', function (): void {
     $admin = User::factory()->create();
     $user1 = User::factory()->create(['name' => 'John Doe']);
     $user2 = User::factory()->create(['name' => 'Jane Smith']);
@@ -406,7 +406,7 @@ test('can search users by name', function () {
         ->assertDontSee('Jane Smith');
 });
 
-test('can search users by email', function () {
+test('can search users by email', function (): void {
     $admin = User::factory()->create();
     $user1 = User::factory()->create(['email' => 'john@example.com']);
     $user2 = User::factory()->create(['email' => 'jane@example.com']);
@@ -441,7 +441,7 @@ test('can search users by email', function () {
 // MODAL CANCEL TESTS
 // ============================================
 
-test('cancel invite modal closes and resets form', function () {
+test('cancel invite modal closes and resets form', function (): void {
     $admin = User::factory()->create();
 
     UserBranchAccess::factory()->create([
@@ -463,7 +463,7 @@ test('cancel invite modal closes and resets form', function () {
         ->assertSet('inviteRole', 'staff');
 });
 
-test('cancel edit modal closes and clears editing access', function () {
+test('cancel edit modal closes and clears editing access', function (): void {
     $admin = User::factory()->create();
     $targetUser = User::factory()->create();
 
@@ -489,7 +489,7 @@ test('cancel edit modal closes and clears editing access', function () {
         ->assertSet('editingAccess', null);
 });
 
-test('cancel revoke modal closes and clears revoking access', function () {
+test('cancel revoke modal closes and clears revoking access', function (): void {
     $admin = User::factory()->create();
     $targetUser = User::factory()->create();
 
@@ -519,7 +519,7 @@ test('cancel revoke modal closes and clears revoking access', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('users list shows user information correctly', function () {
+test('users list shows user information correctly', function (): void {
     $admin = User::factory()->create();
     $staff = User::factory()->create(['name' => 'Staff User', 'email' => 'staff@example.com']);
 
@@ -545,7 +545,7 @@ test('users list shows user information correctly', function () {
         ->assertSee('Primary');
 });
 
-test('current user sees (You) label and cannot edit/revoke self', function () {
+test('current user sees (You) label and cannot edit/revoke self', function (): void {
     $admin = User::factory()->create(['name' => 'Admin User']);
 
     UserBranchAccess::factory()->create([
@@ -561,7 +561,7 @@ test('current user sees (You) label and cannot edit/revoke self', function () {
         ->assertSee('(You)');
 });
 
-test('empty state shows when no users match search', function () {
+test('empty state shows when no users match search', function (): void {
     $admin = User::factory()->create();
 
     UserBranchAccess::factory()->create([
@@ -578,7 +578,7 @@ test('empty state shows when no users match search', function () {
         ->assertSee('Try adjusting your search criteria');
 });
 
-test('all roles are available in invite form', function () {
+test('all roles are available in invite form', function (): void {
     $admin = User::factory()->create();
 
     UserBranchAccess::factory()->create([

@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -34,7 +34,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -43,7 +43,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view visitors page', function () {
+test('authenticated user with branch access can view visitors page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -57,7 +57,7 @@ test('authenticated user with branch access can view visitors page', function ()
         ->assertSeeLivewire(VisitorIndex::class);
 });
 
-test('user without branch access cannot view visitors page', function () {
+test('user without branch access cannot view visitors page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -73,7 +73,7 @@ test('user without branch access cannot view visitors page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view visitors page', function () {
+test('unauthenticated user cannot view visitors page', function (): void {
     $this->get("/branches/{$this->branch->id}/visitors")
         ->assertRedirect('/login');
 });
@@ -82,7 +82,7 @@ test('unauthenticated user cannot view visitors page', function () {
 // VIEW VISITORS AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view visitors list', function () {
+test('admin can view visitors list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -99,7 +99,7 @@ test('admin can view visitors list', function () {
         ->assertSee($visitor->last_name);
 });
 
-test('manager can view visitors list', function () {
+test('manager can view visitors list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -115,7 +115,7 @@ test('manager can view visitors list', function () {
         ->assertSee($visitor->first_name);
 });
 
-test('staff can view visitors list', function () {
+test('staff can view visitors list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -131,7 +131,7 @@ test('staff can view visitors list', function () {
         ->assertSee($visitor->first_name);
 });
 
-test('volunteer can view visitors list', function () {
+test('volunteer can view visitors list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -151,7 +151,7 @@ test('volunteer can view visitors list', function () {
 // CREATE VISITOR AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a visitor', function () {
+test('admin can create a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -178,7 +178,7 @@ test('admin can create a visitor', function () {
     expect(Visitor::where('email', 'john.visitor@example.com')->exists())->toBeTrue();
 });
 
-test('manager can create a visitor', function () {
+test('manager can create a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -201,7 +201,7 @@ test('manager can create a visitor', function () {
     expect(Visitor::where('first_name', 'Jane')->where('last_name', 'Visitor')->exists())->toBeTrue();
 });
 
-test('staff can create a visitor', function () {
+test('staff can create a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -224,7 +224,7 @@ test('staff can create a visitor', function () {
     expect(Visitor::where('first_name', 'Staff')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create a visitor', function () {
+test('volunteer cannot create a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -243,7 +243,7 @@ test('volunteer cannot create a visitor', function () {
 // UPDATE VISITOR AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a visitor', function () {
+test('admin can update a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -267,7 +267,7 @@ test('admin can update a visitor', function () {
     expect($visitor->fresh()->first_name)->toBe('Updated');
 });
 
-test('manager can update a visitor', function () {
+test('manager can update a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -289,7 +289,7 @@ test('manager can update a visitor', function () {
     expect($visitor->fresh()->first_name)->toBe('ManagerUpdated');
 });
 
-test('staff can update a visitor', function () {
+test('staff can update a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -311,7 +311,7 @@ test('staff can update a visitor', function () {
     expect($visitor->fresh()->first_name)->toBe('StaffUpdated');
 });
 
-test('volunteer cannot update a visitor', function () {
+test('volunteer cannot update a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -332,7 +332,7 @@ test('volunteer cannot update a visitor', function () {
 // DELETE VISITOR AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a visitor', function () {
+test('admin can delete a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -355,7 +355,7 @@ test('admin can delete a visitor', function () {
     expect(Visitor::find($visitorId))->toBeNull();
 });
 
-test('manager can delete a visitor', function () {
+test('manager can delete a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -377,7 +377,7 @@ test('manager can delete a visitor', function () {
     expect(Visitor::find($visitorId))->toBeNull();
 });
 
-test('staff cannot delete a visitor', function () {
+test('staff cannot delete a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -394,7 +394,7 @@ test('staff cannot delete a visitor', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot delete a visitor', function () {
+test('volunteer cannot delete a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -415,7 +415,7 @@ test('volunteer cannot delete a visitor', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search visitors by first name', function () {
+test('can search visitors by first name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -443,7 +443,7 @@ test('can search visitors by first name', function () {
         ->assertDontSee('HiddenJane');
 });
 
-test('can search visitors by email', function () {
+test('can search visitors by email', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -471,7 +471,7 @@ test('can search visitors by email', function () {
         ->assertDontSee('OtherEmailUser');
 });
 
-test('can filter visitors by status', function () {
+test('can filter visitors by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -499,7 +499,7 @@ test('can filter visitors by status', function () {
         ->assertDontSee('FollowedUpVisitor');
 });
 
-test('can filter visitors by converted status', function () {
+test('can filter visitors by converted status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -532,7 +532,7 @@ test('can filter visitors by converted status', function () {
 // CONVERT TO MEMBER TESTS
 // ============================================
 
-test('admin can convert visitor to member', function () {
+test('admin can convert visitor to member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -560,7 +560,7 @@ test('admin can convert visitor to member', function () {
     expect($visitor->status)->toBe(VisitorStatus::Converted);
 });
 
-test('manager can convert visitor to member', function () {
+test('manager can convert visitor to member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -583,7 +583,7 @@ test('manager can convert visitor to member', function () {
     expect($visitor->is_converted)->toBeTrue();
 });
 
-test('volunteer cannot convert visitor to member', function () {
+test('volunteer cannot convert visitor to member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -600,7 +600,7 @@ test('volunteer cannot convert visitor to member', function () {
         ->assertForbidden();
 });
 
-test('convert requires member selection', function () {
+test('convert requires member selection', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -622,7 +622,7 @@ test('convert requires member selection', function () {
 // ASSIGN MEMBER FOR FOLLOW-UP TESTS
 // ============================================
 
-test('can assign member for follow-up', function () {
+test('can assign member for follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -645,7 +645,7 @@ test('can assign member for follow-up', function () {
     expect($visitor->assigned_to)->toBe($member->id);
 });
 
-test('can unassign member from follow-up', function () {
+test('can unassign member from follow-up', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -675,7 +675,7 @@ test('can unassign member from follow-up', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('first name is required', function () {
+test('first name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -695,7 +695,7 @@ test('first name is required', function () {
         ->assertHasErrors(['first_name']);
 });
 
-test('last name is required', function () {
+test('last name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -715,7 +715,7 @@ test('last name is required', function () {
         ->assertHasErrors(['last_name']);
 });
 
-test('visit date is required', function () {
+test('visit date is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -735,7 +735,7 @@ test('visit date is required', function () {
         ->assertHasErrors(['visit_date']);
 });
 
-test('email must be valid format', function () {
+test('email must be valid format', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -756,7 +756,7 @@ test('email must be valid format', function () {
         ->assertHasErrors(['email']);
 });
 
-test('status must be valid value', function () {
+test('status must be valid value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -780,7 +780,7 @@ test('status must be valid value', function () {
 // VISITOR SHOW PAGE TESTS
 // ============================================
 
-test('can view visitor details page', function () {
+test('can view visitor details page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -796,7 +796,7 @@ test('can view visitor details page', function () {
         ->assertSeeLivewire(VisitorShow::class);
 });
 
-test('can edit visitor from show page', function () {
+test('can edit visitor from show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -821,7 +821,7 @@ test('can edit visitor from show page', function () {
     expect($visitor->first_name)->toBe('UpdatedFromShow');
 });
 
-test('can delete visitor from show page', function () {
+test('can delete visitor from show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -844,7 +844,7 @@ test('can delete visitor from show page', function () {
     expect(Visitor::find($visitorId))->toBeNull();
 });
 
-test('can convert visitor from show page', function () {
+test('can convert visitor from show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -875,7 +875,7 @@ test('can convert visitor from show page', function () {
 // MODAL CANCEL OPERATION TESTS
 // ============================================
 
-test('cancel create modal closes modal and resets form', function () {
+test('cancel create modal closes modal and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -898,7 +898,7 @@ test('cancel create modal closes modal and resets form', function () {
         ->assertSet('email', '');
 });
 
-test('cancel edit modal closes modal and clears editing visitor', function () {
+test('cancel edit modal closes modal and clears editing visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -919,7 +919,7 @@ test('cancel edit modal closes modal and clears editing visitor', function () {
         ->assertSet('editingVisitor', null);
 });
 
-test('cancel delete modal closes modal and clears deleting visitor', function () {
+test('cancel delete modal closes modal and clears deleting visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -940,7 +940,7 @@ test('cancel delete modal closes modal and clears deleting visitor', function ()
         ->assertSet('deletingVisitor', null);
 });
 
-test('cancel convert modal closes modal', function () {
+test('cancel convert modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -964,7 +964,7 @@ test('cancel convert modal closes modal', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no visitors exist', function () {
+test('empty state is shown when no visitors exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -978,7 +978,7 @@ test('empty state is shown when no visitors exist', function () {
         ->assertSee('No visitors found');
 });
 
-test('visitor table displays visitor information correctly', function () {
+test('visitor table displays visitor information correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1004,7 +1004,7 @@ test('visitor table displays visitor information correctly', function () {
         ->assertSee('0241112233');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1018,7 +1018,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Add Visitor');
 });
 
-test('create button is hidden for volunteers', function () {
+test('create button is hidden for volunteers', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1038,7 +1038,7 @@ test('create button is hidden for volunteers', function () {
     $component->call('create')->assertForbidden();
 });
 
-test('assigned member is displayed in visitor list', function () {
+test('assigned member is displayed in visitor list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1068,7 +1068,7 @@ test('assigned member is displayed in visitor list', function () {
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update visitor from different branch', function () {
+test('user cannot update visitor from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -1088,7 +1088,7 @@ test('user cannot update visitor from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot delete visitor from different branch', function () {
+test('user cannot delete visitor from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 

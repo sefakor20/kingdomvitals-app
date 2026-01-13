@@ -469,7 +469,7 @@ class EquipmentShow extends Component
         $this->dispatch('maintenance-cancelled');
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.equipment.equipment-show');
     }

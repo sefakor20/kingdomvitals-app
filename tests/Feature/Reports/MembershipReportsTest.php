@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -42,26 +42,26 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Member Directory Tests
 
-test('admin can access member directory', function () {
+test('admin can access member directory', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.membership.directory', $this->branch))
         ->assertStatus(200);
 });
 
-test('volunteer cannot access member directory', function () {
+test('volunteer cannot access member directory', function (): void {
     $this->actingAs($this->volunteerUser)
         ->get(route('reports.membership.directory', $this->branch))
         ->assertForbidden();
 });
 
-test('member directory shows total count', function () {
+test('member directory shows total count', function (): void {
     Member::factory()->count(5)->create([
         'primary_branch_id' => $this->branch->id,
     ]);
@@ -72,7 +72,7 @@ test('member directory shows total count', function () {
     expect($component->get('totalCount'))->toBe(5);
 });
 
-test('member directory can filter by status', function () {
+test('member directory can filter by status', function (): void {
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,
         'status' => MembershipStatus::Active,
@@ -90,7 +90,7 @@ test('member directory can filter by status', function () {
     expect($component->get('members')->count())->toBe(3);
 });
 
-test('member directory can search by name', function () {
+test('member directory can search by name', function (): void {
     Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'John',
@@ -112,13 +112,13 @@ test('member directory can search by name', function () {
 
 // New Members Report Tests
 
-test('admin can access new members report', function () {
+test('admin can access new members report', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.membership.new-members', $this->branch))
         ->assertStatus(200);
 });
 
-test('new members report shows members within period', function () {
+test('new members report shows members within period', function (): void {
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,
         'joined_at' => now()->subDays(5),
@@ -135,7 +135,7 @@ test('new members report shows members within period', function () {
     expect($component->get('totalNewMembers'))->toBe(3);
 });
 
-test('new members report can change period', function () {
+test('new members report can change period', function (): void {
     Member::factory()->count(2)->create([
         'primary_branch_id' => $this->branch->id,
         'joined_at' => now()->subDays(5),
@@ -155,13 +155,13 @@ test('new members report can change period', function () {
 
 // Demographics Report Tests
 
-test('admin can access demographics report', function () {
+test('admin can access demographics report', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.membership.demographics', $this->branch))
         ->assertStatus(200);
 });
 
-test('demographics shows gender distribution', function () {
+test('demographics shows gender distribution', function (): void {
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,
         'status' => 'active',
@@ -184,13 +184,13 @@ test('demographics shows gender distribution', function () {
 
 // Growth Trends Report Tests
 
-test('admin can access growth trends report', function () {
+test('admin can access growth trends report', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.membership.growth', $this->branch))
         ->assertStatus(200);
 });
 
-test('growth trends can change period', function () {
+test('growth trends can change period', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(MemberGrowthTrends::class, ['branch' => $this->branch])
         ->call('setMonths', 6);
@@ -198,7 +198,7 @@ test('growth trends can change period', function () {
     expect($component->get('months'))->toBe(6);
 });
 
-test('growth trends can toggle comparison', function () {
+test('growth trends can toggle comparison', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(MemberGrowthTrends::class, ['branch' => $this->branch])
         ->call('toggleComparison');

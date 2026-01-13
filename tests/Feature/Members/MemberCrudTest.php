@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -34,7 +34,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -43,7 +43,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view members page', function () {
+test('authenticated user with branch access can view members page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -57,7 +57,7 @@ test('authenticated user with branch access can view members page', function () 
         ->assertSeeLivewire(MemberIndex::class);
 });
 
-test('user without branch access cannot view members page', function () {
+test('user without branch access cannot view members page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -73,7 +73,7 @@ test('user without branch access cannot view members page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view members page', function () {
+test('unauthenticated user cannot view members page', function (): void {
     $this->get("/branches/{$this->branch->id}/members")
         ->assertRedirect('/login');
 });
@@ -82,7 +82,7 @@ test('unauthenticated user cannot view members page', function () {
 // VIEW MEMBERS AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view members list', function () {
+test('admin can view members list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -99,7 +99,7 @@ test('admin can view members list', function () {
         ->assertSee($member->last_name);
 });
 
-test('manager can view members list', function () {
+test('manager can view members list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -115,7 +115,7 @@ test('manager can view members list', function () {
         ->assertSee($member->first_name);
 });
 
-test('staff can view members list', function () {
+test('staff can view members list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -131,7 +131,7 @@ test('staff can view members list', function () {
         ->assertSee($member->first_name);
 });
 
-test('volunteer can view members list', function () {
+test('volunteer can view members list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -151,7 +151,7 @@ test('volunteer can view members list', function () {
 // CREATE MEMBER AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a member', function () {
+test('admin can create a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -177,7 +177,7 @@ test('admin can create a member', function () {
     expect(Member::where('email', 'john.doe@example.com')->exists())->toBeTrue();
 });
 
-test('manager can create a member', function () {
+test('manager can create a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -199,7 +199,7 @@ test('manager can create a member', function () {
     expect(Member::where('first_name', 'Jane')->where('last_name', 'Smith')->exists())->toBeTrue();
 });
 
-test('staff can create a member', function () {
+test('staff can create a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -221,7 +221,7 @@ test('staff can create a member', function () {
     expect(Member::where('first_name', 'Staff')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create a member', function () {
+test('volunteer cannot create a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -240,7 +240,7 @@ test('volunteer cannot create a member', function () {
 // UPDATE MEMBER AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a member', function () {
+test('admin can update a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -264,7 +264,7 @@ test('admin can update a member', function () {
     expect($member->fresh()->first_name)->toBe('Updated');
 });
 
-test('manager can update a member', function () {
+test('manager can update a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -286,7 +286,7 @@ test('manager can update a member', function () {
     expect($member->fresh()->first_name)->toBe('ManagerUpdated');
 });
 
-test('staff can update a member', function () {
+test('staff can update a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -308,7 +308,7 @@ test('staff can update a member', function () {
     expect($member->fresh()->first_name)->toBe('StaffUpdated');
 });
 
-test('volunteer cannot update a member', function () {
+test('volunteer cannot update a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -329,7 +329,7 @@ test('volunteer cannot update a member', function () {
 // DELETE MEMBER AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a member', function () {
+test('admin can delete a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -352,7 +352,7 @@ test('admin can delete a member', function () {
     expect(Member::find($memberId))->toBeNull();
 });
 
-test('manager can delete a member', function () {
+test('manager can delete a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -374,7 +374,7 @@ test('manager can delete a member', function () {
     expect(Member::find($memberId))->toBeNull();
 });
 
-test('staff cannot delete a member', function () {
+test('staff cannot delete a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -391,7 +391,7 @@ test('staff cannot delete a member', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot delete a member', function () {
+test('volunteer cannot delete a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -412,7 +412,7 @@ test('volunteer cannot delete a member', function () {
 // RESTORE MEMBER TESTS
 // ============================================
 
-test('admin can see deleted members filter', function () {
+test('admin can see deleted members filter', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -428,7 +428,7 @@ test('admin can see deleted members filter', function () {
     $component->assertSee('Deleted');
 });
 
-test('manager can see deleted members filter', function () {
+test('manager can see deleted members filter', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -444,7 +444,7 @@ test('manager can see deleted members filter', function () {
     $component->assertSee('Deleted');
 });
 
-test('staff cannot see deleted members filter', function () {
+test('staff cannot see deleted members filter', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -459,7 +459,7 @@ test('staff cannot see deleted members filter', function () {
     expect($component->instance()->canRestore)->toBeFalse();
 });
 
-test('volunteer cannot see deleted members filter', function () {
+test('volunteer cannot see deleted members filter', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -474,7 +474,7 @@ test('volunteer cannot see deleted members filter', function () {
     expect($component->instance()->canRestore)->toBeFalse();
 });
 
-test('admin can restore a deleted member', function () {
+test('admin can restore a deleted member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -502,7 +502,7 @@ test('admin can restore a deleted member', function () {
     expect(Member::find($memberId)->deleted_at)->toBeNull();
 });
 
-test('manager can restore a deleted member', function () {
+test('manager can restore a deleted member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -524,7 +524,7 @@ test('manager can restore a deleted member', function () {
     expect(Member::find($memberId))->not->toBeNull();
 });
 
-test('staff cannot restore a deleted member', function () {
+test('staff cannot restore a deleted member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -547,7 +547,7 @@ test('staff cannot restore a deleted member', function () {
     expect(Member::find($memberId))->toBeNull();
 });
 
-test('deleted members only appear in deleted view', function () {
+test('deleted members only appear in deleted view', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -581,7 +581,7 @@ test('deleted members only appear in deleted view', function () {
         ->assertDontSee('ActiveMember');
 });
 
-test('restored member appears in active list', function () {
+test('restored member appears in active list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -614,7 +614,7 @@ test('restored member appears in active list', function () {
         ->assertDontSee('RestoredMember');
 });
 
-test('empty state shows appropriate message for deleted view', function () {
+test('empty state shows appropriate message for deleted view', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -634,7 +634,7 @@ test('empty state shows appropriate message for deleted view', function () {
 // PERMANENT DELETE TESTS
 // ============================================
 
-test('admin can permanently delete a soft-deleted member', function () {
+test('admin can permanently delete a soft-deleted member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -665,7 +665,7 @@ test('admin can permanently delete a soft-deleted member', function () {
     expect(Member::withTrashed()->find($memberId))->toBeNull();
 });
 
-test('manager cannot permanently delete a member', function () {
+test('manager cannot permanently delete a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -688,7 +688,7 @@ test('manager cannot permanently delete a member', function () {
     expect(Member::withTrashed()->find($memberId))->not->toBeNull();
 });
 
-test('staff cannot permanently delete a member', function () {
+test('staff cannot permanently delete a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -711,7 +711,7 @@ test('staff cannot permanently delete a member', function () {
     expect(Member::withTrashed()->find($memberId))->not->toBeNull();
 });
 
-test('cancel force delete modal closes modal', function () {
+test('cancel force delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -737,7 +737,7 @@ test('cancel force delete modal closes modal', function () {
     expect(Member::withTrashed()->find($memberId))->not->toBeNull();
 });
 
-test('admin sees delete permanently button in deleted view', function () {
+test('admin sees delete permanently button in deleted view', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -755,7 +755,7 @@ test('admin sees delete permanently button in deleted view', function () {
         ->assertSee('Delete Permanently');
 });
 
-test('manager does not see delete permanently button in table actions', function () {
+test('manager does not see delete permanently button in table actions', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -779,7 +779,7 @@ test('manager does not see delete permanently button in table actions', function
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search members by first name', function () {
+test('can search members by first name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -807,7 +807,7 @@ test('can search members by first name', function () {
         ->assertDontSee('Jane');
 });
 
-test('can search members by last name', function () {
+test('can search members by last name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -836,7 +836,7 @@ test('can search members by last name', function () {
         ->assertDontSee('Asante');
 });
 
-test('can search members by email', function () {
+test('can search members by email', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -866,7 +866,7 @@ test('can search members by email', function () {
         ->assertDontSee('Other');
 });
 
-test('can search members by phone', function () {
+test('can search members by phone', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -896,7 +896,7 @@ test('can search members by phone', function () {
         ->assertDontSee('NoMatchUser');
 });
 
-test('can filter members by status', function () {
+test('can filter members by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -926,7 +926,7 @@ test('can filter members by status', function () {
         ->assertDontSee('InactivePerson');
 });
 
-test('empty search shows all members', function () {
+test('empty search shows all members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -951,7 +951,7 @@ test('empty search shows all members', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('first name is required', function () {
+test('first name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -970,7 +970,7 @@ test('first name is required', function () {
         ->assertHasErrors(['first_name']);
 });
 
-test('last name is required', function () {
+test('last name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -989,7 +989,7 @@ test('last name is required', function () {
         ->assertHasErrors(['last_name']);
 });
 
-test('email must be valid format', function () {
+test('email must be valid format', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1009,7 +1009,7 @@ test('email must be valid format', function () {
         ->assertHasErrors(['email']);
 });
 
-test('status must be valid value', function () {
+test('status must be valid value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1028,7 +1028,7 @@ test('status must be valid value', function () {
         ->assertHasErrors(['status']);
 });
 
-test('gender must be valid value', function () {
+test('gender must be valid value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1048,7 +1048,7 @@ test('gender must be valid value', function () {
         ->assertHasErrors(['gender']);
 });
 
-test('marital status must be valid value', function () {
+test('marital status must be valid value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1068,7 +1068,7 @@ test('marital status must be valid value', function () {
         ->assertHasErrors(['marital_status']);
 });
 
-test('can create member with all optional fields empty', function () {
+test('can create member with all optional fields empty', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1092,7 +1092,7 @@ test('can create member with all optional fields empty', function () {
     expect($member->phone)->toBeNull();
 });
 
-test('can create member with all fields filled', function () {
+test('can create member with all fields filled', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1135,7 +1135,7 @@ test('can create member with all fields filled', function () {
 // MODAL CANCEL OPERATION TESTS
 // ============================================
 
-test('cancel create modal closes modal and resets form', function () {
+test('cancel create modal closes modal and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1158,7 +1158,7 @@ test('cancel create modal closes modal and resets form', function () {
         ->assertSet('email', '');
 });
 
-test('cancel edit modal closes modal and clears editing member', function () {
+test('cancel edit modal closes modal and clears editing member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1179,7 +1179,7 @@ test('cancel edit modal closes modal and clears editing member', function () {
         ->assertSet('editingMember', null);
 });
 
-test('cancel delete modal closes modal and clears deleting member', function () {
+test('cancel delete modal closes modal and clears deleting member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1204,7 +1204,7 @@ test('cancel delete modal closes modal and clears deleting member', function () 
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update member from different branch', function () {
+test('user cannot update member from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -1224,7 +1224,7 @@ test('user cannot update member from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot delete member from different branch', function () {
+test('user cannot delete member from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -1248,7 +1248,7 @@ test('user cannot delete member from different branch', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no members exist', function () {
+test('empty state is shown when no members exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1262,7 +1262,7 @@ test('empty state is shown when no members exist', function () {
         ->assertSee('No members found');
 });
 
-test('member table displays member information correctly', function () {
+test('member table displays member information correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1289,7 +1289,7 @@ test('member table displays member information correctly', function () {
         ->assertSee('Active');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1303,7 +1303,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Add Member');
 });
 
-test('create button is hidden for volunteers', function () {
+test('create button is hidden for volunteers', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1327,7 +1327,7 @@ test('create button is hidden for volunteers', function () {
 // PHOTO UPLOAD TESTS
 // ============================================
 
-test('can create member with photo', function () {
+test('can create member with photo', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -1357,7 +1357,7 @@ test('can create member with photo', function () {
     expect($member->photo_url)->toContain('/storage/members/');
 });
 
-test('can update member photo', function () {
+test('can update member photo', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -1384,7 +1384,7 @@ test('can update member photo', function () {
     expect($member->photo_url)->toContain('/storage/members/');
 });
 
-test('can replace existing member photo', function () {
+test('can replace existing member photo', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -1419,7 +1419,7 @@ test('can replace existing member photo', function () {
     expect($member->photo_url)->not->toBe($oldUrl);
 });
 
-test('can remove member photo', function () {
+test('can remove member photo', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -1451,7 +1451,7 @@ test('can remove member photo', function () {
     expect($member->photo_url)->toBeNull();
 });
 
-test('photo must be an image', function () {
+test('photo must be an image', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -1475,7 +1475,7 @@ test('photo must be an image', function () {
         ->assertHasErrors(['photo']);
 });
 
-test('photo must not exceed 2mb', function () {
+test('photo must not exceed 2mb', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -1500,7 +1500,7 @@ test('photo must not exceed 2mb', function () {
         ->assertHasErrors(['photo']);
 });
 
-test('edit modal loads existing photo url', function () {
+test('edit modal loads existing photo url', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1520,7 +1520,7 @@ test('edit modal loads existing photo url', function () {
         ->assertSet('existingPhotoUrl', 'http://example.com/photo.jpg');
 });
 
-test('photo is stored in tenant-specific directory', function () {
+test('photo is stored in tenant-specific directory', function (): void {
     Storage::fake('public');
 
     $user = User::factory()->create();

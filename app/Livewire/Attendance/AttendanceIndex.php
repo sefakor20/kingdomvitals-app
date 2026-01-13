@@ -52,14 +52,14 @@ class AttendanceIndex extends Component
         $query = Attendance::where('branch_id', $this->branch->id);
 
         // Apply search filter
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('member', function ($memberQuery) use ($search) {
+            $query->where(function ($q) use ($search): void {
+                $q->whereHas('member', function ($memberQuery) use ($search): void {
                     $memberQuery->where('first_name', 'like', "%{$search}%")
                         ->orWhere('last_name', 'like', "%{$search}%");
                 })
-                    ->orWhereHas('visitor', function ($visitorQuery) use ($search) {
+                    ->orWhereHas('visitor', function ($visitorQuery) use ($search): void {
                         $visitorQuery->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     });
@@ -79,7 +79,7 @@ class AttendanceIndex extends Component
         }
 
         // Apply method filter
-        if ($this->methodFilter) {
+        if ($this->methodFilter !== '' && $this->methodFilter !== '0') {
             $query->where('check_in_method', $this->methodFilter);
         }
 
@@ -130,7 +130,7 @@ class AttendanceIndex extends Component
             'total' => $records->count(),
             'members' => $records->whereNotNull('member_id')->count(),
             'visitors' => $records->whereNotNull('visitor_id')->count(),
-            'today' => $records->filter(fn ($r) => $r->date && $r->date->isToday())->count(),
+            'today' => $records->filter(fn ($r): bool => $r->date && $r->date->isToday())->count(),
         ];
     }
 
@@ -215,7 +215,7 @@ class AttendanceIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($records) {
+        return response()->streamDownload(function () use ($records): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -253,7 +253,7 @@ class AttendanceIndex extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.attendance.attendance-index');
     }

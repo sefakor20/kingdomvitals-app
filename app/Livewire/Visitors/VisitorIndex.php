@@ -99,9 +99,9 @@ class VisitorIndex extends Component
     {
         $query = Visitor::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -109,7 +109,7 @@ class VisitorIndex extends Component
             });
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
@@ -134,7 +134,7 @@ class VisitorIndex extends Component
             }
         }
 
-        if ($this->sourceFilter) {
+        if ($this->sourceFilter !== '' && $this->sourceFilter !== '0') {
             $query->where('how_did_you_hear', $this->sourceFilter);
         }
 
@@ -455,7 +455,7 @@ class VisitorIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($visitors) {
+        return response()->streamDownload(function () use ($visitors): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -500,11 +500,7 @@ class VisitorIndex extends Component
 
     public function updatedSelectAll(): void
     {
-        if ($this->selectAll) {
-            $this->selectedVisitors = $this->visitors->pluck('id')->toArray();
-        } else {
-            $this->selectedVisitors = [];
-        }
+        $this->selectedVisitors = $this->selectAll ? $this->visitors->pluck('id')->toArray() : [];
     }
 
     public function updatedSelectedVisitors(): void
@@ -666,7 +662,7 @@ class VisitorIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.visitors.visitor-index');
     }

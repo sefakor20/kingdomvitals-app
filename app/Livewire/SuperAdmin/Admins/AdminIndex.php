@@ -306,16 +306,16 @@ class AdminIndex extends Component
         $canManage = $currentUser->role->canManageSuperAdmins();
 
         $query = SuperAdmin::query()
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
+            ->when($this->search, function ($query): void {
+                $query->where(function ($q): void {
                     $q->where('name', 'like', "%{$this->search}%")
                         ->orWhere('email', 'like', "%{$this->search}%");
                 });
             })
-            ->when($this->role, function ($query) {
+            ->when($this->role, function ($query): void {
                 $query->where('role', $this->role);
             })
-            ->when($this->status !== '', function ($query) {
+            ->when($this->status !== '', function ($query): void {
                 $query->where('is_active', $this->status === 'active');
             })
             ->latest();

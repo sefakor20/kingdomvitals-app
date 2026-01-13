@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -31,7 +31,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -40,7 +40,7 @@ afterEach(function () {
 // ADVANCED FILTERING TESTS
 // ============================================
 
-test('can filter visitors by date range', function () {
+test('can filter visitors by date range', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -69,7 +69,7 @@ test('can filter visitors by date range', function () {
         ->assertDontSee('OldVisitor');
 });
 
-test('can filter visitors by assigned member', function () {
+test('can filter visitors by assigned member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -99,7 +99,7 @@ test('can filter visitors by assigned member', function () {
         ->assertDontSee('UnassignedVisitor');
 });
 
-test('can filter unassigned visitors', function () {
+test('can filter unassigned visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -129,7 +129,7 @@ test('can filter unassigned visitors', function () {
         ->assertDontSee('AssignedOne');
 });
 
-test('can filter visitors by source', function () {
+test('can filter visitors by source', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -157,7 +157,7 @@ test('can filter visitors by source', function () {
         ->assertDontSee('FriendVisitor');
 });
 
-test('can clear all filters', function () {
+test('can clear all filters', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -186,7 +186,7 @@ test('can clear all filters', function () {
         ->assertSet('assignedMemberFilter', null);
 });
 
-test('combined filters work together', function () {
+test('combined filters work together', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -229,7 +229,7 @@ test('combined filters work together', function () {
 // VISITOR STATS TESTS
 // ============================================
 
-test('stats show correct total count', function () {
+test('stats show correct total count', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -245,7 +245,7 @@ test('stats show correct total count', function () {
     expect($component->instance()->visitorStats['total'])->toBe(5);
 });
 
-test('stats show correct new count', function () {
+test('stats show correct new count', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -269,7 +269,7 @@ test('stats show correct new count', function () {
     expect($component->instance()->visitorStats['new'])->toBe(3);
 });
 
-test('stats show correct conversion rate', function () {
+test('stats show correct conversion rate', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -293,7 +293,7 @@ test('stats show correct conversion rate', function () {
     expect($component->instance()->visitorStats['conversionRate'])->toBe(20.0);
 });
 
-test('stats show zero conversion rate when no visitors', function () {
+test('stats show zero conversion rate when no visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -307,7 +307,7 @@ test('stats show zero conversion rate when no visitors', function () {
     expect($component->instance()->visitorStats['conversionRate'])->toBe(0);
 });
 
-test('stats show pending follow-ups count', function () {
+test('stats show pending follow-ups count', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -337,7 +337,7 @@ test('stats show pending follow-ups count', function () {
     expect($component->instance()->visitorStats['pendingFollowUps'])->toBe(1);
 });
 
-test('stats update with filters applied', function () {
+test('stats update with filters applied', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -368,7 +368,7 @@ test('stats update with filters applied', function () {
 // CSV EXPORT TESTS
 // ============================================
 
-test('admin can export visitors to csv', function () {
+test('admin can export visitors to csv', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -387,7 +387,7 @@ test('admin can export visitors to csv', function () {
     expect($response->effects['download'])->not->toBeNull();
 });
 
-test('export respects active filters', function () {
+test('export respects active filters', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -415,7 +415,7 @@ test('export respects active filters', function () {
     expect($component->instance()->visitors->count())->toBe(1);
 });
 
-test('volunteer cannot export visitors', function () {
+test('volunteer cannot export visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -438,7 +438,7 @@ test('volunteer cannot export visitors', function () {
 // BULK SELECTION TESTS
 // ============================================
 
-test('can select all visitors', function () {
+test('can select all visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -457,7 +457,7 @@ test('can select all visitors', function () {
     expect($component->instance()->hasSelection)->toBeTrue();
 });
 
-test('can select individual visitors', function () {
+test('can select individual visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -476,7 +476,7 @@ test('can select individual visitors', function () {
     expect($component->instance()->selectedCount)->toBe(1);
 });
 
-test('can clear selection', function () {
+test('can clear selection', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -499,7 +499,7 @@ test('can clear selection', function () {
 // BULK DELETE TESTS
 // ============================================
 
-test('admin can bulk delete visitors', function () {
+test('admin can bulk delete visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -522,7 +522,7 @@ test('admin can bulk delete visitors', function () {
     expect(Visitor::whereIn('id', $visitorIds)->count())->toBe(0);
 });
 
-test('manager can bulk delete visitors', function () {
+test('manager can bulk delete visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -544,7 +544,7 @@ test('manager can bulk delete visitors', function () {
     expect(Visitor::whereIn('id', $visitorIds)->count())->toBe(0);
 });
 
-test('staff cannot bulk delete visitors', function () {
+test('staff cannot bulk delete visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -563,7 +563,7 @@ test('staff cannot bulk delete visitors', function () {
         ->assertForbidden();
 });
 
-test('selection clears after bulk delete', function () {
+test('selection clears after bulk delete', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -587,7 +587,7 @@ test('selection clears after bulk delete', function () {
 // BULK ASSIGN TESTS
 // ============================================
 
-test('admin can bulk assign visitors to member', function () {
+test('admin can bulk assign visitors to member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -616,7 +616,7 @@ test('admin can bulk assign visitors to member', function () {
     }
 });
 
-test('can bulk unassign visitors', function () {
+test('can bulk unassign visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -644,7 +644,7 @@ test('can bulk unassign visitors', function () {
     }
 });
 
-test('volunteer cannot bulk assign visitors', function () {
+test('volunteer cannot bulk assign visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -666,7 +666,7 @@ test('volunteer cannot bulk assign visitors', function () {
 // BULK STATUS CHANGE TESTS
 // ============================================
 
-test('admin can bulk change visitor status', function () {
+test('admin can bulk change visitor status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -694,7 +694,7 @@ test('admin can bulk change visitor status', function () {
     }
 });
 
-test('bulk status change to converted sets is_converted flag', function () {
+test('bulk status change to converted sets is_converted flag', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -724,7 +724,7 @@ test('bulk status change to converted sets is_converted flag', function () {
     }
 });
 
-test('volunteer cannot bulk change visitor status', function () {
+test('volunteer cannot bulk change visitor status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -742,7 +742,7 @@ test('volunteer cannot bulk change visitor status', function () {
         ->assertForbidden();
 });
 
-test('selection clears after bulk status change', function () {
+test('selection clears after bulk status change', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -767,7 +767,7 @@ test('selection clears after bulk status change', function () {
 // BRANCH SCOPING TESTS
 // ============================================
 
-test('bulk actions only affect visitors in current branch', function () {
+test('bulk actions only affect visitors in current branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -807,7 +807,7 @@ test('bulk actions only affect visitors in current branch', function () {
 // MODAL CANCEL TESTS
 // ============================================
 
-test('cancel bulk delete modal closes and preserves selection', function () {
+test('cancel bulk delete modal closes and preserves selection', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -830,7 +830,7 @@ test('cancel bulk delete modal closes and preserves selection', function () {
     expect($component->instance()->selectedVisitors)->toHaveCount(2);
 });
 
-test('cancel bulk assign modal closes and clears assignment value', function () {
+test('cancel bulk assign modal closes and clears assignment value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -852,7 +852,7 @@ test('cancel bulk assign modal closes and clears assignment value', function () 
         ->assertSet('bulkAssignTo', null);
 });
 
-test('cancel bulk status modal closes and clears status value', function () {
+test('cancel bulk status modal closes and clears status value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -877,7 +877,7 @@ test('cancel bulk status modal closes and clears status value', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('export button is visible when visitors exist', function () {
+test('export button is visible when visitors exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -893,7 +893,7 @@ test('export button is visible when visitors exist', function () {
         ->assertSee('Export CSV');
 });
 
-test('stats cards are displayed', function () {
+test('stats cards are displayed', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -912,7 +912,7 @@ test('stats cards are displayed', function () {
         ->assertSee('Pending Follow-ups');
 });
 
-test('bulk action toolbar appears when items selected', function () {
+test('bulk action toolbar appears when items selected', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

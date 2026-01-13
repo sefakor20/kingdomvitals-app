@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -34,7 +34,7 @@ beforeEach(function () {
     $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -43,7 +43,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with staff access can view live check-in page', function () {
+test('authenticated user with staff access can view live check-in page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -57,7 +57,7 @@ test('authenticated user with staff access can view live check-in page', functio
         ->assertSeeLivewire(LiveCheckIn::class);
 });
 
-test('volunteer cannot access live check-in page', function () {
+test('volunteer cannot access live check-in page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -70,7 +70,7 @@ test('volunteer cannot access live check-in page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot access live check-in page', function () {
+test('unauthenticated user cannot access live check-in page', function (): void {
     $this->get("/branches/{$this->branch->id}/services/{$this->service->id}/check-in")
         ->assertRedirect('/login');
 });
@@ -79,7 +79,7 @@ test('unauthenticated user cannot access live check-in page', function () {
 // SEARCH TESTS
 // ============================================
 
-test('can search for members', function () {
+test('can search for members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -104,7 +104,7 @@ test('can search for members', function () {
     expect($results->first()['type'])->toBe('member');
 });
 
-test('can search for visitors', function () {
+test('can search for visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -129,7 +129,7 @@ test('can search for visitors', function () {
     expect($results->first()['type'])->toBe('visitor');
 });
 
-test('search requires at least 2 characters', function () {
+test('search requires at least 2 characters', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -146,7 +146,7 @@ test('search requires at least 2 characters', function () {
     expect($results->count())->toBe(0);
 });
 
-test('search shows both members and visitors', function () {
+test('search shows both members and visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -179,7 +179,7 @@ test('search shows both members and visitors', function () {
 // CHECK-IN TESTS
 // ============================================
 
-test('can check in a member', function () {
+test('can check in a member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -201,7 +201,7 @@ test('can check in a member', function () {
     expect($attendance->check_in_method)->toBe(CheckInMethod::Kiosk);
 });
 
-test('can check in a visitor', function () {
+test('can check in a visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -223,7 +223,7 @@ test('can check in a visitor', function () {
     expect($attendance->check_in_method)->toBe(CheckInMethod::Kiosk);
 });
 
-test('cannot check in same person twice on same day', function () {
+test('cannot check in same person twice on same day', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -249,7 +249,7 @@ test('cannot check in same person twice on same day', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
 });
 
-test('check in clears search query', function () {
+test('check in clears search query', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -269,7 +269,7 @@ test('check in clears search query', function () {
 // STATS TESTS
 // ============================================
 
-test('today stats are calculated correctly', function () {
+test('today stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -308,7 +308,7 @@ test('today stats are calculated correctly', function () {
 // RECENT CHECK-INS TESTS
 // ============================================
 
-test('recent check-ins shows last 5 entries', function () {
+test('recent check-ins shows last 5 entries', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -339,7 +339,7 @@ test('recent check-ins shows last 5 entries', function () {
 // ALREADY CHECKED IN INDICATOR TESTS
 // ============================================
 
-test('search results indicate already checked in status', function () {
+test('search results indicate already checked in status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

@@ -80,7 +80,7 @@ class WeeklyAttendanceSummary extends Component
             ->selectRaw('date, COUNT(*) as total, COUNT(member_id) as members, COUNT(visitor_id) as visitors')
             ->groupBy('date')
             ->get()
-            ->keyBy(fn ($item) => Carbon::parse($item->date)->format('Y-m-d'));
+            ->keyBy(fn ($item): string => Carbon::parse($item->date)->format('Y-m-d'));
 
         $days = collect();
         $current = $start->copy();
@@ -107,7 +107,7 @@ class WeeklyAttendanceSummary extends Component
     #[Computed]
     public function weeklyTotals(): array
     {
-        $totals = $this->dailyBreakdown->reduce(function ($carry, $day) {
+        $totals = $this->dailyBreakdown->reduce(function (array $carry, array $day): array {
             $carry['total'] += $day['total'];
             $carry['members'] += $day['members'];
             $carry['visitors'] += $day['visitors'];
@@ -182,7 +182,7 @@ class WeeklyAttendanceSummary extends Component
 
     protected function getExportData(): Collection
     {
-        return $this->dailyBreakdown->map(fn ($day) => [
+        return $this->dailyBreakdown->map(fn ($day): array => [
             $day['date'],
             $day['day_name'],
             $day['members'],
@@ -191,7 +191,7 @@ class WeeklyAttendanceSummary extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.attendance.weekly-attendance-summary');
     }

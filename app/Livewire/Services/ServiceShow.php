@@ -463,7 +463,7 @@ class ServiceShow extends Component
         $this->dispatch('attendance-deleted');
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.services.service-show');
     }

@@ -18,7 +18,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -32,7 +32,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -41,7 +41,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('giving page is accessible without authentication', function () {
+test('giving page is accessible without authentication', function (): void {
     // Configure Paystack for the branch
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
@@ -52,12 +52,12 @@ test('giving page is accessible without authentication', function () {
         ->assertSeeLivewire(PublicGivingForm::class);
 });
 
-test('giving page shows not configured message when paystack is not set up', function () {
+test('giving page shows not configured message when paystack is not set up', function (): void {
     Livewire::test(PublicGivingForm::class, ['branch' => $this->branch])
         ->assertSee('Online giving is not configured');
 });
 
-test('giving page shows form when paystack is configured', function () {
+test('giving page shows form when paystack is configured', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -71,7 +71,7 @@ test('giving page shows form when paystack is configured', function () {
 // FORM INTERACTION TESTS
 // ============================================
 
-test('can set amount using preset buttons', function () {
+test('can set amount using preset buttons', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -81,7 +81,7 @@ test('can set amount using preset buttons', function () {
         ->assertSet('amount', '50');
 });
 
-test('donation types are available in form', function () {
+test('donation types are available in form', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -95,7 +95,7 @@ test('donation types are available in form', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('email is required for donation', function () {
+test('email is required for donation', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -108,7 +108,7 @@ test('email is required for donation', function () {
         ->assertHasErrors(['donorEmail']);
 });
 
-test('amount is required for donation', function () {
+test('amount is required for donation', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -121,7 +121,7 @@ test('amount is required for donation', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('amount must be at least 1', function () {
+test('amount must be at least 1', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -135,7 +135,7 @@ test('amount must be at least 1', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('donor name is required unless anonymous', function () {
+test('donor name is required unless anonymous', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -165,7 +165,7 @@ test('donor name is required unless anonymous', function () {
 // PAYMENT INITIALIZATION TESTS
 // ============================================
 
-test('initialize payment creates transaction and dispatches event', function () {
+test('initialize payment creates transaction and dispatches event', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -188,7 +188,7 @@ test('initialize payment creates transaction and dispatches event', function () 
     expect($transaction->metadata['donor_email'])->toBe('john@example.com');
 });
 
-test('anonymous donation stores Anonymous as donor name in metadata', function () {
+test('anonymous donation stores Anonymous as donor name in metadata', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -210,7 +210,7 @@ test('anonymous donation stores Anonymous as donor name in metadata', function (
 // PAYMENT SUCCESS TESTS
 // ============================================
 
-test('handle payment success creates donation record', function () {
+test('handle payment success creates donation record', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -268,7 +268,7 @@ test('handle payment success creates donation record', function () {
     expect($donation->reference_number)->toBe('test-ref-123');
 });
 
-test('handle payment closed shows error message', function () {
+test('handle payment closed shows error message', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -282,7 +282,7 @@ test('handle payment closed shows error message', function () {
 // GIVE AGAIN TESTS
 // ============================================
 
-test('give again resets form', function () {
+test('give again resets form', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -303,7 +303,7 @@ test('give again resets form', function () {
 // WEBHOOK TESTS
 // ============================================
 
-test('webhook handles charge success', function () {
+test('webhook handles charge success', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_456'));
     $this->branch->save();
@@ -363,7 +363,7 @@ test('webhook handles charge success', function () {
     expect((float) $donation->amount)->toBe(200.0);
 });
 
-test('webhook rejects invalid signature', function () {
+test('webhook rejects invalid signature', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_456'));
     $this->branch->save();
@@ -387,7 +387,7 @@ test('webhook rejects invalid signature', function () {
     ])->assertStatus(401);
 });
 
-test('webhook handles charge failed', function () {
+test('webhook handles charge failed', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_789'));
     $this->branch->save();
@@ -423,19 +423,19 @@ test('webhook handles charge failed', function () {
 // PAYSTACK SERVICE TESTS
 // ============================================
 
-test('paystack service converts amount to kobo correctly', function () {
+test('paystack service converts amount to kobo correctly', function (): void {
     expect(PaystackService::toKobo(100.00))->toBe(10000);
     expect(PaystackService::toKobo(50.50))->toBe(5050);
     expect(PaystackService::toKobo(0.01))->toBe(1);
 });
 
-test('paystack service converts kobo to amount correctly', function () {
+test('paystack service converts kobo to amount correctly', function (): void {
     expect(PaystackService::fromKobo(10000))->toBe(100.0);
     expect(PaystackService::fromKobo(5050))->toBe(50.5);
     expect(PaystackService::fromKobo(1))->toBe(0.01);
 });
 
-test('paystack service for branch loads encrypted credentials', function () {
+test('paystack service for branch loads encrypted credentials', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_abc'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_xyz'));
     $this->branch->setSetting('paystack_test_mode', true);
@@ -448,7 +448,7 @@ test('paystack service for branch loads encrypted credentials', function () {
     expect($service->isTestMode())->toBeTrue();
 });
 
-test('paystack service is not configured without credentials', function () {
+test('paystack service is not configured without credentials', function (): void {
     $service = PaystackService::forBranch($this->branch);
 
     expect($service->isConfigured())->toBeFalse();
@@ -458,7 +458,7 @@ test('paystack service is not configured without credentials', function () {
 // AUTO-LINKING TESTS
 // ============================================
 
-test('donation is auto-linked to member when donor email matches', function () {
+test('donation is auto-linked to member when donor email matches', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();
@@ -511,7 +511,7 @@ test('donation is auto-linked to member when donor email matches', function () {
     expect($donation->member_id)->toBe($member->id);
 });
 
-test('donation is not linked when no matching member exists', function () {
+test('donation is not linked when no matching member exists', function (): void {
     $this->branch->setSetting('paystack_public_key', Crypt::encryptString('pk_test_123'));
     $this->branch->setSetting('paystack_secret_key', Crypt::encryptString('sk_test_123'));
     $this->branch->save();

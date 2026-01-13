@@ -76,20 +76,20 @@ class RecurringExpenseIndex extends Component
     {
         $query = RecurringExpense::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('description', 'like', "%{$search}%")
                     ->orWhere('vendor_name', 'like', "%{$search}%")
                     ->orWhere('notes', 'like', "%{$search}%");
             });
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
             $query->where('category', $this->categoryFilter);
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
@@ -339,7 +339,7 @@ class RecurringExpenseIndex extends Component
 
         $expense = $this->generatingRecurringExpense->generateExpense();
 
-        if (! $expense) {
+        if (!$expense instanceof \App\Models\Tenant\Expense) {
             // Restore original date if generation failed
             $this->generatingRecurringExpense->update(['next_generation_date' => $originalDate]);
             $this->dispatch('recurring-expense-generation-failed');
@@ -398,7 +398,7 @@ class RecurringExpenseIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.expenses.recurring-expense-index');
     }

@@ -125,7 +125,7 @@ class FamilyCheckInService
     ): Collection {
         $memberIds = Member::where('household_id', $household->id)->pluck('id');
 
-        return Member::whereIn('id', function ($query) use ($service, $date, $memberIds) {
+        return Member::whereIn('id', function ($query) use ($service, $date, $memberIds): void {
             $query->select('member_id')
                 ->from('attendance')
                 ->where('service_id', $service->id)
@@ -144,7 +144,7 @@ class FamilyCheckInService
     ): ?ChildrenCheckinSecurity {
         return ChildrenCheckinSecurity::where('security_code', $code)
             ->where('is_checked_out', false)
-            ->whereHas('attendance', function ($query) use ($service, $date) {
+            ->whereHas('attendance', function ($query) use ($service, $date): void {
                 $query->where('service_id', $service->id)
                     ->where('date', $date);
             })

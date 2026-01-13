@@ -13,7 +13,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -22,26 +22,26 @@ beforeEach(function () {
     $this->user = User::factory()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-describe('OnboardingWizard', function () {
-    it('displays step 1 initially', function () {
+describe('OnboardingWizard', function (): void {
+    it('displays step 1 initially', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->assertSet('branchName', $this->tenant->name)
             ->assertSee('Set Up Your Organization');
     });
 
-    it('pre-populates tenant name', function () {
+    it('pre-populates tenant name', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->assertSet('branchName', 'Test Church');
     });
 
-    it('validates required fields on organization step', function () {
+    it('validates required fields on organization step', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', '')
@@ -49,7 +49,7 @@ describe('OnboardingWizard', function () {
             ->assertHasErrors(['branchName' => 'required']);
     });
 
-    it('creates main branch on organization step completion', function () {
+    it('creates main branch on organization step completion', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -74,7 +74,7 @@ describe('OnboardingWizard', function () {
             ->and($access->is_primary)->toBeTrue();
     });
 
-    it('advances to team step after organization step', function () {
+    it('advances to team step after organization step', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -83,7 +83,7 @@ describe('OnboardingWizard', function () {
             ->assertSee('Invite Your Team');
     });
 
-    it('allows skipping team step', function () {
+    it('allows skipping team step', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -93,7 +93,7 @@ describe('OnboardingWizard', function () {
             ->assertSee('Connect Integrations');
     });
 
-    it('adds team members to the list', function () {
+    it('adds team members to the list', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -106,7 +106,7 @@ describe('OnboardingWizard', function () {
             ->assertSee('pastor@church.org');
     });
 
-    it('prevents adding duplicate team members', function () {
+    it('prevents adding duplicate team members', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -120,7 +120,7 @@ describe('OnboardingWizard', function () {
             ->assertHasErrors(['newTeamEmail']);
     });
 
-    it('prevents adding self as team member', function () {
+    it('prevents adding self as team member', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -132,7 +132,7 @@ describe('OnboardingWizard', function () {
             ->assertHasErrors(['newTeamEmail']);
     });
 
-    it('removes team members from the list', function () {
+    it('removes team members from the list', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -146,7 +146,7 @@ describe('OnboardingWizard', function () {
             ->assertCount('teamMembers', 0);
     });
 
-    it('allows skipping integrations step', function () {
+    it('allows skipping integrations step', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -157,7 +157,7 @@ describe('OnboardingWizard', function () {
             ->assertSee('Add Worship Services');
     });
 
-    it('requires at least one service', function () {
+    it('requires at least one service', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -170,7 +170,7 @@ describe('OnboardingWizard', function () {
             ->assertHasErrors(['services']);
     });
 
-    it('adds services to the list', function () {
+    it('adds services to the list', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -186,7 +186,7 @@ describe('OnboardingWizard', function () {
             ->assertCount('services', 2); // Default Sunday service + new one
     });
 
-    it('creates services on services step completion', function () {
+    it('creates services on services step completion', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -203,7 +203,7 @@ describe('OnboardingWizard', function () {
         expect(Service::count())->toBe(2);
     });
 
-    it('shows complete step after services', function () {
+    it('shows complete step after services', function (): void {
         $component = Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -227,7 +227,7 @@ describe('OnboardingWizard', function () {
         expect($this->tenant->getCurrentOnboardingStep())->toBe(5);
     });
 
-    it('redirects to dashboard on completion', function () {
+    it('redirects to dashboard on completion', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -240,7 +240,7 @@ describe('OnboardingWizard', function () {
             ->assertRedirect('/dashboard');
     });
 
-    it('marks tenant onboarding as complete', function () {
+    it('marks tenant onboarding as complete', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -255,7 +255,7 @@ describe('OnboardingWizard', function () {
         expect($this->tenant->isOnboardingComplete())->toBeTrue();
     });
 
-    it('allows going back to previous steps', function () {
+    it('allows going back to previous steps', function (): void {
         Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class)
             ->set('branchName', 'Main Campus')
@@ -266,7 +266,7 @@ describe('OnboardingWizard', function () {
             ->assertSee('Set Up Your Organization');
     });
 
-    it('updates progress percentage as steps are completed', function () {
+    it('updates progress percentage as steps are completed', function (): void {
         $component = Livewire::actingAs($this->user)
             ->test(OnboardingWizard::class);
 
@@ -280,20 +280,20 @@ describe('OnboardingWizard', function () {
     });
 });
 
-describe('OnboardingService', function () {
-    it('correctly identifies when onboarding is required', function () {
+describe('OnboardingService', function (): void {
+    it('correctly identifies when onboarding is required', function (): void {
         $service = app(OnboardingService::class);
 
         expect($service->isOnboardingRequired())->toBeTrue();
     });
 
-    it('returns correct current step', function () {
+    it('returns correct current step', function (): void {
         $service = app(OnboardingService::class);
 
         expect($service->getCurrentStep())->toBe(OnboardingService::STEP_ORGANIZATION);
     });
 
-    it('can skip steps that are skippable', function () {
+    it('can skip steps that are skippable', function (): void {
         $service = app(OnboardingService::class);
 
         expect($service->canSkipStep(OnboardingService::STEP_TEAM))->toBeTrue()
@@ -302,7 +302,7 @@ describe('OnboardingService', function () {
             ->and($service->canSkipStep(OnboardingService::STEP_SERVICES))->toBeFalse();
     });
 
-    it('calculates progress percentage correctly', function () {
+    it('calculates progress percentage correctly', function (): void {
         $this->tenant->setCurrentOnboardingStep(1);
         expect(app(OnboardingService::class)->getProgressPercentage())->toBe(20);
 
@@ -313,7 +313,7 @@ describe('OnboardingService', function () {
         expect(app(OnboardingService::class)->getProgressPercentage())->toBe(100);
     });
 
-    it('advances to next step correctly', function () {
+    it('advances to next step correctly', function (): void {
         $service = app(OnboardingService::class);
         expect($service->getCurrentStep())->toBe(1);
 
@@ -324,7 +324,7 @@ describe('OnboardingService', function () {
         expect($service->getCurrentStep())->toBe(3);
     });
 
-    it('goes back to previous step correctly', function () {
+    it('goes back to previous step correctly', function (): void {
         $this->tenant->setCurrentOnboardingStep(3);
 
         $service = app(OnboardingService::class);
@@ -334,7 +334,7 @@ describe('OnboardingService', function () {
         expect($service->getCurrentStep())->toBe(2);
     });
 
-    it('does not go below step 1', function () {
+    it('does not go below step 1', function (): void {
         $service = app(OnboardingService::class);
         expect($service->getCurrentStep())->toBe(1);
 
@@ -342,7 +342,7 @@ describe('OnboardingService', function () {
         expect($service->getCurrentStep())->toBe(1);
     });
 
-    it('does not go above step 5', function () {
+    it('does not go above step 5', function (): void {
         $this->tenant->setCurrentOnboardingStep(5);
 
         $service = app(OnboardingService::class);
@@ -351,8 +351,8 @@ describe('OnboardingService', function () {
     });
 });
 
-describe('Tenant onboarding methods', function () {
-    it('initializes onboarding data correctly', function () {
+describe('Tenant onboarding methods', function (): void {
+    it('initializes onboarding data correctly', function (): void {
         $this->tenant->initializeOnboarding();
         $data = $this->tenant->getOnboardingData();
 
@@ -362,7 +362,7 @@ describe('Tenant onboarding methods', function () {
             ->and($data['steps']['team']['completed'])->toBeFalse();
     });
 
-    it('marks steps as completed', function () {
+    it('marks steps as completed', function (): void {
         $this->tenant->completeOnboardingStep('organization');
 
         $data = $this->tenant->getOnboardingData();
@@ -370,7 +370,7 @@ describe('Tenant onboarding methods', function () {
             ->and($data['steps']['organization']['skipped'])->toBeFalse();
     });
 
-    it('marks steps as skipped', function () {
+    it('marks steps as skipped', function (): void {
         $this->tenant->skipOnboardingStep('team');
 
         $data = $this->tenant->getOnboardingData();
@@ -378,7 +378,7 @@ describe('Tenant onboarding methods', function () {
             ->and($data['steps']['team']['skipped'])->toBeTrue();
     });
 
-    it('detects when onboarding is complete', function () {
+    it('detects when onboarding is complete', function (): void {
         expect($this->tenant->isOnboardingComplete())->toBeFalse();
 
         $this->tenant->markOnboardingComplete();
@@ -386,13 +386,13 @@ describe('Tenant onboarding methods', function () {
         expect($this->tenant->isOnboardingComplete())->toBeTrue();
     });
 
-    it('stores branch id during onboarding', function () {
+    it('stores branch id during onboarding', function (): void {
         $this->tenant->setOnboardingBranchId('test-branch-id');
 
         expect($this->tenant->getOnboardingBranchId())->toBe('test-branch-id');
     });
 
-    it('checks if step is done', function () {
+    it('checks if step is done', function (): void {
         expect($this->tenant->isOnboardingStepDone('organization'))->toBeFalse();
 
         $this->tenant->completeOnboardingStep('organization');
@@ -403,25 +403,25 @@ describe('Tenant onboarding methods', function () {
     });
 });
 
-describe('EnsureOnboardingComplete middleware', function () {
-    it('allows guests through', function () {
+describe('EnsureOnboardingComplete middleware', function (): void {
+    it('allows guests through', function (): void {
         $middleware = new \App\Http\Middleware\EnsureOnboardingComplete(
             app(OnboardingService::class)
         );
 
         $request = \Illuminate\Http\Request::create('/dashboard');
-        $response = $middleware->handle($request, fn ($req) => new \Illuminate\Http\Response('OK'));
+        $response = $middleware->handle($request, fn ($req): \Illuminate\Http\Response => new \Illuminate\Http\Response('OK'));
 
         expect($response->getContent())->toBe('OK');
     });
 
-    it('returns expected response for onboarding routes', function () {
+    it('returns expected response for onboarding routes', function (): void {
         $middleware = new \App\Http\Middleware\EnsureOnboardingComplete(
             app(OnboardingService::class)
         );
 
         $request = \Illuminate\Http\Request::create('/onboarding');
-        $request->setRouteResolver(function () {
+        $request->setRouteResolver(function (): \Illuminate\Routing\Route {
             $route = new \Illuminate\Routing\Route('GET', '/onboarding', []);
             $route->name('onboarding.index');
 
@@ -430,7 +430,7 @@ describe('EnsureOnboardingComplete middleware', function () {
 
         auth()->login($this->user);
 
-        $response = $middleware->handle($request, fn ($req) => new \Illuminate\Http\Response('OK'));
+        $response = $middleware->handle($request, fn ($req): \Illuminate\Http\Response => new \Illuminate\Http\Response('OK'));
 
         expect($response->getContent())->toBe('OK');
     });

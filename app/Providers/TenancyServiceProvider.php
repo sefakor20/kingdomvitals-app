@@ -18,7 +18,7 @@ class TenancyServiceProvider extends ServiceProvider
     // By default, no namespace is used to support the callable array syntax.
     public static string $controllerNamespace = '';
 
-    public function events()
+    public function events(): array
     {
         return [
             // Tenant events
@@ -92,12 +92,12 @@ class TenancyServiceProvider extends ServiceProvider
         ];
     }
 
-    public function register()
+    public function register(): void
     {
         //
     }
 
-    public function boot()
+    public function boot(): void
     {
         $this->bootEvents();
         $this->mapRoutes();
@@ -120,7 +120,7 @@ class TenancyServiceProvider extends ServiceProvider
 
     protected function mapRoutes()
     {
-        $this->app->booted(function () {
+        $this->app->booted(function (): void {
             // Skip tenant routes for central domains
             $centralDomains = config('tenancy.central_domains', []);
             $currentDomain = request()->getHost();

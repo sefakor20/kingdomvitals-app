@@ -139,13 +139,13 @@ class PrayerRequest extends Model
 
     public function scopeVisibleTo(Builder $query, Member $member): Builder
     {
-        return $query->where(function ($q) use ($member) {
+        return $query->where(function ($q) use ($member): void {
             // Public prayers are visible to all
             $q->where('privacy', PrayerRequestPrivacy::Public)
                 // Own prayers are always visible
                 ->orWhere('member_id', $member->id)
                 // Leaders can see cluster prayers
-                ->orWhere(function ($q2) use ($member) {
+                ->orWhere(function ($q2) use ($member): void {
                     $clusterIds = $member->clusters()->pluck('clusters.id');
                     $q2->whereIn('cluster_id', $clusterIds)
                         ->where('privacy', PrayerRequestPrivacy::LeadersOnly);

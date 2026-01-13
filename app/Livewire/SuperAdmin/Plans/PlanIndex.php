@@ -308,7 +308,7 @@ class PlanIndex extends Component
     {
         $plans = SubscriptionPlan::orderBy('display_order')->orderBy('price_monthly')->get();
 
-        $data = $plans->map(fn (SubscriptionPlan $plan) => [
+        $data = $plans->map(fn (SubscriptionPlan $plan): array => [
             'name' => $plan->name,
             'slug' => $plan->slug,
             'price_monthly' => Number::currency((float) $plan->price_monthly, in: 'GHS'),
@@ -373,13 +373,13 @@ class PlanIndex extends Component
      */
     private function parseFeatures(string $input): ?array
     {
-        if (empty(trim($input))) {
+        if (in_array(trim($input), ['', '0'], true)) {
             return null;
         }
 
         return array_values(array_filter(
             array_map('trim', explode(',', $input)),
-            fn ($feature) => ! empty($feature)
+            fn ($feature): bool => ! empty($feature)
         ));
     }
 
