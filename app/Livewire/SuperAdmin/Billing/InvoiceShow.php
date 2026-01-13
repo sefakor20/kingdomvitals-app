@@ -50,7 +50,7 @@ class InvoiceShow extends Component
     public function paymentMethods(): array
     {
         return collect(PlatformPaymentMethod::cases())
-            ->mapWithKeys(fn (PlatformPaymentMethod $method) => [$method->value => $method->label()])
+            ->mapWithKeys(fn (PlatformPaymentMethod $method): array => [$method->value => $method->label()])
             ->toArray();
     }
 

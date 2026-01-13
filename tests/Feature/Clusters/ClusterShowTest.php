@@ -15,7 +15,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -36,7 +36,7 @@ beforeEach(function () {
     $this->cluster = Cluster::factory()->create(['branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -45,7 +45,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view cluster show page', function () {
+test('authenticated user with branch access can view cluster show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -59,7 +59,7 @@ test('authenticated user with branch access can view cluster show page', functio
         ->assertSeeLivewire(ClusterShow::class);
 });
 
-test('user without branch access cannot view cluster show page', function () {
+test('user without branch access cannot view cluster show page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -75,7 +75,7 @@ test('user without branch access cannot view cluster show page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view cluster show page', function () {
+test('unauthenticated user cannot view cluster show page', function (): void {
     $this->get("/branches/{$this->branch->id}/clusters/{$this->cluster->id}")
         ->assertRedirect('/login');
 });
@@ -84,7 +84,7 @@ test('unauthenticated user cannot view cluster show page', function () {
 // VIEW CLUSTER AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view cluster details', function () {
+test('admin can view cluster details', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -98,7 +98,7 @@ test('admin can view cluster details', function () {
         ->assertSee($this->cluster->name);
 });
 
-test('manager can view cluster details', function () {
+test('manager can view cluster details', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -112,7 +112,7 @@ test('manager can view cluster details', function () {
         ->assertSee($this->cluster->name);
 });
 
-test('staff can view cluster details', function () {
+test('staff can view cluster details', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -126,7 +126,7 @@ test('staff can view cluster details', function () {
         ->assertSee($this->cluster->name);
 });
 
-test('volunteer can view cluster details', function () {
+test('volunteer can view cluster details', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -144,7 +144,7 @@ test('volunteer can view cluster details', function () {
 // DATA DISPLAY TESTS
 // ============================================
 
-test('cluster show page displays cluster information correctly', function () {
+test('cluster show page displays cluster information correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -187,7 +187,7 @@ test('cluster show page displays cluster information correctly', function () {
         ->assertSee('Some notes here');
 });
 
-test('cluster show displays not assigned for missing leader', function () {
+test('cluster show displays not assigned for missing leader', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -207,7 +207,7 @@ test('cluster show displays not assigned for missing leader', function () {
         ->assertSee('Not assigned');
 });
 
-test('cluster members are displayed in the members section', function () {
+test('cluster members are displayed in the members section', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -234,7 +234,7 @@ test('cluster members are displayed in the members section', function () {
         ->assertSee('Member');
 });
 
-test('empty state is shown when cluster has no members', function () {
+test('empty state is shown when cluster has no members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -252,7 +252,7 @@ test('empty state is shown when cluster has no members', function () {
 // INLINE EDITING TESTS
 // ============================================
 
-test('admin can edit cluster inline', function () {
+test('admin can edit cluster inline', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -282,7 +282,7 @@ test('admin can edit cluster inline', function () {
     expect($cluster->description)->toBe('Updated description');
 });
 
-test('manager can edit cluster inline', function () {
+test('manager can edit cluster inline', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -308,7 +308,7 @@ test('manager can edit cluster inline', function () {
     expect($cluster->fresh()->name)->toBe('Manager Updated');
 });
 
-test('staff can edit cluster inline', function () {
+test('staff can edit cluster inline', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -334,7 +334,7 @@ test('staff can edit cluster inline', function () {
     expect($cluster->fresh()->name)->toBe('Staff Updated');
 });
 
-test('volunteer cannot edit cluster', function () {
+test('volunteer cannot edit cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -349,7 +349,7 @@ test('volunteer cannot edit cluster', function () {
         ->assertForbidden();
 });
 
-test('cancel editing resets to view mode', function () {
+test('cancel editing resets to view mode', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -370,7 +370,7 @@ test('cancel editing resets to view mode', function () {
     expect($this->cluster->fresh()->name)->toBe($this->cluster->name);
 });
 
-test('edit mode fills form with current cluster data', function () {
+test('edit mode fills form with current cluster data', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -400,7 +400,7 @@ test('edit mode fills form with current cluster data', function () {
 // MEMBER MANAGEMENT TESTS
 // ============================================
 
-test('admin can add member to cluster', function () {
+test('admin can add member to cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -427,7 +427,7 @@ test('admin can add member to cluster', function () {
     expect($this->cluster->members()->where('member_id', $member->id)->exists())->toBeTrue();
 });
 
-test('cannot add duplicate member to cluster', function () {
+test('cannot add duplicate member to cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -453,7 +453,7 @@ test('cannot add duplicate member to cluster', function () {
         ->assertHasErrors(['selectedMemberId']);
 });
 
-test('admin can remove member from cluster', function () {
+test('admin can remove member from cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -476,7 +476,7 @@ test('admin can remove member from cluster', function () {
     expect($this->cluster->members()->where('member_id', $member->id)->exists())->toBeFalse();
 });
 
-test('admin can update member role in cluster', function () {
+test('admin can update member role in cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -500,7 +500,7 @@ test('admin can update member role in cluster', function () {
     expect($pivotRole->value)->toBe('leader');
 });
 
-test('volunteer cannot add member to cluster', function () {
+test('volunteer cannot add member to cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -515,7 +515,7 @@ test('volunteer cannot add member to cluster', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot remove member from cluster', function () {
+test('volunteer cannot remove member from cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -536,7 +536,7 @@ test('volunteer cannot remove member from cluster', function () {
         ->assertForbidden();
 });
 
-test('available members excludes existing cluster members', function () {
+test('available members excludes existing cluster members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -566,7 +566,7 @@ test('available members excludes existing cluster members', function () {
     expect($availableMembers->contains('id', $newMember->id))->toBeTrue();
 });
 
-test('close add member modal resets form fields', function () {
+test('close add member modal resets form fields', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -595,7 +595,7 @@ test('close add member modal resets form fields', function () {
 // DELETE TESTS
 // ============================================
 
-test('admin can delete cluster', function () {
+test('admin can delete cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -617,7 +617,7 @@ test('admin can delete cluster', function () {
     expect(Cluster::find($clusterId))->toBeNull();
 });
 
-test('manager can delete cluster', function () {
+test('manager can delete cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -638,7 +638,7 @@ test('manager can delete cluster', function () {
     expect(Cluster::find($clusterId))->toBeNull();
 });
 
-test('staff cannot delete cluster', function () {
+test('staff cannot delete cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -653,7 +653,7 @@ test('staff cannot delete cluster', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot delete cluster', function () {
+test('volunteer cannot delete cluster', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -668,7 +668,7 @@ test('volunteer cannot delete cluster', function () {
         ->assertForbidden();
 });
 
-test('cancel delete modal closes modal', function () {
+test('cancel delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -689,7 +689,7 @@ test('cancel delete modal closes modal', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('name is required when saving', function () {
+test('name is required when saving', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -706,7 +706,7 @@ test('name is required when saving', function () {
         ->assertHasErrors(['name']);
 });
 
-test('cluster type must be valid when saving', function () {
+test('cluster type must be valid when saving', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -723,7 +723,7 @@ test('cluster type must be valid when saving', function () {
         ->assertHasErrors(['cluster_type']);
 });
 
-test('selected member id is required when adding member', function () {
+test('selected member id is required when adding member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -744,7 +744,7 @@ test('selected member id is required when adding member', function () {
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot view cluster from different branch', function () {
+test('user cannot view cluster from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -763,7 +763,7 @@ test('user cannot view cluster from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot edit cluster from different branch', function () {
+test('user cannot edit cluster from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -785,7 +785,7 @@ test('user cannot edit cluster from different branch', function () {
 // COMPUTED PROPERTY TESTS
 // ============================================
 
-test('canEdit returns true for staff and above', function () {
+test('canEdit returns true for staff and above', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -799,7 +799,7 @@ test('canEdit returns true for staff and above', function () {
     expect($component->instance()->canEdit)->toBeTrue();
 });
 
-test('canEdit returns false for volunteer', function () {
+test('canEdit returns false for volunteer', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -813,7 +813,7 @@ test('canEdit returns false for volunteer', function () {
     expect($component->instance()->canEdit)->toBeFalse();
 });
 
-test('canDelete returns true for admin and manager', function () {
+test('canDelete returns true for admin and manager', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -827,7 +827,7 @@ test('canDelete returns true for admin and manager', function () {
     expect($component->instance()->canDelete)->toBeTrue();
 });
 
-test('canDelete returns false for staff', function () {
+test('canDelete returns false for staff', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -841,7 +841,7 @@ test('canDelete returns false for staff', function () {
     expect($component->instance()->canDelete)->toBeFalse();
 });
 
-test('available leaders only shows active members from same branch', function () {
+test('available leaders only shows active members from same branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -875,7 +875,7 @@ test('available leaders only shows active members from same branch', function ()
     expect($availableLeaders->contains('id', $otherBranchMember->id))->toBeFalse();
 });
 
-test('cluster members are ordered by role then name', function () {
+test('cluster members are ordered by role then name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

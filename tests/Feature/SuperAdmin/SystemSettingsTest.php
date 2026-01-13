@@ -8,13 +8,13 @@ use App\Models\SuperAdmin;
 use App\Models\SystemSetting;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Clear settings before each test
     SystemSetting::query()->delete();
 });
 
-describe('access control', function () {
-    it('allows owner to view settings page', function () {
+describe('access control', function (): void {
+    it('allows owner to view settings page', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         $this->actingAs($owner, 'superadmin')
@@ -23,7 +23,7 @@ describe('access control', function () {
             ->assertSee('System Settings');
     });
 
-    it('allows admin to view settings page', function () {
+    it('allows admin to view settings page', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         $this->actingAs($admin, 'superadmin')
@@ -32,7 +32,7 @@ describe('access control', function () {
             ->assertSee('System Settings');
     });
 
-    it('denies support role access to settings page', function () {
+    it('denies support role access to settings page', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
 
         $this->actingAs($support, 'superadmin')
@@ -40,12 +40,12 @@ describe('access control', function () {
             ->assertForbidden();
     });
 
-    it('denies guest access to settings page', function () {
+    it('denies guest access to settings page', function (): void {
         $this->get(route('superadmin.settings'))
             ->assertRedirect(route('superadmin.login'));
     });
 
-    it('shows canModify as true for owner', function () {
+    it('shows canModify as true for owner', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -53,7 +53,7 @@ describe('access control', function () {
             ->assertSet('canModify', true);
     });
 
-    it('shows canModify as false for admin', function () {
+    it('shows canModify as false for admin', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         Livewire::actingAs($admin, 'superadmin')
@@ -62,8 +62,8 @@ describe('access control', function () {
     });
 });
 
-describe('tab navigation', function () {
-    it('defaults to application tab', function () {
+describe('tab navigation', function (): void {
+    it('defaults to application tab', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -71,7 +71,7 @@ describe('tab navigation', function () {
             ->assertSet('activeTab', 'application');
     });
 
-    it('can switch tabs', function () {
+    it('can switch tabs', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -85,8 +85,8 @@ describe('tab navigation', function () {
     });
 });
 
-describe('application settings', function () {
-    it('loads default values on mount', function () {
+describe('application settings', function (): void {
+    it('loads default values on mount', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -97,7 +97,7 @@ describe('application settings', function () {
             ->assertSet('maintenanceMode', false);
     });
 
-    it('loads existing settings on mount', function () {
+    it('loads existing settings on mount', function (): void {
         SystemSetting::set('name', 'Test App');
         SystemSetting::set('support_email', 'support@test.com');
         SystemSetting::set('default_trial_days', '30');
@@ -113,7 +113,7 @@ describe('application settings', function () {
             ->assertSet('currency', 'USD');
     });
 
-    it('owner can save application settings', function () {
+    it('owner can save application settings', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -137,7 +137,7 @@ describe('application settings', function () {
         expect(SystemSetting::get('maintenance_message'))->toBe('Under maintenance');
     });
 
-    it('admin cannot save application settings', function () {
+    it('admin cannot save application settings', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         Livewire::actingAs($admin, 'superadmin')
@@ -147,7 +147,7 @@ describe('application settings', function () {
             ->assertForbidden();
     });
 
-    it('validates required fields in application settings', function () {
+    it('validates required fields in application settings', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -158,7 +158,7 @@ describe('application settings', function () {
             ->assertHasErrors(['appName', 'defaultTrialDays']);
     });
 
-    it('validates email format for support email', function () {
+    it('validates email format for support email', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -169,7 +169,7 @@ describe('application settings', function () {
             ->assertHasErrors(['supportEmail']);
     });
 
-    it('logs activity when saving application settings', function () {
+    it('logs activity when saving application settings', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -184,8 +184,8 @@ describe('application settings', function () {
     });
 });
 
-describe('integration settings', function () {
-    it('can save integration settings with new credentials', function () {
+describe('integration settings', function (): void {
+    it('can save integration settings with new credentials', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -207,7 +207,7 @@ describe('integration settings', function () {
         expect(SystemSetting::get('webhook_base_url'))->toBe('https://example.com/webhooks');
     });
 
-    it('masks existing credentials on load', function () {
+    it('masks existing credentials on load', function (): void {
         SystemSetting::set('default_paystack_public_key', 'pk_test_12345678', 'integrations', true);
         SystemSetting::set('default_paystack_secret_key', 'sk_test_87654321', 'integrations', true);
         SystemSetting::set('default_sms_api_key', 'sms_api_key_test', 'integrations', true);
@@ -223,7 +223,7 @@ describe('integration settings', function () {
         expect($component->get('defaultSmsApiKey'))->toContain('•');
     });
 
-    it('does not save masked credentials', function () {
+    it('does not save masked credentials', function (): void {
         SystemSetting::set('default_paystack_public_key', 'pk_original', 'integrations', true);
 
         $owner = SuperAdmin::factory()->owner()->create();
@@ -236,7 +236,7 @@ describe('integration settings', function () {
         expect(SystemSetting::get('default_paystack_public_key'))->toBe('pk_original');
     });
 
-    it('admin cannot save integration settings', function () {
+    it('admin cannot save integration settings', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         Livewire::actingAs($admin, 'superadmin')
@@ -246,7 +246,7 @@ describe('integration settings', function () {
             ->assertForbidden();
     });
 
-    it('validates webhook base url format', function () {
+    it('validates webhook base url format', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -256,7 +256,7 @@ describe('integration settings', function () {
             ->assertHasErrors(['webhookBaseUrl']);
     });
 
-    it('validates sender id max length', function () {
+    it('validates sender id max length', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -266,7 +266,7 @@ describe('integration settings', function () {
             ->assertHasErrors(['defaultSmsSenderId']);
     });
 
-    it('can clear paystack keys', function () {
+    it('can clear paystack keys', function (): void {
         SystemSetting::set('default_paystack_public_key', 'pk_test', 'integrations', true);
         SystemSetting::set('default_paystack_secret_key', 'sk_test', 'integrations', true);
 
@@ -284,7 +284,7 @@ describe('integration settings', function () {
         expect(SystemSetting::get('default_paystack_secret_key'))->toBeNull();
     });
 
-    it('can clear sms key', function () {
+    it('can clear sms key', function (): void {
         SystemSetting::set('default_sms_api_key', 'sms_key', 'integrations', true);
 
         $owner = SuperAdmin::factory()->owner()->create();
@@ -299,7 +299,7 @@ describe('integration settings', function () {
         expect(SystemSetting::get('default_sms_api_key'))->toBeNull();
     });
 
-    it('logs activity when saving integration settings', function () {
+    it('logs activity when saving integration settings', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -313,7 +313,7 @@ describe('integration settings', function () {
         ]);
     });
 
-    it('logs activity when clearing paystack keys', function () {
+    it('logs activity when clearing paystack keys', function (): void {
         SystemSetting::set('default_paystack_public_key', 'pk', 'integrations', true);
         SystemSetting::set('default_paystack_secret_key', 'sk', 'integrations', true);
 
@@ -330,8 +330,8 @@ describe('integration settings', function () {
     });
 });
 
-describe('feature settings', function () {
-    it('loads default feature flags on mount', function () {
+describe('feature settings', function (): void {
+    it('loads default feature flags on mount', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -343,7 +343,7 @@ describe('feature settings', function () {
             ->assertSet('tenantApiAccessEnabled', false);
     });
 
-    it('loads existing feature flags on mount', function () {
+    it('loads existing feature flags on mount', function (): void {
         SystemSetting::set('donations_enabled', false, 'features');
         SystemSetting::set('member_portal_enabled', true, 'features');
 
@@ -355,7 +355,7 @@ describe('feature settings', function () {
             ->assertSet('memberPortalEnabled', true);
     });
 
-    it('owner can save feature settings', function () {
+    it('owner can save feature settings', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -375,7 +375,7 @@ describe('feature settings', function () {
         expect(SystemSetting::get('tenant_api_access_enabled'))->toBeTrue();
     });
 
-    it('admin cannot save feature settings', function () {
+    it('admin cannot save feature settings', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         Livewire::actingAs($admin, 'superadmin')
@@ -385,7 +385,7 @@ describe('feature settings', function () {
             ->assertForbidden();
     });
 
-    it('logs activity when saving feature settings', function () {
+    it('logs activity when saving feature settings', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -400,18 +400,18 @@ describe('feature settings', function () {
     });
 });
 
-describe('SystemSetting model', function () {
-    it('can get and set values', function () {
+describe('SystemSetting model', function (): void {
+    it('can get and set values', function (): void {
         SystemSetting::set('test_key', 'test_value');
 
         expect(SystemSetting::get('test_key'))->toBe('test_value');
     });
 
-    it('returns default when key not found', function () {
+    it('returns default when key not found', function (): void {
         expect(SystemSetting::get('nonexistent', 'default_value'))->toBe('default_value');
     });
 
-    it('encrypts values when specified', function () {
+    it('encrypts values when specified', function (): void {
         SystemSetting::set('secret_key', 'secret_value', 'test', true);
 
         $setting = SystemSetting::where('key', 'secret_key')->first();
@@ -422,7 +422,7 @@ describe('SystemSetting model', function () {
         expect(SystemSetting::get('secret_key'))->toBe('secret_value');
     });
 
-    it('handles boolean values correctly', function () {
+    it('handles boolean values correctly', function (): void {
         SystemSetting::set('bool_true', true);
         SystemSetting::set('bool_false', false);
 
@@ -430,7 +430,7 @@ describe('SystemSetting model', function () {
         expect(SystemSetting::get('bool_false'))->toBeFalse();
     });
 
-    it('can remove settings', function () {
+    it('can remove settings', function (): void {
         SystemSetting::set('removable', 'value');
         expect(SystemSetting::get('removable'))->toBe('value');
 
@@ -438,7 +438,7 @@ describe('SystemSetting model', function () {
         expect(SystemSetting::get('removable'))->toBeNull();
     });
 
-    it('can get all settings in a group', function () {
+    it('can get all settings in a group', function (): void {
         SystemSetting::set('key1', 'value1', 'test_group');
         SystemSetting::set('key2', 'value2', 'test_group');
         SystemSetting::set('key3', 'value3', 'other_group');

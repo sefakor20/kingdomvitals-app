@@ -22,7 +22,7 @@ class SendFollowUpRemindersCommand extends Command
 
         $totalSent = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use ($hours, &$totalSent) {
+        Tenant::all()->each(function (Tenant $tenant) use ($hours, &$totalSent): void {
             tenancy()->initialize($tenant);
 
             $followUps = VisitorFollowUp::query()

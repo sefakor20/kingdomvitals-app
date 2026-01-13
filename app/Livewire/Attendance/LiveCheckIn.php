@@ -81,13 +81,13 @@ class LiveCheckIn extends Component
         $members = Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->where(function ($q) use ($search) {
+            ->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
             })
             ->limit(10)
             ->get()
-            ->map(fn ($m) => [
+            ->map(fn ($m): array => [
                 'id' => $m->id,
                 'name' => $m->fullName(),
                 'type' => 'member',
@@ -99,13 +99,13 @@ class LiveCheckIn extends Component
         $visitors = Visitor::query()
             ->where('branch_id', $this->branch->id)
             ->whereNull('converted_member_id')
-            ->where(function ($q) use ($search) {
+            ->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%");
             })
             ->limit(10)
             ->get()
-            ->map(fn ($v) => [
+            ->map(fn ($v): array => [
                 'id' => $v->id,
                 'name' => $v->fullName(),
                 'type' => 'visitor',
@@ -126,7 +126,7 @@ class LiveCheckIn extends Component
             ->orderBy('check_in_time', 'desc')
             ->limit(5)
             ->get()
-            ->map(fn ($a) => [
+            ->map(fn ($a): array => [
                 'name' => $a->member?->fullName() ?? $a->visitor?->fullName() ?? 'Unknown',
                 'type' => $a->member_id ? 'member' : 'visitor',
                 'photo_url' => $a->member?->photo_url,
@@ -170,7 +170,7 @@ class LiveCheckIn extends Component
             return null;
         }
 
-        return Household::with(['members' => function ($query) {
+        return Household::with(['members' => function ($query): void {
             $query->where('status', 'active')
                 ->orderByRaw("CASE WHEN household_role = 'head' THEN 1 WHEN household_role = 'spouse' THEN 2 WHEN household_role = 'child' THEN 3 ELSE 4 END")
                 ->orderBy('first_name');
@@ -336,7 +336,7 @@ class LiveCheckIn extends Component
     {
         $this->authorize('create', [Attendance::class, $this->branch]);
 
-        if (empty($this->selectedFamilyMembers) || ! $this->selectedHousehold) {
+        if ($this->selectedFamilyMembers === [] || ! $this->selectedHousehold) {
             return;
         }
 
@@ -384,7 +384,7 @@ class LiveCheckIn extends Component
         $this->isScanning = false;
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.attendance.live-check-in');
     }

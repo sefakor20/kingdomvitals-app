@@ -61,7 +61,7 @@ class BillingDashboard extends Component
             ->orderByDesc('paid_at')
             ->limit(10)
             ->get()
-            ->map(fn (PlatformPayment $payment) => [
+            ->map(fn (PlatformPayment $payment): array => [
                 'id' => $payment->id,
                 'reference' => $payment->payment_reference,
                 'tenant' => $payment->tenant?->name ?? 'Unknown',
@@ -80,7 +80,7 @@ class BillingDashboard extends Component
             ->orderBy('due_date')
             ->limit(5)
             ->get()
-            ->map(fn (PlatformInvoice $invoice) => [
+            ->map(fn (PlatformInvoice $invoice): array => [
                 'id' => $invoice->id,
                 'invoice_number' => $invoice->invoice_number,
                 'tenant' => $invoice->tenant?->name ?? 'Unknown',
@@ -110,7 +110,7 @@ class BillingDashboard extends Component
             ->orderByDesc('paid_at')
             ->get();
 
-        $data = $payments->map(fn (PlatformPayment $payment) => [
+        $data = $payments->map(fn (PlatformPayment $payment): array => [
             'date' => $payment->paid_at?->format('Y-m-d H:i:s'),
             'reference' => $payment->payment_reference,
             'tenant' => $payment->tenant?->name ?? 'Unknown',

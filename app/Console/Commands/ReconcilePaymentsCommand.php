@@ -125,7 +125,7 @@ class ReconcilePaymentsCommand extends Command
                 ->groupBy('platform_invoice_id')
                 ->with('invoice')
                 ->get()
-                ->filter(function ($payment) {
+                ->filter(function ($payment): bool {
                     $invoice = $payment->invoice;
 
                     return $invoice && abs((float) $invoice->amount_paid - (float) $payment->total_paid) > 0.01;

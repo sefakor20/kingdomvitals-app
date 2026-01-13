@@ -18,7 +18,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -32,7 +32,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -41,7 +41,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view recurring expenses page', function () {
+test('authenticated user with branch access can view recurring expenses page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -55,7 +55,7 @@ test('authenticated user with branch access can view recurring expenses page', f
         ->assertSeeLivewire(RecurringExpenseIndex::class);
 });
 
-test('user without branch access cannot view recurring expenses page', function () {
+test('user without branch access cannot view recurring expenses page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -70,7 +70,7 @@ test('user without branch access cannot view recurring expenses page', function 
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view recurring expenses page', function () {
+test('unauthenticated user cannot view recurring expenses page', function (): void {
     $this->get("/branches/{$this->branch->id}/expenses/recurring")
         ->assertRedirect('/login');
 });
@@ -79,7 +79,7 @@ test('unauthenticated user cannot view recurring expenses page', function () {
 // VIEW RECURRING EXPENSES AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view recurring expenses list', function () {
+test('admin can view recurring expenses list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -95,7 +95,7 @@ test('admin can view recurring expenses list', function () {
         ->assertSee($recurringExpense->description);
 });
 
-test('volunteer can view recurring expenses list', function () {
+test('volunteer can view recurring expenses list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -115,7 +115,7 @@ test('volunteer can view recurring expenses list', function () {
 // CREATE RECURRING EXPENSE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a recurring expense', function () {
+test('admin can create a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -147,7 +147,7 @@ test('admin can create a recurring expense', function () {
     expect($recurringExpense->frequency)->toBe(PledgeFrequency::Monthly);
 });
 
-test('manager can create a recurring expense', function () {
+test('manager can create a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -172,7 +172,7 @@ test('manager can create a recurring expense', function () {
     expect(RecurringExpense::where('description', 'Weekly Cleaning Service')->exists())->toBeTrue();
 });
 
-test('staff cannot create a recurring expense', function () {
+test('staff cannot create a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -187,7 +187,7 @@ test('staff cannot create a recurring expense', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot create a recurring expense', function () {
+test('volunteer cannot create a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -206,7 +206,7 @@ test('volunteer cannot create a recurring expense', function () {
 // UPDATE RECURRING EXPENSE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a recurring expense', function () {
+test('admin can update a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -230,7 +230,7 @@ test('admin can update a recurring expense', function () {
     expect($recurringExpense->fresh()->description)->toBe('Updated expense description');
 });
 
-test('manager can update a recurring expense', function () {
+test('manager can update a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -251,7 +251,7 @@ test('manager can update a recurring expense', function () {
     expect($recurringExpense->fresh()->amount)->toBe('999.99');
 });
 
-test('staff cannot update a recurring expense', function () {
+test('staff cannot update a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -272,7 +272,7 @@ test('staff cannot update a recurring expense', function () {
 // DELETE RECURRING EXPENSE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a recurring expense', function () {
+test('admin can delete a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -295,7 +295,7 @@ test('admin can delete a recurring expense', function () {
     expect(RecurringExpense::find($recurringExpenseId))->toBeNull();
 });
 
-test('manager can delete a recurring expense', function () {
+test('manager can delete a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -316,7 +316,7 @@ test('manager can delete a recurring expense', function () {
     expect(RecurringExpense::find($recurringExpenseId))->toBeNull();
 });
 
-test('staff cannot delete a recurring expense', function () {
+test('staff cannot delete a recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -337,7 +337,7 @@ test('staff cannot delete a recurring expense', function () {
 // TOGGLE STATUS TESTS
 // ============================================
 
-test('admin can pause an active recurring expense', function () {
+test('admin can pause an active recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -356,7 +356,7 @@ test('admin can pause an active recurring expense', function () {
     expect($recurringExpense->fresh()->status)->toBe(RecurringExpenseStatus::Paused);
 });
 
-test('admin can resume a paused recurring expense', function () {
+test('admin can resume a paused recurring expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -375,7 +375,7 @@ test('admin can resume a paused recurring expense', function () {
     expect($recurringExpense->fresh()->status)->toBe(RecurringExpenseStatus::Active);
 });
 
-test('manager can toggle recurring expense status', function () {
+test('manager can toggle recurring expense status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -394,7 +394,7 @@ test('manager can toggle recurring expense status', function () {
     expect($recurringExpense->fresh()->status)->toBe(RecurringExpenseStatus::Paused);
 });
 
-test('staff cannot toggle recurring expense status', function () {
+test('staff cannot toggle recurring expense status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -415,7 +415,7 @@ test('staff cannot toggle recurring expense status', function () {
 // GENERATE NOW TESTS
 // ============================================
 
-test('admin can manually generate expense from recurring template', function () {
+test('admin can manually generate expense from recurring template', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -447,7 +447,7 @@ test('admin can manually generate expense from recurring template', function () 
     expect($recurringExpense->fresh()->total_generated_count)->toBe(1);
 });
 
-test('manager can manually generate expense', function () {
+test('manager can manually generate expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -467,7 +467,7 @@ test('manager can manually generate expense', function () {
     expect(Expense::where('recurring_expense_id', $recurringExpense->id)->exists())->toBeTrue();
 });
 
-test('staff cannot manually generate expense', function () {
+test('staff cannot manually generate expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -488,7 +488,7 @@ test('staff cannot manually generate expense', function () {
 // MODEL GENERATION LOGIC TESTS
 // ============================================
 
-test('recurring expense generates expense with correct data', function () {
+test('recurring expense generates expense with correct data', function (): void {
     $recurringExpense = RecurringExpense::factory()->dueToday()->utilities()->create([
         'branch_id' => $this->branch->id,
         'description' => 'Electricity Bill',
@@ -509,7 +509,7 @@ test('recurring expense generates expense with correct data', function () {
     expect($expense->notes)->toContain('Auto-generated');
 });
 
-test('paused recurring expense does not generate', function () {
+test('paused recurring expense does not generate', function (): void {
     $recurringExpense = RecurringExpense::factory()->paused()->create([
         'branch_id' => $this->branch->id,
         'next_generation_date' => now()->toDateString(),
@@ -520,7 +520,7 @@ test('paused recurring expense does not generate', function () {
     expect($expense)->toBeNull();
 });
 
-test('recurring expense with future date does not generate', function () {
+test('recurring expense with future date does not generate', function (): void {
     $recurringExpense = RecurringExpense::factory()->active()->create([
         'branch_id' => $this->branch->id,
         'next_generation_date' => now()->addWeek()->toDateString(),
@@ -531,7 +531,7 @@ test('recurring expense with future date does not generate', function () {
     expect($expense)->toBeNull();
 });
 
-test('recurring expense past end date does not generate', function () {
+test('recurring expense past end date does not generate', function (): void {
     $recurringExpense = RecurringExpense::factory()->active()->create([
         'branch_id' => $this->branch->id,
         'next_generation_date' => now()->toDateString(),
@@ -543,7 +543,7 @@ test('recurring expense past end date does not generate', function () {
     expect($expense)->toBeNull();
 });
 
-test('recurring expense updates next generation date after generating', function () {
+test('recurring expense updates next generation date after generating', function (): void {
     $recurringExpense = RecurringExpense::factory()->monthly()->dueToday()->create([
         'branch_id' => $this->branch->id,
         'day_of_month' => 15,
@@ -558,7 +558,7 @@ test('recurring expense updates next generation date after generating', function
     expect($recurringExpense->next_generation_date->gt($originalNextDate))->toBeTrue();
 });
 
-test('recurring expense increments generation count after generating', function () {
+test('recurring expense increments generation count after generating', function (): void {
     $recurringExpense = RecurringExpense::factory()->dueToday()->create([
         'branch_id' => $this->branch->id,
         'total_generated_count' => 5,
@@ -569,7 +569,7 @@ test('recurring expense increments generation count after generating', function 
     expect($recurringExpense->fresh()->total_generated_count)->toBe(6);
 });
 
-test('recurring expense marks as completed when no more dates', function () {
+test('recurring expense marks as completed when no more dates', function (): void {
     $recurringExpense = RecurringExpense::factory()->monthly()->dueToday()->create([
         'branch_id' => $this->branch->id,
         'end_date' => now()->addDays(15)->toDateString(),
@@ -584,7 +584,7 @@ test('recurring expense marks as completed when no more dates', function () {
 // NEXT DATE CALCULATION TESTS
 // ============================================
 
-test('weekly recurring expense calculates next date correctly', function () {
+test('weekly recurring expense calculates next date correctly', function (): void {
     $recurringExpense = RecurringExpense::factory()->weekly()->create([
         'branch_id' => $this->branch->id,
         'start_date' => now()->toDateString(),
@@ -596,7 +596,7 @@ test('weekly recurring expense calculates next date correctly', function () {
     expect($nextDate->diffInDays(now()))->toBeLessThanOrEqual(7);
 });
 
-test('monthly recurring expense calculates next date correctly', function () {
+test('monthly recurring expense calculates next date correctly', function (): void {
     $recurringExpense = RecurringExpense::factory()->monthly()->create([
         'branch_id' => $this->branch->id,
         'start_date' => now()->toDateString(),
@@ -609,7 +609,7 @@ test('monthly recurring expense calculates next date correctly', function () {
     expect($nextDate->day)->toBe(15);
 });
 
-test('quarterly recurring expense calculates next date correctly', function () {
+test('quarterly recurring expense calculates next date correctly', function (): void {
     $recurringExpense = RecurringExpense::factory()->quarterly()->create([
         'branch_id' => $this->branch->id,
         'start_date' => now()->toDateString(),
@@ -624,7 +624,7 @@ test('quarterly recurring expense calculates next date correctly', function () {
     expect($daysDiff)->toBeLessThanOrEqual(110);
 });
 
-test('yearly recurring expense calculates next date correctly', function () {
+test('yearly recurring expense calculates next date correctly', function (): void {
     $recurringExpense = RecurringExpense::factory()->yearly()->create([
         'branch_id' => $this->branch->id,
         'start_date' => now()->toDateString(),
@@ -636,7 +636,7 @@ test('yearly recurring expense calculates next date correctly', function () {
     expect($nextDate->year)->toBe(now()->year + 1);
 });
 
-test('next date returns null when past end date', function () {
+test('next date returns null when past end date', function (): void {
     $recurringExpense = RecurringExpense::factory()->monthly()->create([
         'branch_id' => $this->branch->id,
         'start_date' => now()->subMonths(6)->toDateString(),
@@ -652,7 +652,7 @@ test('next date returns null when past end date', function () {
 // MONTHLY PROJECTION TESTS
 // ============================================
 
-test('weekly expense has correct monthly projection', function () {
+test('weekly expense has correct monthly projection', function (): void {
     $recurringExpense = RecurringExpense::factory()->weekly()->create([
         'branch_id' => $this->branch->id,
         'amount' => 100,
@@ -662,7 +662,7 @@ test('weekly expense has correct monthly projection', function () {
     expect($recurringExpense->monthly_projection)->toBeLessThan(500);
 });
 
-test('monthly expense has correct monthly projection', function () {
+test('monthly expense has correct monthly projection', function (): void {
     $recurringExpense = RecurringExpense::factory()->monthly()->create([
         'branch_id' => $this->branch->id,
         'amount' => 500,
@@ -671,7 +671,7 @@ test('monthly expense has correct monthly projection', function () {
     expect($recurringExpense->monthly_projection)->toBe(500.0);
 });
 
-test('quarterly expense has correct monthly projection', function () {
+test('quarterly expense has correct monthly projection', function (): void {
     $recurringExpense = RecurringExpense::factory()->quarterly()->create([
         'branch_id' => $this->branch->id,
         'amount' => 300,
@@ -680,7 +680,7 @@ test('quarterly expense has correct monthly projection', function () {
     expect($recurringExpense->monthly_projection)->toBe(100.0);
 });
 
-test('yearly expense has correct monthly projection', function () {
+test('yearly expense has correct monthly projection', function (): void {
     $recurringExpense = RecurringExpense::factory()->yearly()->create([
         'branch_id' => $this->branch->id,
         'amount' => 1200,
@@ -693,7 +693,7 @@ test('yearly expense has correct monthly projection', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search recurring expenses by description', function () {
+test('can search recurring expenses by description', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -719,7 +719,7 @@ test('can search recurring expenses by description', function () {
         ->assertDontSee('Hidden recurring expense');
 });
 
-test('can filter recurring expenses by category', function () {
+test('can filter recurring expenses by category', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -739,7 +739,7 @@ test('can filter recurring expenses by category', function () {
     expect($component->instance()->recurringExpenses->first()->category)->toBe(ExpenseCategory::Utilities);
 });
 
-test('can filter recurring expenses by status', function () {
+test('can filter recurring expenses by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -760,7 +760,7 @@ test('can filter recurring expenses by status', function () {
     expect($component->instance()->recurringExpenses->first()->status)->toBe(RecurringExpenseStatus::Active);
 });
 
-test('can clear filters', function () {
+test('can clear filters', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -787,7 +787,7 @@ test('can clear filters', function () {
 // STATS TESTS
 // ============================================
 
-test('stats are calculated correctly', function () {
+test('stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -825,7 +825,7 @@ test('stats are calculated correctly', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('description is required', function () {
+test('description is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -847,7 +847,7 @@ test('description is required', function () {
         ->assertHasErrors(['description']);
 });
 
-test('amount is required', function () {
+test('amount is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -869,7 +869,7 @@ test('amount is required', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('category is required', function () {
+test('category is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -891,7 +891,7 @@ test('category is required', function () {
         ->assertHasErrors(['category']);
 });
 
-test('frequency is required', function () {
+test('frequency is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -913,7 +913,7 @@ test('frequency is required', function () {
         ->assertHasErrors(['frequency']);
 });
 
-test('start date is required', function () {
+test('start date is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -935,7 +935,7 @@ test('start date is required', function () {
         ->assertHasErrors(['start_date']);
 });
 
-test('end date must be after start date', function () {
+test('end date must be after start date', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -962,7 +962,7 @@ test('end date must be after start date', function () {
 // MODAL CANCEL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -981,7 +981,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('description', '');
 });
 
-test('cancel edit modal closes modal', function () {
+test('cancel edit modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1001,7 +1001,7 @@ test('cancel edit modal closes modal', function () {
         ->assertSet('editingRecurringExpense', null);
 });
 
-test('cancel delete modal closes modal', function () {
+test('cancel delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1021,7 +1021,7 @@ test('cancel delete modal closes modal', function () {
         ->assertSet('deletingRecurringExpense', null);
 });
 
-test('cancel generate modal closes modal', function () {
+test('cancel generate modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1045,7 +1045,7 @@ test('cancel generate modal closes modal', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no recurring expenses exist', function () {
+test('empty state is shown when no recurring expenses exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1059,7 +1059,7 @@ test('empty state is shown when no recurring expenses exist', function () {
         ->assertSee('No recurring expenses found');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1073,7 +1073,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Add Recurring');
 });
 
-test('create button is hidden for staff', function () {
+test('create button is hidden for staff', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1091,7 +1091,7 @@ test('create button is hidden for staff', function () {
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update recurring expense from different branch', function () {
+test('user cannot update recurring expense from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -1110,7 +1110,7 @@ test('user cannot update recurring expense from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot toggle status of recurring expense from different branch', function () {
+test('user cannot toggle status of recurring expense from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -1133,7 +1133,7 @@ test('user cannot toggle status of recurring expense from different branch', fun
 // EXPENSE RELATIONSHIP TESTS
 // ============================================
 
-test('expense knows if it is from recurring expense', function () {
+test('expense knows if it is from recurring expense', function (): void {
     $recurringExpense = RecurringExpense::factory()->dueToday()->create(['branch_id' => $this->branch->id]);
     $generatedExpense = $recurringExpense->generateExpense();
 
@@ -1143,7 +1143,7 @@ test('expense knows if it is from recurring expense', function () {
     expect($regularExpense->isFromRecurringExpense())->toBeFalse();
 });
 
-test('recurring expense can access its generated expenses', function () {
+test('recurring expense can access its generated expenses', function (): void {
     $recurringExpense = RecurringExpense::factory()->dueToday()->monthly()->create([
         'branch_id' => $this->branch->id,
     ]);
@@ -1159,7 +1159,7 @@ test('recurring expense can access its generated expenses', function () {
 // COMMAND TESTS
 // ============================================
 
-test('generate recurring expenses command works', function () {
+test('generate recurring expenses command works', function (): void {
     RecurringExpense::factory()->dueToday()->create([
         'branch_id' => $this->branch->id,
         'description' => 'Monthly Rent',
@@ -1179,7 +1179,7 @@ test('generate recurring expenses command works', function () {
     expect(Expense::where('description', 'Monthly Rent')->exists())->toBeTrue();
 });
 
-test('generate recurring expenses command dry run does not create expenses', function () {
+test('generate recurring expenses command dry run does not create expenses', function (): void {
     RecurringExpense::factory()->dueToday()->create([
         'branch_id' => $this->branch->id,
         'description' => 'Monthly Rent',

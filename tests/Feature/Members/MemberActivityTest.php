@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -34,7 +34,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -43,7 +43,7 @@ afterEach(function () {
 // OBSERVER TESTS - Activity Logged on Events
 // ============================================
 
-test('activity is logged when member is created', function () {
+test('activity is logged when member is created', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -63,7 +63,7 @@ test('activity is logged when member is created', function () {
         ->and($activity->new_values['first_name'])->toBe('John');
 });
 
-test('activity is logged when member is updated', function () {
+test('activity is logged when member is updated', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -88,7 +88,7 @@ test('activity is logged when member is updated', function () {
         ->and($activity->new_values['first_name'])->toBe('Jane');
 });
 
-test('activity is not logged when only timestamps change', function () {
+test('activity is not logged when only timestamps change', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -105,7 +105,7 @@ test('activity is not logged when only timestamps change', function () {
     expect(MemberActivity::count())->toBe(0);
 });
 
-test('activity is logged when member is soft deleted', function () {
+test('activity is logged when member is soft deleted', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -125,7 +125,7 @@ test('activity is logged when member is soft deleted', function () {
         ->and($activity->member_id)->toBe($member->id);
 });
 
-test('activity is logged when member is restored', function () {
+test('activity is logged when member is restored', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -146,7 +146,7 @@ test('activity is logged when member is restored', function () {
         ->and($activity->member_id)->toBe($member->id);
 });
 
-test('activity captures authenticated user', function () {
+test('activity captures authenticated user', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -158,7 +158,7 @@ test('activity captures authenticated user', function () {
     expect($activity->user_id)->toBe($user->id);
 });
 
-test('activity captures IP address', function () {
+test('activity captures IP address', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -170,7 +170,7 @@ test('activity captures IP address', function () {
     expect($activity->ip_address)->not->toBeNull();
 });
 
-test('enum values are serialized correctly in activity log', function () {
+test('enum values are serialized correctly in activity log', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -193,7 +193,7 @@ test('enum values are serialized correctly in activity log', function () {
 // COMPONENT TESTS - Activity Display
 // ============================================
 
-test('activity log component displays on member show page', function () {
+test('activity log component displays on member show page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -211,7 +211,7 @@ test('activity log component displays on member show page', function () {
         ->assertSeeLivewire(MemberActivityLog::class);
 });
 
-test('activity log shows empty state when no activities', function () {
+test('activity log shows empty state when no activities', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -231,7 +231,7 @@ test('activity log shows empty state when no activities', function () {
         ->assertSee('No activity recorded yet.');
 });
 
-test('activity log displays activities with correct information', function () {
+test('activity log displays activities with correct information', function (): void {
     $user = User::factory()->create(['name' => 'Test User']);
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -251,7 +251,7 @@ test('activity log displays activities with correct information', function () {
         ->assertSee('Test User created this member');
 });
 
-test('activity log shows load more button when there are more activities', function () {
+test('activity log shows load more button when there are more activities', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -274,7 +274,7 @@ test('activity log shows load more button when there are more activities', funct
         ->assertSee('Load more');
 });
 
-test('load more increases the activity limit', function () {
+test('load more increases the activity limit', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -303,7 +303,7 @@ test('load more increases the activity limit', function () {
 // MODEL TESTS
 // ============================================
 
-test('member has activities relationship', function () {
+test('member has activities relationship', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -315,7 +315,7 @@ test('member has activities relationship', function () {
     expect($member->activities->first())->toBeInstanceOf(MemberActivity::class);
 });
 
-test('activity formatted description shows correct message for each event type', function () {
+test('activity formatted description shows correct message for each event type', function (): void {
     $user = User::factory()->create(['name' => 'John Admin']);
 
     $member = Member::factory()->create([

@@ -64,7 +64,7 @@ class PlatformInvoice extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (PlatformInvoice $invoice) {
+        static::creating(function (PlatformInvoice $invoice): void {
             if (empty($invoice->invoice_number)) {
                 $invoice->invoice_number = self::generateInvoiceNumber();
             }

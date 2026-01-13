@@ -56,11 +56,11 @@ class ServiceIndex extends Component
     {
         $query = Service::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $query->where('name', 'like', "%{$this->search}%");
         }
 
-        if ($this->typeFilter) {
+        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
             $query->where('service_type', $this->typeFilter);
         }
 
@@ -213,7 +213,7 @@ class ServiceIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.services.service-index');
     }

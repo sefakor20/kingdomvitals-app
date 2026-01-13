@@ -9,7 +9,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -21,12 +21,12 @@ beforeEach(function () {
     $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('dashboard component renders successfully', function () {
+test('dashboard component renders successfully', function (): void {
     $this->tenant->markOnboardingComplete();
 
     Livewire::actingAs(User::factory()->create())
@@ -34,7 +34,7 @@ test('dashboard component renders successfully', function () {
         ->assertStatus(200);
 });
 
-test('dashboard shows branch context', function () {
+test('dashboard shows branch context', function (): void {
     $this->tenant->markOnboardingComplete();
 
     $component = Livewire::actingAs(User::factory()->create())

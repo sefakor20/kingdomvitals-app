@@ -314,7 +314,7 @@ class TenantShow extends Component
     {
         $tenant = $this->tenant;
 
-        $tenant->run(function () use ($tenant, $userId) {
+        $tenant->run(function () use ($tenant, $userId): void {
             $user = User::find($userId);
 
             if (! $user) {

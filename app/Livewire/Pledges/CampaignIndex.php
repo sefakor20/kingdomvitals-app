@@ -67,19 +67,19 @@ class CampaignIndex extends Component
     {
         $query = PledgeCampaign::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
             $query->where('category', $this->categoryFilter);
         }
 
@@ -355,7 +355,7 @@ class CampaignIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($campaigns) {
+        return response()->streamDownload(function () use ($campaigns): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -407,7 +407,7 @@ class CampaignIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.pledges.campaign-index');
     }

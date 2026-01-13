@@ -347,10 +347,10 @@ class DonorEngagement extends Component
         $majorDonors = $donors->take($top10Threshold);
 
         // Occasional donors: 1-2 donations per year
-        $occasionalDonors = $donors->filter(fn ($d) => $d->donation_count <= 2);
+        $occasionalDonors = $donors->filter(fn ($d): bool => $d->donation_count <= 2);
 
         // Regular donors: everyone else (not major, more than 2 donations)
-        $regularDonors = $donors->skip($top10Threshold)->filter(fn ($d) => $d->donation_count > 2);
+        $regularDonors = $donors->skip($top10Threshold)->filter(fn ($d): bool => $d->donation_count > 2);
 
         return [
             'major' => [
@@ -412,8 +412,8 @@ class DonorEngagement extends Component
             ->groupBy('donations.member_id', 'members.first_name', 'members.last_name');
 
         // Apply search filter
-        if ($this->donorSearch) {
-            $donorsQuery->where(function ($q) {
+        if ($this->donorSearch !== '' && $this->donorSearch !== '0') {
+            $donorsQuery->where(function ($q): void {
                 $q->where('members.first_name', 'like', '%'.$this->donorSearch.'%')
                     ->orWhere('members.last_name', 'like', '%'.$this->donorSearch.'%');
             });
@@ -450,7 +450,7 @@ class DonorEngagement extends Component
 
         // Apply trend filter
         if ($this->donorTrendFilter !== 'all') {
-            $allDonors = $allDonors->filter(fn ($d) => $d->trend === $this->donorTrendFilter);
+            $allDonors = $allDonors->filter(fn ($d): bool => $d->trend === $this->donorTrendFilter);
         }
 
         // Apply sorting
@@ -506,15 +506,15 @@ class DonorEngagement extends Component
 
         // Lapsing donors: No donation in X days
         $lapsingDonors = Member::where('primary_branch_id', $this->branch->id)
-            ->whereHas('donations', function ($q) use ($lapseDate) {
+            ->whereHas('donations', function ($q) use ($lapseDate): void {
                 $q->where('branch_id', $this->branch->id)
                     ->where('donation_date', '<', $lapseDate);
             })
-            ->whereDoesntHave('donations', function ($q) use ($lapseDate) {
+            ->whereDoesntHave('donations', function ($q) use ($lapseDate): void {
                 $q->where('branch_id', $this->branch->id)
                     ->where('donation_date', '>=', $lapseDate);
             })
-            ->with(['donations' => function ($q) {
+            ->with(['donations' => function ($q): void {
                 $q->where('branch_id', $this->branch->id)
                     ->orderByDesc('donation_date')
                     ->limit(1);
@@ -577,7 +577,7 @@ class DonorEngagement extends Component
             ->selectRaw('member_id, SUM(amount) as period_total, COUNT(*) as donation_count')
             ->groupBy('member_id')
             ->having('period_total', '>=', $highThreshold)
-            ->whereNotExists(function ($q) use ($currentStart) {
+            ->whereNotExists(function ($q) use ($currentStart): void {
                 $q->select(DB::raw(1))
                     ->from('donations as d2')
                     ->whereColumn('d2.member_id', 'donations.member_id')
@@ -604,7 +604,7 @@ class DonorEngagement extends Component
         ];
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.finance.donor-engagement');
     }

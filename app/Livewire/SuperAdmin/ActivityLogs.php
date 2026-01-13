@@ -54,7 +54,7 @@ class ActivityLogs extends Component
     {
         $logs = $this->getFilteredLogs()->get();
 
-        $data = $logs->map(fn (SuperAdminActivityLog $log) => [
+        $data = $logs->map(fn (SuperAdminActivityLog $log): array => [
             'timestamp' => $log->created_at->format('Y-m-d H:i:s'),
             'admin_name' => $log->superAdmin?->name ?? 'System',
             'action' => str_replace('_', ' ', $log->action),
@@ -99,21 +99,21 @@ class ActivityLogs extends Component
     {
         return SuperAdminActivityLog::query()
             ->with(['superAdmin', 'tenant'])
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
+            ->when($this->search, function ($query): void {
+                $query->where(function ($q): void {
                     $q->where('description', 'like', "%{$this->search}%")
-                        ->orWhereHas('superAdmin', function ($q) {
+                        ->orWhereHas('superAdmin', function ($q): void {
                             $q->where('name', 'like', "%{$this->search}%");
                         });
                 });
             })
-            ->when($this->action, function ($query) {
+            ->when($this->action, function ($query): void {
                 $query->where('action', $this->action);
             })
-            ->when($this->startDate, function ($query) {
+            ->when($this->startDate, function ($query): void {
                 $query->whereDate('created_at', '>=', $this->startDate);
             })
-            ->when($this->endDate, function ($query) {
+            ->when($this->endDate, function ($query): void {
                 $query->whereDate('created_at', '<=', $this->endDate);
             })
             ->latest('created_at');

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -24,7 +24,7 @@ beforeEach(function () {
     $this->qrService = app(QrCodeService::class);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -33,7 +33,7 @@ afterEach(function () {
 // QR CODE GENERATION TESTS
 // ============================================
 
-test('can generate qr code svg for member', function () {
+test('can generate qr code svg for member', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     $svg = $this->qrService->generateMemberQrCode($member);
@@ -43,7 +43,7 @@ test('can generate qr code svg for member', function () {
     expect($svg)->toContain('</svg>');
 });
 
-test('can generate qr code svg with custom size', function () {
+test('can generate qr code svg with custom size', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     $svg = $this->qrService->generateMemberQrCode($member, 500);
@@ -52,7 +52,7 @@ test('can generate qr code svg with custom size', function () {
     expect($svg)->toContain('<svg');
 });
 
-test('can generate raw qr code svg from data', function () {
+test('can generate raw qr code svg from data', function (): void {
     $svg = $this->qrService->generateQrCodeSvg('https://example.com');
 
     expect($svg)->toBeString();
@@ -64,7 +64,7 @@ test('can generate raw qr code svg from data', function () {
 // TOKEN GENERATION TESTS
 // ============================================
 
-test('member can generate qr token', function () {
+test('member can generate qr token', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'qr_token' => null,
@@ -77,7 +77,7 @@ test('member can generate qr token', function () {
     expect($member->fresh()->qr_token_generated_at)->not->toBeNull();
 });
 
-test('regenerate token creates new unique token', function () {
+test('regenerate token creates new unique token', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     $oldToken = $member->generateQrToken();
@@ -88,7 +88,7 @@ test('regenerate token creates new unique token', function () {
     expect($member->fresh()->qr_token)->toBe($newToken);
 });
 
-test('get or generate qr token returns existing token if present', function () {
+test('get or generate qr token returns existing token if present', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     $token1 = $member->getOrGenerateQrToken();
@@ -97,7 +97,7 @@ test('get or generate qr token returns existing token if present', function () {
     expect($token1)->toBe($token2);
 });
 
-test('get or generate qr token creates token if not present', function () {
+test('get or generate qr token creates token if not present', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'qr_token' => null,
@@ -115,7 +115,7 @@ test('get or generate qr token creates token if not present', function () {
 // TOKEN VALIDATION TESTS
 // ============================================
 
-test('can validate a valid qr token', function () {
+test('can validate a valid qr token', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $token = $member->generateQrToken();
 
@@ -125,19 +125,19 @@ test('can validate a valid qr token', function () {
     expect($validatedMember->id)->toBe($member->id);
 });
 
-test('returns null for invalid qr token', function () {
+test('returns null for invalid qr token', function (): void {
     $member = $this->qrService->validateToken('invalid-token');
 
     expect($member)->toBeNull();
 });
 
-test('returns null for empty qr token', function () {
+test('returns null for empty qr token', function (): void {
     $member = $this->qrService->validateToken('');
 
     expect($member)->toBeNull();
 });
 
-test('returns null for non-existent qr token', function () {
+test('returns null for non-existent qr token', function (): void {
     // Generate a valid-looking token that doesn't exist in the database
     $nonExistentToken = hash('sha256', 'nonexistent');
 
@@ -146,7 +146,7 @@ test('returns null for non-existent qr token', function () {
     expect($member)->toBeNull();
 });
 
-test('returns null for token with wrong length', function () {
+test('returns null for token with wrong length', function (): void {
     $member = $this->qrService->validateToken('short');
 
     expect($member)->toBeNull();
@@ -156,7 +156,7 @@ test('returns null for token with wrong length', function () {
 // CHECK-IN URL TESTS
 // ============================================
 
-test('can get check-in url for member', function () {
+test('can get check-in url for member', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     $url = $this->qrService->getCheckInUrl($member);
@@ -165,7 +165,7 @@ test('can get check-in url for member', function () {
     expect($url)->toContain($member->getOrGenerateQrToken());
 });
 
-test('get member token returns token', function () {
+test('get member token returns token', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     $token = $this->qrService->getMemberToken($member);
@@ -178,7 +178,7 @@ test('get member token returns token', function () {
 // TOKEN UNIQUENESS TESTS
 // ============================================
 
-test('generated tokens are unique across members', function () {
+test('generated tokens are unique across members', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 

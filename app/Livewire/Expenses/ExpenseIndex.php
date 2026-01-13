@@ -85,9 +85,9 @@ class ExpenseIndex extends Component
     {
         $query = Expense::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('description', 'like', "%{$search}%")
                     ->orWhere('vendor_name', 'like', "%{$search}%")
                     ->orWhere('reference_number', 'like', "%{$search}%")
@@ -95,11 +95,11 @@ class ExpenseIndex extends Component
             });
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
             $query->where('category', $this->categoryFilter);
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
@@ -169,7 +169,7 @@ class ExpenseIndex extends Component
 
         $pending = $expenses->where('status', ExpenseStatus::Pending)->count();
 
-        $thisMonthExpenses = $expenses->filter(function ($expense) {
+        $thisMonthExpenses = $expenses->filter(function ($expense): bool {
             return $expense->expense_date &&
                 $expense->expense_date->isCurrentMonth();
         });
@@ -442,7 +442,7 @@ class ExpenseIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($expenses) {
+        return response()->streamDownload(function () use ($expenses): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -528,7 +528,7 @@ class ExpenseIndex extends Component
         }
 
         // Send alerts to admins and managers
-        $recipients = User::whereHas('branchAccess', function ($q) use ($budget) {
+        $recipients = User::whereHas('branchAccess', function ($q) use ($budget): void {
             $q->where('branch_id', $budget->branch_id)
                 ->whereIn('role', [
                     BranchRole::Admin->value,
@@ -553,7 +553,7 @@ class ExpenseIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.expenses.expense-index');
     }

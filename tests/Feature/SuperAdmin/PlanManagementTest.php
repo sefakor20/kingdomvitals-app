@@ -9,7 +9,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\SuperAdmin;
 use Livewire\Livewire;
 
-it('can view plans page', function () {
+it('can view plans page', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     $this->actingAs($owner, 'superadmin')
@@ -18,7 +18,7 @@ it('can view plans page', function () {
         ->assertSee('Subscription Plans');
 });
 
-it('shows all plans in the list', function () {
+it('shows all plans in the list', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan1 = SubscriptionPlan::create([
         'name' => 'Basic Plan',
@@ -43,7 +43,7 @@ it('shows all plans in the list', function () {
         ->assertSee('Premium Plan');
 });
 
-it('can create a new plan as owner', function () {
+it('can create a new plan as owner', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -72,7 +72,7 @@ it('can create a new plan as owner', function () {
     ]);
 });
 
-it('auto-generates slug from name when creating', function () {
+it('auto-generates slug from name when creating', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -81,7 +81,7 @@ it('auto-generates slug from name when creating', function () {
         ->assertSet('slug', 'enterprise-plus');
 });
 
-it('validates required fields when creating plan', function () {
+it('validates required fields when creating plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -93,7 +93,7 @@ it('validates required fields when creating plan', function () {
         ->assertHasErrors(['name', 'slug']);
 });
 
-it('validates unique slug when creating plan', function () {
+it('validates unique slug when creating plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SubscriptionPlan::create([
         'name' => 'Existing Plan',
@@ -116,7 +116,7 @@ it('validates unique slug when creating plan', function () {
         ->assertHasErrors(['slug']);
 });
 
-it('regular admin cannot create plans', function () {
+it('regular admin cannot create plans', function (): void {
     $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
     Livewire::actingAs($admin, 'superadmin')
@@ -131,7 +131,7 @@ it('regular admin cannot create plans', function () {
         ->assertForbidden();
 });
 
-it('can open edit modal for a plan', function () {
+it('can open edit modal for a plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Edit Me',
@@ -152,7 +152,7 @@ it('can open edit modal for a plan', function () {
         ->assertSet('editPlanId', $plan->id);
 });
 
-it('can update a plan', function () {
+it('can update a plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Old Name',
@@ -179,7 +179,7 @@ it('can update a plan', function () {
     ]);
 });
 
-it('can delete a plan without subscribers', function () {
+it('can delete a plan without subscribers', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Delete Me',
@@ -202,7 +202,7 @@ it('can delete a plan without subscribers', function () {
     $this->assertDatabaseMissing('subscription_plans', ['id' => $plan->id]);
 });
 
-it('shows subscriber count when trying to delete a plan with subscribers', function () {
+it('shows subscriber count when trying to delete a plan with subscribers', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Has Subscribers',
@@ -234,7 +234,7 @@ it('shows subscriber count when trying to delete a plan with subscribers', funct
     $this->assertDatabaseHas('subscription_plans', ['id' => $plan->id]);
 });
 
-it('can toggle plan active status', function () {
+it('can toggle plan active status', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Toggle Me',
@@ -263,7 +263,7 @@ it('can toggle plan active status', function () {
     expect($plan->is_active)->toBeTrue();
 });
 
-it('can set a plan as default', function () {
+it('can set a plan as default', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan1 = SubscriptionPlan::create([
         'name' => 'Plan 1',
@@ -296,7 +296,7 @@ it('can set a plan as default', function () {
     expect($plan2->is_default)->toBeTrue();
 });
 
-it('ensures only one default plan exists', function () {
+it('ensures only one default plan exists', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     // Create a plan as default
@@ -331,7 +331,7 @@ it('ensures only one default plan exists', function () {
     expect(SubscriptionPlan::where('slug', 'first-default')->first()->is_default)->toBeFalse();
 });
 
-it('logs activity when creating plan', function () {
+it('logs activity when creating plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -350,7 +350,7 @@ it('logs activity when creating plan', function () {
     ]);
 });
 
-it('logs activity when updating plan', function () {
+it('logs activity when updating plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Update Log Test',
@@ -373,7 +373,7 @@ it('logs activity when updating plan', function () {
     ]);
 });
 
-it('logs activity when deleting plan', function () {
+it('logs activity when deleting plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Delete Log Test',
@@ -395,7 +395,7 @@ it('logs activity when deleting plan', function () {
     ]);
 });
 
-it('logs activity when toggling plan status', function () {
+it('logs activity when toggling plan status', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Toggle Log Test',
@@ -417,7 +417,7 @@ it('logs activity when toggling plan status', function () {
     ]);
 });
 
-it('logs activity when setting default plan', function () {
+it('logs activity when setting default plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $plan = SubscriptionPlan::create([
         'name' => 'Default Log Test',
@@ -438,7 +438,7 @@ it('logs activity when setting default plan', function () {
     ]);
 });
 
-it('parses features from comma-separated input', function () {
+it('parses features from comma-separated input', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -456,7 +456,7 @@ it('parses features from comma-separated input', function () {
     expect($plan->features)->toBe(['Feature A', 'Feature B', 'Feature C']);
 });
 
-it('shows canManage as false for regular admin', function () {
+it('shows canManage as false for regular admin', function (): void {
     $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
     Livewire::actingAs($admin, 'superadmin')
@@ -464,7 +464,7 @@ it('shows canManage as false for regular admin', function () {
         ->assertDontSee('Add Plan');
 });
 
-it('shows canManage as true for owner', function () {
+it('shows canManage as true for owner', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -472,7 +472,7 @@ it('shows canManage as true for owner', function () {
         ->assertSee('Add Plan');
 });
 
-it('shows default badge for default plan', function () {
+it('shows default badge for default plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SubscriptionPlan::create([
         'name' => 'Default Plan',
@@ -490,7 +490,7 @@ it('shows default badge for default plan', function () {
         ->assertSee('Default');
 });
 
-it('shows inactive badge for inactive plan', function () {
+it('shows inactive badge for inactive plan', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SubscriptionPlan::create([
         'name' => 'Inactive Plan',

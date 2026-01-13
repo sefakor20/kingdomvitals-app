@@ -300,7 +300,7 @@ class PrayerRequestShow extends Component
         $this->dispatch('prayer-chain-sent');
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.prayer-requests.prayer-request-show');
     }

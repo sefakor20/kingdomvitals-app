@@ -74,10 +74,10 @@ class MemberActivity extends Model
         }
 
         if ($count <= 3) {
-            return implode(', ', array_map(fn ($f) => str_replace('_', ' ', $f), $fields));
+            return implode(', ', array_map(fn ($f): string|array => str_replace('_', ' ', $f), $fields));
         }
 
-        return implode(', ', array_map(fn ($f) => str_replace('_', ' ', $f), array_slice($fields, 0, 2)))
+        return implode(', ', array_map(fn ($f): string|array => str_replace('_', ' ', $f), array_slice($fields, 0, 2)))
             .' and '.($count - 2).' more fields';
     }
 }

@@ -51,7 +51,7 @@ class Household extends Model
     public function adults(): HasMany
     {
         return $this->hasMany(Member::class)
-            ->where(function ($query) {
+            ->where(function ($query): void {
                 $query->whereNull('date_of_birth')
                     ->orWhereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= 18');
             });

@@ -62,15 +62,15 @@ class MemberGivingHistory extends Component
         }
 
         $query = Donation::where('branch_id', $this->branch->id)
-            ->where(function ($q) use ($user) {
+            ->where(function ($q) use ($user): void {
                 // Match donations by member email or donor_email
-                $q->whereHas('member', function ($memberQuery) use ($user) {
+                $q->whereHas('member', function ($memberQuery) use ($user): void {
                     $memberQuery->where('email', $user->email);
                 })
                     ->orWhere('donor_email', $user->email);
             });
 
-        if ($this->typeFilter) {
+        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
             $query->where('donation_type', $this->typeFilter);
         }
 
@@ -96,8 +96,8 @@ class MemberGivingHistory extends Component
         }
 
         $baseQuery = Donation::where('branch_id', $this->branch->id)
-            ->where(function ($q) use ($user) {
-                $q->whereHas('member', function ($memberQuery) use ($user) {
+            ->where(function ($q) use ($user): void {
+                $q->whereHas('member', function ($memberQuery) use ($user): void {
                     $memberQuery->where('email', $user->email);
                 })
                     ->orWhere('donor_email', $user->email);
@@ -155,8 +155,8 @@ class MemberGivingHistory extends Component
         return Donation::where('branch_id', $this->branch->id)
             ->where('is_recurring', true)
             ->whereNotNull('paystack_subscription_code')
-            ->where(function ($q) use ($user) {
-                $q->whereHas('member', function ($memberQuery) use ($user) {
+            ->where(function ($q) use ($user): void {
+                $q->whereHas('member', function ($memberQuery) use ($user): void {
                     $memberQuery->where('email', $user->email);
                 })
                     ->orWhere('donor_email', $user->email);
@@ -204,7 +204,7 @@ class MemberGivingHistory extends Component
         return app(DonationReceiptService::class)->downloadReceipt($donation);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.giving.member-giving-history');
     }

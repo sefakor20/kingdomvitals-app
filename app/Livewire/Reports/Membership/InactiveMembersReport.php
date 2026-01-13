@@ -69,7 +69,7 @@ class InactiveMembersReport extends Component
         $membersQuery = Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -94,7 +94,7 @@ class InactiveMembersReport extends Component
         return Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -150,7 +150,7 @@ class InactiveMembersReport extends Component
         return Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -159,9 +159,9 @@ class InactiveMembersReport extends Component
             ->havingRaw('last_attendance IS NULL OR last_attendance < ?', [$cutoffDate])
             ->orderByRaw('last_attendance IS NULL DESC, last_attendance ASC')
             ->get()
-            ->map(function ($member) {
+            ->map(function ($member): array {
                 $lastAttendance = $member->last_attendance ? \Carbon\Carbon::parse($member->last_attendance) : null;
-                $daysInactive = $lastAttendance ? $lastAttendance->diffInDays(now()) : 'Never attended';
+                $daysInactive = $lastAttendance instanceof \Carbon\Carbon ? $lastAttendance->diffInDays(now()) : 'Never attended';
 
                 return [
                     $member->fullName(),
@@ -174,7 +174,7 @@ class InactiveMembersReport extends Component
             });
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.membership.inactive-members-report');
     }

@@ -111,7 +111,7 @@ class DonationReceiptService
         $filename = 'donation-receipts-'.now()->format('Y-m-d-His').'.zip';
 
         return response()->streamDownload(
-            function () use ($tempFile) {
+            function () use ($tempFile): void {
                 readfile($tempFile);
                 unlink($tempFile);
             },

@@ -86,7 +86,7 @@ class SmsCompose extends Component
     {
         return Cluster::where('branch_id', $this->branch->id)
             ->where('is_active', true)
-            ->withCount(['members' => function ($query) {
+            ->withCount(['members' => function ($query): void {
                 $query->whereNotNull('phone')->where('phone', '!=', '');
             }])
             ->orderBy('name')
@@ -275,7 +275,7 @@ class SmsCompose extends Component
 
         $recipients = $this->getRecipients();
 
-        if (empty($recipients)) {
+        if ($recipients === []) {
             $this->addError('recipients', 'No recipients selected or all selected members have no phone number.');
 
             return;
@@ -334,7 +334,7 @@ class SmsCompose extends Component
 
         $recipients = $this->getRecipients();
 
-        if (empty($recipients)) {
+        if ($recipients === []) {
             $this->addError('recipients', 'No recipients to send to.');
 
             return;
@@ -396,7 +396,7 @@ class SmsCompose extends Component
         unset($this->smsPartCount);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.sms.sms-compose');
     }

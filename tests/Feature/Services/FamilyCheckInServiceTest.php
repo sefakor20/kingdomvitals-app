@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Artisan;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -31,7 +31,7 @@ beforeEach(function () {
     $this->familyService = app(FamilyCheckInService::class);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -40,7 +40,7 @@ afterEach(function () {
 // FAMILY CHECK-IN TESTS
 // ============================================
 
-test('can check in multiple family members at once', function () {
+test('can check in multiple family members at once', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     $member1 = Member::factory()->create([
@@ -72,7 +72,7 @@ test('can check in multiple family members at once', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(3);
 });
 
-test('skips members not in household', function () {
+test('skips members not in household', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     $member1 = Member::factory()->create([
@@ -97,7 +97,7 @@ test('skips members not in household', function () {
     expect(Attendance::where('member_id', $memberNotInHousehold->id)->exists())->toBeFalse();
 });
 
-test('skips already checked in members', function () {
+test('skips already checked in members', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     $member1 = Member::factory()->create([
@@ -131,7 +131,7 @@ test('skips already checked in members', function () {
     expect(Attendance::where('member_id', $member2->id)->exists())->toBeTrue();
 });
 
-test('uses specified check-in method', function () {
+test('uses specified check-in method', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     $member = Member::factory()->create([
@@ -155,7 +155,7 @@ test('uses specified check-in method', function () {
 // CHILDREN CHECK-IN WITH SECURITY TESTS
 // ============================================
 
-test('can check in child with security code', function () {
+test('can check in child with security code', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     $guardian = Member::factory()->create([
@@ -187,7 +187,7 @@ test('can check in child with security code', function () {
     expect(Attendance::where('member_id', $child->id)->exists())->toBeTrue();
 });
 
-test('can check in child without guardian', function () {
+test('can check in child without guardian', function (): void {
     $child = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'date_of_birth' => now()->subYears(5),
@@ -208,7 +208,7 @@ test('can check in child without guardian', function () {
 // SECURITY CODE VERIFICATION TESTS
 // ============================================
 
-test('can verify valid security code', function () {
+test('can verify valid security code', function (): void {
     $child = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'date_of_birth' => now()->subYears(5),
@@ -231,7 +231,7 @@ test('can verify valid security code', function () {
     expect($verified->id)->toBe($security->id);
 });
 
-test('returns null for invalid security code', function () {
+test('returns null for invalid security code', function (): void {
     $verified = $this->familyService->verifySecurityCode(
         '000000',
         $this->service,
@@ -241,7 +241,7 @@ test('returns null for invalid security code', function () {
     expect($verified)->toBeNull();
 });
 
-test('returns null for already checked out security code', function () {
+test('returns null for already checked out security code', function (): void {
     $child = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'date_of_birth' => now()->subYears(5),
@@ -266,7 +266,7 @@ test('returns null for already checked out security code', function () {
     expect($verified)->toBeNull();
 });
 
-test('returns null for security code from different service', function () {
+test('returns null for security code from different service', function (): void {
     $otherService = Service::factory()->create(['branch_id' => $this->branch->id]);
 
     $child = Member::factory()->create([
@@ -294,7 +294,7 @@ test('returns null for security code from different service', function () {
 // GET HOUSEHOLD MEMBERS TESTS
 // ============================================
 
-test('can get household members in correct order', function () {
+test('can get household members in correct order', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     Member::factory()->create([
@@ -327,7 +327,7 @@ test('can get household members in correct order', function () {
     expect($members->last()->household_role)->toBe(HouseholdRole::Child);
 });
 
-test('excludes inactive members from household list', function () {
+test('excludes inactive members from household list', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     Member::factory()->create([
@@ -351,7 +351,7 @@ test('excludes inactive members from household list', function () {
 // GET ALREADY CHECKED IN MEMBERS TESTS
 // ============================================
 
-test('can get already checked in members', function () {
+test('can get already checked in members', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     $member1 = Member::factory()->create([
@@ -384,7 +384,7 @@ test('can get already checked in members', function () {
     expect($checkedIn->first()->id)->toBe($member1->id);
 });
 
-test('returns empty collection when no members checked in', function () {
+test('returns empty collection when no members checked in', function (): void {
     $household = Household::factory()->create(['branch_id' => $this->branch->id]);
 
     Member::factory()->create([
@@ -405,7 +405,7 @@ test('returns empty collection when no members checked in', function () {
 // SECURITY CODE GENERATION TESTS
 // ============================================
 
-test('security code is always 6 digits', function () {
+test('security code is always 6 digits', function (): void {
     for ($i = 0; $i < 10; $i++) {
         $code = ChildrenCheckinSecurity::generateSecurityCode();
         expect($code)->toHaveLength(6);
@@ -413,7 +413,7 @@ test('security code is always 6 digits', function () {
     }
 });
 
-test('can check out child with security record', function () {
+test('can check out child with security record', function (): void {
     $child = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'date_of_birth' => now()->subYears(5),

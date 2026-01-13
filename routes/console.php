@@ -7,7 +7,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
+Artisan::command('inspire', function (): void {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
@@ -47,7 +47,7 @@ Schedule::command('expenses:generate-recurring')
     ->withoutOverlapping();
 
 // Process scheduled announcements every minute
-Schedule::call(function () {
+Schedule::call(function (): void {
     Announcement::query()
         ->where('status', AnnouncementStatus::Scheduled)
         ->where('scheduled_at', '<=', now())

@@ -11,13 +11,13 @@ use App\Models\TenantUsageSnapshot;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Clean up any existing test data
     TenantUsageSnapshot::query()->delete();
 });
 
-describe('page access', function () {
-    it('allows owner to view usage analytics page', function () {
+describe('page access', function (): void {
+    it('allows owner to view usage analytics page', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         $this->actingAs($owner, 'superadmin')
@@ -26,7 +26,7 @@ describe('page access', function () {
             ->assertSee('Usage Analytics');
     });
 
-    it('allows admin to view usage analytics page', function () {
+    it('allows admin to view usage analytics page', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         $this->actingAs($admin, 'superadmin')
@@ -35,7 +35,7 @@ describe('page access', function () {
             ->assertSee('Usage Analytics');
     });
 
-    it('allows support to view usage analytics page', function () {
+    it('allows support to view usage analytics page', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
 
         $this->actingAs($support, 'superadmin')
@@ -44,14 +44,14 @@ describe('page access', function () {
             ->assertSee('Usage Analytics');
     });
 
-    it('denies guest access to usage analytics page', function () {
+    it('denies guest access to usage analytics page', function (): void {
         $this->get(route('superadmin.analytics.usage'))
             ->assertRedirect(route('superadmin.login'));
     });
 });
 
-describe('overview stats', function () {
-    it('displays key usage metrics', function () {
+describe('overview stats', function (): void {
+    it('displays key usage metrics', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -64,7 +64,7 @@ describe('overview stats', function () {
             ->assertSee('Avg Members');
     });
 
-    it('shows correct tenant counts', function () {
+    it('shows correct tenant counts', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         // Create test tenants
@@ -111,7 +111,7 @@ describe('overview stats', function () {
             ->assertSee('Trial Church');
     });
 
-    it('shows aggregated member totals from snapshots', function () {
+    it('shows aggregated member totals from snapshots', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         DB::table('tenants')->insert([
@@ -160,8 +160,8 @@ describe('overview stats', function () {
     });
 });
 
-describe('quota alerts', function () {
-    it('shows tenants approaching member quota limits', function () {
+describe('quota alerts', function (): void {
+    it('shows tenants approaching member quota limits', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $plan = SubscriptionPlan::create([
@@ -201,7 +201,7 @@ describe('quota alerts', function () {
             ->assertSee('Quota Alert Church');
     });
 
-    it('shows all clear when no tenants are approaching limits', function () {
+    it('shows all clear when no tenants are approaching limits', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         DB::table('tenants')->insert([
@@ -229,8 +229,8 @@ describe('quota alerts', function () {
     });
 });
 
-describe('feature adoption', function () {
-    it('shows feature adoption statistics', function () {
+describe('feature adoption', function (): void {
+    it('shows feature adoption statistics', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         DB::table('tenants')->insert([
@@ -261,8 +261,8 @@ describe('feature adoption', function () {
     });
 });
 
-describe('top tenants', function () {
-    it('shows top tenants by members', function () {
+describe('top tenants', function (): void {
+    it('shows top tenants by members', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         DB::table('tenants')->insert([
@@ -291,7 +291,7 @@ describe('top tenants', function () {
             ->assertSee('Large Church');
     });
 
-    it('can sort top tenants by different columns', function () {
+    it('can sort top tenants by different columns', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -302,7 +302,7 @@ describe('top tenants', function () {
             ->assertSet('sortDirection', 'desc');
     });
 
-    it('toggles sort direction when clicking same column', function () {
+    it('toggles sort direction when clicking same column', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -313,8 +313,8 @@ describe('top tenants', function () {
     });
 });
 
-describe('period filtering', function () {
-    it('can change the reporting period', function () {
+describe('period filtering', function (): void {
+    it('can change the reporting period', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -324,7 +324,7 @@ describe('period filtering', function () {
             ->assertSet('period', 7);
     });
 
-    it('displays period label correctly', function () {
+    it('displays period label correctly', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -333,8 +333,8 @@ describe('period filtering', function () {
     });
 });
 
-describe('export', function () {
-    it('can export usage analytics to CSV', function () {
+describe('export', function (): void {
+    it('can export usage analytics to CSV', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $component = Livewire::actingAs($admin, 'superadmin')
@@ -346,7 +346,7 @@ describe('export', function () {
         expect($component->effects['download']['name'])->toContain('.csv');
     });
 
-    it('logs export activity', function () {
+    it('logs export activity', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -360,8 +360,8 @@ describe('export', function () {
     });
 });
 
-describe('TenantUsageSnapshot model', function () {
-    it('has correct fillable attributes', function () {
+describe('TenantUsageSnapshot model', function (): void {
+    it('has correct fillable attributes', function (): void {
         $snapshot = new TenantUsageSnapshot;
 
         expect($snapshot->getFillable())->toContain('tenant_id');
@@ -370,7 +370,7 @@ describe('TenantUsageSnapshot model', function () {
         expect($snapshot->getFillable())->toContain('snapshot_date');
     });
 
-    it('casts active_modules to array', function () {
+    it('casts active_modules to array', function (): void {
         DB::table('tenants')->insert([
             'id' => 'cast-test-tenant',
             'name' => 'Cast Test',
@@ -394,7 +394,7 @@ describe('TenantUsageSnapshot model', function () {
         expect($snapshot->active_modules)->toContain('members');
     });
 
-    it('returns correct quota alerts', function () {
+    it('returns correct quota alerts', function (): void {
         DB::table('tenants')->insert([
             'id' => 'alert-model-test',
             'name' => 'Alert Model Test',
@@ -422,7 +422,7 @@ describe('TenantUsageSnapshot model', function () {
         expect($alerts[0]['usage'])->toBe(85.0);
     });
 
-    it('uses forToday scope correctly', function () {
+    it('uses forToday scope correctly', function (): void {
         DB::table('tenants')->insert([
             'id' => 'scope-test-tenant',
             'name' => 'Scope Test',

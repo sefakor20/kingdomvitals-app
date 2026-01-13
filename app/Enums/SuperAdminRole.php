@@ -36,7 +36,7 @@ enum SuperAdminRole: string
 
     public function canImpersonateTenants(): bool
     {
-        return $this === self::Owner || $this === self::Admin || $this === self::Support;
+        return in_array($this, [self::Owner, self::Admin, self::Support], true);
     }
 
     public function canAccessBilling(): bool

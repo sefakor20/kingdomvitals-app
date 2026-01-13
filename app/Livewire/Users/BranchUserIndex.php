@@ -52,9 +52,9 @@ class BranchUserIndex extends Component
         $query = UserBranchAccess::with('user')
             ->where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->whereHas('user', function ($q) use ($search) {
+            $query->whereHas('user', function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
@@ -200,7 +200,7 @@ class BranchUserIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.users.branch-user-index');
     }

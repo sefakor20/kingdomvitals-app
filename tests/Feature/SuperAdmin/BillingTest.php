@@ -38,14 +38,14 @@ function createTestPlan(array $attributes = []): SubscriptionPlan
     ], $attributes));
 }
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Clean up test data
     PlatformInvoice::query()->delete();
     PlatformPayment::query()->delete();
 });
 
-describe('page access', function () {
-    it('allows owner to view billing dashboard', function () {
+describe('page access', function (): void {
+    it('allows owner to view billing dashboard', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         $this->actingAs($owner, 'superadmin')
@@ -54,7 +54,7 @@ describe('page access', function () {
             ->assertSee('Billing Dashboard');
     });
 
-    it('allows admin to view billing dashboard', function () {
+    it('allows admin to view billing dashboard', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         $this->actingAs($admin, 'superadmin')
@@ -63,7 +63,7 @@ describe('page access', function () {
             ->assertSee('Billing Dashboard');
     });
 
-    it('allows support to view billing dashboard', function () {
+    it('allows support to view billing dashboard', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
 
         $this->actingAs($support, 'superadmin')
@@ -72,12 +72,12 @@ describe('page access', function () {
             ->assertSee('Billing Dashboard');
     });
 
-    it('denies guest access to billing dashboard', function () {
+    it('denies guest access to billing dashboard', function (): void {
         $this->get(route('superadmin.billing.dashboard'))
             ->assertRedirect(route('superadmin.login'));
     });
 
-    it('allows authenticated admin to view invoice list', function () {
+    it('allows authenticated admin to view invoice list', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $this->actingAs($admin, 'superadmin')
@@ -86,7 +86,7 @@ describe('page access', function () {
             ->assertSee('Invoices');
     });
 
-    it('allows authenticated admin to view payment list', function () {
+    it('allows authenticated admin to view payment list', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $this->actingAs($admin, 'superadmin')
@@ -95,7 +95,7 @@ describe('page access', function () {
             ->assertSee('Payments');
     });
 
-    it('allows authenticated admin to view overdue invoices', function () {
+    it('allows authenticated admin to view overdue invoices', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $this->actingAs($admin, 'superadmin')
@@ -105,8 +105,8 @@ describe('page access', function () {
     });
 });
 
-describe('billing dashboard', function () {
-    it('displays billing metrics', function () {
+describe('billing dashboard', function (): void {
+    it('displays billing metrics', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -116,7 +116,7 @@ describe('billing dashboard', function () {
             ->assertSee('Overdue');
     });
 
-    it('shows overdue invoices section', function () {
+    it('shows overdue invoices section', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -125,8 +125,8 @@ describe('billing dashboard', function () {
     });
 });
 
-describe('invoice index', function () {
-    it('displays list of invoices', function () {
+describe('invoice index', function (): void {
+    it('displays list of invoices', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -152,7 +152,7 @@ describe('invoice index', function () {
             ->assertSee('Invoice Test Church');
     });
 
-    it('can filter invoices by status', function () {
+    it('can filter invoices by status', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -183,7 +183,7 @@ describe('invoice index', function () {
             ->assertDontSee($paidInvoice->invoice_number);
     });
 
-    it('can search invoices', function () {
+    it('can search invoices', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -207,7 +207,7 @@ describe('invoice index', function () {
             ->assertSee($invoice->invoice_number);
     });
 
-    it('can export invoices to CSV', function () {
+    it('can export invoices to CSV', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $component = Livewire::actingAs($admin, 'superadmin')
@@ -220,8 +220,8 @@ describe('invoice index', function () {
     });
 });
 
-describe('invoice show', function () {
-    it('displays invoice details', function () {
+describe('invoice show', function (): void {
+    it('displays invoice details', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -255,7 +255,7 @@ describe('invoice show', function () {
             ->assertSee('Monthly Subscription');
     });
 
-    it('shows payment history for invoice', function () {
+    it('shows payment history for invoice', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -287,8 +287,8 @@ describe('invoice show', function () {
     });
 });
 
-describe('invoice create', function () {
-    it('can create a new invoice', function () {
+describe('invoice create', function (): void {
+    it('can create a new invoice', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan(['price_monthly' => 100.00]);
 
@@ -316,7 +316,7 @@ describe('invoice create', function () {
         ]);
     });
 
-    it('validates required fields', function () {
+    it('validates required fields', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -327,8 +327,8 @@ describe('invoice create', function () {
     });
 });
 
-describe('payment index', function () {
-    it('displays list of payments', function () {
+describe('payment index', function (): void {
+    it('displays list of payments', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -356,7 +356,7 @@ describe('payment index', function () {
             ->assertSee($payment->payment_reference);
     });
 
-    it('can filter payments by status', function () {
+    it('can filter payments by status', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -391,7 +391,7 @@ describe('payment index', function () {
             ->assertDontSee($pendingPayment->payment_reference);
     });
 
-    it('can filter payments by method', function () {
+    it('can filter payments by method', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -428,7 +428,7 @@ describe('payment index', function () {
             ->assertDontSee($cashPayment->payment_reference);
     });
 
-    it('can export payments to CSV', function () {
+    it('can export payments to CSV', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         $component = Livewire::actingAs($admin, 'superadmin')
@@ -441,8 +441,8 @@ describe('payment index', function () {
     });
 });
 
-describe('overdue invoices', function () {
-    it('displays overdue invoices', function () {
+describe('overdue invoices', function (): void {
+    it('displays overdue invoices', function (): void {
         $admin = SuperAdmin::factory()->create();
         $plan = createTestPlan();
 
@@ -468,7 +468,7 @@ describe('overdue invoices', function () {
             ->assertSee('Overdue Test Church');
     });
 
-    it('shows summary statistics', function () {
+    it('shows summary statistics', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -478,7 +478,7 @@ describe('overdue invoices', function () {
             ->assertSee('Over 30 Days');
     });
 
-    it('shows all clear message when no overdue invoices', function () {
+    it('shows all clear message when no overdue invoices', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -487,8 +487,8 @@ describe('overdue invoices', function () {
     });
 });
 
-describe('PlatformInvoice model', function () {
-    it('generates invoice number on creation', function () {
+describe('PlatformInvoice model', function (): void {
+    it('generates invoice number on creation', function (): void {
         $plan = createTestPlan();
 
         DB::table('tenants')->insert([
@@ -508,7 +508,7 @@ describe('PlatformInvoice model', function () {
         expect($invoice->invoice_number)->toStartWith('INV-');
     });
 
-    it('calculates days overdue correctly', function () {
+    it('calculates days overdue correctly', function (): void {
         $plan = createTestPlan();
 
         DB::table('tenants')->insert([
@@ -532,7 +532,7 @@ describe('PlatformInvoice model', function () {
         expect($invoice->daysOverdue())->toBe(10);
     });
 
-    it('detects overdue status correctly', function () {
+    it('detects overdue status correctly', function (): void {
         $plan = createTestPlan();
 
         DB::table('tenants')->insert([
@@ -556,7 +556,7 @@ describe('PlatformInvoice model', function () {
         expect($overdueInvoice->isOverdue())->toBeTrue();
     });
 
-    it('has correct relationships', function () {
+    it('has correct relationships', function (): void {
         $plan = createTestPlan();
 
         DB::table('tenants')->insert([
@@ -580,8 +580,8 @@ describe('PlatformInvoice model', function () {
     });
 });
 
-describe('PlatformBillingService', function () {
-    it('can record a full payment', function () {
+describe('PlatformBillingService', function (): void {
+    it('can record a full payment', function (): void {
         $plan = createTestPlan();
 
         DB::table('tenants')->insert([
@@ -619,7 +619,7 @@ describe('PlatformBillingService', function () {
         expect((float) $invoice->balance_due)->toBe(0.0);
     });
 
-    it('can record a partial payment', function () {
+    it('can record a partial payment', function (): void {
         $plan = createTestPlan();
 
         DB::table('tenants')->insert([
@@ -653,8 +653,8 @@ describe('PlatformBillingService', function () {
     });
 });
 
-describe('activity logging', function () {
-    it('logs export activity for invoices', function () {
+describe('activity logging', function (): void {
+    it('logs export activity for invoices', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')
@@ -667,7 +667,7 @@ describe('activity logging', function () {
         ]);
     });
 
-    it('logs export activity for payments', function () {
+    it('logs export activity for payments', function (): void {
         $admin = SuperAdmin::factory()->create();
 
         Livewire::actingAs($admin, 'superadmin')

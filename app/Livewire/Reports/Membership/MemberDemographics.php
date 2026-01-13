@@ -43,7 +43,7 @@ class MemberDemographics extends Component
             ->selectRaw('gender, COUNT(*) as count')
             ->groupBy('gender')
             ->get()
-            ->mapWithKeys(fn ($item) => [$item->gender->name => $item->count])
+            ->mapWithKeys(fn ($item): array => [$item->gender->name => $item->count])
             ->toArray();
 
         $unspecified = Member::where('primary_branch_id', $this->branch->id)
@@ -71,7 +71,7 @@ class MemberDemographics extends Component
         return [
             'labels' => array_keys($this->genderDistribution),
             'data' => array_values($this->genderDistribution),
-            'colors' => array_map(fn ($key) => $colors[$key] ?? 'rgb(156, 163, 175)', array_keys($this->genderDistribution)),
+            'colors' => array_map(fn (int|string $key): string => $colors[$key] ?? 'rgb(156, 163, 175)', array_keys($this->genderDistribution)),
         ];
     }
 
@@ -138,7 +138,7 @@ class MemberDemographics extends Component
             ->selectRaw('marital_status, COUNT(*) as count')
             ->groupBy('marital_status')
             ->get()
-            ->mapWithKeys(fn ($item) => [$item->marital_status->name => $item->count])
+            ->mapWithKeys(fn ($item): array => [$item->marital_status->name => $item->count])
             ->toArray();
 
         $unspecified = Member::where('primary_branch_id', $this->branch->id)
@@ -168,7 +168,7 @@ class MemberDemographics extends Component
         return [
             'labels' => array_keys($this->maritalStatusDistribution),
             'data' => array_values($this->maritalStatusDistribution),
-            'colors' => array_map(fn ($key) => $colors[$key] ?? 'rgb(156, 163, 175)', array_keys($this->maritalStatusDistribution)),
+            'colors' => array_map(fn (int|string $key): string => $colors[$key] ?? 'rgb(156, 163, 175)', array_keys($this->maritalStatusDistribution)),
         ];
     }
 
@@ -244,7 +244,7 @@ class MemberDemographics extends Component
         return $data;
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.membership.member-demographics');
     }

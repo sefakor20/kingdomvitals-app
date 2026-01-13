@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -39,7 +39,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view households page', function () {
+test('authenticated user with branch access can view households page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -53,7 +53,7 @@ test('authenticated user with branch access can view households page', function 
         ->assertSeeLivewire(HouseholdIndex::class);
 });
 
-test('user without branch access cannot view households page', function () {
+test('user without branch access cannot view households page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
     UserBranchAccess::factory()->create([
@@ -67,7 +67,7 @@ test('user without branch access cannot view households page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view households page', function () {
+test('unauthenticated user cannot view households page', function (): void {
     $this->get(route('households.index', $this->branch))
         ->assertRedirect();
 });
@@ -76,7 +76,7 @@ test('unauthenticated user cannot view households page', function () {
 // VIEW HOUSEHOLDS TESTS
 // ============================================
 
-test('admin can view household list', function () {
+test('admin can view household list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -93,7 +93,7 @@ test('admin can view household list', function () {
     expect($component->instance()->households->count())->toBe(3);
 });
 
-test('can search households by name', function () {
+test('can search households by name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -124,7 +124,7 @@ test('can search households by name', function () {
 // CREATE HOUSEHOLD TESTS
 // ============================================
 
-test('admin can create household', function () {
+test('admin can create household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -150,7 +150,7 @@ test('admin can create household', function () {
     expect(Household::where('name', 'Test Household')->exists())->toBeTrue();
 });
 
-test('staff can create household', function () {
+test('staff can create household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -169,7 +169,7 @@ test('staff can create household', function () {
     expect(Household::where('name', 'New Household')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create household', function () {
+test('volunteer cannot create household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -188,7 +188,7 @@ test('volunteer cannot create household', function () {
 // UPDATE HOUSEHOLD TESTS
 // ============================================
 
-test('admin can update household', function () {
+test('admin can update household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -212,7 +212,7 @@ test('admin can update household', function () {
     expect($household->fresh()->name)->toBe('Updated Name');
 });
 
-test('volunteer cannot update household', function () {
+test('volunteer cannot update household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -233,7 +233,7 @@ test('volunteer cannot update household', function () {
 // DELETE HOUSEHOLD TESTS
 // ============================================
 
-test('admin can delete household', function () {
+test('admin can delete household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -253,7 +253,7 @@ test('admin can delete household', function () {
     expect(Household::find($household->id))->toBeNull();
 });
 
-test('staff cannot delete household', function () {
+test('staff cannot delete household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -274,7 +274,7 @@ test('staff cannot delete household', function () {
 // HOUSEHOLD SHOW TESTS
 // ============================================
 
-test('can view household details', function () {
+test('can view household details', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -290,7 +290,7 @@ test('can view household details', function () {
         ->assertSeeLivewire(HouseholdShow::class);
 });
 
-test('can view household members', function () {
+test('can view household members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -319,7 +319,7 @@ test('can view household members', function () {
 // ADD MEMBER TO HOUSEHOLD TESTS
 // ============================================
 
-test('admin can add member to household', function () {
+test('admin can add member to household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -351,7 +351,7 @@ test('admin can add member to household', function () {
     expect($member->fresh()->household_role)->toBe(HouseholdRole::Head);
 });
 
-test('volunteer cannot add member to household', function () {
+test('volunteer cannot add member to household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -375,7 +375,7 @@ test('volunteer cannot add member to household', function () {
 // REMOVE MEMBER FROM HOUSEHOLD TESTS
 // ============================================
 
-test('admin can remove member from household', function () {
+test('admin can remove member from household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -409,7 +409,7 @@ test('admin can remove member from household', function () {
 // CHANGE MEMBER ROLE TESTS
 // ============================================
 
-test('admin can change member role in household', function () {
+test('admin can change member role in household', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -443,7 +443,7 @@ test('admin can change member role in household', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('household name is required', function () {
+test('household name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -460,7 +460,7 @@ test('household name is required', function () {
         ->assertHasErrors(['name' => 'required']);
 });
 
-test('household name max length is enforced', function () {
+test('household name max length is enforced', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -481,7 +481,7 @@ test('household name max length is enforced', function () {
 // EMPTY STATE TESTS
 // ============================================
 
-test('empty state is shown when no households exist', function () {
+test('empty state is shown when no households exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -499,7 +499,7 @@ test('empty state is shown when no households exist', function () {
 // MODAL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -516,7 +516,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('showCreateModal', false);
 });
 
-test('cancel delete modal closes modal', function () {
+test('cancel delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

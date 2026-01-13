@@ -55,15 +55,15 @@ class SmsTemplateIndex extends Component
     {
         $query = SmsTemplate::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('body', 'like', "%{$search}%");
             });
         }
 
-        if ($this->typeFilter) {
+        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
             $query->where('type', $this->typeFilter);
         }
 
@@ -261,7 +261,7 @@ class SmsTemplateIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.sms.sms-template-index');
     }

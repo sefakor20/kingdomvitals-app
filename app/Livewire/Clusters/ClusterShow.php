@@ -289,7 +289,7 @@ class ClusterShow extends Component
         $this->redirect(route('clusters.index', $this->branch), navigate: true);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.clusters.cluster-show');
     }

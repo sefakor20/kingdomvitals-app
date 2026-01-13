@@ -150,7 +150,7 @@ class NewMembersReport extends Component
             ->whereBetween('joined_at', [$this->startDate, $this->endDate])
             ->orderBy($this->sortBy, $this->sortDirection)
             ->get()
-            ->map(fn (Member $member) => [
+            ->map(fn (Member $member): array => [
                 $member->fullName(),
                 $member->email ?? '',
                 $member->phone ?? '',
@@ -161,7 +161,7 @@ class NewMembersReport extends Component
             ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.membership.new-members-report');
     }

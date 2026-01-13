@@ -89,7 +89,7 @@ class MemberDirectory extends Component
     {
         return Member::query()
             ->where('primary_branch_id', $this->branch->id)
-            ->when($this->search, fn ($query) => $query->where(function ($q) {
+            ->when($this->search, fn ($query) => $query->where(function ($q): void {
                 $q->where('first_name', 'like', "%{$this->search}%")
                     ->orWhere('last_name', 'like', "%{$this->search}%")
                     ->orWhere('email', 'like', "%{$this->search}%")
@@ -161,7 +161,7 @@ class MemberDirectory extends Component
     {
         return Member::query()
             ->where('primary_branch_id', $this->branch->id)
-            ->when($this->search, fn ($query) => $query->where(function ($q) {
+            ->when($this->search, fn ($query) => $query->where(function ($q): void {
                 $q->where('first_name', 'like', "%{$this->search}%")
                     ->orWhere('last_name', 'like', "%{$this->search}%")
                     ->orWhere('email', 'like', "%{$this->search}%")
@@ -172,7 +172,7 @@ class MemberDirectory extends Component
             ->when($this->cluster, fn ($query) => $query->whereHas('clusters', fn ($q) => $q->where('cluster_id', $this->cluster)))
             ->orderBy($this->sortBy, $this->sortDirection)
             ->get()
-            ->map(fn (Member $member) => [
+            ->map(fn (Member $member): array => [
                 $member->fullName(),
                 $member->email ?? '',
                 $member->phone ?? '',
@@ -183,7 +183,7 @@ class MemberDirectory extends Component
             ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.membership.member-directory');
     }

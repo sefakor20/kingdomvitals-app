@@ -88,7 +88,7 @@ class AttendanceDashboard extends Component
             ->orderBy('check_in_time', 'desc')
             ->limit(10)
             ->get()
-            ->map(fn ($a) => [
+            ->map(fn ($a): array => [
                 'id' => $a->id,
                 'name' => $a->member?->fullName() ?? $a->visitor?->fullName() ?? 'Unknown',
                 'type' => $a->member_id ? 'member' : 'visitor',
@@ -129,7 +129,7 @@ class AttendanceDashboard extends Component
         unset($this->checkInsByHour);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.attendance.attendance-dashboard');
     }

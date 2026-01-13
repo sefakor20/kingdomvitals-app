@@ -50,7 +50,7 @@ class QrCodeService
      */
     public function validateToken(string $token): ?Member
     {
-        if (empty($token) || strlen($token) !== 64) {
+        if ($token === '' || $token === '0' || strlen($token) !== 64) {
             return null;
         }
 

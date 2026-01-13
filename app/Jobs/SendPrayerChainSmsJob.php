@@ -96,7 +96,7 @@ class SendPrayerChainSmsJob implements ShouldQueue
             $phoneNumbers[] = $member->phone;
         }
 
-        if (empty($phoneNumbers)) {
+        if ($phoneNumbers === []) {
             Log::info('SendPrayerChainSmsJob: No phone numbers to send to', ['prayer_request_id' => $prayerRequest->id]);
 
             return;
@@ -145,7 +145,7 @@ class SendPrayerChainSmsJob implements ShouldQueue
 
         // If prayer request is assigned to a cluster, only notify that cluster's members
         if ($prayerRequest->cluster_id) {
-            $query->whereHas('clusters', function ($q) use ($prayerRequest) {
+            $query->whereHas('clusters', function ($q) use ($prayerRequest): void {
                 $q->where('clusters.id', $prayerRequest->cluster_id);
             });
         } else {

@@ -32,7 +32,7 @@ class MemberObserver
         // Filter out excluded fields and null values
         $newValues = array_filter(
             array_diff_key($attributes, array_flip($this->excludedFields)),
-            fn ($value) => $value !== null
+            fn ($value): bool => $value !== null
         );
 
         $this->logActivity($member, ActivityEvent::Created, null, $newValues);
@@ -52,7 +52,7 @@ class MemberObserver
         // Filter out excluded fields
         $changedFields = array_diff(array_keys($changes), $this->excludedFields);
 
-        if (empty($changedFields)) {
+        if ($changedFields === []) {
             return; // No meaningful changes to log
         }
 

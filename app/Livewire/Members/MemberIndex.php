@@ -112,9 +112,9 @@ class MemberIndex extends Component
             $query->onlyTrashed();
         }
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -122,7 +122,7 @@ class MemberIndex extends Component
             });
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
@@ -370,7 +370,7 @@ class MemberIndex extends Component
 
     public function removePhoto(): void
     {
-        if ($this->editingMember) {
+        if ($this->editingMember instanceof \App\Models\Tenant\Member) {
             $this->authorize('update', $this->editingMember);
             $this->deleteOldPhoto($this->editingMember);
             $this->editingMember->update(['photo_url' => null]);
@@ -429,7 +429,7 @@ class MemberIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.members.member-index');
     }

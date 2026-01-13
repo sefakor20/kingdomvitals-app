@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -34,12 +34,12 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('job sends welcome SMS to new member with phone', function () {
+test('job sends welcome SMS to new member with phone', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'John',
@@ -49,7 +49,7 @@ test('job sends welcome SMS to new member with phone', function () {
     ]);
 
     // Mock the TextTango service
-    $this->mock(TextTangoService::class, function ($mock) {
+    $this->mock(TextTangoService::class, function ($mock): void {
         $mock->shouldReceive('forBranch')->andReturnSelf();
         $mock->shouldReceive('isConfigured')->andReturn(true);
         $mock->shouldReceive('sendBulkSms')->andReturn([
@@ -71,7 +71,7 @@ test('job sends welcome SMS to new member with phone', function () {
         ->exists())->toBeTrue();
 });
 
-test('job skips members without phone number', function () {
+test('job skips members without phone number', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'phone' => null,
@@ -88,7 +88,7 @@ test('job skips members without phone number', function () {
     expect(SmsLog::where('member_id', $member->id)->exists())->toBeFalse();
 });
 
-test('job skips inactive members', function () {
+test('job skips inactive members', function (): void {
     $member = Member::factory()->inactive()->create([
         'primary_branch_id' => $this->branch->id,
         'phone' => '+233241234567',
@@ -104,7 +104,7 @@ test('job skips inactive members', function () {
     expect(SmsLog::where('member_id', $member->id)->exists())->toBeFalse();
 });
 
-test('job skips when welcome SMS is disabled for branch', function () {
+test('job skips when welcome SMS is disabled for branch', function (): void {
     $this->branch->setSetting('auto_welcome_sms', false);
     $this->branch->save();
 
@@ -124,7 +124,7 @@ test('job skips when welcome SMS is disabled for branch', function () {
     expect(SmsLog::where('member_id', $member->id)->exists())->toBeFalse();
 });
 
-test('job skips when SMS is not configured for branch', function () {
+test('job skips when SMS is not configured for branch', function (): void {
     $branchNoSms = Branch::factory()->create([
         'settings' => ['auto_welcome_sms' => true],
     ]);
@@ -145,7 +145,7 @@ test('job skips when SMS is not configured for branch', function () {
     expect(SmsLog::where('member_id', $member->id)->exists())->toBeFalse();
 });
 
-test('job prevents duplicate welcome SMS', function () {
+test('job prevents duplicate welcome SMS', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'phone' => '+233241234567',
@@ -172,7 +172,7 @@ test('job prevents duplicate welcome SMS', function () {
         ->count())->toBe($initialCount);
 });
 
-test('job uses custom template when configured', function () {
+test('job uses custom template when configured', function (): void {
     // Create a welcome template
     $template = SmsTemplate::factory()->create([
         'branch_id' => $this->branch->id,
@@ -194,11 +194,11 @@ test('job uses custom template when configured', function () {
     ]);
 
     // Mock the TextTango service
-    $this->mock(TextTangoService::class, function ($mock) {
+    $this->mock(TextTangoService::class, function ($mock): void {
         $mock->shouldReceive('forBranch')->andReturnSelf();
         $mock->shouldReceive('isConfigured')->andReturn(true);
         $mock->shouldReceive('sendBulkSms')
-            ->withArgs(function ($phones, $message) {
+            ->withArgs(function ($phones, $message): bool {
                 return str_contains($message, 'Hello David') &&
                     str_contains($message, $this->branch->name);
             })
@@ -220,7 +220,7 @@ test('job uses custom template when configured', function () {
     expect($smsLog->message)->toContain('Hello David');
 });
 
-test('job personalizes message with member details', function () {
+test('job personalizes message with member details', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'Mary',
@@ -230,11 +230,11 @@ test('job personalizes message with member details', function () {
     ]);
 
     // Mock the TextTango service
-    $this->mock(TextTangoService::class, function ($mock) {
+    $this->mock(TextTangoService::class, function ($mock): void {
         $mock->shouldReceive('forBranch')->andReturnSelf();
         $mock->shouldReceive('isConfigured')->andReturn(true);
         $mock->shouldReceive('sendBulkSms')
-            ->withArgs(function ($phones, $message) {
+            ->withArgs(function ($phones, $message): bool {
                 return str_contains($message, 'Mary') &&
                     str_contains($message, $this->branch->name);
             })
@@ -256,7 +256,7 @@ test('job personalizes message with member details', function () {
     expect($smsLog->message)->toContain('Mary');
 });
 
-test('job is dispatched when member is created', function () {
+test('job is dispatched when member is created', function (): void {
     Queue::fake();
 
     // Creating a member should dispatch the welcome SMS job
@@ -266,12 +266,12 @@ test('job is dispatched when member is created', function () {
         'status' => 'active',
     ]);
 
-    Queue::assertPushed(SendWelcomeSmsJob::class, function ($job) use ($member) {
+    Queue::assertPushed(SendWelcomeSmsJob::class, function ($job) use ($member): bool {
         return $job->memberId === $member->id;
     });
 });
 
-test('job handles non-existent member gracefully', function () {
+test('job handles non-existent member gracefully', function (): void {
     $job = new SendWelcomeSmsJob('non-existent-id');
     $job->handle();
 

@@ -145,6 +145,13 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewChildren(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [Member::class, $this->currentBranch]);
+    }
+
+    #[Computed]
     public function canViewGivingHistory(): bool
     {
         // All authenticated users can view their own giving history
@@ -165,7 +172,7 @@ class BranchNavigation extends Component
             auth()->user()?->can('update', $this->currentBranch);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.navigation.branch-navigation');
     }

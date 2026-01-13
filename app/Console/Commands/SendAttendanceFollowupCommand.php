@@ -39,12 +39,12 @@ class SendAttendanceFollowupCommand extends Command
         $totalSent = 0;
         $totalSkipped = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalSent, &$totalSkipped) {
+        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalSent, &$totalSkipped): void {
             tenancy()->initialize($tenant);
 
             $this->line("Processing tenant: {$tenant->id}");
 
-            Branch::all()->each(function (Branch $branch) use ($dryRun, &$totalSent, &$totalSkipped) {
+            Branch::all()->each(function (Branch $branch) use ($dryRun, &$totalSent, &$totalSkipped): void {
                 // Check if branch has SMS configured
                 if (! $branch->hasSmsConfigured()) {
                     $this->line("  Branch {$branch->name}: SMS not configured, skipping");
@@ -175,7 +175,7 @@ class SendAttendanceFollowupCommand extends Command
         return Service::where('branch_id', $branch->id)
             ->where('is_active', true)
             ->get()
-            ->map(function (Service $service) use ($now, $followupHours) {
+            ->map(function (Service $service) use ($now, $followupHours): ?array {
                 // Calculate when this service last occurred
                 $lastOccurrence = $this->calculateLastOccurrence($service);
 
@@ -255,7 +255,7 @@ class SendAttendanceFollowupCommand extends Command
             // Only members who have attended this service at least X times in last 2 months
             $twoMonthsAgo = now()->subMonths(2);
 
-            $query->whereHas('attendance', function ($q) use ($service, $twoMonthsAgo) {
+            $query->whereHas('attendance', function ($q) use ($service, $twoMonthsAgo): void {
                 $q->where('service_id', $service->id)
                     ->where('date', '>=', $twoMonthsAgo->toDateString());
             }, '>=', $minAttendance);

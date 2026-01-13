@@ -67,7 +67,7 @@ class SendPaymentRemindersCommand extends Command
                         'tenant' => $invoice->tenant,
                         'reminderType' => $type,
                         'invoiceUrl' => route('superadmin.billing.invoices.show', $invoice),
-                    ], function ($message) use ($email, $invoice, $type) {
+                    ], function ($message) use ($email, $invoice, $type): void {
                         $subject = match ($type) {
                             PlatformPaymentReminder::TYPE_UPCOMING => "Payment Due Soon - Invoice {$invoice->invoice_number}",
                             PlatformPaymentReminder::TYPE_OVERDUE_7 => "Payment Overdue - Invoice {$invoice->invoice_number}",

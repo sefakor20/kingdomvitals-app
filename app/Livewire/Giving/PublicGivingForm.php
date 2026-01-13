@@ -249,7 +249,7 @@ class PublicGivingForm extends Component
         $this->donationType = 'offering';
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.giving.public-giving-form');
     }

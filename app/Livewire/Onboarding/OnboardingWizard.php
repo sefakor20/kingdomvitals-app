@@ -162,7 +162,7 @@ class OnboardingWizard extends Component
     public function serviceTypes(): array
     {
         return collect(ServiceType::cases())
-            ->mapWithKeys(fn (ServiceType $type) => [$type->value => ucfirst($type->value)])
+            ->mapWithKeys(fn (ServiceType $type): array => [$type->value => ucfirst($type->value)])
             ->toArray();
     }
 
@@ -170,8 +170,8 @@ class OnboardingWizard extends Component
     public function teamRoles(): array
     {
         return collect(BranchRole::cases())
-            ->filter(fn (BranchRole $role) => $role !== BranchRole::Admin)
-            ->mapWithKeys(fn (BranchRole $role) => [$role->value => ucfirst($role->value)])
+            ->filter(fn (BranchRole $role): bool => $role !== BranchRole::Admin)
+            ->mapWithKeys(fn (BranchRole $role): array => [$role->value => ucfirst($role->value)])
             ->toArray();
     }
 
@@ -291,7 +291,7 @@ class OnboardingWizard extends Component
             return;
         }
 
-        $hasAnyIntegration = ! empty($this->smsApiKey) || ! empty($this->paystackSecretKey);
+        $hasAnyIntegration = $this->smsApiKey !== '' && $this->smsApiKey !== '0' || $this->paystackSecretKey !== '' && $this->paystackSecretKey !== '0';
 
         if ($hasAnyIntegration) {
             $onboardingService->completeIntegrationsStep([

@@ -13,7 +13,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -39,7 +39,7 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -48,14 +48,14 @@ afterEach(function () {
 // ACCESS TESTS
 // ============================================
 
-test('authenticated user can view sms analytics page', function () {
+test('authenticated user can view sms analytics page', function (): void {
     $this->actingAs($this->user)
         ->get(route('sms.analytics', $this->branch))
         ->assertOk()
         ->assertSeeLivewire(SmsAnalytics::class);
 });
 
-test('unauthenticated user cannot view sms analytics', function () {
+test('unauthenticated user cannot view sms analytics', function (): void {
     $this->get(route('sms.analytics', $this->branch))
         ->assertRedirect('/login');
 });
@@ -64,7 +64,7 @@ test('unauthenticated user cannot view sms analytics', function () {
 // COMPONENT TESTS
 // ============================================
 
-test('analytics component renders with correct data', function () {
+test('analytics component renders with correct data', function (): void {
     // Create some SMS logs
     SmsLog::factory()->count(5)->delivered()->create([
         'branch_id' => $this->branch->id,
@@ -85,7 +85,7 @@ test('analytics component renders with correct data', function () {
         ->assertSee('Failed');
 });
 
-test('summary stats are calculated correctly', function () {
+test('summary stats are calculated correctly', function (): void {
     // Create 10 SMS: 7 delivered, 2 failed, 1 pending
     SmsLog::factory()->count(7)->delivered()->create([
         'branch_id' => $this->branch->id,
@@ -117,7 +117,7 @@ test('summary stats are calculated correctly', function () {
     expect($summaryStats['total_cost'])->toBe(1.0);
 });
 
-test('period selector changes data range', function () {
+test('period selector changes data range', function (): void {
     // Create SMS logs at different times
     SmsLog::factory()->delivered()->create([
         'branch_id' => $this->branch->id,
@@ -153,7 +153,7 @@ test('period selector changes data range', function () {
     expect($summaryStats['total'])->toBe(3);
 });
 
-test('messages by type data is grouped correctly', function () {
+test('messages by type data is grouped correctly', function (): void {
     SmsLog::factory()->count(3)->birthday()->create([
         'branch_id' => $this->branch->id,
         'created_at' => now(),
@@ -174,7 +174,7 @@ test('messages by type data is grouped correctly', function () {
     expect(count($messagesByType['data']))->toBe(2);
 });
 
-test('status distribution data includes correct colors', function () {
+test('status distribution data includes correct colors', function (): void {
     SmsLog::factory()->delivered()->create([
         'branch_id' => $this->branch->id,
         'created_at' => now(),
@@ -196,7 +196,7 @@ test('status distribution data includes correct colors', function () {
     expect($statusDistribution['colors'])->toContain('#ef4444'); // red for failed
 });
 
-test('daily cost data is aggregated correctly', function () {
+test('daily cost data is aggregated correctly', function (): void {
     // Create SMS on two different days
     SmsLog::factory()->create([
         'branch_id' => $this->branch->id,
@@ -226,14 +226,14 @@ test('daily cost data is aggregated correctly', function () {
     expect(count($dailyCost['data']))->toBe(2);
 });
 
-test('analytics page shows empty state when no data', function () {
+test('analytics page shows empty state when no data', function (): void {
     Livewire::actingAs($this->user)
         ->test(SmsAnalytics::class, ['branch' => $this->branch])
         ->assertSee('No data available')
         ->assertSee('Send some SMS messages to see analytics here');
 });
 
-test('delivery rate data returns correct format', function () {
+test('delivery rate data returns correct format', function (): void {
     SmsLog::factory()->delivered()->create([
         'branch_id' => $this->branch->id,
         'created_at' => now(),

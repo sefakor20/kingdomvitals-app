@@ -9,12 +9,12 @@ use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::get('/', function () {
+Route::get('/', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View {
     return view('welcome');
 })->name('home');
 
 // Onboarding routes (auth but no onboarding.complete middleware)
-Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function () {
+Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function (): void {
     Route::get('/', OnboardingWizard::class)->name('index');
 });
 
@@ -22,7 +22,7 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'onboarding.complete'])
     ->name('dashboard');
 
-Route::middleware(['auth', 'onboarding.complete'])->group(function () {
+Route::middleware(['auth', 'onboarding.complete'])->group(function (): void {
     Route::redirect('settings', 'settings/profile');
 
     Route::get('settings/profile', Profile::class)->name('profile.edit');

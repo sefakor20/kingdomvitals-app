@@ -184,7 +184,7 @@ class PlatformBillingService
 
         $refundAmount = $amount ?? (float) $payment->amount;
 
-        DB::transaction(function () use ($payment, $refundAmount) {
+        DB::transaction(function () use ($payment, $refundAmount): void {
             $payment->refund();
 
             $invoice = $payment->invoice;

@@ -108,9 +108,9 @@ class EquipmentIndex extends Component
     {
         $query = Equipment::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('serial_number', 'like', "%{$search}%")
@@ -119,15 +119,15 @@ class EquipmentIndex extends Component
             });
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
             $query->where('category', $this->categoryFilter);
         }
 
-        if ($this->conditionFilter) {
+        if ($this->conditionFilter !== '' && $this->conditionFilter !== '0') {
             $query->where('condition', $this->conditionFilter);
         }
 
-        if ($this->availabilityFilter) {
+        if ($this->availabilityFilter !== '' && $this->availabilityFilter !== '0') {
             if ($this->availabilityFilter === 'available') {
                 $query->where('condition', '!=', EquipmentCondition::OutOfService->value)
                     ->whereDoesntHave('activeCheckout');
@@ -488,7 +488,7 @@ class EquipmentIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($equipment) {
+        return response()->streamDownload(function () use ($equipment): void {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, [
@@ -558,7 +558,7 @@ class EquipmentIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.equipment.equipment-index');
     }

@@ -387,7 +387,7 @@ class VisitorShow extends Component
 
     public function completeFollowUp(): void
     {
-        if (! $this->completingFollowUp) {
+        if (!$this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return;
         }
 
@@ -466,7 +466,7 @@ class VisitorShow extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.visitors.visitor-show');
     }

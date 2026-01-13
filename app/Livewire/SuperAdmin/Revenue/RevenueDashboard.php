@@ -25,7 +25,7 @@ class RevenueDashboard extends Component
         $planDistribution = $this->getPlanDistribution();
         $metrics = $this->getRevenueMetrics();
 
-        $data = $planDistribution->map(fn (array $item) => [
+        $data = $planDistribution->map(fn (array $item): array => [
             'plan_name' => $item['plan']->name,
             'monthly_price' => Number::currency((float) $item['plan']->price_monthly, in: 'GHS'),
             'active_subscribers' => $item['tenantCount'],
@@ -83,7 +83,7 @@ class RevenueDashboard extends Component
             ->whereNotNull('subscription_id')
             ->with('subscriptionPlan')
             ->get()
-            ->sum(fn (Tenant $tenant) => (float) ($tenant->subscriptionPlan?->price_monthly ?? 0));
+            ->sum(fn (Tenant $tenant): float => (float) ($tenant->subscriptionPlan?->price_monthly ?? 0));
 
         $arr = $mrr * 12;
 
@@ -120,7 +120,7 @@ class RevenueDashboard extends Component
 
         $totalActiveTenants = Tenant::where('status', TenantStatus::Active)->count();
 
-        return $plans->map(function (SubscriptionPlan $plan) use ($totalActiveTenants) {
+        return $plans->map(function (SubscriptionPlan $plan) use ($totalActiveTenants): array {
             $tenantCount = Tenant::where('subscription_id', $plan->id)
                 ->where('status', TenantStatus::Active)
                 ->count();
@@ -157,7 +157,7 @@ class RevenueDashboard extends Component
 
         // Churned this month (suspended or set inactive this month)
         $churnedThisMonth = Tenant::whereIn('status', [TenantStatus::Suspended, TenantStatus::Inactive])
-            ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+            ->where(function ($query) use ($startOfMonth, $endOfMonth): void {
                 $query->whereBetween('suspended_at', [$startOfMonth, $endOfMonth])
                     ->orWhereBetween('updated_at', [$startOfMonth, $endOfMonth]);
             })

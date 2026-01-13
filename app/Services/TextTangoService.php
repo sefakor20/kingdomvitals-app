@@ -230,7 +230,7 @@ class TextTangoService
      */
     public function isConfigured(): bool
     {
-        return ! empty($this->apiKey) && ! empty($this->senderId);
+        return $this->apiKey !== '' && $this->apiKey !== '0' && ($this->senderId !== '' && $this->senderId !== '0');
     }
 
     /**

@@ -15,7 +15,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -29,7 +29,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -38,7 +38,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view expenses page', function () {
+test('authenticated user with branch access can view expenses page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -52,7 +52,7 @@ test('authenticated user with branch access can view expenses page', function ()
         ->assertSeeLivewire(ExpenseIndex::class);
 });
 
-test('user without branch access cannot view expenses page', function () {
+test('user without branch access cannot view expenses page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -67,7 +67,7 @@ test('user without branch access cannot view expenses page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view expenses page', function () {
+test('unauthenticated user cannot view expenses page', function (): void {
     $this->get("/branches/{$this->branch->id}/expenses")
         ->assertRedirect('/login');
 });
@@ -76,7 +76,7 @@ test('unauthenticated user cannot view expenses page', function () {
 // VIEW EXPENSES AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view expenses list', function () {
+test('admin can view expenses list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -92,7 +92,7 @@ test('admin can view expenses list', function () {
         ->assertSee($expense->description);
 });
 
-test('volunteer can view expenses list', function () {
+test('volunteer can view expenses list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -112,7 +112,7 @@ test('volunteer can view expenses list', function () {
 // CREATE EXPENSE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create an expense', function () {
+test('admin can create an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -141,7 +141,7 @@ test('admin can create an expense', function () {
     expect($expense->status)->toBe(ExpenseStatus::Pending);
 });
 
-test('manager can create an expense', function () {
+test('manager can create an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -164,7 +164,7 @@ test('manager can create an expense', function () {
     expect(Expense::where('description', 'Office supplies')->exists())->toBeTrue();
 });
 
-test('staff can create an expense', function () {
+test('staff can create an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -187,7 +187,7 @@ test('staff can create an expense', function () {
     expect(Expense::where('description', 'Cleaning materials')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create an expense', function () {
+test('volunteer cannot create an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -206,7 +206,7 @@ test('volunteer cannot create an expense', function () {
 // UPDATE EXPENSE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update an expense', function () {
+test('admin can update an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -230,7 +230,7 @@ test('admin can update an expense', function () {
     expect($expense->fresh()->description)->toBe('Updated expense description');
 });
 
-test('volunteer cannot update an expense', function () {
+test('volunteer cannot update an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -251,7 +251,7 @@ test('volunteer cannot update an expense', function () {
 // DELETE EXPENSE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete an expense', function () {
+test('admin can delete an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -274,7 +274,7 @@ test('admin can delete an expense', function () {
     expect(Expense::find($expenseId))->toBeNull();
 });
 
-test('manager can delete an expense', function () {
+test('manager can delete an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -295,7 +295,7 @@ test('manager can delete an expense', function () {
     expect(Expense::find($expenseId))->toBeNull();
 });
 
-test('staff cannot delete an expense', function () {
+test('staff cannot delete an expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -316,7 +316,7 @@ test('staff cannot delete an expense', function () {
 // APPROVAL WORKFLOW TESTS
 // ============================================
 
-test('admin can approve pending expense', function () {
+test('admin can approve pending expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -340,7 +340,7 @@ test('admin can approve pending expense', function () {
     expect($expense->approved_at)->not->toBeNull();
 });
 
-test('manager can approve pending expense', function () {
+test('manager can approve pending expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -360,7 +360,7 @@ test('manager can approve pending expense', function () {
     expect($expense->fresh()->status)->toBe(ExpenseStatus::Approved);
 });
 
-test('staff cannot approve expense', function () {
+test('staff cannot approve expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -377,7 +377,7 @@ test('staff cannot approve expense', function () {
         ->assertForbidden();
 });
 
-test('admin can reject pending expense', function () {
+test('admin can reject pending expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -399,7 +399,7 @@ test('admin can reject pending expense', function () {
     expect($expense->fresh()->status)->toBe(ExpenseStatus::Rejected);
 });
 
-test('manager can reject pending expense', function () {
+test('manager can reject pending expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -419,7 +419,7 @@ test('manager can reject pending expense', function () {
     expect($expense->fresh()->status)->toBe(ExpenseStatus::Rejected);
 });
 
-test('staff cannot reject expense', function () {
+test('staff cannot reject expense', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -436,7 +436,7 @@ test('staff cannot reject expense', function () {
         ->assertForbidden();
 });
 
-test('can mark approved expense as paid', function () {
+test('can mark approved expense as paid', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -455,7 +455,7 @@ test('can mark approved expense as paid', function () {
     expect($expense->fresh()->status)->toBe(ExpenseStatus::Paid);
 });
 
-test('cannot mark pending expense as paid', function () {
+test('cannot mark pending expense as paid', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -478,7 +478,7 @@ test('cannot mark pending expense as paid', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search expenses by description', function () {
+test('can search expenses by description', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -504,7 +504,7 @@ test('can search expenses by description', function () {
         ->assertDontSee('Hidden expense item');
 });
 
-test('can filter expenses by category', function () {
+test('can filter expenses by category', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -529,7 +529,7 @@ test('can filter expenses by category', function () {
     expect($component->instance()->expenses->first()->category)->toBe(ExpenseCategory::Utilities);
 });
 
-test('can filter expenses by status', function () {
+test('can filter expenses by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -558,7 +558,7 @@ test('can filter expenses by status', function () {
     expect($component->instance()->expenses->first()->status)->toBe(ExpenseStatus::Pending);
 });
 
-test('can filter expenses by date range', function () {
+test('can filter expenses by date range', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -592,7 +592,7 @@ test('can filter expenses by date range', function () {
 // STATS TESTS
 // ============================================
 
-test('expense stats are calculated correctly', function () {
+test('expense stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -631,7 +631,7 @@ test('expense stats are calculated correctly', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('description is required', function () {
+test('description is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -652,7 +652,7 @@ test('description is required', function () {
         ->assertHasErrors(['description']);
 });
 
-test('amount is required', function () {
+test('amount is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -673,7 +673,7 @@ test('amount is required', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('category is required', function () {
+test('category is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -694,7 +694,7 @@ test('category is required', function () {
         ->assertHasErrors(['category']);
 });
 
-test('category must be valid', function () {
+test('category must be valid', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -719,7 +719,7 @@ test('category must be valid', function () {
 // MODAL CANCEL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -738,7 +738,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('description', '');
 });
 
-test('cancel approve modal closes modal', function () {
+test('cancel approve modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -758,7 +758,7 @@ test('cancel approve modal closes modal', function () {
         ->assertSet('approvingExpense', null);
 });
 
-test('cancel reject modal closes modal', function () {
+test('cancel reject modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -782,7 +782,7 @@ test('cancel reject modal closes modal', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no expenses exist', function () {
+test('empty state is shown when no expenses exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -796,7 +796,7 @@ test('empty state is shown when no expenses exist', function () {
         ->assertSee('No expenses found');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -810,7 +810,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Add Expense');
 });
 
-test('create button is hidden for volunteers', function () {
+test('create button is hidden for volunteers', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -828,7 +828,7 @@ test('create button is hidden for volunteers', function () {
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update expense from different branch', function () {
+test('user cannot update expense from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -847,7 +847,7 @@ test('user cannot update expense from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot approve expense from different branch', function () {
+test('user cannot approve expense from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 

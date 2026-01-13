@@ -33,7 +33,7 @@ class MobileSelfCheckIn extends Component
     {
         $this->token = $token ?? '';
 
-        if ($this->token) {
+        if ($this->token !== '' && $this->token !== '0') {
             $qrService = app(QrCodeService::class);
             $this->member = $qrService->validateToken($this->token);
         }
@@ -42,7 +42,7 @@ class MobileSelfCheckIn extends Component
     #[Computed]
     public function qrCodeSvg(): ?string
     {
-        if (! $this->member) {
+        if (!$this->member instanceof \App\Models\Tenant\Member) {
             return null;
         }
 
@@ -65,7 +65,7 @@ class MobileSelfCheckIn extends Component
             ->where('is_active', true)
             ->where('day_of_week', $today)
             ->get()
-            ->map(function ($service) {
+            ->map(function ($service): array {
                 $isCheckedIn = Attendance::where('service_id', $service->id)
                     ->where('member_id', $this->member->id)
                     ->where('date', now()->toDateString())
@@ -85,7 +85,7 @@ class MobileSelfCheckIn extends Component
         $this->errorMessage = null;
         $this->showSuccess = false;
 
-        if (! $this->member) {
+        if (!$this->member instanceof \App\Models\Tenant\Member) {
             $this->errorMessage = __('Invalid member token.');
 
             return;
@@ -138,7 +138,7 @@ class MobileSelfCheckIn extends Component
 
     public function regenerateQrCode(): void
     {
-        if (! $this->member) {
+        if (!$this->member instanceof \App\Models\Tenant\Member) {
             return;
         }
 
@@ -149,7 +149,7 @@ class MobileSelfCheckIn extends Component
         unset($this->qrCodeSvg);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.attendance.mobile-self-check-in');
     }

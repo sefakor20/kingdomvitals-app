@@ -39,12 +39,12 @@ class SendServiceReminderCommand extends Command
         $totalSent = 0;
         $totalSkipped = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalSent, &$totalSkipped) {
+        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalSent, &$totalSkipped): void {
             tenancy()->initialize($tenant);
 
             $this->line("Processing tenant: {$tenant->id}");
 
-            Branch::all()->each(function (Branch $branch) use ($dryRun, &$totalSent, &$totalSkipped) {
+            Branch::all()->each(function (Branch $branch) use ($dryRun, &$totalSent, &$totalSkipped): void {
                 // Check if branch has SMS configured
                 if (! $branch->hasSmsConfigured()) {
                     $this->line("  Branch {$branch->name}: SMS not configured, skipping");
@@ -173,7 +173,7 @@ class SendServiceReminderCommand extends Command
         return Service::where('branch_id', $branch->id)
             ->where('is_active', true)
             ->get()
-            ->map(function (Service $service) use ($now, $windowEnd) {
+            ->map(function (Service $service) use ($now, $windowEnd): ?array {
                 $nextOccurrence = $this->calculateNextOccurrence($service);
 
                 // Check if next occurrence is within the reminder window
@@ -270,14 +270,14 @@ class SendServiceReminderCommand extends Command
 
         // Default reminder message based on timing
         $hoursUntil = now()->diffInHours($nextOccurrence, false);
-
         if ($hoursUntil <= 6) {
             return 'Hi {first_name}, reminder: {service_name} starts in a few hours at {service_time}. See you soon!';
-        } elseif ($nextOccurrence->isToday()) {
-            return 'Hi {first_name}, reminder: {service_name} is today at {service_time}. We look forward to seeing you!';
-        } else {
-            return 'Hi {first_name}, reminder: {service_name} is tomorrow ({service_day}) at {service_time}. We look forward to seeing you!';
         }
+
+        if ($nextOccurrence->isToday()) {
+            return 'Hi {first_name}, reminder: {service_name} is today at {service_time}. We look forward to seeing you!';
+        }
+        return 'Hi {first_name}, reminder: {service_name} is tomorrow ({service_day}) at {service_time}. We look forward to seeing you!';
     }
 
     /**

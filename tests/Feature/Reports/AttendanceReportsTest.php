@@ -14,7 +14,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -39,26 +39,26 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Weekly Attendance Summary Tests
 
-test('admin can access weekly attendance summary', function () {
+test('admin can access weekly attendance summary', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.attendance.weekly', $this->branch))
         ->assertStatus(200);
 });
 
-test('volunteer cannot access weekly attendance summary', function () {
+test('volunteer cannot access weekly attendance summary', function (): void {
     $this->actingAs($this->volunteerUser)
         ->get(route('reports.attendance.weekly', $this->branch))
         ->assertForbidden();
 });
 
-test('weekly summary can navigate weeks', function () {
+test('weekly summary can navigate weeks', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(WeeklyAttendanceSummary::class, ['branch' => $this->branch]);
 
@@ -73,13 +73,13 @@ test('weekly summary can navigate weeks', function () {
 
 // Monthly Attendance Comparison Tests
 
-test('admin can access monthly attendance comparison', function () {
+test('admin can access monthly attendance comparison', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.attendance.monthly', $this->branch))
         ->assertStatus(200);
 });
 
-test('monthly comparison can change months', function () {
+test('monthly comparison can change months', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(MonthlyAttendanceComparison::class, ['branch' => $this->branch])
         ->call('setMonths', 6);
@@ -87,7 +87,7 @@ test('monthly comparison can change months', function () {
     expect($component->get('months'))->toBe(6);
 });
 
-test('monthly comparison can toggle year-over-year', function () {
+test('monthly comparison can toggle year-over-year', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(MonthlyAttendanceComparison::class, ['branch' => $this->branch])
         ->call('toggleYoY');
@@ -97,7 +97,7 @@ test('monthly comparison can toggle year-over-year', function () {
 
 // Service-wise Attendance Tests
 
-test('admin can access service-wise attendance', function () {
+test('admin can access service-wise attendance', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.attendance.by-service', $this->branch))
         ->assertStatus(200);
@@ -105,7 +105,7 @@ test('admin can access service-wise attendance', function () {
 
 // Absent Members Report Tests
 
-test('admin can access absent members report', function () {
+test('admin can access absent members report', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.attendance.absent-members', $this->branch))
         ->assertStatus(200);
@@ -113,13 +113,13 @@ test('admin can access absent members report', function () {
 
 // First-time Visitors Report Tests
 
-test('admin can access first-time visitors report', function () {
+test('admin can access first-time visitors report', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('reports.attendance.visitors', $this->branch))
         ->assertStatus(200);
 });
 
-test('visitors report shows correct stats', function () {
+test('visitors report shows correct stats', function (): void {
     Visitor::factory()->count(5)->create([
         'branch_id' => $this->branch->id,
         'visit_date' => now(),

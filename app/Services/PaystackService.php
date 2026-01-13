@@ -287,7 +287,7 @@ class PaystackService
      */
     public function isConfigured(): bool
     {
-        return ! empty($this->secretKey) && ! empty($this->publicKey);
+        return $this->secretKey !== '' && $this->secretKey !== '0' && ($this->publicKey !== '' && $this->publicKey !== '0');
     }
 
     /**

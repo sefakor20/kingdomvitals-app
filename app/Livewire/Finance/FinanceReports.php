@@ -442,7 +442,7 @@ class FinanceReports extends Component
 
         $filename = "financial-report-{$this->reportType}-{$this->branch->slug}-".now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () {
+        return response()->streamDownload(function (): void {
             $handle = fopen('php://output', 'w');
 
             if ($this->reportType === 'donations') {
@@ -513,7 +513,7 @@ class FinanceReports extends Component
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.finance.finance-reports');
     }

@@ -28,7 +28,7 @@ class OverdueInvoices extends Component
             ->overdue()
             ->orderBy('due_date')
             ->get()
-            ->map(function (PlatformInvoice $invoice) {
+            ->map(function (PlatformInvoice $invoice): array {
                 $lastReminder = $invoice->reminders()->latest('sent_at')->first();
 
                 return [
@@ -54,19 +54,15 @@ class OverdueInvoices extends Component
         return [
             'total_count' => $invoices->count(),
             'total_amount' => Number::currency($invoices->sum('amountRaw'), in: 'GHS'),
-            'over_30_days' => $invoices->filter(fn ($i) => $i['days_overdue'] >= 30)->count(),
-            'over_14_days' => $invoices->filter(fn ($i) => $i['days_overdue'] >= 14 && $i['days_overdue'] < 30)->count(),
-            'under_14_days' => $invoices->filter(fn ($i) => $i['days_overdue'] < 14)->count(),
+            'over_30_days' => $invoices->filter(fn ($i): bool => $i['days_overdue'] >= 30)->count(),
+            'over_14_days' => $invoices->filter(fn ($i): bool => $i['days_overdue'] >= 14 && $i['days_overdue'] < 30)->count(),
+            'under_14_days' => $invoices->filter(fn ($i): bool => $i['days_overdue'] < 14)->count(),
         ];
     }
 
     public function updatedSelectAll(): void
     {
-        if ($this->selectAll) {
-            $this->selectedInvoices = $this->overdueInvoices->pluck('id')->toArray();
-        } else {
-            $this->selectedInvoices = [];
-        }
+        $this->selectedInvoices = $this->selectAll ? $this->overdueInvoices->pluck('id')->toArray() : [];
     }
 
     public function sendReminder(string $invoiceId): void
@@ -97,7 +93,7 @@ class OverdueInvoices extends Component
                 'tenant' => $invoice->tenant,
                 'reminderType' => $reminderType,
                 'invoiceUrl' => route('superadmin.billing.invoices.show', $invoice),
-            ], function ($message) use ($email, $invoice, $reminderType) {
+            ], function ($message) use ($email, $invoice, $reminderType): void {
                 $subject = match ($reminderType) {
                     PlatformPaymentReminder::TYPE_FINAL_NOTICE => "Final Notice - Invoice {$invoice->invoice_number}",
                     PlatformPaymentReminder::TYPE_OVERDUE_30 => "Urgent: 30 Days Overdue - Invoice {$invoice->invoice_number}",
@@ -139,7 +135,7 @@ class OverdueInvoices extends Component
 
     public function sendBulkReminders(): void
     {
-        if (empty($this->selectedInvoices)) {
+        if ($this->selectedInvoices === []) {
             $this->dispatch('notification', [
                 'type' => 'error',
                 'message' => 'No invoices selected.',
@@ -175,7 +171,7 @@ class OverdueInvoices extends Component
                     'tenant' => $invoice->tenant,
                     'reminderType' => $reminderType,
                     'invoiceUrl' => route('superadmin.billing.invoices.show', $invoice),
-                ], function ($message) use ($email, $invoice) {
+                ], function ($message) use ($email, $invoice): void {
                     $message->to($email)->subject("Payment Overdue - Invoice {$invoice->invoice_number}");
                 });
 

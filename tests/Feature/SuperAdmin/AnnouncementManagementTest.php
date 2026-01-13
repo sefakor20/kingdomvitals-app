@@ -14,12 +14,12 @@ use App\Models\SuperAdmin;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     Queue::fake();
 });
 
-describe('access control', function () {
-    it('allows owner to view announcements page', function () {
+describe('access control', function (): void {
+    it('allows owner to view announcements page', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         $this->actingAs($owner, 'superadmin')
@@ -28,7 +28,7 @@ describe('access control', function () {
             ->assertSee('Announcements');
     });
 
-    it('allows admin to view announcements page', function () {
+    it('allows admin to view announcements page', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         $this->actingAs($admin, 'superadmin')
@@ -37,7 +37,7 @@ describe('access control', function () {
             ->assertSee('Announcements');
     });
 
-    it('allows support to view announcements page', function () {
+    it('allows support to view announcements page', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
 
         $this->actingAs($support, 'superadmin')
@@ -46,12 +46,12 @@ describe('access control', function () {
             ->assertSee('Announcements');
     });
 
-    it('denies guest access to announcements page', function () {
+    it('denies guest access to announcements page', function (): void {
         $this->get(route('superadmin.announcements.index'))
             ->assertRedirect(route('superadmin.login'));
     });
 
-    it('shows canCreate as true for owner', function () {
+    it('shows canCreate as true for owner', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -60,7 +60,7 @@ describe('access control', function () {
             ->assertSet('canSend', true);
     });
 
-    it('shows canCreate as true for admin', function () {
+    it('shows canCreate as true for admin', function (): void {
         $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
         Livewire::actingAs($admin, 'superadmin')
@@ -69,7 +69,7 @@ describe('access control', function () {
             ->assertSet('canSend', true);
     });
 
-    it('shows canCreate as false for support', function () {
+    it('shows canCreate as false for support', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
 
         Livewire::actingAs($support, 'superadmin')
@@ -79,8 +79,8 @@ describe('access control', function () {
     });
 });
 
-describe('creating announcements', function () {
-    it('can create a draft announcement', function () {
+describe('creating announcements', function (): void {
+    it('can create a draft announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -101,7 +101,7 @@ describe('creating announcements', function () {
         ]);
     });
 
-    it('can create a scheduled announcement', function () {
+    it('can create a scheduled announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $scheduledTime = now()->addHours(2)->format('Y-m-d\TH:i');
 
@@ -124,7 +124,7 @@ describe('creating announcements', function () {
         ]);
     });
 
-    it('validates required fields when creating', function () {
+    it('validates required fields when creating', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -136,7 +136,7 @@ describe('creating announcements', function () {
             ->assertHasErrors(['title', 'content']);
     });
 
-    it('support cannot create announcements', function () {
+    it('support cannot create announcements', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
 
         Livewire::actingAs($support, 'superadmin')
@@ -147,7 +147,7 @@ describe('creating announcements', function () {
             ->assertForbidden();
     });
 
-    it('logs activity when creating announcement', function () {
+    it('logs activity when creating announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         Livewire::actingAs($owner, 'superadmin')
@@ -164,8 +164,8 @@ describe('creating announcements', function () {
     });
 });
 
-describe('editing announcements', function () {
-    it('can edit a draft announcement', function () {
+describe('editing announcements', function (): void {
+    it('can edit a draft announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->create([
             'super_admin_id' => $owner->id,
@@ -188,7 +188,7 @@ describe('editing announcements', function () {
         ]);
     });
 
-    it('cannot edit a sent announcement', function () {
+    it('cannot edit a sent announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->sent()->create([
             'super_admin_id' => $owner->id,
@@ -201,8 +201,8 @@ describe('editing announcements', function () {
     });
 });
 
-describe('sending announcements', function () {
-    it('can send a draft announcement immediately', function () {
+describe('sending announcements', function (): void {
+    it('can send a draft announcement immediately', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->draft()->create([
             'super_admin_id' => $owner->id,
@@ -213,12 +213,12 @@ describe('sending announcements', function () {
             ->call('sendAnnouncement', $announcement->id)
             ->assertDispatched('announcement-sending');
 
-        Queue::assertPushed(ProcessAnnouncementJob::class, function ($job) use ($announcement) {
+        Queue::assertPushed(ProcessAnnouncementJob::class, function ($job) use ($announcement): bool {
             return $job->announcementId === $announcement->id;
         });
     });
 
-    it('logs activity when sending announcement', function () {
+    it('logs activity when sending announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->draft()->create([
             'super_admin_id' => $owner->id,
@@ -234,7 +234,7 @@ describe('sending announcements', function () {
         ]);
     });
 
-    it('support cannot send announcements', function () {
+    it('support cannot send announcements', function (): void {
         $support = SuperAdmin::factory()->create(['role' => SuperAdminRole::Support]);
         $announcement = Announcement::factory()->draft()->create();
 
@@ -245,8 +245,8 @@ describe('sending announcements', function () {
     });
 });
 
-describe('duplicating announcements', function () {
-    it('can duplicate an announcement', function () {
+describe('duplicating announcements', function (): void {
+    it('can duplicate an announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $original = Announcement::factory()->sent()->create([
             'super_admin_id' => $owner->id,
@@ -265,7 +265,7 @@ describe('duplicating announcements', function () {
         ]);
     });
 
-    it('logs activity when duplicating announcement', function () {
+    it('logs activity when duplicating announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->create(['super_admin_id' => $owner->id]);
 
@@ -280,8 +280,8 @@ describe('duplicating announcements', function () {
     });
 });
 
-describe('deleting announcements', function () {
-    it('can delete a draft announcement', function () {
+describe('deleting announcements', function (): void {
+    it('can delete a draft announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->draft()->create([
             'super_admin_id' => $owner->id,
@@ -298,7 +298,7 @@ describe('deleting announcements', function () {
         $this->assertDatabaseMissing('announcements', ['id' => $announcement->id]);
     });
 
-    it('can delete a sent announcement', function () {
+    it('can delete a sent announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->sent()->create([
             'super_admin_id' => $owner->id,
@@ -312,7 +312,7 @@ describe('deleting announcements', function () {
         $this->assertDatabaseMissing('announcements', ['id' => $announcement->id]);
     });
 
-    it('logs activity when deleting announcement', function () {
+    it('logs activity when deleting announcement', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->draft()->create([
             'super_admin_id' => $owner->id,
@@ -330,8 +330,8 @@ describe('deleting announcements', function () {
     });
 });
 
-describe('filtering and searching', function () {
-    it('can search announcements by title', function () {
+describe('filtering and searching', function (): void {
+    it('can search announcements by title', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         Announcement::factory()->create(['title' => 'Important Update', 'super_admin_id' => $owner->id]);
         Announcement::factory()->create(['title' => 'Regular Notice', 'super_admin_id' => $owner->id]);
@@ -343,7 +343,7 @@ describe('filtering and searching', function () {
             ->assertDontSee('Regular Notice');
     });
 
-    it('can filter announcements by status', function () {
+    it('can filter announcements by status', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         Announcement::factory()->draft()->create(['title' => 'Draft One', 'super_admin_id' => $owner->id]);
         Announcement::factory()->sent()->create(['title' => 'Sent One', 'super_admin_id' => $owner->id]);
@@ -356,8 +356,8 @@ describe('filtering and searching', function () {
     });
 });
 
-describe('viewing announcement details', function () {
-    it('can view announcement details with recipients', function () {
+describe('viewing announcement details', function (): void {
+    it('can view announcement details with recipients', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
         $announcement = Announcement::factory()->sent()->create([
             'super_admin_id' => $owner->id,
@@ -391,8 +391,8 @@ describe('viewing announcement details', function () {
     });
 });
 
-describe('resending failed announcements', function () {
-    it('can resend failed recipients', function () {
+describe('resending failed announcements', function (): void {
+    it('can resend failed recipients', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
         \Illuminate\Support\Facades\DB::table('tenants')->insert([
@@ -429,8 +429,8 @@ describe('resending failed announcements', function () {
     });
 });
 
-describe('Announcement model', function () {
-    it('correctly reports if announcement can be edited', function () {
+describe('Announcement model', function (): void {
+    it('correctly reports if announcement can be edited', function (): void {
         $draft = Announcement::factory()->draft()->create();
         $sent = Announcement::factory()->sent()->create();
 
@@ -438,7 +438,7 @@ describe('Announcement model', function () {
         expect($sent->canBeEdited())->toBeFalse();
     });
 
-    it('correctly reports if announcement can be sent', function () {
+    it('correctly reports if announcement can be sent', function (): void {
         $draft = Announcement::factory()->draft()->create();
         $scheduled = Announcement::factory()->scheduled()->create();
         $sent = Announcement::factory()->sent()->create();
@@ -448,7 +448,7 @@ describe('Announcement model', function () {
         expect($sent->canBeSent())->toBeFalse();
     });
 
-    it('correctly calculates delivery percentage', function () {
+    it('correctly calculates delivery percentage', function (): void {
         $announcement = Announcement::factory()->create([
             'total_recipients' => 10,
             'successful_count' => 8,

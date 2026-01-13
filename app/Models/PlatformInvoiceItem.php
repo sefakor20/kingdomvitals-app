@@ -33,15 +33,15 @@ class PlatformInvoiceItem extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (PlatformInvoiceItem $item) {
+        static::saving(function (PlatformInvoiceItem $item): void {
             $item->total = $item->quantity * (float) $item->unit_price;
         });
 
-        static::saved(function (PlatformInvoiceItem $item) {
+        static::saved(function (PlatformInvoiceItem $item): void {
             $item->invoice->recalculateFromItems();
         });
 
-        static::deleted(function (PlatformInvoiceItem $item) {
+        static::deleted(function (PlatformInvoiceItem $item): void {
             $item->invoice->recalculateFromItems();
         });
     }

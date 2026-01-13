@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -44,7 +44,7 @@ beforeEach(function () {
     $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -53,7 +53,7 @@ afterEach(function () {
 // VIEW ATTENDANCE TESTS
 // ============================================
 
-test('service show displays attendance records section', function () {
+test('service show displays attendance records section', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -67,7 +67,7 @@ test('service show displays attendance records section', function () {
         ->assertSee('Attendance Records');
 });
 
-test('service show displays no attendance records message when empty', function () {
+test('service show displays no attendance records message when empty', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -81,7 +81,7 @@ test('service show displays no attendance records message when empty', function 
         ->assertSee('No attendance records for this service.');
 });
 
-test('service show displays existing attendance records', function () {
+test('service show displays existing attendance records', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -109,7 +109,7 @@ test('service show displays existing attendance records', function () {
 // ADD ATTENDANCE TESTS
 // ============================================
 
-test('admin can add attendance record', function () {
+test('admin can add attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -134,7 +134,7 @@ test('admin can add attendance record', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
 });
 
-test('manager can add attendance record', function () {
+test('manager can add attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -156,7 +156,7 @@ test('manager can add attendance record', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
 });
 
-test('staff can add attendance record', function () {
+test('staff can add attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -178,7 +178,7 @@ test('staff can add attendance record', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
 });
 
-test('volunteer cannot add attendance record', function () {
+test('volunteer cannot add attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -193,7 +193,7 @@ test('volunteer cannot add attendance record', function () {
         ->assertForbidden();
 });
 
-test('attendance can include check-out time', function () {
+test('attendance can include check-out time', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -217,7 +217,7 @@ test('attendance can include check-out time', function () {
     expect(substr($attendance->check_out_time, 0, 5))->toBe('11:30');
 });
 
-test('attendance can include notes', function () {
+test('attendance can include notes', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -240,7 +240,7 @@ test('attendance can include notes', function () {
     expect($attendance->notes)->toBe('First time visitor follow-up');
 });
 
-test('attendance check-in method can be qr', function () {
+test('attendance check-in method can be qr', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -263,7 +263,7 @@ test('attendance check-in method can be qr', function () {
     expect($attendance->check_in_method)->toBe(CheckInMethod::Qr);
 });
 
-test('attendance check-in method can be kiosk', function () {
+test('attendance check-in method can be kiosk', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -290,7 +290,7 @@ test('attendance check-in method can be kiosk', function () {
 // DUPLICATE ATTENDANCE PREVENTION TESTS
 // ============================================
 
-test('cannot add duplicate attendance for same member and date', function () {
+test('cannot add duplicate attendance for same member and date', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -323,7 +323,7 @@ test('cannot add duplicate attendance for same member and date', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
 });
 
-test('can add attendance for same member on different dates', function () {
+test('can add attendance for same member on different dates', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -357,7 +357,7 @@ test('can add attendance for same member on different dates', function () {
 // EDIT ATTENDANCE TESTS
 // ============================================
 
-test('admin can edit attendance record', function () {
+test('admin can edit attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -391,7 +391,7 @@ test('admin can edit attendance record', function () {
     expect(substr($attendance->check_out_time, 0, 5))->toBe('12:00');
 });
 
-test('staff can edit attendance record', function () {
+test('staff can edit attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -419,7 +419,7 @@ test('staff can edit attendance record', function () {
     expect(substr($attendance->fresh()->check_in_time, 0, 5))->toBe('09:30');
 });
 
-test('volunteer cannot edit attendance record', function () {
+test('volunteer cannot edit attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -445,7 +445,7 @@ test('volunteer cannot edit attendance record', function () {
 // DELETE ATTENDANCE TESTS
 // ============================================
 
-test('admin can delete attendance record', function () {
+test('admin can delete attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -471,7 +471,7 @@ test('admin can delete attendance record', function () {
     expect(Attendance::find($attendanceId))->toBeNull();
 });
 
-test('staff can delete attendance record', function () {
+test('staff can delete attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -497,7 +497,7 @@ test('staff can delete attendance record', function () {
     expect(Attendance::find($attendanceId))->toBeNull();
 });
 
-test('volunteer cannot delete attendance record', function () {
+test('volunteer cannot delete attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -522,7 +522,7 @@ test('volunteer cannot delete attendance record', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('member is required when adding attendance', function () {
+test('member is required when adding attendance', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -535,14 +535,14 @@ test('member is required when adding attendance', function () {
     Livewire::test(ServiceShow::class, ['branch' => $this->branch, 'service' => $this->service])
         ->call('edit')
         ->call('openAddAttendanceModal')
-        ->set('attendanceMemberId', null)
+        ->set('attendanceMemberId')
         ->set('attendanceDate', now()->format('Y-m-d'))
         ->set('attendanceCheckInTime', '09:00')
         ->call('addAttendance')
         ->assertHasErrors(['attendanceMemberId']);
 });
 
-test('date is required when adding attendance', function () {
+test('date is required when adding attendance', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -556,13 +556,13 @@ test('date is required when adding attendance', function () {
         ->call('edit')
         ->call('openAddAttendanceModal')
         ->set('attendanceMemberId', $this->member->id)
-        ->set('attendanceDate', null)
+        ->set('attendanceDate')
         ->set('attendanceCheckInTime', '09:00')
         ->call('addAttendance')
         ->assertHasErrors(['attendanceDate']);
 });
 
-test('check-in time is required when adding attendance', function () {
+test('check-in time is required when adding attendance', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -577,12 +577,12 @@ test('check-in time is required when adding attendance', function () {
         ->call('openAddAttendanceModal')
         ->set('attendanceMemberId', $this->member->id)
         ->set('attendanceDate', now()->format('Y-m-d'))
-        ->set('attendanceCheckInTime', null)
+        ->set('attendanceCheckInTime')
         ->call('addAttendance')
         ->assertHasErrors(['attendanceCheckInTime']);
 });
 
-test('check-in time must be valid format', function () {
+test('check-in time must be valid format', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -602,7 +602,7 @@ test('check-in time must be valid format', function () {
         ->assertHasErrors(['attendanceCheckInTime']);
 });
 
-test('cannot add attendance for member from different branch', function () {
+test('cannot add attendance for member from different branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -625,7 +625,7 @@ test('cannot add attendance for member from different branch', function () {
         ->assertHasErrors(['attendanceMemberId']);
 });
 
-test('cannot add attendance for inactive member', function () {
+test('cannot add attendance for inactive member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -654,7 +654,7 @@ test('cannot add attendance for inactive member', function () {
 // MODAL BEHAVIOR TESTS
 // ============================================
 
-test('open add attendance modal sets default values', function () {
+test('open add attendance modal sets default values', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -673,7 +673,7 @@ test('open add attendance modal sets default values', function () {
         ->assertSet('editingAttendanceId', null);
 });
 
-test('close add attendance modal resets form', function () {
+test('close add attendance modal resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -698,7 +698,7 @@ test('close add attendance modal resets form', function () {
 // COMPUTED PROPERTIES TESTS
 // ============================================
 
-test('attendanceRecords computed property returns records ordered by date', function () {
+test('attendanceRecords computed property returns records ordered by date', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -730,7 +730,7 @@ test('attendanceRecords computed property returns records ordered by date', func
     expect($records->first()->id)->toBe($newAttendance->id);
 });
 
-test('availableMembers computed property returns active branch members', function () {
+test('availableMembers computed property returns active branch members', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -764,7 +764,7 @@ test('availableMembers computed property returns active branch members', functio
     expect($members->contains('id', $inactiveMember->id))->toBeFalse();
 });
 
-test('canManageAttendance returns true for staff and above', function () {
+test('canManageAttendance returns true for staff and above', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -778,7 +778,7 @@ test('canManageAttendance returns true for staff and above', function () {
     expect($component->instance()->canManageAttendance)->toBeTrue();
 });
 
-test('canManageAttendance returns false for volunteer', function () {
+test('canManageAttendance returns false for volunteer', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -792,7 +792,7 @@ test('canManageAttendance returns false for volunteer', function () {
     expect($component->instance()->canManageAttendance)->toBeFalse();
 });
 
-test('checkInMethods computed property returns all methods', function () {
+test('checkInMethods computed property returns all methods', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -813,7 +813,7 @@ test('checkInMethods computed property returns all methods', function () {
 // VISITOR ATTENDANCE TESTS
 // ============================================
 
-test('admin can add visitor attendance record', function () {
+test('admin can add visitor attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -842,7 +842,7 @@ test('admin can add visitor attendance record', function () {
     expect($attendance->member_id)->toBeNull();
 });
 
-test('service show displays visitor attendance records', function () {
+test('service show displays visitor attendance records', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -867,7 +867,7 @@ test('service show displays visitor attendance records', function () {
         ->assertSee('Visitor');
 });
 
-test('cannot add duplicate visitor attendance for same date', function () {
+test('cannot add duplicate visitor attendance for same date', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -901,7 +901,7 @@ test('cannot add duplicate visitor attendance for same date', function () {
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(1);
 });
 
-test('can add visitor attendance for same visitor on different dates', function () {
+test('can add visitor attendance for same visitor on different dates', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -933,7 +933,7 @@ test('can add visitor attendance for same visitor on different dates', function 
     expect(Attendance::where('service_id', $this->service->id)->count())->toBe(2);
 });
 
-test('admin can edit visitor attendance record', function () {
+test('admin can edit visitor attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -964,7 +964,7 @@ test('admin can edit visitor attendance record', function () {
     expect(substr($attendance->fresh()->check_in_time, 0, 5))->toBe('10:00');
 });
 
-test('visitor is required when attendance type is visitor', function () {
+test('visitor is required when attendance type is visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -978,14 +978,14 @@ test('visitor is required when attendance type is visitor', function () {
         ->call('edit')
         ->call('openAddAttendanceModal')
         ->set('attendanceType', 'visitor')
-        ->set('attendanceVisitorId', null)
+        ->set('attendanceVisitorId')
         ->set('attendanceDate', now()->format('Y-m-d'))
         ->set('attendanceCheckInTime', '09:00')
         ->call('addAttendance')
         ->assertHasErrors(['attendanceVisitorId']);
 });
 
-test('cannot add attendance for visitor from different branch', function () {
+test('cannot add attendance for visitor from different branch', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1009,7 +1009,7 @@ test('cannot add attendance for visitor from different branch', function () {
         ->assertHasErrors(['attendanceVisitorId']);
 });
 
-test('cannot add attendance for converted visitor', function () {
+test('cannot add attendance for converted visitor', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1035,7 +1035,7 @@ test('cannot add attendance for converted visitor', function () {
         ->assertHasErrors(['attendanceVisitorId']);
 });
 
-test('attendance type defaults to member when opening modal', function () {
+test('attendance type defaults to member when opening modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1051,7 +1051,7 @@ test('attendance type defaults to member when opening modal', function () {
         ->assertSet('attendanceType', 'member');
 });
 
-test('switching attendance type clears the other type id', function () {
+test('switching attendance type clears the other type id', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1078,7 +1078,7 @@ test('switching attendance type clears the other type id', function () {
     expect($attendance->member_id)->toBeNull();
 });
 
-test('availableVisitors computed property returns unconverted branch visitors', function () {
+test('availableVisitors computed property returns unconverted branch visitors', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1110,7 +1110,7 @@ test('availableVisitors computed property returns unconverted branch visitors', 
     expect($visitors->contains('id', $convertedVisitor->id))->toBeFalse();
 });
 
-test('can delete visitor attendance record', function () {
+test('can delete visitor attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

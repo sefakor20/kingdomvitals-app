@@ -196,7 +196,7 @@ class MonthlyAttendanceComparison extends Component
 
     protected function getExportData(): Collection
     {
-        return $this->monthlyData->map(fn ($item) => [
+        return $this->monthlyData->map(fn ($item): array => [
             $item['month'],
             $item['members'],
             $item['visitors'],
@@ -204,7 +204,7 @@ class MonthlyAttendanceComparison extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.attendance.monthly-attendance-comparison');
     }

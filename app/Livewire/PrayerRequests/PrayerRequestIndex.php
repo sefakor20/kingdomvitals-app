@@ -78,27 +78,27 @@ class PrayerRequestIndex extends Component
     {
         $query = PrayerRequest::where('branch_id', $this->branch->id);
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        if ($this->categoryFilter) {
+        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
             $query->where('category', $this->categoryFilter);
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
-        if ($this->privacyFilter) {
+        if ($this->privacyFilter !== '' && $this->privacyFilter !== '0') {
             $query->where('privacy', $this->privacyFilter);
         }
 
-        if ($this->clusterFilter) {
+        if ($this->clusterFilter !== '' && $this->clusterFilter !== '0') {
             $query->where('cluster_id', $this->clusterFilter);
         }
 
@@ -386,7 +386,7 @@ class PrayerRequestIndex extends Component
         $this->resetValidation();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.prayer-requests.prayer-request-index');
     }

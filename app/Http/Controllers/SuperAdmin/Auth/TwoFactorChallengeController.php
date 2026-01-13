@@ -103,10 +103,8 @@ class TwoFactorChallengeController extends Controller
      */
     private function verifyTwoFactorCode(SuperAdmin $superAdmin, string $code): bool
     {
-        $codeVerified = app(\Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider::class)
+        return app(\Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider::class)
             ->verify(decrypt($superAdmin->two_factor_secret), $code);
-
-        return $codeVerified;
     }
 
     /**

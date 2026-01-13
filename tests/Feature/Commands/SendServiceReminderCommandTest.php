@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Crypt;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -35,12 +35,12 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('command detects services within reminder window', function () {
+test('command detects services within reminder window', function (): void {
     // Create a service that occurs in 12 hours (within 24h window)
     $serviceTime = now()->addHours(12);
     $service = Service::factory()->create([
@@ -64,7 +64,7 @@ test('command detects services within reminder window', function () {
         ->assertSuccessful();
 });
 
-test('command skips services outside reminder window', function () {
+test('command skips services outside reminder window', function (): void {
     // Create a service that occurs in 3 days (outside 24h window)
     $threeDaysFromNow = now()->addDays(3);
     Service::factory()->create([
@@ -86,7 +86,7 @@ test('command skips services outside reminder window', function () {
         ->assertSuccessful();
 });
 
-test('command skips branches without SMS configured', function () {
+test('command skips branches without SMS configured', function (): void {
     $branchNoSms = Branch::factory()->create([
         'settings' => ['auto_service_reminder' => true],
     ]);
@@ -96,7 +96,7 @@ test('command skips branches without SMS configured', function () {
         ->assertSuccessful();
 });
 
-test('command skips branches with service reminders disabled', function () {
+test('command skips branches with service reminders disabled', function (): void {
     $this->branch->setSetting('auto_service_reminder', false);
     $this->branch->save();
 
@@ -105,7 +105,7 @@ test('command skips branches with service reminders disabled', function () {
         ->assertSuccessful();
 });
 
-test('command prevents duplicate reminders', function () {
+test('command prevents duplicate reminders', function (): void {
     $serviceTime = now()->addHours(12);
     $service = Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -135,7 +135,7 @@ test('command prevents duplicate reminders', function () {
         ->assertSuccessful();
 });
 
-test('command uses custom template when configured', function () {
+test('command uses custom template when configured', function (): void {
     $serviceTime = now()->addHours(12);
     Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -169,7 +169,7 @@ test('command uses custom template when configured', function () {
         ->assertSuccessful();
 });
 
-test('command filters recipients to attendees only', function () {
+test('command filters recipients to attendees only', function (): void {
     $serviceTime = now()->addHours(12);
     $service = Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -213,7 +213,7 @@ test('command filters recipients to attendees only', function () {
         ->assertSuccessful();
 });
 
-test('command skips inactive services', function () {
+test('command skips inactive services', function (): void {
     $serviceTime = now()->addHours(12);
     Service::factory()->inactive()->create([
         'branch_id' => $this->branch->id,
@@ -233,7 +233,7 @@ test('command skips inactive services', function () {
         ->assertSuccessful();
 });
 
-test('dry run mode does not send actual SMS', function () {
+test('dry run mode does not send actual SMS', function (): void {
     $serviceTime = now()->addHours(12);
     Service::factory()->create([
         'branch_id' => $this->branch->id,
@@ -254,7 +254,7 @@ test('dry run mode does not send actual SMS', function () {
         ->assertSuccessful();
 });
 
-test('command handles multiple services', function () {
+test('command handles multiple services', function (): void {
     $serviceTime1 = now()->addHours(6);
     $serviceTime2 = now()->addHours(18);
 
@@ -286,7 +286,7 @@ test('command handles multiple services', function () {
         ->assertSuccessful();
 });
 
-test('command respects configurable reminder hours', function () {
+test('command respects configurable reminder hours', function (): void {
     // Set reminder to 48 hours
     $this->branch->setSetting('service_reminder_hours', 48);
     $this->branch->save();

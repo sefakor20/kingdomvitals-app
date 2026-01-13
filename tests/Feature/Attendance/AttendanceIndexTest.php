@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -34,7 +34,7 @@ beforeEach(function () {
     $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -43,7 +43,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view attendance page', function () {
+test('authenticated user with branch access can view attendance page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -57,7 +57,7 @@ test('authenticated user with branch access can view attendance page', function 
         ->assertSeeLivewire(AttendanceIndex::class);
 });
 
-test('user without branch access cannot view attendance page', function () {
+test('user without branch access cannot view attendance page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -72,7 +72,7 @@ test('user without branch access cannot view attendance page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view attendance page', function () {
+test('unauthenticated user cannot view attendance page', function (): void {
     $this->get("/branches/{$this->branch->id}/attendance")
         ->assertRedirect('/login');
 });
@@ -81,7 +81,7 @@ test('unauthenticated user cannot view attendance page', function () {
 // VIEW AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view attendance list', function () {
+test('admin can view attendance list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -101,7 +101,7 @@ test('admin can view attendance list', function () {
         ->assertSee($this->member->fullName());
 });
 
-test('volunteer can view attendance list', function () {
+test('volunteer can view attendance list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -125,7 +125,7 @@ test('volunteer can view attendance list', function () {
 // DELETE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete attendance record', function () {
+test('admin can delete attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -151,7 +151,7 @@ test('admin can delete attendance record', function () {
     expect(Attendance::find($attendance->id))->toBeNull();
 });
 
-test('volunteer cannot delete attendance record', function () {
+test('volunteer cannot delete attendance record', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -176,7 +176,7 @@ test('volunteer cannot delete attendance record', function () {
 // FILTER TESTS
 // ============================================
 
-test('can filter attendance by search term', function () {
+test('can filter attendance by search term', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -223,7 +223,7 @@ test('can filter attendance by search term', function () {
     expect($records->first()->member->first_name)->toBe('Johnathan');
 });
 
-test('can filter attendance by service', function () {
+test('can filter attendance by service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -255,7 +255,7 @@ test('can filter attendance by service', function () {
         ->assertDontSee($member2->fullName());
 });
 
-test('can filter attendance by type (member/visitor)', function () {
+test('can filter attendance by type (member/visitor)', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -291,7 +291,7 @@ test('can filter attendance by type (member/visitor)', function () {
         ->assertSee($this->visitor->fullName());
 });
 
-test('can filter attendance by check-in method', function () {
+test('can filter attendance by check-in method', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -323,7 +323,7 @@ test('can filter attendance by check-in method', function () {
         ->assertDontSee($member2->fullName());
 });
 
-test('can filter attendance by date range', function () {
+test('can filter attendance by date range', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -355,7 +355,7 @@ test('can filter attendance by date range', function () {
         ->assertDontSee($member2->fullName());
 });
 
-test('can apply quick filter for today', function () {
+test('can apply quick filter for today', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -387,7 +387,7 @@ test('can apply quick filter for today', function () {
         ->assertDontSee($member2->fullName());
 });
 
-test('can clear all filters', function () {
+test('can clear all filters', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -413,7 +413,7 @@ test('can clear all filters', function () {
 // STATS TESTS
 // ============================================
 
-test('attendance stats are calculated correctly', function () {
+test('attendance stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -462,7 +462,7 @@ test('attendance stats are calculated correctly', function () {
 // CSV EXPORT TESTS
 // ============================================
 
-test('can export attendance records to csv', function () {
+test('can export attendance records to csv', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -488,7 +488,7 @@ test('can export attendance records to csv', function () {
 // EMPTY STATE TESTS
 // ============================================
 
-test('displays empty state when no records exist', function () {
+test('displays empty state when no records exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -502,7 +502,7 @@ test('displays empty state when no records exist', function () {
         ->assertSee('No attendance records found');
 });
 
-test('displays different empty state message when filters active', function () {
+test('displays different empty state message when filters active', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

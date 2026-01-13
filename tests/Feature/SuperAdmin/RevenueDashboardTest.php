@@ -10,7 +10,7 @@ use App\Models\SuperAdmin;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
-it('can view revenue dashboard page', function () {
+it('can view revenue dashboard page', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $this->actingAs($admin, 'superadmin')
@@ -19,7 +19,7 @@ it('can view revenue dashboard page', function () {
         ->assertSee('Revenue Dashboard');
 });
 
-it('shows key revenue metrics', function () {
+it('shows key revenue metrics', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -32,7 +32,7 @@ it('shows key revenue metrics', function () {
         ->assertSee('Churned');
 });
 
-it('calculates MRR correctly based on active tenants and their plans', function () {
+it('calculates MRR correctly based on active tenants and their plans', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $plan = SubscriptionPlan::create([
@@ -63,7 +63,7 @@ it('calculates MRR correctly based on active tenants and their plans', function 
         ->assertSee('300.00');
 });
 
-it('shows plan distribution with tenant counts', function () {
+it('shows plan distribution with tenant counts', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $basicPlan = SubscriptionPlan::create([
@@ -91,7 +91,7 @@ it('shows plan distribution with tenant counts', function () {
         ->assertSee('1 tenants');
 });
 
-it('shows monthly trends section', function () {
+it('shows monthly trends section', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -102,7 +102,7 @@ it('shows monthly trends section', function () {
         ->assertSee('Net Growth');
 });
 
-it('counts trial tenants correctly', function () {
+it('counts trial tenants correctly', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create trial tenants
@@ -123,7 +123,7 @@ it('counts trial tenants correctly', function () {
         ->assertSee('In Trial');
 });
 
-it('calculates conversion rate correctly', function () {
+it('calculates conversion rate correctly', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $plan = SubscriptionPlan::create([
@@ -175,7 +175,7 @@ it('calculates conversion rate correctly', function () {
         ->assertSee('50%');
 });
 
-it('shows revenue breakdown table', function () {
+it('shows revenue breakdown table', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -186,7 +186,7 @@ it('shows revenue breakdown table', function () {
         ->assertSee('Monthly Revenue');
 });
 
-it('uses the correct layout', function () {
+it('uses the correct layout', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $component = Livewire::actingAs($admin, 'superadmin')
@@ -195,7 +195,7 @@ it('uses the correct layout', function () {
     expect($component->instance()->render()->name())->toBe('livewire.super-admin.revenue.revenue-dashboard');
 });
 
-it('shows empty state when no active plans exist', function () {
+it('shows empty state when no active plans exist', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Ensure no active plans exist
@@ -206,7 +206,7 @@ it('shows empty state when no active plans exist', function () {
         ->assertSee('No active plans found');
 });
 
-it('excludes inactive plans from distribution', function () {
+it('excludes inactive plans from distribution', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     SubscriptionPlan::create([
@@ -224,7 +224,7 @@ it('excludes inactive plans from distribution', function () {
         ->assertDontSee('Inactive Plan Test');
 });
 
-it('calculates ARR as MRR times 12', function () {
+it('calculates ARR as MRR times 12', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $plan = SubscriptionPlan::create([
@@ -253,7 +253,7 @@ it('calculates ARR as MRR times 12', function () {
         ->assertSee('1,200.00'); // ARR
 });
 
-it('counts churned tenants as suspended plus inactive', function () {
+it('counts churned tenants as suspended plus inactive', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create suspended tenants
@@ -282,7 +282,7 @@ it('counts churned tenants as suspended plus inactive', function () {
         ->assertSee('Churned');
 });
 
-it('shows default badge for default plans in table', function () {
+it('shows default badge for default plans in table', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     SubscriptionPlan::create([

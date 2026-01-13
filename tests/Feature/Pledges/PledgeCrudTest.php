@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -39,7 +39,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view pledges page', function () {
+test('authenticated user with branch access can view pledges page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -53,7 +53,7 @@ test('authenticated user with branch access can view pledges page', function () 
         ->assertSeeLivewire(PledgeIndex::class);
 });
 
-test('user without branch access cannot view pledges page', function () {
+test('user without branch access cannot view pledges page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -68,7 +68,7 @@ test('user without branch access cannot view pledges page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view pledges page', function () {
+test('unauthenticated user cannot view pledges page', function (): void {
     $this->get("/branches/{$this->branch->id}/pledges")
         ->assertRedirect('/login');
 });
@@ -77,7 +77,7 @@ test('unauthenticated user cannot view pledges page', function () {
 // VIEW PLEDGES AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view pledges list', function () {
+test('admin can view pledges list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -97,7 +97,7 @@ test('admin can view pledges list', function () {
         ->assertSee($pledge->campaign_name);
 });
 
-test('volunteer can view pledges list', function () {
+test('volunteer can view pledges list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -121,7 +121,7 @@ test('volunteer can view pledges list', function () {
 // CREATE PLEDGE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a pledge', function () {
+test('admin can create a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -152,7 +152,7 @@ test('admin can create a pledge', function () {
     expect((float) $pledge->amount_fulfilled)->toBe(0.0);
 });
 
-test('manager can create a pledge', function () {
+test('manager can create a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -177,7 +177,7 @@ test('manager can create a pledge', function () {
     expect(Pledge::where('campaign_name', 'Missions 2025')->exists())->toBeTrue();
 });
 
-test('staff can create a pledge', function () {
+test('staff can create a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -202,7 +202,7 @@ test('staff can create a pledge', function () {
     expect(Pledge::where('campaign_name', 'Youth Ministry')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create a pledge', function () {
+test('volunteer cannot create a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -221,7 +221,7 @@ test('volunteer cannot create a pledge', function () {
 // UPDATE PLEDGE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a pledge', function () {
+test('admin can update a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -249,7 +249,7 @@ test('admin can update a pledge', function () {
     expect($pledge->fresh()->campaign_name)->toBe('Updated Campaign');
 });
 
-test('volunteer cannot update a pledge', function () {
+test('volunteer cannot update a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -274,7 +274,7 @@ test('volunteer cannot update a pledge', function () {
 // DELETE PLEDGE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a pledge', function () {
+test('admin can delete a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -301,7 +301,7 @@ test('admin can delete a pledge', function () {
     expect(Pledge::find($pledgeId))->toBeNull();
 });
 
-test('manager can delete a pledge', function () {
+test('manager can delete a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -326,7 +326,7 @@ test('manager can delete a pledge', function () {
     expect(Pledge::find($pledgeId))->toBeNull();
 });
 
-test('staff cannot delete a pledge', function () {
+test('staff cannot delete a pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -351,7 +351,7 @@ test('staff cannot delete a pledge', function () {
 // PAYMENT RECORDING TESTS
 // ============================================
 
-test('admin can record payment for active pledge', function () {
+test('admin can record payment for active pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -381,7 +381,7 @@ test('admin can record payment for active pledge', function () {
     expect($pledge->status)->toBe(PledgeStatus::Active);
 });
 
-test('manager can record payment for pledge', function () {
+test('manager can record payment for pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -407,7 +407,7 @@ test('manager can record payment for pledge', function () {
     expect((float) $pledge->fresh()->amount_fulfilled)->toBe(500.0);
 });
 
-test('staff can record payment for pledge', function () {
+test('staff can record payment for pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -433,7 +433,7 @@ test('staff can record payment for pledge', function () {
     expect((float) $pledge->fresh()->amount_fulfilled)->toBe(100.0);
 });
 
-test('volunteer cannot record payment for pledge', function () {
+test('volunteer cannot record payment for pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -454,7 +454,7 @@ test('volunteer cannot record payment for pledge', function () {
         ->assertForbidden();
 });
 
-test('pledge auto-completes when fully paid', function () {
+test('pledge auto-completes when fully paid', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -483,7 +483,7 @@ test('pledge auto-completes when fully paid', function () {
     expect($pledge->status)->toBe(PledgeStatus::Completed);
 });
 
-test('pledge auto-completes when overpaid', function () {
+test('pledge auto-completes when overpaid', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -516,7 +516,7 @@ test('pledge auto-completes when overpaid', function () {
 // STATUS TRANSITION TESTS
 // ============================================
 
-test('can pause active pledge', function () {
+test('can pause active pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -539,7 +539,7 @@ test('can pause active pledge', function () {
     expect($pledge->fresh()->status)->toBe(PledgeStatus::Paused);
 });
 
-test('can resume paused pledge', function () {
+test('can resume paused pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -562,7 +562,7 @@ test('can resume paused pledge', function () {
     expect($pledge->fresh()->status)->toBe(PledgeStatus::Active);
 });
 
-test('can cancel active pledge', function () {
+test('can cancel active pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -585,7 +585,7 @@ test('can cancel active pledge', function () {
     expect($pledge->fresh()->status)->toBe(PledgeStatus::Cancelled);
 });
 
-test('can cancel paused pledge', function () {
+test('can cancel paused pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -608,7 +608,7 @@ test('can cancel paused pledge', function () {
     expect($pledge->fresh()->status)->toBe(PledgeStatus::Cancelled);
 });
 
-test('cannot pause non-active pledge', function () {
+test('cannot pause non-active pledge', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -635,7 +635,7 @@ test('cannot pause non-active pledge', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search pledges by campaign name', function () {
+test('can search pledges by campaign name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -666,7 +666,7 @@ test('can search pledges by campaign name', function () {
         ->assertDontSeeHtml('pledge-'.$missionsPledge->id);
 });
 
-test('can filter pledges by status', function () {
+test('can filter pledges by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -695,7 +695,7 @@ test('can filter pledges by status', function () {
     expect($component->instance()->pledges->first()->status)->toBe(PledgeStatus::Active);
 });
 
-test('can filter pledges by member', function () {
+test('can filter pledges by member', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -731,7 +731,7 @@ test('can filter pledges by member', function () {
     expect($component->instance()->pledges->first()->member_id)->toBe($member1->id);
 });
 
-test('can filter pledges by campaign', function () {
+test('can filter pledges by campaign', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -780,7 +780,7 @@ test('can filter pledges by campaign', function () {
 // STATS TESTS
 // ============================================
 
-test('pledge stats are calculated correctly', function () {
+test('pledge stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -826,7 +826,7 @@ test('pledge stats are calculated correctly', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('member is required', function () {
+test('member is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -847,7 +847,7 @@ test('member is required', function () {
         ->assertHasErrors(['member_id']);
 });
 
-test('campaign name is required', function () {
+test('campaign name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -870,7 +870,7 @@ test('campaign name is required', function () {
         ->assertHasErrors(['campaign_name']);
 });
 
-test('amount is required', function () {
+test('amount is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -893,7 +893,7 @@ test('amount is required', function () {
         ->assertHasErrors(['amount']);
 });
 
-test('payment amount is required when recording payment', function () {
+test('payment amount is required when recording payment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -920,7 +920,7 @@ test('payment amount is required when recording payment', function () {
 // MODAL CANCEL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -939,7 +939,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('campaign_name', '');
 });
 
-test('cancel payment modal closes modal', function () {
+test('cancel payment modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -969,7 +969,7 @@ test('cancel payment modal closes modal', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no pledges exist', function () {
+test('empty state is shown when no pledges exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -983,7 +983,7 @@ test('empty state is shown when no pledges exist', function () {
         ->assertSee('No pledges found');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -997,7 +997,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Add Pledge');
 });
 
-test('create button is hidden for volunteers', function () {
+test('create button is hidden for volunteers', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1015,7 +1015,7 @@ test('create button is hidden for volunteers', function () {
 // PROGRESS CALCULATION TESTS
 // ============================================
 
-test('progress bar shows correct completion percentage', function () {
+test('progress bar shows correct completion percentage', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -1041,7 +1041,7 @@ test('progress bar shows correct completion percentage', function () {
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update pledge from different branch', function () {
+test('user cannot update pledge from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -1064,7 +1064,7 @@ test('user cannot update pledge from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot record payment for pledge from different branch', function () {
+test('user cannot record payment for pledge from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 

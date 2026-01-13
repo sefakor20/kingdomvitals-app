@@ -335,7 +335,7 @@ class AnnouncementIndex extends Component
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $data = $announcements->map(fn (Announcement $a) => [
+        $data = $announcements->map(fn (Announcement $a): array => [
             'title' => $a->title,
             'status' => $a->status->label(),
             'priority' => $a->priority->label(),
@@ -413,11 +413,11 @@ class AnnouncementIndex extends Component
         $query = Announcement::with('superAdmin')
             ->orderBy('created_at', 'desc');
 
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $query->where('title', 'like', "%{$this->search}%");
         }
 
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 

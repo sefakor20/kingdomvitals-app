@@ -67,14 +67,14 @@ class InvoiceIndex extends Component
     {
         $query = PlatformInvoice::with(['tenant', 'subscriptionPlan']);
 
-        if ($this->search) {
-            $query->where(function ($q) {
+        if ($this->search !== '' && $this->search !== '0') {
+            $query->where(function ($q): void {
                 $q->where('invoice_number', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"));
             });
         }
 
-        if ($this->status) {
+        if ($this->status !== '' && $this->status !== '0') {
             $query->where('status', $this->status);
         }
 
@@ -87,7 +87,7 @@ class InvoiceIndex extends Component
     public function statusOptions(): array
     {
         return collect(InvoiceStatus::cases())
-            ->mapWithKeys(fn (InvoiceStatus $status) => [$status->value => $status->label()])
+            ->mapWithKeys(fn (InvoiceStatus $status): array => [$status->value => $status->label()])
             ->toArray();
     }
 
@@ -124,20 +124,20 @@ class InvoiceIndex extends Component
     {
         $query = PlatformInvoice::with(['tenant', 'subscriptionPlan']);
 
-        if ($this->search) {
-            $query->where(function ($q) {
+        if ($this->search !== '' && $this->search !== '0') {
+            $query->where(function ($q): void {
                 $q->where('invoice_number', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"));
             });
         }
 
-        if ($this->status) {
+        if ($this->status !== '' && $this->status !== '0') {
             $query->where('status', $this->status);
         }
 
         $invoices = $query->orderBy($this->sortBy, $this->sortDirection)->get();
 
-        $data = $invoices->map(fn (PlatformInvoice $invoice) => [
+        $data = $invoices->map(fn (PlatformInvoice $invoice): array => [
             'invoice_number' => $invoice->invoice_number,
             'tenant' => $invoice->tenant?->name ?? 'Unknown',
             'plan' => $invoice->subscriptionPlan?->name ?? 'N/A',

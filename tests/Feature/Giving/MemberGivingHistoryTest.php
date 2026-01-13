@@ -13,7 +13,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -32,7 +32,7 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -41,12 +41,12 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('giving history page requires authentication', function () {
+test('giving history page requires authentication', function (): void {
     $this->get(route('giving.history', $this->branch))
         ->assertRedirect(route('login'));
 });
 
-test('authenticated user can access giving history page', function () {
+test('authenticated user can access giving history page', function (): void {
     $this->actingAs($this->user);
 
     $this->get(route('giving.history', $this->branch))
@@ -58,7 +58,7 @@ test('authenticated user can access giving history page', function () {
 // DONATION DISPLAY TESTS
 // ============================================
 
-test('member sees their own donations by member_id', function () {
+test('member sees their own donations by member_id', function (): void {
     $this->actingAs($this->user);
 
     // Create donation linked to member
@@ -73,7 +73,7 @@ test('member sees their own donations by member_id', function () {
         ->assertSee('100.00');
 });
 
-test('member sees their own donations by email', function () {
+test('member sees their own donations by email', function (): void {
     $this->actingAs($this->user);
 
     // Create donation linked by email (guest donation)
@@ -89,7 +89,7 @@ test('member sees their own donations by email', function () {
         ->assertSee('200.00');
 });
 
-test('member does not see other members donations', function () {
+test('member does not see other members donations', function (): void {
     $this->actingAs($this->user);
 
     $otherMember = Member::factory()->create([
@@ -114,7 +114,7 @@ test('member does not see other members donations', function () {
 // STATS TESTS
 // ============================================
 
-test('giving stats are calculated correctly', function () {
+test('giving stats are calculated correctly', function (): void {
     $this->actingAs($this->user);
 
     // Create donations for this year
@@ -146,7 +146,7 @@ test('giving stats are calculated correctly', function () {
 // FILTER TESTS
 // ============================================
 
-test('can filter by donation type', function () {
+test('can filter by donation type', function (): void {
     $this->actingAs($this->user);
 
     Donation::factory()->create([
@@ -172,7 +172,7 @@ test('can filter by donation type', function () {
     expect((float) $donations->first()->amount)->toBe(100.0);
 });
 
-test('can filter by date range', function () {
+test('can filter by date range', function (): void {
     $this->actingAs($this->user);
 
     Donation::factory()->create([
@@ -196,7 +196,7 @@ test('can filter by date range', function () {
         ->assertDontSee('200.00');
 });
 
-test('can clear filters', function () {
+test('can clear filters', function (): void {
     $this->actingAs($this->user);
 
     Donation::factory()->create([
@@ -223,7 +223,7 @@ test('can clear filters', function () {
 // YEAR SELECTOR TESTS
 // ============================================
 
-test('can change year for stats', function () {
+test('can change year for stats', function (): void {
     $this->actingAs($this->user);
 
     // Create donation for last year
@@ -258,7 +258,7 @@ test('can change year for stats', function () {
 // RECEIPT DOWNLOAD TESTS
 // ============================================
 
-test('member can download receipt for their own donation', function () {
+test('member can download receipt for their own donation', function (): void {
     $this->actingAs($this->user);
 
     $donation = Donation::factory()->create([
@@ -275,7 +275,7 @@ test('member can download receipt for their own donation', function () {
     expect($response)->not->toBeNull();
 });
 
-test('member cannot download receipt for another members donation', function () {
+test('member cannot download receipt for another members donation', function (): void {
     $this->actingAs($this->user);
 
     $otherMember = Member::factory()->create([
@@ -299,7 +299,7 @@ test('member cannot download receipt for another members donation', function () 
 // RECURRING DONATIONS TESTS
 // ============================================
 
-test('recurring donations are displayed', function () {
+test('recurring donations are displayed', function (): void {
     $this->actingAs($this->user);
 
     Donation::factory()->create([
@@ -320,7 +320,7 @@ test('recurring donations are displayed', function () {
 // EMPTY STATE TESTS
 // ============================================
 
-test('shows empty state when no donations', function () {
+test('shows empty state when no donations', function (): void {
     $this->actingAs($this->user);
 
     Livewire::test(MemberGivingHistory::class, ['branch' => $this->branch])
@@ -332,7 +332,7 @@ test('shows empty state when no donations', function () {
 // CROSS-BRANCH SECURITY TESTS
 // ============================================
 
-test('member only sees donations from current branch', function () {
+test('member only sees donations from current branch', function (): void {
     $this->actingAs($this->user);
 
     $otherBranch = Branch::factory()->create();

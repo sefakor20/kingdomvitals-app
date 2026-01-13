@@ -89,6 +89,17 @@
                     {{ __('Prayer Requests') }}
                 </flux:navlist.item>
             @endif
+
+            @if($this->canViewChildren)
+                <flux:navlist.item
+                    icon="academic-cap"
+                    :href="route('children.index', $this->currentBranch)"
+                    :current="request()->routeIs('children.*')"
+                    wire:navigate
+                >
+                    {{ __('Children') }}
+                </flux:navlist.item>
+            @endif
         </flux:navlist.group>
 
         <flux:navlist.group :heading="__('Financial')" class="grid">

@@ -14,7 +14,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -32,7 +32,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -41,7 +41,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view services page', function () {
+test('authenticated user with branch access can view services page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -55,7 +55,7 @@ test('authenticated user with branch access can view services page', function ()
         ->assertSeeLivewire(ServiceIndex::class);
 });
 
-test('user without branch access cannot view services page', function () {
+test('user without branch access cannot view services page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -71,7 +71,7 @@ test('user without branch access cannot view services page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view services page', function () {
+test('unauthenticated user cannot view services page', function (): void {
     $this->get("/branches/{$this->branch->id}/services")
         ->assertRedirect('/login');
 });
@@ -80,7 +80,7 @@ test('unauthenticated user cannot view services page', function () {
 // VIEW SERVICES AUTHORIZATION TESTS
 // ============================================
 
-test('admin can view services list', function () {
+test('admin can view services list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -96,7 +96,7 @@ test('admin can view services list', function () {
         ->assertSee($service->name);
 });
 
-test('manager can view services list', function () {
+test('manager can view services list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -112,7 +112,7 @@ test('manager can view services list', function () {
         ->assertSee($service->name);
 });
 
-test('staff can view services list', function () {
+test('staff can view services list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -128,7 +128,7 @@ test('staff can view services list', function () {
         ->assertSee($service->name);
 });
 
-test('volunteer can view services list', function () {
+test('volunteer can view services list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -148,7 +148,7 @@ test('volunteer can view services list', function () {
 // CREATE SERVICE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can create a service', function () {
+test('admin can create a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -173,7 +173,7 @@ test('admin can create a service', function () {
     expect(Service::where('name', 'Sunday Morning Service')->exists())->toBeTrue();
 });
 
-test('manager can create a service', function () {
+test('manager can create a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -196,7 +196,7 @@ test('manager can create a service', function () {
     expect(Service::where('name', 'Manager Service')->exists())->toBeTrue();
 });
 
-test('staff can create a service', function () {
+test('staff can create a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -219,7 +219,7 @@ test('staff can create a service', function () {
     expect(Service::where('name', 'Staff Service')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create a service', function () {
+test('volunteer cannot create a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -238,7 +238,7 @@ test('volunteer cannot create a service', function () {
 // UPDATE SERVICE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can update a service', function () {
+test('admin can update a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -262,7 +262,7 @@ test('admin can update a service', function () {
     expect($service->fresh()->name)->toBe('Updated Service');
 });
 
-test('manager can update a service', function () {
+test('manager can update a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -284,7 +284,7 @@ test('manager can update a service', function () {
     expect($service->fresh()->name)->toBe('Manager Updated');
 });
 
-test('staff can update a service', function () {
+test('staff can update a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -306,7 +306,7 @@ test('staff can update a service', function () {
     expect($service->fresh()->name)->toBe('Staff Updated');
 });
 
-test('volunteer cannot update a service', function () {
+test('volunteer cannot update a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -327,7 +327,7 @@ test('volunteer cannot update a service', function () {
 // DELETE SERVICE AUTHORIZATION TESTS
 // ============================================
 
-test('admin can delete a service', function () {
+test('admin can delete a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -350,7 +350,7 @@ test('admin can delete a service', function () {
     expect(Service::find($serviceId))->toBeNull();
 });
 
-test('manager can delete a service', function () {
+test('manager can delete a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -372,7 +372,7 @@ test('manager can delete a service', function () {
     expect(Service::find($serviceId))->toBeNull();
 });
 
-test('staff cannot delete a service', function () {
+test('staff cannot delete a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -389,7 +389,7 @@ test('staff cannot delete a service', function () {
         ->assertForbidden();
 });
 
-test('volunteer cannot delete a service', function () {
+test('volunteer cannot delete a service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -410,7 +410,7 @@ test('volunteer cannot delete a service', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search services by name', function () {
+test('can search services by name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -436,7 +436,7 @@ test('can search services by name', function () {
         ->assertDontSee('Wednesday Prayer');
 });
 
-test('can filter services by type', function () {
+test('can filter services by type', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -462,7 +462,7 @@ test('can filter services by type', function () {
         ->assertDontSee('Prayer Meeting');
 });
 
-test('can filter services by status', function () {
+test('can filter services by status', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -489,7 +489,7 @@ test('can filter services by status', function () {
         ->assertDontSee('Inactive Service');
 });
 
-test('empty search shows all services', function () {
+test('empty search shows all services', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -513,7 +513,7 @@ test('empty search shows all services', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('name is required', function () {
+test('name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -533,7 +533,7 @@ test('name is required', function () {
         ->assertHasErrors(['name']);
 });
 
-test('day of week is required', function () {
+test('day of week is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -546,14 +546,14 @@ test('day of week is required', function () {
     Livewire::test(ServiceIndex::class, ['branch' => $this->branch])
         ->call('create')
         ->set('name', 'Test Service')
-        ->set('day_of_week', null)
+        ->set('day_of_week')
         ->set('time', '09:00')
         ->set('service_type', 'sunday')
         ->call('store')
         ->assertHasErrors(['day_of_week']);
 });
 
-test('time is required', function () {
+test('time is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -573,7 +573,7 @@ test('time is required', function () {
         ->assertHasErrors(['time']);
 });
 
-test('service type is required', function () {
+test('service type is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -593,7 +593,7 @@ test('service type is required', function () {
         ->assertHasErrors(['service_type']);
 });
 
-test('service type must be valid value', function () {
+test('service type must be valid value', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -613,7 +613,7 @@ test('service type must be valid value', function () {
         ->assertHasErrors(['service_type']);
 });
 
-test('day of week must be between 0 and 6', function () {
+test('day of week must be between 0 and 6', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -633,7 +633,7 @@ test('day of week must be between 0 and 6', function () {
         ->assertHasErrors(['day_of_week']);
 });
 
-test('capacity must be positive if provided', function () {
+test('capacity must be positive if provided', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -654,7 +654,7 @@ test('capacity must be positive if provided', function () {
         ->assertHasErrors(['capacity']);
 });
 
-test('can create service with all optional fields empty', function () {
+test('can create service with all optional fields empty', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -678,7 +678,7 @@ test('can create service with all optional fields empty', function () {
     expect($service->capacity)->toBeNull();
 });
 
-test('can create service with all fields filled', function () {
+test('can create service with all fields filled', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -710,7 +710,7 @@ test('can create service with all fields filled', function () {
 // MODAL CANCEL OPERATION TESTS
 // ============================================
 
-test('cancel create modal closes modal and resets form', function () {
+test('cancel create modal closes modal and resets form', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -731,7 +731,7 @@ test('cancel create modal closes modal and resets form', function () {
         ->assertSet('service_type', '');
 });
 
-test('cancel edit modal closes modal and clears editing service', function () {
+test('cancel edit modal closes modal and clears editing service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -752,7 +752,7 @@ test('cancel edit modal closes modal and clears editing service', function () {
         ->assertSet('editingService', null);
 });
 
-test('cancel delete modal closes modal and clears deleting service', function () {
+test('cancel delete modal closes modal and clears deleting service', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -777,7 +777,7 @@ test('cancel delete modal closes modal and clears deleting service', function ()
 // CROSS-BRANCH AUTHORIZATION TESTS
 // ============================================
 
-test('user cannot update service from different branch', function () {
+test('user cannot update service from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -797,7 +797,7 @@ test('user cannot update service from different branch', function () {
         ->assertForbidden();
 });
 
-test('user cannot delete service from different branch', function () {
+test('user cannot delete service from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -821,7 +821,7 @@ test('user cannot delete service from different branch', function () {
 // DISPLAY TESTS
 // ============================================
 
-test('empty state is shown when no services exist', function () {
+test('empty state is shown when no services exist', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -835,7 +835,7 @@ test('empty state is shown when no services exist', function () {
         ->assertSee('No services found');
 });
 
-test('service table displays service information correctly', function () {
+test('service table displays service information correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -863,7 +863,7 @@ test('service table displays service information correctly', function () {
         ->assertSee('Active');
 });
 
-test('day name is displayed correctly', function () {
+test('day name is displayed correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -883,7 +883,7 @@ test('day name is displayed correctly', function () {
         ->assertSee('Wednesday');
 });
 
-test('create button is visible for users with create permission', function () {
+test('create button is visible for users with create permission', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -897,7 +897,7 @@ test('create button is visible for users with create permission', function () {
         ->assertSee('Add Service');
 });
 
-test('create button is hidden for volunteers', function () {
+test('create button is hidden for volunteers', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -918,7 +918,7 @@ test('create button is hidden for volunteers', function () {
 // SERVICE ORDERING TESTS
 // ============================================
 
-test('services are ordered by day of week then time', function () {
+test('services are ordered by day of week then time', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

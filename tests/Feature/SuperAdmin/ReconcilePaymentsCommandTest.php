@@ -44,19 +44,19 @@ function createTestTenantForReconcile(string $id, SubscriptionPlan $plan): strin
     return $id;
 }
 
-describe('ReconcilePaymentsCommand', function () {
-    beforeEach(function () {
+describe('ReconcilePaymentsCommand', function (): void {
+    beforeEach(function (): void {
         $this->plan = createTestPlanForReconcile();
         $this->tenantId = createTestTenantForReconcile('reconcile-test-'.uniqid(), $this->plan);
     });
 
-    it('runs without errors when no payments exist', function () {
+    it('runs without errors when no payments exist', function (): void {
         $this->artisan('billing:reconcile-payments')
             ->assertSuccessful()
             ->expectsOutputToContain('Reconciliation complete');
     });
 
-    it('detects stale pending payments older than 24 hours', function () {
+    it('detects stale pending payments older than 24 hours', function (): void {
         $invoice = PlatformInvoice::factory()
             ->forTenant($this->tenantId)
             ->create();
@@ -80,7 +80,7 @@ describe('ReconcilePaymentsCommand', function () {
             ->expectsOutputToContain('stale pending');
     });
 
-    it('skips Paystack verification when credentials not configured', function () {
+    it('skips Paystack verification when credentials not configured', function (): void {
         $invoice = PlatformInvoice::factory()
             ->forTenant($this->tenantId)
             ->create();
@@ -100,7 +100,7 @@ describe('ReconcilePaymentsCommand', function () {
             ->expectsOutputToContain('Paystack credentials not configured');
     });
 
-    it('verifies Paystack payments when credentials are configured', function () {
+    it('verifies Paystack payments when credentials are configured', function (): void {
         // Set up platform Paystack credentials
         SystemSetting::set('default_paystack_secret_key', 'sk_test_xxxxx', 'integrations', true);
         SystemSetting::set('default_paystack_public_key', 'pk_test_xxxxx', 'integrations', true);
@@ -143,7 +143,7 @@ describe('ReconcilePaymentsCommand', function () {
         expect($payment->status)->toBe(PlatformPaymentStatus::Successful);
     });
 
-    it('marks failed Paystack payments correctly', function () {
+    it('marks failed Paystack payments correctly', function (): void {
         SystemSetting::set('default_paystack_secret_key', 'sk_test_xxxxx', 'integrations', true);
         SystemSetting::set('default_paystack_public_key', 'pk_test_xxxxx', 'integrations', true);
 
@@ -181,7 +181,7 @@ describe('ReconcilePaymentsCommand', function () {
         expect($payment->status)->toBe(PlatformPaymentStatus::Failed);
     });
 
-    it('does not modify payments in dry-run mode', function () {
+    it('does not modify payments in dry-run mode', function (): void {
         SystemSetting::set('default_paystack_secret_key', 'sk_test_xxxxx', 'integrations', true);
         SystemSetting::set('default_paystack_public_key', 'pk_test_xxxxx', 'integrations', true);
 
@@ -215,7 +215,7 @@ describe('ReconcilePaymentsCommand', function () {
         expect($payment->status)->toBe(PlatformPaymentStatus::Pending);
     });
 
-    it('handles API errors gracefully', function () {
+    it('handles API errors gracefully', function (): void {
         SystemSetting::set('default_paystack_secret_key', 'sk_test_xxxxx', 'integrations', true);
         SystemSetting::set('default_paystack_public_key', 'pk_test_xxxxx', 'integrations', true);
 
@@ -245,7 +245,7 @@ describe('ReconcilePaymentsCommand', function () {
             ->assertSuccessful();
     });
 
-    it('detects payment discrepancies', function () {
+    it('detects payment discrepancies', function (): void {
         $invoice = PlatformInvoice::factory()
             ->forTenant($this->tenantId)
             ->create([
@@ -269,7 +269,7 @@ describe('ReconcilePaymentsCommand', function () {
             ->expectsOutputToContain('payment discrepancies');
     });
 
-    it('uses the days option to limit search range', function () {
+    it('uses the days option to limit search range', function (): void {
         $invoice = PlatformInvoice::factory()
             ->forTenant($this->tenantId)
             ->create();
@@ -292,14 +292,14 @@ describe('ReconcilePaymentsCommand', function () {
     });
 });
 
-describe('PlatformPaystackService', function () {
-    it('returns not configured when no credentials set', function () {
+describe('PlatformPaystackService', function (): void {
+    it('returns not configured when no credentials set', function (): void {
         $service = app(PlatformPaystackService::class);
 
         expect($service->isConfigured())->toBeFalse();
     });
 
-    it('returns configured when credentials are set', function () {
+    it('returns configured when credentials are set', function (): void {
         SystemSetting::set('default_paystack_secret_key', 'sk_test_xxxxx', 'integrations', true);
 
         // Clear the service singleton so it gets fresh credentials
@@ -309,7 +309,7 @@ describe('PlatformPaystackService', function () {
         expect($service->isConfigured())->toBeTrue();
     });
 
-    it('generates unique platform references', function () {
+    it('generates unique platform references', function (): void {
         $service = app(PlatformPaystackService::class);
 
         $ref1 = $service->generateReference();
@@ -320,7 +320,7 @@ describe('PlatformPaystackService', function () {
         expect($ref1)->not->toBe($ref2);
     });
 
-    it('converts amounts to and from kobo', function () {
+    it('converts amounts to and from kobo', function (): void {
         expect(PlatformPaystackService::toKobo(100.50))->toBe(10050);
         expect(PlatformPaystackService::fromKobo(10050))->toBe(100.50);
     });

@@ -80,7 +80,7 @@ class MemberGrowthTrends extends Component
     {
         return Member::where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->where(function ($query) use ($date) {
+            ->where(function ($query) use ($date): void {
                 $query->whereNull('joined_at')
                     ->orWhere('joined_at', '<=', $date);
             })
@@ -225,14 +225,14 @@ class MemberGrowthTrends extends Component
 
     protected function getExportData(): Collection
     {
-        return $this->growthData->map(fn ($item) => [
+        return $this->growthData->map(fn ($item): array => [
             $item['month'],
             $item['new_members'],
             $item['cumulative'],
         ])->values();
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.membership.member-growth-trends');
     }

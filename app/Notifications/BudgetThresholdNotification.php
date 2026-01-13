@@ -35,18 +35,6 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
             default => "Budget Notification: {$this->budget->name}",
         };
 
-        $greeting = match ($this->alertLevel) {
-            'exceeded' => 'Urgent Budget Alert!',
-            'critical' => 'Critical Budget Warning!',
-            default => 'Budget Alert',
-        };
-
-        $color = match ($this->alertLevel) {
-            'exceeded' => 'error',
-            'critical' => 'error',
-            default => 'warning',
-        };
-
         $allocated = number_format((float) $this->budget->allocated_amount, 2);
         $spent = number_format($this->budget->actual_spending, 2);
         $remaining = number_format($this->budget->remaining_amount, 2);

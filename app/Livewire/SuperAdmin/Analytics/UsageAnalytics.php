@@ -23,9 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class UsageAnalytics extends Component
 {
     use HasReportExport;
-    use HasReportFilters;
-
-    private const CACHE_TTL = 300; // 5 minutes
+    use HasReportFilters; // 5 minutes
 
     #[Url]
     public string $sortBy = 'active_members';
@@ -90,13 +88,13 @@ class UsageAnalytics extends Component
             ->orderByDesc('member_quota_usage_percent')
             ->limit(10)
             ->get()
-            ->map(function (TenantUsageSnapshot $snapshot) use ($threshold) {
+            ->map(function (TenantUsageSnapshot $snapshot) use ($threshold): array {
                 return [
                     'tenant' => $snapshot->tenant,
                     'alerts' => $snapshot->getQuotaAlerts($threshold),
                 ];
             })
-            ->filter(fn (array $item) => count($item['alerts']) > 0);
+            ->filter(fn (array $item): bool => count($item['alerts']) > 0);
     }
 
     #[Computed]
@@ -125,7 +123,7 @@ class UsageAnalytics extends Component
         $adoption = [];
 
         foreach ($modules as $key => $label) {
-            $count = $snapshots->filter(function (TenantUsageSnapshot $snapshot) use ($key) {
+            $count = $snapshots->filter(function (TenantUsageSnapshot $snapshot) use ($key): bool {
                 return in_array($key, $snapshot->active_modules ?? [], true);
             })->count();
 
@@ -137,7 +135,7 @@ class UsageAnalytics extends Component
         }
 
         // Sort by percentage descending
-        uasort($adoption, fn (array $a, array $b) => $b['percentage'] <=> $a['percentage']);
+        uasort($adoption, fn (array $a, array $b): int => $b['percentage'] <=> $a['percentage']);
 
         return $adoption;
     }
@@ -149,7 +147,7 @@ class UsageAnalytics extends Component
 
         $query = TenantUsageSnapshot::with('tenant.subscriptionPlan')
             ->forDate($today)
-            ->whereHas('tenant', function ($q) {
+            ->whereHas('tenant', function ($q): void {
                 $q->whereIn('status', [TenantStatus::Active, TenantStatus::Trial]);
             });
 
@@ -175,7 +173,7 @@ class UsageAnalytics extends Component
                 : $snapshots->sortByDesc(fn ($s) => $s->tenant?->name);
         }
 
-        return $snapshots->map(function (TenantUsageSnapshot $snapshot) {
+        return $snapshots->map(function (TenantUsageSnapshot $snapshot): array {
             return [
                 'tenant' => $snapshot->tenant,
                 'plan' => $snapshot->tenant?->subscriptionPlan,
@@ -224,7 +222,7 @@ class UsageAnalytics extends Component
         $stats = $this->overviewStats;
         $topTenants = $this->topTenants;
 
-        $data = $topTenants->map(fn (array $item) => [
+        $data = $topTenants->map(fn (array $item): array => [
             'tenant_name' => $item['tenant']?->name ?? 'Unknown',
             'plan' => $item['plan']?->name ?? 'No Plan',
             'status' => $item['tenant']?->status?->value ?? 'Unknown',

@@ -13,7 +13,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -40,33 +40,33 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Authorization Tests
 
-test('admin can access donor engagement', function () {
+test('admin can access donor engagement', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('finance.donor-engagement', $this->branch))
         ->assertStatus(200);
 });
 
-test('volunteer cannot access donor engagement', function () {
+test('volunteer cannot access donor engagement', function (): void {
     $this->actingAs($this->volunteerUser)
         ->get(route('finance.donor-engagement', $this->branch))
         ->assertForbidden();
 });
 
-test('unauthenticated user is redirected to login', function () {
+test('unauthenticated user is redirected to login', function (): void {
     $this->get(route('finance.donor-engagement', $this->branch))
         ->assertRedirect(route('login'));
 });
 
 // Retention Metrics Tests
 
-test('retention metrics calculates returning donors correctly', function () {
+test('retention metrics calculates returning donors correctly', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -104,7 +104,7 @@ test('retention metrics calculates returning donors correctly', function () {
     expect($metrics['new_donors'])->toBe(1);
 });
 
-test('retention metrics calculates lapsed donors correctly', function () {
+test('retention metrics calculates lapsed donors correctly', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     // Member only donated in previous period (lapsed)
@@ -123,7 +123,7 @@ test('retention metrics calculates lapsed donors correctly', function () {
     expect($metrics['lapsed_donors'])->toBe(1);
 });
 
-test('retention metrics calculates reactivated donors correctly', function () {
+test('retention metrics calculates reactivated donors correctly', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     // Member donated long ago, skipped previous period, came back in current period (reactivated)
@@ -148,7 +148,7 @@ test('retention metrics calculates reactivated donors correctly', function () {
     expect($metrics['reactivated_donors'])->toBe(1);
 });
 
-test('retention metrics calculates retention rate correctly', function () {
+test('retention metrics calculates retention rate correctly', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -187,7 +187,7 @@ test('retention metrics calculates retention rate correctly', function () {
 
 // Giving Trends Tests
 
-test('giving trends identifies increasing donors correctly', function () {
+test('giving trends identifies increasing donors correctly', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     // With 90-day period: current=0-90, previous=91-181
@@ -216,7 +216,7 @@ test('giving trends identifies increasing donors correctly', function () {
     expect($trends['increasing_count'])->toBe(1);
 });
 
-test('giving trends identifies declining donors correctly', function () {
+test('giving trends identifies declining donors correctly', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     // With 90-day period: current=0-90, previous=91-181
@@ -245,7 +245,7 @@ test('giving trends identifies declining donors correctly', function () {
     expect($trends['declining_count'])->toBe(1);
 });
 
-test('giving trends identifies consistent donors correctly', function () {
+test('giving trends identifies consistent donors correctly', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     // With 90-day period: current=0-90, previous=91-181
@@ -276,7 +276,7 @@ test('giving trends identifies consistent donors correctly', function () {
 
 // Donor Segments Tests
 
-test('donor segments calculates major donors correctly', function () {
+test('donor segments calculates major donors correctly', function (): void {
     // Create 10 donors with varying amounts (YTD donations)
     // Donations must be within the current year for segments
     for ($i = 1; $i <= 10; $i++) {
@@ -299,7 +299,7 @@ test('donor segments calculates major donors correctly', function () {
     expect($segments['major']['total'])->toBe(1000.0); // Highest donor gave 1000
 });
 
-test('donor segments chart data returns correct structure', function () {
+test('donor segments chart data returns correct structure', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
@@ -321,7 +321,7 @@ test('donor segments chart data returns correct structure', function () {
 
 // Donors List Tests
 
-test('donors list returns paginated results', function () {
+test('donors list returns paginated results', function (): void {
     // Create 15 donors
     for ($i = 1; $i <= 15; $i++) {
         $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
@@ -342,7 +342,7 @@ test('donors list returns paginated results', function () {
     expect($list->total())->toBe(15);
 });
 
-test('donors list can be searched by name', function () {
+test('donors list can be searched by name', function (): void {
     $member1 = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'John',
@@ -376,7 +376,7 @@ test('donors list can be searched by name', function () {
     expect($list->first()->first_name)->toBe('John');
 });
 
-test('donors list can be filtered by trend', function () {
+test('donors list can be filtered by trend', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -423,7 +423,7 @@ test('donors list can be filtered by trend', function () {
     expect($list->first()->trend)->toBe('increasing');
 });
 
-test('donors list can be sorted', function () {
+test('donors list can be sorted', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -453,7 +453,7 @@ test('donors list can be sorted', function () {
 
 // Engagement Alerts Tests
 
-test('engagement alerts returns correct structure', function () {
+test('engagement alerts returns correct structure', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(DonorEngagement::class, ['branch' => $this->branch]);
 
@@ -472,7 +472,7 @@ test('engagement alerts returns correct structure', function () {
 
 // Retention Trend Data Tests
 
-test('retention trend data returns correct structure', function () {
+test('retention trend data returns correct structure', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(DonorEngagement::class, ['branch' => $this->branch]);
 
@@ -484,7 +484,7 @@ test('retention trend data returns correct structure', function () {
 
 // Period Selection Tests
 
-test('period can be changed', function () {
+test('period can be changed', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(DonorEngagement::class, ['branch' => $this->branch])
         ->assertSet('period', 90)
@@ -494,7 +494,7 @@ test('period can be changed', function () {
 
 // Branch Scoping Tests
 
-test('data is scoped to current branch', function () {
+test('data is scoped to current branch', function (): void {
     $otherBranch = Branch::factory()->create();
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -521,7 +521,7 @@ test('data is scoped to current branch', function () {
     expect($list->total())->toBe(1);
 });
 
-test('anonymous donations are excluded from donor analysis', function () {
+test('anonymous donations are excluded from donor analysis', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     Donation::factory()->create([
@@ -540,7 +540,7 @@ test('anonymous donations are excluded from donor analysis', function () {
 
 // Empty State Tests
 
-test('handles empty data gracefully', function () {
+test('handles empty data gracefully', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(DonorEngagement::class, ['branch' => $this->branch]);
 
@@ -563,7 +563,7 @@ test('handles empty data gracefully', function () {
 
 // Component Renders Tests
 
-test('component renders successfully', function () {
+test('component renders successfully', function (): void {
     Livewire::actingAs($this->adminUser)
         ->test(DonorEngagement::class, ['branch' => $this->branch])
         ->assertStatus(200)

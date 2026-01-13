@@ -19,7 +19,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -46,33 +46,33 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Authorization Tests
 
-test('admin can access finance dashboard', function () {
+test('admin can access finance dashboard', function (): void {
     $this->actingAs($this->adminUser)
         ->get(route('finance.dashboard', $this->branch))
         ->assertStatus(200);
 });
 
-test('volunteer cannot access finance dashboard', function () {
+test('volunteer cannot access finance dashboard', function (): void {
     $this->actingAs($this->volunteerUser)
         ->get(route('finance.dashboard', $this->branch))
         ->assertForbidden();
 });
 
-test('unauthenticated user is redirected to login', function () {
+test('unauthenticated user is redirected to login', function (): void {
     $this->get(route('finance.dashboard', $this->branch))
         ->assertRedirect(route('login'));
 });
 
 // Monthly Stats Tests
 
-test('monthly stats calculates income correctly', function () {
+test('monthly stats calculates income correctly', function (): void {
     Donation::factory()->count(3)->create([
         'branch_id' => $this->branch->id,
         'amount' => 100.00,
@@ -94,7 +94,7 @@ test('monthly stats calculates income correctly', function () {
     expect($stats['income_count'])->toBe(3);
 });
 
-test('monthly stats calculates expenses correctly', function () {
+test('monthly stats calculates expenses correctly', function (): void {
     Expense::factory()->count(2)->create([
         'branch_id' => $this->branch->id,
         'amount' => 50.00,
@@ -118,7 +118,7 @@ test('monthly stats calculates expenses correctly', function () {
     expect($stats['expenses_count'])->toBe(3); // Count includes pending
 });
 
-test('monthly stats calculates net position correctly', function () {
+test('monthly stats calculates net position correctly', function (): void {
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'amount' => 500.00,
@@ -141,7 +141,7 @@ test('monthly stats calculates net position correctly', function () {
 
 // Year-to-Date Stats Tests
 
-test('ytd stats calculates income correctly', function () {
+test('ytd stats calculates income correctly', function (): void {
     // Create donation at the start of this year (yesterday to ensure it's in the past)
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
@@ -162,7 +162,7 @@ test('ytd stats calculates income correctly', function () {
     expect($stats['income'])->toBe(1500.0);
 });
 
-test('ytd stats calculates income growth percentage', function () {
+test('ytd stats calculates income growth percentage', function (): void {
     // Last year same period (use yesterday's date minus 1 year)
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
@@ -186,7 +186,7 @@ test('ytd stats calculates income growth percentage', function () {
 
 // Outstanding Pledges Tests
 
-test('outstanding pledges total is calculated correctly', function () {
+test('outstanding pledges total is calculated correctly', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     Pledge::factory()->create([
@@ -224,7 +224,7 @@ test('outstanding pledges total is calculated correctly', function () {
 
 // Member Giving Stats Tests
 
-test('member giving stats calculates average donation correctly', function () {
+test('member giving stats calculates average donation correctly', function (): void {
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'amount' => 100.00,
@@ -244,7 +244,7 @@ test('member giving stats calculates average donation correctly', function () {
     expect($stats['average_donation'])->toBe(150.0);
 });
 
-test('member giving stats calculates unique donors correctly', function () {
+test('member giving stats calculates unique donors correctly', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
@@ -271,7 +271,7 @@ test('member giving stats calculates unique donors correctly', function () {
     expect($stats['unique_donors'])->toBe(2);
 });
 
-test('member giving stats calculates giving percentage correctly', function () {
+test('member giving stats calculates giving percentage correctly', function (): void {
     // Create 10 active members
     Member::factory()->count(10)->create([
         'primary_branch_id' => $this->branch->id,
@@ -298,7 +298,7 @@ test('member giving stats calculates giving percentage correctly', function () {
     expect($stats['giving_percentage'])->toBe(30.0);
 });
 
-test('member giving stats calculates first time donors correctly', function () {
+test('member giving stats calculates first time donors correctly', function (): void {
     $member1 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member2 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
     $member3 = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
@@ -342,7 +342,7 @@ test('member giving stats calculates first time donors correctly', function () {
 
 // Chart Data Tests
 
-test('monthly income chart data returns correct structure', function () {
+test('monthly income chart data returns correct structure', function (): void {
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'amount' => 500.00,
@@ -359,7 +359,7 @@ test('monthly income chart data returns correct structure', function () {
     expect(count($chartData['previous_year']))->toBe(12);
 });
 
-test('donation types chart data returns correct structure', function () {
+test('donation types chart data returns correct structure', function (): void {
     Donation::factory()->create([
         'branch_id' => $this->branch->id,
         'donation_type' => DonationType::Tithe,
@@ -383,7 +383,7 @@ test('donation types chart data returns correct structure', function () {
     expect($chartData['labels'])->toContain('Offering');
 });
 
-test('income vs expenses chart data returns correct structure', function () {
+test('income vs expenses chart data returns correct structure', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceDashboard::class, ['branch' => $this->branch]);
 
@@ -394,7 +394,7 @@ test('income vs expenses chart data returns correct structure', function () {
     expect(count($chartData['expenses']))->toBe(6);
 });
 
-test('donation growth chart data returns correct structure', function () {
+test('donation growth chart data returns correct structure', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceDashboard::class, ['branch' => $this->branch]);
 
@@ -404,7 +404,7 @@ test('donation growth chart data returns correct structure', function () {
     expect(count($chartData['data']))->toBe(12);
 });
 
-test('top donors tier data returns correct structure', function () {
+test('top donors tier data returns correct structure', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     Donation::factory()->count(5)->create([
@@ -427,7 +427,7 @@ test('top donors tier data returns correct structure', function () {
 
 // Branch Scoping Tests
 
-test('data is scoped to current branch', function () {
+test('data is scoped to current branch', function (): void {
     $otherBranch = Branch::factory()->create();
 
     // Donation in current branch
@@ -454,7 +454,7 @@ test('data is scoped to current branch', function () {
 
 // Empty State Tests
 
-test('handles empty data gracefully', function () {
+test('handles empty data gracefully', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceDashboard::class, ['branch' => $this->branch]);
 
@@ -476,7 +476,7 @@ test('handles empty data gracefully', function () {
 
 // Component Renders Tests
 
-test('component renders successfully', function () {
+test('component renders successfully', function (): void {
     Livewire::actingAs($this->adminUser)
         ->test(FinanceDashboard::class, ['branch' => $this->branch])
         ->assertStatus(200)

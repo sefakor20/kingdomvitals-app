@@ -29,13 +29,13 @@ class GenerateRecurringExpensesCommand extends Command
         $totalGenerated = 0;
         $totalSkipped = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalGenerated, &$totalSkipped) {
+        Tenant::all()->each(function (Tenant $tenant) use ($dryRun, &$totalGenerated, &$totalSkipped): void {
             tenancy()->initialize($tenant);
 
             $this->line("Processing tenant: {$tenant->id}");
 
             $recurringExpenses = RecurringExpense::where('status', RecurringExpenseStatus::Active)
-                ->where(function ($q) {
+                ->where(function ($q): void {
                     $q->whereNull('end_date')
                         ->orWhere('end_date', '>=', now()->toDateString());
                 })

@@ -22,12 +22,12 @@ class CheckBudgetThresholdsCommand extends Command
 
         $totalAlerts = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use (&$totalAlerts) {
+        Tenant::all()->each(function (Tenant $tenant) use (&$totalAlerts): void {
             tenancy()->initialize($tenant);
 
             Budget::where('alerts_enabled', true)
                 ->where('status', BudgetStatus::Active)
-                ->each(function (Budget $budget) use (&$totalAlerts) {
+                ->each(function (Budget $budget) use (&$totalAlerts): void {
                     $alertSent = $this->checkAndSendAlerts($budget);
                     if ($alertSent) {
                         $totalAlerts++;
@@ -88,7 +88,7 @@ class CheckBudgetThresholdsCommand extends Command
 
     private function sendAlert(Budget $budget, string $level, float $utilization): void
     {
-        $recipients = User::whereHas('branchAccess', function ($q) use ($budget) {
+        $recipients = User::whereHas('branchAccess', function ($q) use ($budget): void {
             $q->where('branch_id', $budget->branch_id)
                 ->whereIn('role', [
                     BranchRole::Admin->value,

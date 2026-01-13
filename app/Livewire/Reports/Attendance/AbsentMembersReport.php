@@ -62,7 +62,7 @@ class AbsentMembersReport extends Component
         $membersQuery = Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -87,7 +87,7 @@ class AbsentMembersReport extends Component
         $absentCount = Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -104,7 +104,7 @@ class AbsentMembersReport extends Component
         $neverAttended = Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -137,7 +137,7 @@ class AbsentMembersReport extends Component
             $count = Member::query()
                 ->where('primary_branch_id', $this->branch->id)
                 ->where('status', 'active')
-                ->leftJoin('attendance', function ($join) {
+                ->leftJoin('attendance', function ($join): void {
                     $join->on('members.id', '=', 'attendance.member_id')
                         ->where('attendance.branch_id', '=', $this->branch->id);
                 })
@@ -182,7 +182,7 @@ class AbsentMembersReport extends Component
         return Member::query()
             ->where('primary_branch_id', $this->branch->id)
             ->where('status', 'active')
-            ->leftJoin('attendance', function ($join) {
+            ->leftJoin('attendance', function ($join): void {
                 $join->on('members.id', '=', 'attendance.member_id')
                     ->where('attendance.branch_id', '=', $this->branch->id);
             })
@@ -191,9 +191,9 @@ class AbsentMembersReport extends Component
             ->havingRaw('last_attendance IS NULL OR last_attendance < ?', [$cutoffDate])
             ->orderByRaw('last_attendance IS NULL DESC, last_attendance ASC')
             ->get()
-            ->map(function ($member) {
+            ->map(function ($member): array {
                 $lastAttendance = $member->last_attendance ? Carbon::parse($member->last_attendance) : null;
-                $weeksAbsent = $lastAttendance ? $lastAttendance->diffInWeeks(now()) : 'Never';
+                $weeksAbsent = $lastAttendance instanceof \Carbon\Carbon ? $lastAttendance->diffInWeeks(now()) : 'Never';
 
                 return [
                     $member->fullName(),
@@ -206,7 +206,7 @@ class AbsentMembersReport extends Component
             });
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.attendance.absent-members-report');
     }

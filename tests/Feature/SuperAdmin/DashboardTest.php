@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Models\SuperAdmin;
 use Livewire\Livewire;
 
-it('shows tenant statistics on dashboard', function () {
+it('shows tenant statistics on dashboard', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -16,7 +16,7 @@ it('shows tenant statistics on dashboard', function () {
         ->assertSee('Suspended');
 });
 
-it('displays recent tenants widget', function () {
+it('displays recent tenants widget', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -24,7 +24,7 @@ it('displays recent tenants widget', function () {
         ->assertSee('Recent Tenants');
 });
 
-it('displays recent activity widget', function () {
+it('displays recent activity widget', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
@@ -32,7 +32,7 @@ it('displays recent activity widget', function () {
         ->assertSee('Recent Activity');
 });
 
-it('uses the correct layout', function () {
+it('uses the correct layout', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     $component = Livewire::actingAs($admin, 'superadmin')

@@ -12,7 +12,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Create a test tenant
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
@@ -27,12 +27,12 @@ beforeEach(function () {
     $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
-test('branch selector shows user accessible branches', function () {
+test('branch selector shows user accessible branches', function (): void {
     $user = User::factory()->create();
     $branch1 = Branch::factory()->main()->create(['name' => 'Main Campus']);
     $branch2 = Branch::factory()->create(['name' => 'West Campus']);
@@ -59,7 +59,7 @@ test('branch selector shows user accessible branches', function () {
         ->assertDontSee('East Campus');
 });
 
-test('branch selector initializes with primary branch', function () {
+test('branch selector initializes with primary branch', function (): void {
     $user = User::factory()->create();
     $branch1 = Branch::factory()->main()->create(['name' => 'Main Campus']);
     $branch2 = Branch::factory()->create(['name' => 'West Campus']);
@@ -83,7 +83,7 @@ test('branch selector initializes with primary branch', function () {
         ->assertSet('currentBranchId', $branch2->id);
 });
 
-test('switching branch updates current branch id', function () {
+test('switching branch updates current branch id', function (): void {
     $user = User::factory()->create();
     $branch1 = Branch::factory()->main()->create();
     $branch2 = Branch::factory()->create();
@@ -110,7 +110,7 @@ test('switching branch updates current branch id', function () {
         ->assertDispatched('branch-switched');
 });
 
-test('cannot switch to branch without access', function () {
+test('cannot switch to branch without access', function (): void {
     $user = User::factory()->create();
     $branch1 = Branch::factory()->main()->create();
     $branch2 = Branch::factory()->create(); // No access
@@ -130,7 +130,7 @@ test('cannot switch to branch without access', function () {
         ->assertSet('currentBranchId', $branch1->id); // Should not change
 });
 
-test('branch selector only shows active branches', function () {
+test('branch selector only shows active branches', function (): void {
     $user = User::factory()->create();
     $activeBranch = Branch::factory()->main()->create(['name' => 'Active Branch']);
     $inactiveBranch = Branch::factory()->inactive()->create(['name' => 'Inactive Branch']);

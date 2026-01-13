@@ -62,7 +62,7 @@ class ServiceWiseAttendance extends Component
             ->groupBy('services.id', 'services.name', 'services.service_type')
             ->orderByDesc('total_attendance')
             ->get()
-            ->map(function ($service) {
+            ->map(function ($service): \stdClass {
                 $service->avg_per_service = $service->service_days > 0
                     ? round($service->total_attendance / $service->service_days, 1)
                     : 0;
@@ -133,7 +133,7 @@ class ServiceWiseAttendance extends Component
         }
 
         return [
-            'labels' => $dates->map(fn ($d) => \Carbon\Carbon::parse($d)->format('M d'))->toArray(),
+            'labels' => $dates->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): string => \Carbon\Carbon::parse($d)->format('M d'))->toArray(),
             'datasets' => array_slice($datasets, 0, 5), // Limit to top 5 services
         ];
     }
@@ -178,7 +178,7 @@ class ServiceWiseAttendance extends Component
 
     protected function getExportData(): Collection
     {
-        return $this->serviceData->map(fn ($service) => [
+        return $this->serviceData->map(fn ($service): array => [
             $service->name,
             ucfirst($service->service_type),
             $service->total_attendance,
@@ -189,7 +189,7 @@ class ServiceWiseAttendance extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.reports.attendance.service-wise-attendance');
     }

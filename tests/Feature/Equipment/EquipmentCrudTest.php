@@ -16,7 +16,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
 
@@ -30,7 +30,7 @@ beforeEach(function () {
     $this->branch = Branch::factory()->main()->create();
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
@@ -39,7 +39,7 @@ afterEach(function () {
 // PAGE ACCESS TESTS
 // ============================================
 
-test('authenticated user with branch access can view equipment page', function () {
+test('authenticated user with branch access can view equipment page', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -53,7 +53,7 @@ test('authenticated user with branch access can view equipment page', function (
         ->assertSeeLivewire(EquipmentIndex::class);
 });
 
-test('user without branch access cannot view equipment page', function () {
+test('user without branch access cannot view equipment page', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
     UserBranchAccess::factory()->create([
@@ -67,7 +67,7 @@ test('user without branch access cannot view equipment page', function () {
         ->assertForbidden();
 });
 
-test('unauthenticated user cannot view equipment page', function () {
+test('unauthenticated user cannot view equipment page', function (): void {
     $this->get(route('equipment.index', $this->branch))
         ->assertRedirect();
 });
@@ -76,7 +76,7 @@ test('unauthenticated user cannot view equipment page', function () {
 // VIEW EQUIPMENT TESTS
 // ============================================
 
-test('admin can view equipment list', function () {
+test('admin can view equipment list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -93,7 +93,7 @@ test('admin can view equipment list', function () {
     expect($component->instance()->equipment->count())->toBe(3);
 });
 
-test('volunteer can view equipment list', function () {
+test('volunteer can view equipment list', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -114,7 +114,7 @@ test('volunteer can view equipment list', function () {
 // CREATE EQUIPMENT TESTS
 // ============================================
 
-test('admin can create equipment', function () {
+test('admin can create equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -138,7 +138,7 @@ test('admin can create equipment', function () {
     expect(Equipment::where('name', 'Test Microphone')->exists())->toBeTrue();
 });
 
-test('staff can create equipment', function () {
+test('staff can create equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -159,7 +159,7 @@ test('staff can create equipment', function () {
     expect(Equipment::where('name', 'Test Speaker')->exists())->toBeTrue();
 });
 
-test('volunteer cannot create equipment', function () {
+test('volunteer cannot create equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -178,7 +178,7 @@ test('volunteer cannot create equipment', function () {
 // UPDATE EQUIPMENT TESTS
 // ============================================
 
-test('admin can update equipment', function () {
+test('admin can update equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -202,7 +202,7 @@ test('admin can update equipment', function () {
     expect($equipment->fresh()->name)->toBe('Updated Name');
 });
 
-test('volunteer cannot update equipment', function () {
+test('volunteer cannot update equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -223,7 +223,7 @@ test('volunteer cannot update equipment', function () {
 // DELETE EQUIPMENT TESTS
 // ============================================
 
-test('admin can delete equipment', function () {
+test('admin can delete equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -243,7 +243,7 @@ test('admin can delete equipment', function () {
     expect(Equipment::find($equipment->id))->toBeNull();
 });
 
-test('manager can delete equipment', function () {
+test('manager can delete equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -263,7 +263,7 @@ test('manager can delete equipment', function () {
     expect(Equipment::find($equipment->id))->toBeNull();
 });
 
-test('staff cannot delete equipment', function () {
+test('staff cannot delete equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -284,7 +284,7 @@ test('staff cannot delete equipment', function () {
 // SEARCH AND FILTER TESTS
 // ============================================
 
-test('can search equipment by name', function () {
+test('can search equipment by name', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -311,7 +311,7 @@ test('can search equipment by name', function () {
     expect($component->instance()->equipment->first()->name)->toBe('Shure SM58 Microphone');
 });
 
-test('can filter equipment by category', function () {
+test('can filter equipment by category', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -331,7 +331,7 @@ test('can filter equipment by category', function () {
     expect($component->instance()->equipment->first()->category)->toBe(EquipmentCategory::Audio);
 });
 
-test('can filter equipment by condition', function () {
+test('can filter equipment by condition', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -351,7 +351,7 @@ test('can filter equipment by condition', function () {
     expect($component->instance()->equipment->first()->condition)->toBe(EquipmentCondition::Excellent);
 });
 
-test('can filter equipment by availability', function () {
+test('can filter equipment by availability', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -375,7 +375,7 @@ test('can filter equipment by availability', function () {
 // VALIDATION TESTS
 // ============================================
 
-test('equipment name is required', function () {
+test('equipment name is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -394,7 +394,7 @@ test('equipment name is required', function () {
         ->assertHasErrors(['name' => 'required']);
 });
 
-test('equipment category is required', function () {
+test('equipment category is required', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -417,7 +417,7 @@ test('equipment category is required', function () {
 // STATS TESTS
 // ============================================
 
-test('equipment stats are calculated correctly', function () {
+test('equipment stats are calculated correctly', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -454,7 +454,7 @@ test('equipment stats are calculated correctly', function () {
 // EMPTY STATE TESTS
 // ============================================
 
-test('empty state is shown when no equipment exists', function () {
+test('empty state is shown when no equipment exists', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -474,7 +474,7 @@ test('empty state is shown when no equipment exists', function () {
 // CROSS-BRANCH ACCESS TESTS
 // ============================================
 
-test('user cannot update equipment from different branch', function () {
+test('user cannot update equipment from different branch', function (): void {
     $user = User::factory()->create();
     $otherBranch = Branch::factory()->create();
 
@@ -497,7 +497,7 @@ test('user cannot update equipment from different branch', function () {
 // MODAL TESTS
 // ============================================
 
-test('cancel create modal closes modal', function () {
+test('cancel create modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -514,7 +514,7 @@ test('cancel create modal closes modal', function () {
         ->assertSet('showCreateModal', false);
 });
 
-test('cancel delete modal closes modal', function () {
+test('cancel delete modal closes modal', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -537,7 +537,7 @@ test('cancel delete modal closes modal', function () {
 // CHECKOUT TESTS
 // ============================================
 
-test('staff can checkout available equipment', function () {
+test('staff can checkout available equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -562,7 +562,7 @@ test('staff can checkout available equipment', function () {
     expect($equipment->fresh()->isCheckedOut())->toBeTrue();
 });
 
-test('cannot checkout out-of-service equipment', function () {
+test('cannot checkout out-of-service equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -584,7 +584,7 @@ test('cannot checkout out-of-service equipment', function () {
 // RETURN TESTS
 // ============================================
 
-test('staff can return checked out equipment', function () {
+test('staff can return checked out equipment', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,

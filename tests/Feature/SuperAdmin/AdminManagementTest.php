@@ -7,7 +7,7 @@ use App\Livewire\SuperAdmin\Admins\AdminIndex;
 use App\Models\SuperAdmin;
 use Livewire\Livewire;
 
-it('can view admin list page as owner', function () {
+it('can view admin list page as owner', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     $this->actingAs($owner, 'superadmin')
@@ -16,7 +16,7 @@ it('can view admin list page as owner', function () {
         ->assertSee('Super Admins');
 });
 
-it('can view admin list page as regular admin but cannot manage', function () {
+it('can view admin list page as regular admin but cannot manage', function (): void {
     $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
     Livewire::actingAs($admin, 'superadmin')
@@ -25,7 +25,7 @@ it('can view admin list page as regular admin but cannot manage', function () {
         ->assertDontSee('Add Admin');
 });
 
-it('shows all admins in the list', function () {
+it('shows all admins in the list', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin1 = SuperAdmin::factory()->create(['name' => 'John Doe']);
     $admin2 = SuperAdmin::factory()->create(['name' => 'Jane Smith']);
@@ -36,7 +36,7 @@ it('shows all admins in the list', function () {
         ->assertSee('Jane Smith');
 });
 
-it('can search admins by name', function () {
+it('can search admins by name', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SuperAdmin::factory()->create(['name' => 'John Doe', 'email' => 'john@example.com']);
     SuperAdmin::factory()->create(['name' => 'Jane Smith', 'email' => 'jane@example.com']);
@@ -48,7 +48,7 @@ it('can search admins by name', function () {
         ->assertDontSee('Jane Smith');
 });
 
-it('can search admins by email', function () {
+it('can search admins by email', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SuperAdmin::factory()->create(['name' => 'John Doe', 'email' => 'john@example.com']);
     SuperAdmin::factory()->create(['name' => 'Jane Smith', 'email' => 'jane@example.com']);
@@ -60,7 +60,7 @@ it('can search admins by email', function () {
         ->assertDontSee('John Doe');
 });
 
-it('can filter admins by role', function () {
+it('can filter admins by role', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SuperAdmin::factory()->create(['name' => 'Support User', 'role' => SuperAdminRole::Support]);
     SuperAdmin::factory()->create(['name' => 'Admin User', 'role' => SuperAdminRole::Admin]);
@@ -72,7 +72,7 @@ it('can filter admins by role', function () {
         ->assertDontSee('Admin User');
 });
 
-it('can filter admins by status', function () {
+it('can filter admins by status', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SuperAdmin::factory()->create(['name' => 'Active User', 'is_active' => true]);
     SuperAdmin::factory()->create(['name' => 'Inactive User', 'is_active' => false]);
@@ -84,7 +84,7 @@ it('can filter admins by status', function () {
         ->assertDontSee('Active User');
 });
 
-it('can create a new admin as owner', function () {
+it('can create a new admin as owner', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -108,7 +108,7 @@ it('can create a new admin as owner', function () {
     ]);
 });
 
-it('validates required fields when creating admin', function () {
+it('validates required fields when creating admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -118,7 +118,7 @@ it('validates required fields when creating admin', function () {
         ->assertHasErrors(['createName', 'createEmail', 'createPassword']);
 });
 
-it('validates unique email when creating admin', function () {
+it('validates unique email when creating admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     SuperAdmin::factory()->create(['email' => 'existing@example.com']);
 
@@ -133,7 +133,7 @@ it('validates unique email when creating admin', function () {
         ->assertHasErrors(['createEmail']);
 });
 
-it('regular admin cannot create new admins', function () {
+it('regular admin cannot create new admins', function (): void {
     $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 
     Livewire::actingAs($admin, 'superadmin')
@@ -147,7 +147,7 @@ it('regular admin cannot create new admins', function () {
         ->assertForbidden();
 });
 
-it('can open edit modal for an admin', function () {
+it('can open edit modal for an admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create(['name' => 'Edit Me']);
 
@@ -159,7 +159,7 @@ it('can open edit modal for an admin', function () {
         ->assertSet('editAdminId', $admin->id);
 });
 
-it('can update an admin', function () {
+it('can update an admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create(['name' => 'Old Name']);
 
@@ -179,7 +179,7 @@ it('can update an admin', function () {
     ]);
 });
 
-it('cannot change own role', function () {
+it('cannot change own role', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -194,7 +194,7 @@ it('cannot change own role', function () {
     expect($owner->role)->toBe(SuperAdminRole::Owner);
 });
 
-it('cannot deactivate own account', function () {
+it('cannot deactivate own account', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -209,7 +209,7 @@ it('cannot deactivate own account', function () {
     expect($owner->is_active)->toBeTrue();
 });
 
-it('can reset password for an admin', function () {
+it('can reset password for an admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create();
     $oldPassword = $admin->password;
@@ -228,7 +228,7 @@ it('can reset password for an admin', function () {
     expect($admin->password)->not->toBe($oldPassword);
 });
 
-it('validates password confirmation when resetting', function () {
+it('validates password confirmation when resetting', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create();
 
@@ -241,7 +241,7 @@ it('validates password confirmation when resetting', function () {
         ->assertHasErrors(['newPassword']);
 });
 
-it('can delete an admin', function () {
+it('can delete an admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create(['name' => 'Delete Me']);
 
@@ -256,7 +256,7 @@ it('can delete an admin', function () {
     $this->assertDatabaseMissing('super_admins', ['id' => $admin->id]);
 });
 
-it('cannot delete self', function () {
+it('cannot delete self', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -268,7 +268,7 @@ it('cannot delete self', function () {
     $this->assertDatabaseHas('super_admins', ['id' => $owner->id]);
 });
 
-it('cannot delete the last owner', function () {
+it('cannot delete the last owner', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     // Ensure there's only one owner
@@ -289,7 +289,7 @@ it('cannot delete the last owner', function () {
     $this->assertDatabaseMissing('super_admins', ['id' => $owner->id]);
 });
 
-it('prevents deleting the very last owner', function () {
+it('prevents deleting the very last owner', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     // Create a regular admin to try deletion
@@ -302,7 +302,7 @@ it('prevents deleting the very last owner', function () {
         ->assertForbidden();
 });
 
-it('shows 2FA status badge for admins', function () {
+it('shows 2FA status badge for admins', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $adminWith2FA = SuperAdmin::factory()->create([
         'name' => 'Has 2FA',
@@ -321,7 +321,7 @@ it('shows 2FA status badge for admins', function () {
         ->assertSee('Disabled');
 });
 
-it('logs activity when creating admin', function () {
+it('logs activity when creating admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
 
     Livewire::actingAs($owner, 'superadmin')
@@ -340,7 +340,7 @@ it('logs activity when creating admin', function () {
     ]);
 });
 
-it('logs activity when updating admin', function () {
+it('logs activity when updating admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create();
 
@@ -356,7 +356,7 @@ it('logs activity when updating admin', function () {
     ]);
 });
 
-it('logs activity when deleting admin', function () {
+it('logs activity when deleting admin', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create();
 
@@ -371,7 +371,7 @@ it('logs activity when deleting admin', function () {
     ]);
 });
 
-it('logs activity when resetting password', function () {
+it('logs activity when resetting password', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create();
 
@@ -388,7 +388,7 @@ it('logs activity when resetting password', function () {
     ]);
 });
 
-it('shows "You" badge next to current user', function () {
+it('shows "You" badge next to current user', function (): void {
     $owner = SuperAdmin::factory()->owner()->create(['name' => 'Current Owner']);
 
     Livewire::actingAs($owner, 'superadmin')
@@ -397,7 +397,7 @@ it('shows "You" badge next to current user', function () {
         ->assertSee('You');
 });
 
-it('sidebar shows admins link only for owners', function () {
+it('sidebar shows admins link only for owners', function (): void {
     $owner = SuperAdmin::factory()->owner()->create();
     $admin = SuperAdmin::factory()->create(['role' => SuperAdminRole::Admin]);
 

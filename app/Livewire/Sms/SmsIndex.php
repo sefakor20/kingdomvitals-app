@@ -51,11 +51,11 @@ class SmsIndex extends Component
         $query = SmsLog::where('branch_id', $this->branch->id);
 
         // Apply search filter (phone number or member name)
-        if ($this->search) {
+        if ($this->search !== '' && $this->search !== '0') {
             $search = $this->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('phone_number', 'like', "%{$search}%")
-                    ->orWhereHas('member', function ($memberQuery) use ($search) {
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
                         $memberQuery->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     });
@@ -63,12 +63,12 @@ class SmsIndex extends Component
         }
 
         // Apply status filter
-        if ($this->statusFilter) {
+        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
             $query->where('status', $this->statusFilter);
         }
 
         // Apply type filter
-        if ($this->typeFilter) {
+        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
             $query->where('message_type', $this->typeFilter);
         }
 
@@ -204,7 +204,7 @@ class SmsIndex extends Component
             now()->format('Y-m-d_His')
         );
 
-        return response()->streamDownload(function () use ($records) {
+        return response()->streamDownload(function () use ($records): void {
             $handle = fopen('php://output', 'w');
 
             // Headers
@@ -243,7 +243,7 @@ class SmsIndex extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.sms.sms-index');
     }

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Crypt;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->tenant = Tenant::create(['name' => 'Test Church']);
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
@@ -28,14 +28,14 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
+afterEach(function (): void {
     tenancy()->end();
     $this->tenant?->delete();
 });
 
 // Member Model Scope Tests
 
-test('scopeNotOptedOutOfSms returns members who have not opted out', function () {
+test('scopeNotOptedOutOfSms returns members who have not opted out', function (): void {
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,
         'sms_opt_out' => false,
@@ -48,10 +48,10 @@ test('scopeNotOptedOutOfSms returns members who have not opted out', function ()
     $notOptedOut = Member::notOptedOutOfSms()->get();
 
     expect($notOptedOut)->toHaveCount(3);
-    expect($notOptedOut->every(fn ($m) => $m->sms_opt_out === false))->toBeTrue();
+    expect($notOptedOut->every(fn ($m): bool => $m->sms_opt_out === false))->toBeTrue();
 });
 
-test('scopeOptedOutOfSms returns only members who have opted out', function () {
+test('scopeOptedOutOfSms returns only members who have opted out', function (): void {
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,
         'sms_opt_out' => false,
@@ -64,10 +64,10 @@ test('scopeOptedOutOfSms returns only members who have opted out', function () {
     $optedOut = Member::optedOutOfSms()->get();
 
     expect($optedOut)->toHaveCount(2);
-    expect($optedOut->every(fn ($m) => $m->sms_opt_out === true))->toBeTrue();
+    expect($optedOut->every(fn ($m): bool => $m->sms_opt_out === true))->toBeTrue();
 });
 
-test('hasOptedOutOfSms returns correct boolean', function () {
+test('hasOptedOutOfSms returns correct boolean', function (): void {
     $notOptedOut = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'sms_opt_out' => false,
@@ -81,7 +81,7 @@ test('hasOptedOutOfSms returns correct boolean', function () {
     expect($optedOut->hasOptedOutOfSms())->toBeTrue();
 });
 
-test('sms_opt_out defaults to false for new members', function () {
+test('sms_opt_out defaults to false for new members', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
     ]);
@@ -89,7 +89,7 @@ test('sms_opt_out defaults to false for new members', function () {
     expect($member->sms_opt_out)->toBeFalse();
 });
 
-test('sms_opt_out can be toggled', function () {
+test('sms_opt_out can be toggled', function (): void {
     $member = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'sms_opt_out' => false,
@@ -110,7 +110,7 @@ test('sms_opt_out can be toggled', function () {
     expect($member->sms_opt_out)->toBeFalse();
 });
 
-test('optedOutOfSms factory state sets sms_opt_out to true', function () {
+test('optedOutOfSms factory state sets sms_opt_out to true', function (): void {
     $member = Member::factory()->optedOutOfSms()->create([
         'primary_branch_id' => $this->branch->id,
     ]);
@@ -120,7 +120,7 @@ test('optedOutOfSms factory state sets sms_opt_out to true', function () {
 
 // Birthday SMS Command Tests
 
-test('birthday command skips opted-out members', function () {
+test('birthday command skips opted-out members', function (): void {
     $optedIn = Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'OptedIn',
@@ -143,7 +143,7 @@ test('birthday command skips opted-out members', function () {
         ->assertSuccessful();
 });
 
-test('birthday command correctly counts birthdays excluding opted-out', function () {
+test('birthday command correctly counts birthdays excluding opted-out', function (): void {
     // 3 opted-in members with birthday today
     Member::factory()->count(3)->create([
         'primary_branch_id' => $this->branch->id,
@@ -166,7 +166,7 @@ test('birthday command correctly counts birthdays excluding opted-out', function
         ->assertSuccessful();
 });
 
-test('birthday command shows no birthdays when all members are opted out', function () {
+test('birthday command shows no birthdays when all members are opted out', function (): void {
     // Only opted-out members with birthday today
     Member::factory()->count(2)->optedOutOfSms()->create([
         'primary_branch_id' => $this->branch->id,
@@ -182,7 +182,7 @@ test('birthday command shows no birthdays when all members are opted out', funct
 
 // Combined Query Tests
 
-test('scopes can be combined with other queries', function () {
+test('scopes can be combined with other queries', function (): void {
     // Active, opted-in members
     Member::factory()->count(2)->create([
         'primary_branch_id' => $this->branch->id,
