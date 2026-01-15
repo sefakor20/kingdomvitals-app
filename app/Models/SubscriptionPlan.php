@@ -86,6 +86,14 @@ class SubscriptionPlan extends Model
     }
 
     /**
+     * Check if the plan has unlimited storage.
+     */
+    public function hasUnlimitedStorage(): bool
+    {
+        return $this->storage_quota_gb === null;
+    }
+
+    /**
      * Get annual savings percentage.
      */
     public function getAnnualSavingsPercent(): float

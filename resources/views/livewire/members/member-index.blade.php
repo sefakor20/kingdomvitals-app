@@ -62,6 +62,30 @@
         </div>
     @endif
 
+    {{-- Storage Quota Warning Banner --}}
+    @if($this->showStorageWarning && !$this->storageQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ __('Approaching Storage Limit') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('You have used :used GB of :max GB storage (:percent% used). Consider upgrading your plan for more storage.', [
+                            'used' => $this->storageQuota['used'],
+                            'max' => $this->storageQuota['max'],
+                            'percent' => $this->storageQuota['percent'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'storage']) }}" variant="ghost" size="sm">
+                    {{ __('Upgrade') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
     <!-- View Filter Tabs -->
     @if($this->canRestore)
         <div class="mb-4 flex gap-2">

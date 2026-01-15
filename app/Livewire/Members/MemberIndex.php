@@ -199,6 +199,26 @@ class MemberIndex extends Component
         return app(PlanAccessService::class)->canCreateMember();
     }
 
+    /**
+     * Get storage quota information for display.
+     *
+     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
+     */
+    #[Computed]
+    public function storageQuota(): array
+    {
+        return app(PlanAccessService::class)->getStorageQuota();
+    }
+
+    /**
+     * Check if the storage quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showStorageWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('storage', 80);
+    }
+
     protected function rules(): array
     {
         return [
@@ -259,7 +279,15 @@ class MemberIndex extends Component
 
         // Handle photo upload - store in central public storage
         if ($this->photo instanceof TemporaryUploadedFile) {
+            // Check storage quota before uploading
+            if (! app(PlanAccessService::class)->canUploadFile($this->photo->getSize())) {
+                $this->addError('photo', __('Storage quota exceeded. Please delete some files or upgrade your plan.'));
+
+                return;
+            }
             $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+            // Invalidate storage cache after upload
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
 
         // Remove photo from validated data (it's not a model field)
@@ -317,10 +345,19 @@ class MemberIndex extends Component
 
         // Handle photo upload - store in central public storage
         if ($this->photo instanceof TemporaryUploadedFile) {
+            // Check storage quota before uploading
+            if (! app(PlanAccessService::class)->canUploadFile($this->photo->getSize())) {
+                $this->addError('photo', __('Storage quota exceeded. Please delete some files or upgrade your plan.'));
+
+                return;
+            }
+
             // Delete old photo if exists
             $this->deleteOldPhoto($this->editingMember);
 
             $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+            // Invalidate storage cache after upload
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
 
         // Remove photo from validated data (it's not a model field)
@@ -416,6 +453,8 @@ class MemberIndex extends Component
             $this->deleteOldPhoto($this->editingMember);
             $this->editingMember->update(['photo_url' => null]);
             $this->existingPhotoUrl = null;
+            // Invalidate storage cache after deletion
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
         $this->photo = null;
     }

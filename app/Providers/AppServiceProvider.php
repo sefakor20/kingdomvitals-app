@@ -147,5 +147,10 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('quotaWarning', function (string $quotaType, int $threshold = 80) {
             return app(PlanAccessService::class)->isQuotaWarning($quotaType, $threshold);
         });
+
+        // @canUploadFile($sizeBytes) ... @endcanUploadFile
+        Blade::if('canUploadFile', function (int $sizeBytes = 0) {
+            return app(PlanAccessService::class)->canUploadFile($sizeBytes);
+        });
     }
 }
