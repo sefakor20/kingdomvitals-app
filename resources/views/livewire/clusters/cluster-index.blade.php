@@ -5,12 +5,62 @@
             <flux:subheading>{{ __('Manage clusters for :branch', ['branch' => $branch->name]) }}</flux:subheading>
         </div>
 
-        @if($this->canCreate)
+        @if ($this->canCreate && $this->canCreateWithinQuota)
             <flux:button variant="primary" wire:click="create" icon="plus">
                 {{ __('Add Cluster') }}
             </flux:button>
+        @elseif ($this->canCreate && ! $this->canCreateWithinQuota)
+            <flux:button variant="ghost" disabled icon="lock-closed" class="cursor-not-allowed">
+                {{ __('Cluster Limit Reached') }}
+            </flux:button>
         @endif
     </div>
+
+    {{-- Quota Warning Banner --}}
+    @if ($this->showQuotaWarning && ! $this->clusterQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ __('Approaching Cluster Limit') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('You have :current of :max clusters (:percent% used). Consider upgrading your plan for more capacity.', [
+                            'current' => $this->clusterQuota['current'],
+                            'max' => $this->clusterQuota['max'],
+                            'percent' => $this->clusterQuota['percent'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'clusters']) }}" variant="ghost" size="sm">
+                    {{ __('Upgrade') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Quota Exceeded Banner --}}
+    @if (! $this->canCreateWithinQuota && ! $this->clusterQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="x-circle" class="size-5 text-red-600 dark:text-red-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-red-800 dark:text-red-200">
+                        {{ __('Cluster Limit Reached') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-red-700 dark:text-red-300">
+                        {{ __('You have reached your limit of :max clusters. Upgrade your plan to add more clusters.', [
+                            'max' => $this->clusterQuota['max'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'clusters']) }}" variant="primary" size="sm">
+                    {{ __('Upgrade Now') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
 
     <!-- Search and Filter -->
     <div class="mb-6 flex flex-col gap-4 sm:flex-row">

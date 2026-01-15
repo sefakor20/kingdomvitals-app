@@ -48,4 +48,36 @@ trait ChecksPlanAccess
     {
         return app(PlanAccessService::class)->canSendSms($count);
     }
+
+    /**
+     * Check if more households can be created within the quota.
+     */
+    protected function canCreateMoreHouseholds(): bool
+    {
+        return app(PlanAccessService::class)->canCreateHousehold();
+    }
+
+    /**
+     * Check if more clusters can be created within the quota.
+     */
+    protected function canCreateMoreClusters(): bool
+    {
+        return app(PlanAccessService::class)->canCreateCluster();
+    }
+
+    /**
+     * Check if more visitors can be created within the quota.
+     */
+    protected function canCreateMoreVisitors(): bool
+    {
+        return app(PlanAccessService::class)->canCreateVisitor();
+    }
+
+    /**
+     * Check if more equipment can be created within the quota.
+     */
+    protected function canCreateMoreEquipment(): bool
+    {
+        return app(PlanAccessService::class)->canCreateEquipment();
+    }
 }

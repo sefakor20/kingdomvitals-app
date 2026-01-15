@@ -6,18 +6,68 @@
         </div>
 
         <div class="flex gap-2">
-            @if($this->visitors->isNotEmpty())
+            @if ($this->visitors->isNotEmpty())
                 <flux:button variant="ghost" wire:click="exportToCsv" icon="arrow-down-tray">
                     {{ __('Export CSV') }}
                 </flux:button>
             @endif
-            @if($this->canCreate)
+            @if ($this->canCreate && $this->canCreateWithinQuota)
                 <flux:button variant="primary" wire:click="create" icon="plus">
                     {{ __('Add Visitor') }}
+                </flux:button>
+            @elseif ($this->canCreate && ! $this->canCreateWithinQuota)
+                <flux:button variant="ghost" disabled icon="lock-closed" class="cursor-not-allowed">
+                    {{ __('Visitor Limit Reached') }}
                 </flux:button>
             @endif
         </div>
     </div>
+
+    {{-- Quota Warning Banner --}}
+    @if ($this->showQuotaWarning && ! $this->visitorQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ __('Approaching Visitor Limit') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('You have :current of :max visitors (:percent% used). Consider upgrading your plan for more capacity.', [
+                            'current' => $this->visitorQuota['current'],
+                            'max' => $this->visitorQuota['max'],
+                            'percent' => $this->visitorQuota['percent'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'visitors']) }}" variant="ghost" size="sm">
+                    {{ __('Upgrade') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Quota Exceeded Banner --}}
+    @if (! $this->canCreateWithinQuota && ! $this->visitorQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="x-circle" class="size-5 text-red-600 dark:text-red-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-red-800 dark:text-red-200">
+                        {{ __('Visitor Limit Reached') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-red-700 dark:text-red-300">
+                        {{ __('You have reached your limit of :max visitors. Upgrade your plan to add more visitors.', [
+                            'max' => $this->visitorQuota['max'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'visitors']) }}" variant="primary" size="sm">
+                    {{ __('Upgrade Now') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
 
     <!-- Stats Summary Cards -->
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

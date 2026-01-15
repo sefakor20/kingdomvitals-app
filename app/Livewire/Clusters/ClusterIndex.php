@@ -6,6 +6,7 @@ use App\Enums\ClusterType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -112,6 +113,35 @@ class ClusterIndex extends Component
         return auth()->user()->can('deleteAny', [Cluster::class, $this->branch]);
     }
 
+    /**
+     * Get cluster quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function clusterQuota(): array
+    {
+        return app(PlanAccessService::class)->getClusterQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('clusters', 80);
+    }
+
+    /**
+     * Check if cluster creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateCluster();
+    }
+
     protected function rules(): array
     {
         return [
@@ -139,6 +169,14 @@ class ClusterIndex extends Component
     public function store(): void
     {
         $this->authorize('create', [Cluster::class, $this->branch]);
+
+        // Check quota before creating
+        if (! $this->canCreateWithinQuota) {
+            $this->addError('name', 'You have reached your cluster limit. Please upgrade your plan to add more clusters.');
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;

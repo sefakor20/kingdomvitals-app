@@ -8,8 +8,12 @@ use App\Enums\PlanModule;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\Cluster;
+use App\Models\Tenant\Equipment;
+use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\SmsLog;
+use App\Models\Tenant\Visitor;
 use Illuminate\Support\Facades\Cache;
 
 class PlanAccessService
@@ -206,6 +210,174 @@ class PlanAccessService
     }
 
     /**
+     * Get quota usage information for households.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    public function getHouseholdQuota(): array
+    {
+        $plan = $this->getPlan();
+        $currentCount = $this->getHouseholdCount();
+
+        if (! $plan || $plan->hasUnlimitedHouseholds()) {
+            return [
+                'current' => $currentCount,
+                'max' => null,
+                'unlimited' => true,
+                'remaining' => null,
+                'percent' => 0,
+            ];
+        }
+
+        $max = $plan->max_households;
+        $remaining = max(0, $max - $currentCount);
+
+        return [
+            'current' => $currentCount,
+            'max' => $max,
+            'unlimited' => false,
+            'remaining' => $remaining,
+            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
+        ];
+    }
+
+    /**
+     * Check if more households can be created.
+     */
+    public function canCreateHousehold(): bool
+    {
+        $quota = $this->getHouseholdQuota();
+
+        return $quota['unlimited'] || $quota['remaining'] > 0;
+    }
+
+    /**
+     * Get quota usage information for clusters.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    public function getClusterQuota(): array
+    {
+        $plan = $this->getPlan();
+        $currentCount = $this->getClusterCount();
+
+        if (! $plan || $plan->hasUnlimitedClusters()) {
+            return [
+                'current' => $currentCount,
+                'max' => null,
+                'unlimited' => true,
+                'remaining' => null,
+                'percent' => 0,
+            ];
+        }
+
+        $max = $plan->max_clusters;
+        $remaining = max(0, $max - $currentCount);
+
+        return [
+            'current' => $currentCount,
+            'max' => $max,
+            'unlimited' => false,
+            'remaining' => $remaining,
+            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
+        ];
+    }
+
+    /**
+     * Check if more clusters can be created.
+     */
+    public function canCreateCluster(): bool
+    {
+        $quota = $this->getClusterQuota();
+
+        return $quota['unlimited'] || $quota['remaining'] > 0;
+    }
+
+    /**
+     * Get quota usage information for visitors.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    public function getVisitorQuota(): array
+    {
+        $plan = $this->getPlan();
+        $currentCount = $this->getVisitorCount();
+
+        if (! $plan || $plan->hasUnlimitedVisitors()) {
+            return [
+                'current' => $currentCount,
+                'max' => null,
+                'unlimited' => true,
+                'remaining' => null,
+                'percent' => 0,
+            ];
+        }
+
+        $max = $plan->max_visitors;
+        $remaining = max(0, $max - $currentCount);
+
+        return [
+            'current' => $currentCount,
+            'max' => $max,
+            'unlimited' => false,
+            'remaining' => $remaining,
+            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
+        ];
+    }
+
+    /**
+     * Check if more visitors can be created.
+     */
+    public function canCreateVisitor(): bool
+    {
+        $quota = $this->getVisitorQuota();
+
+        return $quota['unlimited'] || $quota['remaining'] > 0;
+    }
+
+    /**
+     * Get quota usage information for equipment.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    public function getEquipmentQuota(): array
+    {
+        $plan = $this->getPlan();
+        $currentCount = $this->getEquipmentCount();
+
+        if (! $plan || $plan->hasUnlimitedEquipment()) {
+            return [
+                'current' => $currentCount,
+                'max' => null,
+                'unlimited' => true,
+                'remaining' => null,
+                'percent' => 0,
+            ];
+        }
+
+        $max = $plan->max_equipment;
+        $remaining = max(0, $max - $currentCount);
+
+        return [
+            'current' => $currentCount,
+            'max' => $max,
+            'unlimited' => false,
+            'remaining' => $remaining,
+            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
+        ];
+    }
+
+    /**
+     * Check if more equipment can be created.
+     */
+    public function canCreateEquipment(): bool
+    {
+        $quota = $this->getEquipmentQuota();
+
+        return $quota['unlimited'] || $quota['remaining'] > 0;
+    }
+
+    /**
      * Get all enabled modules for the current plan.
      *
      * @return array<PlanModule>
@@ -294,6 +466,10 @@ class PlanAccessService
             'branches' => $this->getBranchQuota(),
             'sms' => $this->getSmsQuota(),
             'storage' => $this->getStorageQuota(),
+            'households' => $this->getHouseholdQuota(),
+            'clusters' => $this->getClusterQuota(),
+            'visitors' => $this->getVisitorQuota(),
+            'equipment' => $this->getEquipmentQuota(),
             default => ['unlimited' => true, 'percent' => 0],
         };
 
@@ -315,6 +491,10 @@ class PlanAccessService
             $this->cache()->forget("tenant:{$this->tenant->id}:branch_count");
             $this->cache()->forget("tenant:{$this->tenant->id}:sms_sent_".now()->format('Y-m'));
             $this->cache()->forget("tenant:{$this->tenant->id}:storage_used");
+            $this->cache()->forget("tenant:{$this->tenant->id}:household_count");
+            $this->cache()->forget("tenant:{$this->tenant->id}:cluster_count");
+            $this->cache()->forget("tenant:{$this->tenant->id}:visitor_count");
+            $this->cache()->forget("tenant:{$this->tenant->id}:equipment_count");
         }
     }
 
@@ -332,6 +512,10 @@ class PlanAccessService
             'branches' => $this->cache()->forget("tenant:{$this->tenant->id}:branch_count"),
             'sms' => $this->cache()->forget("tenant:{$this->tenant->id}:sms_sent_".now()->format('Y-m')),
             'storage' => $this->cache()->forget("tenant:{$this->tenant->id}:storage_used"),
+            'households' => $this->cache()->forget("tenant:{$this->tenant->id}:household_count"),
+            'clusters' => $this->cache()->forget("tenant:{$this->tenant->id}:cluster_count"),
+            'visitors' => $this->cache()->forget("tenant:{$this->tenant->id}:visitor_count"),
+            'equipment' => $this->cache()->forget("tenant:{$this->tenant->id}:equipment_count"),
             default => null,
         };
     }
@@ -408,6 +592,58 @@ class PlanAccessService
 
                 return $bytes / (1024 * 1024 * 1024); // Convert to GB
             }
+        );
+    }
+
+    private function getHouseholdCount(): int
+    {
+        if (! $this->tenant) {
+            return 0;
+        }
+
+        return $this->cache()->remember(
+            "tenant:{$this->tenant->id}:household_count",
+            self::COUNT_CACHE_TTL,
+            fn () => Household::count()
+        );
+    }
+
+    private function getClusterCount(): int
+    {
+        if (! $this->tenant) {
+            return 0;
+        }
+
+        return $this->cache()->remember(
+            "tenant:{$this->tenant->id}:cluster_count",
+            self::COUNT_CACHE_TTL,
+            fn () => Cluster::count()
+        );
+    }
+
+    private function getVisitorCount(): int
+    {
+        if (! $this->tenant) {
+            return 0;
+        }
+
+        return $this->cache()->remember(
+            "tenant:{$this->tenant->id}:visitor_count",
+            self::COUNT_CACHE_TTL,
+            fn () => Visitor::count()
+        );
+    }
+
+    private function getEquipmentCount(): int
+    {
+        if (! $this->tenant) {
+            return 0;
+        }
+
+        return $this->cache()->remember(
+            "tenant:{$this->tenant->id}:equipment_count",
+            self::COUNT_CACHE_TTL,
+            fn () => Equipment::count()
         );
     }
 }

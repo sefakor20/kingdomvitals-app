@@ -7,6 +7,7 @@ namespace App\Livewire\Households;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -81,6 +82,35 @@ class HouseholdIndex extends Component
         return auth()->user()->can('create', [Household::class, $this->branch]);
     }
 
+    /**
+     * Get household quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function householdQuota(): array
+    {
+        return app(PlanAccessService::class)->getHouseholdQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('households', 80);
+    }
+
+    /**
+     * Check if household creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateHousehold();
+    }
+
     protected function rules(): array
     {
         return [
@@ -100,6 +130,14 @@ class HouseholdIndex extends Component
     public function store(): void
     {
         $this->authorize('create', [Household::class, $this->branch]);
+
+        // Check quota before creating
+        if (! $this->canCreateWithinQuota) {
+            $this->addError('name', 'You have reached your household limit. Please upgrade your plan to add more households.');
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
