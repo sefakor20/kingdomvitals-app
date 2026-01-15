@@ -6,6 +6,7 @@ use App\Enums\BranchRole;
 use App\Enums\BranchStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -84,6 +85,35 @@ class BranchIndex extends Component
         return BranchStatus::cases();
     }
 
+    /**
+     * Get branch quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function branchQuota(): array
+    {
+        return app(PlanAccessService::class)->getBranchQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('branches', 80);
+    }
+
+    /**
+     * Check if branch creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateBranch();
+    }
+
     public function updatedName(string $value): void
     {
         if (! $this->editingBranch instanceof \App\Models\Tenant\Branch) {
@@ -112,6 +142,9 @@ class BranchIndex extends Component
             'role' => BranchRole::Admin,
             'is_primary' => false,
         ]);
+
+        // Invalidate branch count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('branches');
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -170,6 +203,10 @@ class BranchIndex extends Component
         }
 
         $this->deletingBranch->delete();
+
+        // Invalidate branch count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('branches');
+
         $this->showDeleteModal = false;
         $this->deletingBranch = null;
         $this->dispatch('branch-deleted');

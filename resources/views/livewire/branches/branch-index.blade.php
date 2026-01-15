@@ -6,11 +6,63 @@
         </div>
 
         @can('create', \App\Models\Tenant\Branch::class)
-            <flux:button variant="primary" wire:click="create" icon="plus">
-                {{ __('Add Branch') }}
-            </flux:button>
+            @if($this->canCreateWithinQuota)
+                <flux:button variant="primary" wire:click="create" icon="plus">
+                    {{ __('Add Branch') }}
+                </flux:button>
+            @else
+                <flux:button variant="ghost" disabled icon="lock-closed" class="cursor-not-allowed">
+                    {{ __('Branch Limit Reached') }}
+                </flux:button>
+            @endif
         @endcan
     </div>
+
+    {{-- Quota Warning Banner --}}
+    @if($this->showQuotaWarning && !$this->branchQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ __('Approaching Branch Limit') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('You have :current of :max branches (:percent% used). Consider upgrading your plan for more capacity.', [
+                            'current' => $this->branchQuota['current'],
+                            'max' => $this->branchQuota['max'],
+                            'percent' => $this->branchQuota['percent'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'branches']) }}" variant="ghost" size="sm">
+                    {{ __('Upgrade') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Quota Exceeded Banner --}}
+    @if(!$this->canCreateWithinQuota && !$this->branchQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="x-circle" class="size-5 text-red-600 dark:text-red-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-red-800 dark:text-red-200">
+                        {{ __('Branch Limit Reached') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-red-700 dark:text-red-300">
+                        {{ __('You have reached your limit of :max branches. Upgrade your plan to add more branches.', [
+                            'max' => $this->branchQuota['max'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'branches']) }}" variant="primary" size="sm">
+                    {{ __('Upgrade Now') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
 
     {{--  <flux:separator class="mb-6" />  --}}
 

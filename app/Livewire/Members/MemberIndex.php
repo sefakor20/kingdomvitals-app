@@ -8,6 +8,7 @@ use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -169,6 +170,35 @@ class MemberIndex extends Component
         return auth()->user()->can('deleteAny', [Member::class, $this->branch]);
     }
 
+    /**
+     * Get member quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function memberQuota(): array
+    {
+        return app(PlanAccessService::class)->getMemberQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('members', 80);
+    }
+
+    /**
+     * Check if member creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateMember();
+    }
+
     protected function rules(): array
     {
         return [
@@ -236,6 +266,9 @@ class MemberIndex extends Component
         unset($validated['photo']);
 
         Member::create($validated);
+
+        // Invalidate member count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('members');
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -313,6 +346,10 @@ class MemberIndex extends Component
         $this->authorize('delete', $this->deletingMember);
 
         $this->deletingMember->delete();
+
+        // Invalidate member count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('members');
+
         $this->showDeleteModal = false;
         $this->deletingMember = null;
         $this->dispatch('member-deleted');
@@ -323,6 +360,10 @@ class MemberIndex extends Component
         $member = Member::onlyTrashed()->where('id', $memberId)->firstOrFail();
         $this->authorize('restore', $member);
         $member->restore();
+
+        // Invalidate member count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('members');
+
         $this->dispatch('member-restored');
     }
 
