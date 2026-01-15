@@ -13,6 +13,7 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\PrayerUpdate;
 use App\Notifications\PrayerRequestAnsweredNotification;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -92,6 +93,54 @@ class PrayerRequestShow extends Component
     {
         return auth()->user()->can('sendPrayerChain', $this->prayerRequest)
             && $this->prayerRequest->isOpen();
+    }
+
+    /**
+     * Get the count of members who would receive a prayer chain SMS.
+     */
+    #[Computed]
+    public function prayerChainRecipientCount(): int
+    {
+        $query = Member::query()
+            ->notOptedOutOfSms()
+            ->whereNotNull('phone');
+
+        // If prayer request is assigned to a cluster, only notify that cluster's members
+        if ($this->prayerRequest->cluster_id) {
+            $query->whereHas('clusters', function ($q): void {
+                $q->where('clusters.id', $this->prayerRequest->cluster_id);
+            });
+        } else {
+            // Otherwise, notify all branch members
+            $query->where('primary_branch_id', $this->prayerRequest->branch_id);
+        }
+
+        // Exclude the member who submitted the request
+        if ($this->prayerRequest->member_id) {
+            $query->where('id', '!=', $this->prayerRequest->member_id);
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Get SMS quota information for display.
+     *
+     * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function smsQuota(): array
+    {
+        return app(PlanAccessService::class)->getSmsQuota();
+    }
+
+    /**
+     * Check if sending the prayer chain would exceed SMS quota.
+     */
+    #[Computed]
+    public function canSendPrayerChainWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canSendSms($this->prayerChainRecipientCount);
     }
 
     #[Computed]
@@ -295,7 +344,25 @@ class PrayerRequestShow extends Component
     {
         $this->authorize('sendPrayerChain', $this->prayerRequest);
 
+        // Check SMS quota before sending
+        $recipientCount = $this->prayerChainRecipientCount;
+        if (! app(PlanAccessService::class)->canSendSms($recipientCount)) {
+            $quota = $this->smsQuota;
+            $this->dispatch('toast',
+                type: 'error',
+                message: __('Insufficient SMS credits. You need :count but have :remaining remaining this month.', [
+                    'count' => $recipientCount,
+                    'remaining' => $quota['remaining'] ?? 0,
+                ])
+            );
+
+            return;
+        }
+
         SendPrayerChainSmsJob::dispatch($this->prayerRequest, auth()->user());
+
+        // Invalidate SMS count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('sms');
 
         $this->dispatch('prayer-chain-sent');
     }

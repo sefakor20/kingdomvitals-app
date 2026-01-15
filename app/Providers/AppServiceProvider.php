@@ -18,6 +18,7 @@ use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Observers\SmsLogObserver;
 use App\Observers\TenantObserver;
 use App\Policies\BudgetPolicy;
 use App\Policies\ChildrenCheckinSecurityPolicy;
@@ -109,6 +110,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Register observers
         Tenant::observe(TenantObserver::class);
+        SmsLog::observe(SmsLogObserver::class);
     }
 
     /**

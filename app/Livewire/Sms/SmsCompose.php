@@ -12,6 +12,7 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
+use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -124,6 +125,35 @@ class SmsCompose extends Component
     public function isSmsConfigured(): bool
     {
         return TextTangoService::forBranch($this->branch)->isConfigured();
+    }
+
+    /**
+     * Get SMS quota information for display.
+     *
+     * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function smsQuota(): array
+    {
+        return app(PlanAccessService::class)->getSmsQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('sms', 80);
+    }
+
+    /**
+     * Check if SMS can be sent based on quota and recipient count.
+     */
+    #[Computed]
+    public function canSendWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canSendSms($this->recipientCount);
     }
 
     #[Computed]
@@ -340,6 +370,18 @@ class SmsCompose extends Component
             return;
         }
 
+        // Check SMS quota before sending
+        $recipientCount = count($recipients);
+        if (! app(PlanAccessService::class)->canSendSms($recipientCount)) {
+            $quota = $this->smsQuota;
+            $this->addError('quota', __('Insufficient SMS credits. You need :count but have :remaining remaining this month.', [
+                'count' => $recipientCount,
+                'remaining' => $quota['remaining'] ?? 0,
+            ]));
+
+            return;
+        }
+
         // Create SmsLog entries and dispatch job
         $phoneNumbers = [];
         $smsLogIds = [];
@@ -367,6 +409,9 @@ class SmsCompose extends Component
             $this->message,
             $this->isScheduled ? $this->scheduledAt : null
         );
+
+        // Invalidate SMS count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('sms');
 
         $this->sentCount = count($recipients);
         $this->showConfirmModal = false;
