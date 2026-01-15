@@ -253,6 +253,14 @@ class MemberIndex extends Component
     public function create(): void
     {
         $this->authorize('create', [Member::class, $this->branch]);
+
+        // Double-check quota (UI should already prevent this, but be safe)
+        if (! app(PlanAccessService::class)->canCreateMember()) {
+            $this->dispatch('quota-exceeded');
+
+            return;
+        }
+
         $this->resetForm();
         $this->showCreateModal = true;
     }
@@ -260,6 +268,14 @@ class MemberIndex extends Component
     public function store(): void
     {
         $this->authorize('create', [Member::class, $this->branch]);
+
+        // Check member quota before creation
+        if (! app(PlanAccessService::class)->canCreateMember()) {
+            $this->addError('first_name', __('Member quota exceeded for your plan. Please upgrade to add more members.'));
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $validated['primary_branch_id'] = $this->branch->id;
