@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\PlanModule;
+use App\Enums\QuotaType;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
@@ -83,19 +84,28 @@ class PlanAccessService
         return in_array($feature, $plan->features);
     }
 
+    // ============================================
+    // GENERIC QUOTA METHODS
+    // ============================================
+
     /**
-     * Get quota usage information for members.
+     * Get quota usage information for a given quota type.
      *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     * @return array{current|sent|used: int|float, max: int|null, unlimited: bool, remaining: int|float|null, percent: float}
      */
-    public function getMemberQuota(): array
+    public function getQuota(QuotaType $type): array
     {
         $plan = $this->getPlan();
-        $currentCount = $this->getMemberCount();
+        $currentCount = $this->getCount($type);
+        $currentKey = $type->currentKey();
 
-        if (! $plan || $plan->hasUnlimitedMembers()) {
+        // Check if unlimited (no plan or null limit field)
+        $limit = $plan?->{$type->limitField()};
+        $isUnlimited = $limit === null;
+
+        if (! $plan || $isUnlimited) {
             return [
-                'current' => $currentCount,
+                $currentKey => $type === QuotaType::Storage ? round($currentCount, 2) : $currentCount,
                 'max' => null,
                 'unlimited' => true,
                 'remaining' => null,
@@ -103,16 +113,91 @@ class PlanAccessService
             ];
         }
 
-        $max = $plan->max_members;
-        $remaining = max(0, $max - $currentCount);
+        $remaining = max(0, $limit - $currentCount);
+        $percent = $limit > 0 ? round(($currentCount / $limit) * 100, 1) : 0;
 
         return [
-            'current' => $currentCount,
-            'max' => $max,
+            $currentKey => $type === QuotaType::Storage ? round($currentCount, 2) : $currentCount,
+            'max' => $limit,
             'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
+            'remaining' => $type === QuotaType::Storage ? round($remaining, 2) : $remaining,
+            'percent' => $percent,
         ];
+    }
+
+    /**
+     * Check if more of the given resource can be created.
+     */
+    public function canCreate(QuotaType $type, int $count = 1): bool
+    {
+        $quota = $this->getQuota($type);
+
+        return $quota['unlimited'] || ($quota['remaining'] !== null && $quota['remaining'] >= $count);
+    }
+
+    /**
+     * Get the current count for a given quota type.
+     */
+    private function getCount(QuotaType $type): int|float
+    {
+        if (! $this->tenant) {
+            return 0;
+        }
+
+        $cacheKey = "tenant:{$this->tenant->id}:{$type->cacheKey()}";
+
+        return $this->cache()->remember($cacheKey, self::COUNT_CACHE_TTL, fn () => match ($type) {
+            QuotaType::Members => Member::count(),
+            QuotaType::Branches => Branch::count(),
+            QuotaType::Sms => SmsLog::whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count(),
+            QuotaType::Storage => $this->calculateStorageUsed(),
+            QuotaType::Households => Household::count(),
+            QuotaType::Clusters => Cluster::count(),
+            QuotaType::Visitors => Visitor::count(),
+            QuotaType::Equipment => Equipment::count(),
+        });
+    }
+
+    /**
+     * Calculate storage used in GB.
+     */
+    private function calculateStorageUsed(): float
+    {
+        $tenantId = $this->tenant->id;
+        $storagePath = base_path("storage/app/public/members/{$tenantId}");
+
+        if (! is_dir($storagePath)) {
+            return 0.0;
+        }
+
+        $bytes = 0;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($storagePath, \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $bytes += $file->getSize();
+            }
+        }
+
+        return $bytes / (1024 * 1024 * 1024); // Convert to GB
+    }
+
+    // ============================================
+    // BACKWARDS-COMPATIBLE WRAPPER METHODS
+    // ============================================
+
+    /**
+     * Get quota usage information for members.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    public function getMemberQuota(): array
+    {
+        return $this->getQuota(QuotaType::Members);
     }
 
     /**
@@ -120,9 +205,7 @@ class PlanAccessService
      */
     public function canCreateMember(): bool
     {
-        $quota = $this->getMemberQuota();
-
-        return $quota['unlimited'] || $quota['remaining'] > 0;
+        return $this->canCreate(QuotaType::Members);
     }
 
     /**
@@ -132,29 +215,7 @@ class PlanAccessService
      */
     public function getBranchQuota(): array
     {
-        $plan = $this->getPlan();
-        $currentCount = $this->getBranchCount();
-
-        if (! $plan || $plan->hasUnlimitedBranches()) {
-            return [
-                'current' => $currentCount,
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->max_branches;
-        $remaining = max(0, $max - $currentCount);
-
-        return [
-            'current' => $currentCount,
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
-        ];
+        return $this->getQuota(QuotaType::Branches);
     }
 
     /**
@@ -162,9 +223,7 @@ class PlanAccessService
      */
     public function canCreateBranch(): bool
     {
-        $quota = $this->getBranchQuota();
-
-        return $quota['unlimited'] || $quota['remaining'] > 0;
+        return $this->canCreate(QuotaType::Branches);
     }
 
     /**
@@ -174,29 +233,7 @@ class PlanAccessService
      */
     public function getSmsQuota(): array
     {
-        $plan = $this->getPlan();
-        $sentThisMonth = $this->getSmsSentThisMonth();
-
-        if (! $plan || $plan->sms_credits_monthly === null) {
-            return [
-                'sent' => $sentThisMonth,
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->sms_credits_monthly;
-        $remaining = max(0, $max - $sentThisMonth);
-
-        return [
-            'sent' => $sentThisMonth,
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($sentThisMonth / $max) * 100, 1) : 0,
-        ];
+        return $this->getQuota(QuotaType::Sms);
     }
 
     /**
@@ -204,9 +241,7 @@ class PlanAccessService
      */
     public function canSendSms(int $count = 1): bool
     {
-        $quota = $this->getSmsQuota();
-
-        return $quota['unlimited'] || ($quota['remaining'] !== null && $quota['remaining'] >= $count);
+        return $this->canCreate(QuotaType::Sms, $count);
     }
 
     /**
@@ -216,29 +251,7 @@ class PlanAccessService
      */
     public function getHouseholdQuota(): array
     {
-        $plan = $this->getPlan();
-        $currentCount = $this->getHouseholdCount();
-
-        if (! $plan || $plan->hasUnlimitedHouseholds()) {
-            return [
-                'current' => $currentCount,
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->max_households;
-        $remaining = max(0, $max - $currentCount);
-
-        return [
-            'current' => $currentCount,
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
-        ];
+        return $this->getQuota(QuotaType::Households);
     }
 
     /**
@@ -246,9 +259,7 @@ class PlanAccessService
      */
     public function canCreateHousehold(): bool
     {
-        $quota = $this->getHouseholdQuota();
-
-        return $quota['unlimited'] || $quota['remaining'] > 0;
+        return $this->canCreate(QuotaType::Households);
     }
 
     /**
@@ -258,29 +269,7 @@ class PlanAccessService
      */
     public function getClusterQuota(): array
     {
-        $plan = $this->getPlan();
-        $currentCount = $this->getClusterCount();
-
-        if (! $plan || $plan->hasUnlimitedClusters()) {
-            return [
-                'current' => $currentCount,
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->max_clusters;
-        $remaining = max(0, $max - $currentCount);
-
-        return [
-            'current' => $currentCount,
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
-        ];
+        return $this->getQuota(QuotaType::Clusters);
     }
 
     /**
@@ -288,9 +277,7 @@ class PlanAccessService
      */
     public function canCreateCluster(): bool
     {
-        $quota = $this->getClusterQuota();
-
-        return $quota['unlimited'] || $quota['remaining'] > 0;
+        return $this->canCreate(QuotaType::Clusters);
     }
 
     /**
@@ -300,29 +287,7 @@ class PlanAccessService
      */
     public function getVisitorQuota(): array
     {
-        $plan = $this->getPlan();
-        $currentCount = $this->getVisitorCount();
-
-        if (! $plan || $plan->hasUnlimitedVisitors()) {
-            return [
-                'current' => $currentCount,
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->max_visitors;
-        $remaining = max(0, $max - $currentCount);
-
-        return [
-            'current' => $currentCount,
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
-        ];
+        return $this->getQuota(QuotaType::Visitors);
     }
 
     /**
@@ -330,9 +295,7 @@ class PlanAccessService
      */
     public function canCreateVisitor(): bool
     {
-        $quota = $this->getVisitorQuota();
-
-        return $quota['unlimited'] || $quota['remaining'] > 0;
+        return $this->canCreate(QuotaType::Visitors);
     }
 
     /**
@@ -342,29 +305,7 @@ class PlanAccessService
      */
     public function getEquipmentQuota(): array
     {
-        $plan = $this->getPlan();
-        $currentCount = $this->getEquipmentCount();
-
-        if (! $plan || $plan->hasUnlimitedEquipment()) {
-            return [
-                'current' => $currentCount,
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->max_equipment;
-        $remaining = max(0, $max - $currentCount);
-
-        return [
-            'current' => $currentCount,
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => $remaining,
-            'percent' => $max > 0 ? round(($currentCount / $max) * 100, 1) : 0,
-        ];
+        return $this->getQuota(QuotaType::Equipment);
     }
 
     /**
@@ -372,10 +313,49 @@ class PlanAccessService
      */
     public function canCreateEquipment(): bool
     {
-        $quota = $this->getEquipmentQuota();
-
-        return $quota['unlimited'] || $quota['remaining'] > 0;
+        return $this->canCreate(QuotaType::Equipment);
     }
+
+    /**
+     * Get storage quota information.
+     *
+     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
+     */
+    public function getStorageQuota(): array
+    {
+        return $this->getQuota(QuotaType::Storage);
+    }
+
+    /**
+     * Check if a file of given size can be uploaded.
+     */
+    public function canUploadFile(int $fileSizeBytes): bool
+    {
+        $plan = $this->getPlan();
+
+        if (! $plan || $plan->storage_quota_gb === null) {
+            return true; // Unlimited
+        }
+
+        $usedGb = $this->getCount(QuotaType::Storage);
+        $fileSizeGb = $fileSizeBytes / (1024 * 1024 * 1024);
+
+        return ($usedGb + $fileSizeGb) <= $plan->storage_quota_gb;
+    }
+
+    /**
+     * Check if the plan has unlimited storage.
+     */
+    public function hasUnlimitedStorage(): bool
+    {
+        $plan = $this->getPlan();
+
+        return ! $plan || $plan->storage_quota_gb === null;
+    }
+
+    // ============================================
+    // UTILITY METHODS
+    // ============================================
 
     /**
      * Get all enabled modules for the current plan.
@@ -398,80 +378,19 @@ class PlanAccessService
     }
 
     /**
-     * Get storage quota information.
-     *
-     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
-     */
-    public function getStorageQuota(): array
-    {
-        $plan = $this->getPlan();
-        $usedGb = $this->getStorageUsedGb();
-
-        if (! $plan || $plan->storage_quota_gb === null) {
-            return [
-                'used' => round($usedGb, 2),
-                'max' => null,
-                'unlimited' => true,
-                'remaining' => null,
-                'percent' => 0,
-            ];
-        }
-
-        $max = $plan->storage_quota_gb;
-        $remaining = max(0, $max - $usedGb);
-
-        return [
-            'used' => round($usedGb, 2),
-            'max' => $max,
-            'unlimited' => false,
-            'remaining' => round($remaining, 2),
-            'percent' => $max > 0 ? round(($usedGb / $max) * 100, 1) : 0,
-        ];
-    }
-
-    /**
-     * Check if a file of given size can be uploaded.
-     */
-    public function canUploadFile(int $fileSizeBytes): bool
-    {
-        $plan = $this->getPlan();
-
-        if (! $plan || $plan->storage_quota_gb === null) {
-            return true; // Unlimited
-        }
-
-        $usedGb = $this->getStorageUsedGb();
-        $fileSizeGb = $fileSizeBytes / (1024 * 1024 * 1024);
-
-        return ($usedGb + $fileSizeGb) <= $plan->storage_quota_gb;
-    }
-
-    /**
-     * Check if the plan has unlimited storage.
-     */
-    public function hasUnlimitedStorage(): bool
-    {
-        $plan = $this->getPlan();
-
-        return ! $plan || $plan->storage_quota_gb === null;
-    }
-
-    /**
      * Check if quota is approaching limit (above threshold percentage).
      */
-    public function isQuotaWarning(string $quotaType, int $threshold = 80): bool
+    public function isQuotaWarning(QuotaType|string $quotaType, int $threshold = 80): bool
     {
-        $quota = match ($quotaType) {
-            'members' => $this->getMemberQuota(),
-            'branches' => $this->getBranchQuota(),
-            'sms' => $this->getSmsQuota(),
-            'storage' => $this->getStorageQuota(),
-            'households' => $this->getHouseholdQuota(),
-            'clusters' => $this->getClusterQuota(),
-            'visitors' => $this->getVisitorQuota(),
-            'equipment' => $this->getEquipmentQuota(),
-            default => ['unlimited' => true, 'percent' => 0],
-        };
+        $type = $quotaType instanceof QuotaType
+            ? $quotaType
+            : QuotaType::tryFrom($quotaType);
+
+        if (! $type) {
+            return false;
+        }
+
+        $quota = $this->getQuota($type);
 
         if ($quota['unlimited']) {
             return false;
@@ -487,163 +406,28 @@ class PlanAccessService
     {
         if ($this->tenant) {
             $this->cache()->forget("tenant:{$this->tenant->id}:subscription_plan");
-            $this->cache()->forget("tenant:{$this->tenant->id}:member_count");
-            $this->cache()->forget("tenant:{$this->tenant->id}:branch_count");
-            $this->cache()->forget("tenant:{$this->tenant->id}:sms_sent_".now()->format('Y-m'));
-            $this->cache()->forget("tenant:{$this->tenant->id}:storage_used");
-            $this->cache()->forget("tenant:{$this->tenant->id}:household_count");
-            $this->cache()->forget("tenant:{$this->tenant->id}:cluster_count");
-            $this->cache()->forget("tenant:{$this->tenant->id}:visitor_count");
-            $this->cache()->forget("tenant:{$this->tenant->id}:equipment_count");
+
+            foreach (QuotaType::cases() as $type) {
+                $this->cache()->forget("tenant:{$this->tenant->id}:{$type->cacheKey()}");
+            }
         }
     }
 
     /**
      * Invalidate count caches (call after creating/deleting resources).
      */
-    public function invalidateCountCache(string $type): void
+    public function invalidateCountCache(QuotaType|string $type): void
     {
         if (! $this->tenant) {
             return;
         }
 
-        match ($type) {
-            'members' => $this->cache()->forget("tenant:{$this->tenant->id}:member_count"),
-            'branches' => $this->cache()->forget("tenant:{$this->tenant->id}:branch_count"),
-            'sms' => $this->cache()->forget("tenant:{$this->tenant->id}:sms_sent_".now()->format('Y-m')),
-            'storage' => $this->cache()->forget("tenant:{$this->tenant->id}:storage_used"),
-            'households' => $this->cache()->forget("tenant:{$this->tenant->id}:household_count"),
-            'clusters' => $this->cache()->forget("tenant:{$this->tenant->id}:cluster_count"),
-            'visitors' => $this->cache()->forget("tenant:{$this->tenant->id}:visitor_count"),
-            'equipment' => $this->cache()->forget("tenant:{$this->tenant->id}:equipment_count"),
-            default => null,
-        };
-    }
+        $quotaType = $type instanceof QuotaType
+            ? $type
+            : QuotaType::tryFrom($type);
 
-    private function getMemberCount(): int
-    {
-        if (! $this->tenant) {
-            return 0;
+        if ($quotaType) {
+            $this->cache()->forget("tenant:{$this->tenant->id}:{$quotaType->cacheKey()}");
         }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:member_count",
-            self::COUNT_CACHE_TTL,
-            fn () => Member::count()
-        );
-    }
-
-    private function getBranchCount(): int
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:branch_count",
-            self::COUNT_CACHE_TTL,
-            fn () => Branch::count()
-        );
-    }
-
-    private function getSmsSentThisMonth(): int
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:sms_sent_".now()->format('Y-m'),
-            self::COUNT_CACHE_TTL,
-            fn () => SmsLog::whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->count()
-        );
-    }
-
-    private function getStorageUsedGb(): float
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:storage_used",
-            self::COUNT_CACHE_TTL,
-            function () {
-                // Calculate from actual filesystem
-                $tenantId = $this->tenant->id;
-                $storagePath = base_path("storage/app/public/members/{$tenantId}");
-
-                if (! is_dir($storagePath)) {
-                    return 0.0;
-                }
-
-                $bytes = 0;
-                $iterator = new \RecursiveIteratorIterator(
-                    new \RecursiveDirectoryIterator($storagePath, \FilesystemIterator::SKIP_DOTS)
-                );
-
-                foreach ($iterator as $file) {
-                    if ($file->isFile()) {
-                        $bytes += $file->getSize();
-                    }
-                }
-
-                return $bytes / (1024 * 1024 * 1024); // Convert to GB
-            }
-        );
-    }
-
-    private function getHouseholdCount(): int
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:household_count",
-            self::COUNT_CACHE_TTL,
-            fn () => Household::count()
-        );
-    }
-
-    private function getClusterCount(): int
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:cluster_count",
-            self::COUNT_CACHE_TTL,
-            fn () => Cluster::count()
-        );
-    }
-
-    private function getVisitorCount(): int
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:visitor_count",
-            self::COUNT_CACHE_TTL,
-            fn () => Visitor::count()
-        );
-    }
-
-    private function getEquipmentCount(): int
-    {
-        if (! $this->tenant) {
-            return 0;
-        }
-
-        return $this->cache()->remember(
-            "tenant:{$this->tenant->id}:equipment_count",
-            self::COUNT_CACHE_TTL,
-            fn () => Equipment::count()
-        );
     }
 }

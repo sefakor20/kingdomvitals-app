@@ -142,6 +142,14 @@ class SubscriptionPlan extends Model
     }
 
     /**
+     * Check if the plan has unlimited SMS credits.
+     */
+    public function hasUnlimitedSms(): bool
+    {
+        return $this->sms_credits_monthly === null;
+    }
+
+    /**
      * Get annual savings percentage.
      */
     public function getAnnualSavingsPercent(): float
