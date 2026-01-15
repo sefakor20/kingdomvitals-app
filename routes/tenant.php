@@ -6,6 +6,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
+use App\Livewire\Settings\Subscription;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,6 +88,7 @@ Route::middleware(['web'])->group(function (): void {
         Route::get('settings/profile', Profile::class)->name('profile.edit');
         Route::get('settings/password', Password::class)->name('user-password.edit');
         Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
+        Route::get('settings/subscription', Subscription::class)->name('subscription.show');
 
         // Branch Management (no module restriction - core feature)
         Route::get('/branches', \App\Livewire\Branches\BranchIndex::class)
