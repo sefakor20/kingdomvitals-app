@@ -10,6 +10,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -304,9 +305,19 @@ class MemberShow extends Component
 
         // Handle photo upload
         if ($this->photo instanceof TemporaryUploadedFile) {
+            // Check storage quota before uploading
+            if (! app(PlanAccessService::class)->canUploadFile($this->photo->getSize())) {
+                $this->addError('photo', __('Storage quota exceeded. Please delete some files or upgrade your plan.'));
+
+                return;
+            }
+
             // Delete old photo if exists
             $this->deleteOldPhoto($this->member);
             $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+
+            // Invalidate storage cache after upload
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
 
         // Remove photo from validated data (it's not a model field)
@@ -337,6 +348,9 @@ class MemberShow extends Component
             $this->deleteOldPhoto($this->member);
             $this->member->update(['photo_url' => null]);
             $this->existingPhotoUrl = null;
+
+            // Invalidate storage cache after deletion
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
         $this->photo = null;
     }
