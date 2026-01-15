@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class VisitorFollowUpPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any follow-ups for a branch.
      * All roles can view follow-ups.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Visitors)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class VisitorFollowUpPolicy
      */
     public function view(User $user, VisitorFollowUp $followUp): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Visitors)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $followUp->visitor->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class VisitorFollowUpPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Visitors)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

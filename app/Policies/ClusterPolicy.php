@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class ClusterPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any clusters for a branch.
      * All roles can view clusters.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Clusters)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class ClusterPolicy
      */
     public function view(User $user, Cluster $cluster): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Clusters)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $cluster->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class ClusterPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Clusters)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

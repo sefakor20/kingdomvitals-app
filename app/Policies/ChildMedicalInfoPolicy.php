@@ -3,21 +3,29 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\ChildMedicalInfo;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 /**
  * Policy for Child Medical Info management in the Children module.
  */
 class ChildMedicalInfoPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any medical info for a branch.
      * All roles can view medical info.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -29,6 +37,10 @@ class ChildMedicalInfoPolicy
      */
     public function view(User $user, ChildMedicalInfo $medicalInfo): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $medicalInfo->member->primary_branch_id)
             ->exists();
@@ -40,6 +52,10 @@ class ChildMedicalInfoPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

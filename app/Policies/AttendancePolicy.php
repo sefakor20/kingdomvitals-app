@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class AttendancePolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any attendance records for a branch.
      * All roles can view attendance.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Attendance)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class AttendancePolicy
      */
     public function view(User $user, Attendance $attendance): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Attendance)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $attendance->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class AttendancePolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Attendance)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

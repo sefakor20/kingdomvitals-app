@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Pledge;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class PledgePolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any pledges for a branch.
      * All roles can view pledges.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Pledges)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class PledgePolicy
      */
     public function view(User $user, Pledge $pledge): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Pledges)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $pledge->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class PledgePolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Pledges)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

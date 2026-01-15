@@ -5,18 +5,26 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class HouseholdPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any households for a branch.
      * All roles can view households.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Households)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -28,6 +36,10 @@ class HouseholdPolicy
      */
     public function view(User $user, Household $household): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Households)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $household->branch_id)
             ->exists();
@@ -39,6 +51,10 @@ class HouseholdPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Households)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [
