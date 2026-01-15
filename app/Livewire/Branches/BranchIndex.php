@@ -124,6 +124,14 @@ class BranchIndex extends Component
     public function create(): void
     {
         $this->authorize('create', Branch::class);
+
+        // Double-check quota (UI should already prevent this, but be safe)
+        if (! app(PlanAccessService::class)->canCreateBranch()) {
+            $this->dispatch('quota-exceeded');
+
+            return;
+        }
+
         $this->resetForm();
         $this->showCreateModal = true;
     }
@@ -131,6 +139,14 @@ class BranchIndex extends Component
     public function store(): void
     {
         $this->authorize('create', Branch::class);
+
+        // Check branch quota before creation
+        if (! app(PlanAccessService::class)->canCreateBranch()) {
+            $this->addError('name', __('Branch quota exceeded for your plan. Please upgrade to add more branches.'));
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $branch = Branch::create($validated);
