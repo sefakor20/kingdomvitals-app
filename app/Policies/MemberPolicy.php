@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class MemberPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any members for a branch.
      * All roles can view members.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Members)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class MemberPolicy
      */
     public function view(User $user, Member $member): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Members)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $member->primary_branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class MemberPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Members)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

@@ -81,6 +81,134 @@
             </div>
         </div>
 
+        {{-- Plan Usage Section (only show if there are quota limits) --}}
+        @if($this->hasAnyQuotaLimits)
+            <div class="mb-8">
+                <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="mb-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <flux:icon icon="chart-bar" class="size-5 text-zinc-500" />
+                            <flux:heading size="lg">{{ __('Plan Usage') }}</flux:heading>
+                            @if($this->planName)
+                                <flux:badge size="sm" color="zinc">{{ $this->planName }}</flux:badge>
+                            @endif
+                        </div>
+                        @if(Route::has('upgrade.required'))
+                            <flux:button variant="ghost" size="sm" href="{{ route('upgrade.required', ['module' => 'dashboard']) }}">
+                                {{ __('Upgrade Plan') }}
+                            </flux:button>
+                        @endif
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {{-- Members Quota --}}
+                        @unless($this->memberQuota['unlimited'])
+                            @php
+                                $memberColor = match(true) {
+                                    $this->memberQuota['percent'] >= 100 => 'red',
+                                    $this->memberQuota['percent'] >= 80 => 'amber',
+                                    default => 'blue',
+                                };
+                            @endphp
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-zinc-600 dark:text-zinc-400">{{ __('Members') }}</span>
+                                    <span class="font-medium">{{ $this->memberQuota['current'] }} / {{ $this->memberQuota['max'] }}</span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <div class="h-full rounded-full bg-{{ $memberColor }}-500 transition-all"
+                                         style="width: {{ min($this->memberQuota['percent'], 100) }}%"></div>
+                                </div>
+                                @if($this->memberQuota['percent'] >= 80)
+                                    <flux:text class="text-xs text-{{ $memberColor }}-600 dark:text-{{ $memberColor }}-400">
+                                        {{ $this->memberQuota['remaining'] }} {{ __('remaining') }}
+                                    </flux:text>
+                                @endif
+                            </div>
+                        @endunless
+
+                        {{-- SMS Quota --}}
+                        @unless($this->smsQuota['unlimited'])
+                            @php
+                                $smsColor = match(true) {
+                                    $this->smsQuota['percent'] >= 100 => 'red',
+                                    $this->smsQuota['percent'] >= 80 => 'amber',
+                                    default => 'green',
+                                };
+                            @endphp
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-zinc-600 dark:text-zinc-400">{{ __('SMS Credits') }}</span>
+                                    <span class="font-medium">{{ $this->smsQuota['sent'] }} / {{ $this->smsQuota['max'] }}</span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <div class="h-full rounded-full bg-{{ $smsColor }}-500 transition-all"
+                                         style="width: {{ min($this->smsQuota['percent'], 100) }}%"></div>
+                                </div>
+                                @if($this->smsQuota['percent'] >= 80)
+                                    <flux:text class="text-xs text-{{ $smsColor }}-600 dark:text-{{ $smsColor }}-400">
+                                        {{ $this->smsQuota['remaining'] }} {{ __('remaining this month') }}
+                                    </flux:text>
+                                @endif
+                            </div>
+                        @endunless
+
+                        {{-- Storage Quota --}}
+                        @unless($this->storageQuota['unlimited'])
+                            @php
+                                $storageColor = match(true) {
+                                    $this->storageQuota['percent'] >= 100 => 'red',
+                                    $this->storageQuota['percent'] >= 80 => 'amber',
+                                    default => 'purple',
+                                };
+                            @endphp
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-zinc-600 dark:text-zinc-400">{{ __('Storage') }}</span>
+                                    <span class="font-medium">{{ $this->storageQuota['used'] }} / {{ $this->storageQuota['max'] }} GB</span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <div class="h-full rounded-full bg-{{ $storageColor }}-500 transition-all"
+                                         style="width: {{ min($this->storageQuota['percent'], 100) }}%"></div>
+                                </div>
+                                @if($this->storageQuota['percent'] >= 80)
+                                    <flux:text class="text-xs text-{{ $storageColor }}-600 dark:text-{{ $storageColor }}-400">
+                                        {{ $this->storageQuota['remaining'] }} GB {{ __('remaining') }}
+                                    </flux:text>
+                                @endif
+                            </div>
+                        @endunless
+
+                        {{-- Branches Quota --}}
+                        @unless($this->branchQuota['unlimited'])
+                            @php
+                                $branchColor = match(true) {
+                                    $this->branchQuota['percent'] >= 100 => 'red',
+                                    $this->branchQuota['percent'] >= 80 => 'amber',
+                                    default => 'cyan',
+                                };
+                            @endphp
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-zinc-600 dark:text-zinc-400">{{ __('Branches') }}</span>
+                                    <span class="font-medium">{{ $this->branchQuota['current'] }} / {{ $this->branchQuota['max'] }}</span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <div class="h-full rounded-full bg-{{ $branchColor }}-500 transition-all"
+                                         style="width: {{ min($this->branchQuota['percent'], 100) }}%"></div>
+                                </div>
+                                @if($this->branchQuota['percent'] >= 80)
+                                    <flux:text class="text-xs text-{{ $branchColor }}-600 dark:text-{{ $branchColor }}-400">
+                                        {{ $this->branchQuota['remaining'] }} {{ __('remaining') }}
+                                    </flux:text>
+                                @endif
+                            </div>
+                        @endunless
+                    </div>
+                </div>
+            </div>
+        @endif
+
         {{-- Secondary Content: Quick Actions + Pending Follow-ups --}}
         <div class="mb-6 grid gap-6 lg:grid-cols-3">
             {{-- Quick Actions --}}

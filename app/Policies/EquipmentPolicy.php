@@ -5,17 +5,25 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Equipment;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class EquipmentPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * All roles with branch access can view equipment.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Equipment)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -23,6 +31,10 @@ class EquipmentPolicy
 
     public function view(User $user, Equipment $equipment): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Equipment)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $equipment->branch_id)
             ->exists();
@@ -33,6 +45,10 @@ class EquipmentPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Equipment)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

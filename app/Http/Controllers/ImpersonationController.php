@@ -28,7 +28,7 @@ class ImpersonationController extends Controller
 
         $log = $this->impersonationService->getActiveSession($token);
 
-        if (!$log instanceof \App\Models\TenantImpersonationLog) {
+        if (! $log instanceof \App\Models\TenantImpersonationLog) {
             abort(403, 'Impersonation session expired or invalid');
         }
 

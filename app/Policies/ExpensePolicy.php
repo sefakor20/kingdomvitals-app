@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Expense;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class ExpensePolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any expenses for a branch.
      * All roles can view expenses.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Expenses)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class ExpensePolicy
      */
     public function view(User $user, Expense $expense): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Expenses)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $expense->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class ExpensePolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Expenses)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

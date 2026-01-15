@@ -13,6 +13,14 @@ class SubscriptionPlan extends Model
 {
     use HasFactory, HasUuids;
 
+    /**
+     * The database connection to use for this model.
+     * SubscriptionPlans are stored in the central database.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'name',
         'slug',
@@ -23,6 +31,10 @@ class SubscriptionPlan extends Model
         'max_branches',
         'storage_quota_gb',
         'sms_credits_monthly',
+        'max_households',
+        'max_clusters',
+        'max_visitors',
+        'max_equipment',
         'enabled_modules',
         'features',
         'support_level',
@@ -40,6 +52,10 @@ class SubscriptionPlan extends Model
             'max_branches' => 'integer',
             'storage_quota_gb' => 'integer',
             'sms_credits_monthly' => 'integer',
+            'max_households' => 'integer',
+            'max_clusters' => 'integer',
+            'max_visitors' => 'integer',
+            'max_equipment' => 'integer',
             'enabled_modules' => 'array',
             'features' => 'array',
             'support_level' => SupportLevel::class,
@@ -83,6 +99,54 @@ class SubscriptionPlan extends Model
     public function hasUnlimitedBranches(): bool
     {
         return $this->max_branches === null;
+    }
+
+    /**
+     * Check if the plan has unlimited storage.
+     */
+    public function hasUnlimitedStorage(): bool
+    {
+        return $this->storage_quota_gb === null;
+    }
+
+    /**
+     * Check if the plan has unlimited households.
+     */
+    public function hasUnlimitedHouseholds(): bool
+    {
+        return $this->max_households === null;
+    }
+
+    /**
+     * Check if the plan has unlimited clusters.
+     */
+    public function hasUnlimitedClusters(): bool
+    {
+        return $this->max_clusters === null;
+    }
+
+    /**
+     * Check if the plan has unlimited visitors.
+     */
+    public function hasUnlimitedVisitors(): bool
+    {
+        return $this->max_visitors === null;
+    }
+
+    /**
+     * Check if the plan has unlimited equipment.
+     */
+    public function hasUnlimitedEquipment(): bool
+    {
+        return $this->max_equipment === null;
+    }
+
+    /**
+     * Check if the plan has unlimited SMS credits.
+     */
+    public function hasUnlimitedSms(): bool
+    {
+        return $this->sms_credits_monthly === null;
     }
 
     /**

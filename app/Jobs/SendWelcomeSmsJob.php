@@ -10,6 +10,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
+use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -109,6 +110,14 @@ class SendWelcomeSmsJob implements ShouldQueue
             return;
         }
 
+        // Check SMS quota before sending (secondary safety check)
+        $planAccess = app(PlanAccessService::class);
+        if (! $planAccess->canSendSms(1)) {
+            Log::warning('SendWelcomeSmsJob: SMS quota exceeded', ['member_id' => $member->id]);
+
+            return;
+        }
+
         // Get welcome message
         $message = $this->getWelcomeMessage($branch);
         $personalizedMessage = $this->personalizeMessage($message, $member, $branch);
@@ -140,6 +149,9 @@ class SendWelcomeSmsJob implements ShouldQueue
         ]);
 
         if ($result['success']) {
+            // Invalidate SMS count cache for quota tracking
+            $planAccess->invalidateCountCache('sms');
+
             Log::info('SendWelcomeSmsJob: Welcome SMS sent', [
                 'member_id' => $member->id,
                 'phone' => $member->phone,

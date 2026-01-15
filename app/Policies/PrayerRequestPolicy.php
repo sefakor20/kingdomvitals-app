@@ -5,18 +5,26 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Enums\PrayerRequestPrivacy;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class PrayerRequestPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * All roles with branch access can view prayer requests.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::PrayerRequests)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -30,6 +38,10 @@ class PrayerRequestPolicy
      */
     public function view(User $user, PrayerRequest $prayerRequest): bool
     {
+        if (! $this->moduleEnabled(PlanModule::PrayerRequests)) {
+            return false;
+        }
+
         $branchAccess = $user->branchAccess()
             ->where('branch_id', $prayerRequest->branch_id)
             ->first();
@@ -57,6 +69,10 @@ class PrayerRequestPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::PrayerRequests)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [
@@ -143,9 +159,14 @@ class PrayerRequestPolicy
 
     /**
      * Admin, Manager, and Staff can send prayer chain notifications.
+     * Requires the prayer_chain_sms feature to be enabled.
      */
     public function sendPrayerChain(User $user, PrayerRequest $prayerRequest): bool
     {
+        if (! $this->featureEnabled('prayer_chain_sms')) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $prayerRequest->branch_id)
             ->whereIn('role', [

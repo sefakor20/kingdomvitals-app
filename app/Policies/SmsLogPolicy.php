@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class SmsLogPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any SMS logs for a branch.
      * All roles can view SMS logs.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Sms)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class SmsLogPolicy
      */
     public function view(User $user, SmsLog $smsLog): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Sms)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $smsLog->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class SmsLogPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Sms)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

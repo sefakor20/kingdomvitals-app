@@ -8,6 +8,7 @@ use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -169,6 +170,65 @@ class MemberIndex extends Component
         return auth()->user()->can('deleteAny', [Member::class, $this->branch]);
     }
 
+    /**
+     * Get member quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function memberQuota(): array
+    {
+        return app(PlanAccessService::class)->getMemberQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('members', 80);
+    }
+
+    /**
+     * Check if member creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateMember();
+    }
+
+    /**
+     * Get storage quota information for display.
+     *
+     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
+     */
+    #[Computed]
+    public function storageQuota(): array
+    {
+        return app(PlanAccessService::class)->getStorageQuota();
+    }
+
+    /**
+     * Check if the storage quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showStorageWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('storage', 80);
+    }
+
+    /**
+     * Check if member import feature is available on the current plan.
+     * This is a placeholder for future member import functionality.
+     */
+    #[Computed]
+    public function canImportMembers(): bool
+    {
+        return app(PlanAccessService::class)->hasFeature('member_import');
+    }
+
     protected function rules(): array
     {
         return [
@@ -203,6 +263,14 @@ class MemberIndex extends Component
     public function create(): void
     {
         $this->authorize('create', [Member::class, $this->branch]);
+
+        // Double-check quota (UI should already prevent this, but be safe)
+        if (! app(PlanAccessService::class)->canCreateMember()) {
+            $this->dispatch('quota-exceeded');
+
+            return;
+        }
+
         $this->resetForm();
         $this->showCreateModal = true;
     }
@@ -210,6 +278,14 @@ class MemberIndex extends Component
     public function store(): void
     {
         $this->authorize('create', [Member::class, $this->branch]);
+
+        // Check member quota before creation
+        if (! app(PlanAccessService::class)->canCreateMember()) {
+            $this->addError('first_name', __('Member quota exceeded for your plan. Please upgrade to add more members.'));
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $validated['primary_branch_id'] = $this->branch->id;
@@ -229,13 +305,24 @@ class MemberIndex extends Component
 
         // Handle photo upload - store in central public storage
         if ($this->photo instanceof TemporaryUploadedFile) {
+            // Check storage quota before uploading
+            if (! app(PlanAccessService::class)->canUploadFile($this->photo->getSize())) {
+                $this->addError('photo', __('Storage quota exceeded. Please delete some files or upgrade your plan.'));
+
+                return;
+            }
             $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+            // Invalidate storage cache after upload
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
 
         // Remove photo from validated data (it's not a model field)
         unset($validated['photo']);
 
         Member::create($validated);
+
+        // Invalidate member count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('members');
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -284,10 +371,19 @@ class MemberIndex extends Component
 
         // Handle photo upload - store in central public storage
         if ($this->photo instanceof TemporaryUploadedFile) {
+            // Check storage quota before uploading
+            if (! app(PlanAccessService::class)->canUploadFile($this->photo->getSize())) {
+                $this->addError('photo', __('Storage quota exceeded. Please delete some files or upgrade your plan.'));
+
+                return;
+            }
+
             // Delete old photo if exists
             $this->deleteOldPhoto($this->editingMember);
 
             $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+            // Invalidate storage cache after upload
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
 
         // Remove photo from validated data (it's not a model field)
@@ -313,6 +409,10 @@ class MemberIndex extends Component
         $this->authorize('delete', $this->deletingMember);
 
         $this->deletingMember->delete();
+
+        // Invalidate member count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('members');
+
         $this->showDeleteModal = false;
         $this->deletingMember = null;
         $this->dispatch('member-deleted');
@@ -323,6 +423,10 @@ class MemberIndex extends Component
         $member = Member::onlyTrashed()->where('id', $memberId)->firstOrFail();
         $this->authorize('restore', $member);
         $member->restore();
+
+        // Invalidate member count cache for quota tracking
+        app(PlanAccessService::class)->invalidateCountCache('members');
+
         $this->dispatch('member-restored');
     }
 
@@ -375,6 +479,8 @@ class MemberIndex extends Component
             $this->deleteOldPhoto($this->editingMember);
             $this->editingMember->update(['photo_url' => null]);
             $this->existingPhotoUrl = null;
+            // Invalidate storage cache after deletion
+            app(PlanAccessService::class)->invalidateCountCache('storage');
         }
         $this->photo = null;
     }

@@ -10,6 +10,7 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\SmsLog;
 use App\Models\User;
+use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -51,11 +52,32 @@ class SendPrayerChainSmsJob implements ShouldQueue
             return;
         }
 
+        // Check if prayer chain SMS feature is enabled (defense-in-depth)
+        $planAccess = app(PlanAccessService::class);
+        if (! $planAccess->hasFeature('prayer_chain_sms')) {
+            Log::warning('SendPrayerChainSmsJob: Prayer chain SMS feature is not enabled', [
+                'prayer_request_id' => $prayerRequest->id,
+            ]);
+
+            return;
+        }
+
         // Get cluster members who haven't opted out of SMS
         $members = $this->getEligibleMembers($prayerRequest);
 
         if ($members->isEmpty()) {
             Log::info('SendPrayerChainSmsJob: No eligible members to notify', ['prayer_request_id' => $prayerRequest->id]);
+
+            return;
+        }
+
+        // Check SMS quota before sending (secondary safety check)
+        $recipientCount = $members->count();
+        if (! $planAccess->canSendSms($recipientCount)) {
+            Log::warning('SendPrayerChainSmsJob: SMS quota exceeded', [
+                'prayer_request_id' => $prayerRequest->id,
+                'recipients' => $recipientCount,
+            ]);
 
             return;
         }
@@ -113,6 +135,9 @@ class SendPrayerChainSmsJob implements ShouldQueue
                 'provider_message_id' => $trackingId,
                 'sent_at' => now(),
             ]);
+
+            // Invalidate SMS count cache for quota tracking
+            $planAccess->invalidateCountCache('sms');
 
             Log::info('SendPrayerChainSmsJob: Prayer chain SMS sent successfully', [
                 'prayer_request_id' => $prayerRequest->id,

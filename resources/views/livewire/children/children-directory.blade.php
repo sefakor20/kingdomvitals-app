@@ -581,4 +581,37 @@
             </form>
         </div>
     </flux:modal>
+
+    <!-- Success Toasts -->
+    <x-toast on="child-created" type="success">
+        {{ __('Child created successfully.') }}
+    </x-toast>
+
+    <x-toast on="child-updated" type="success">
+        {{ __('Child updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="age-group-assigned" type="success">
+        {{ __('Age group assigned successfully.') }}
+    </x-toast>
+
+    <x-toast on="age-group-auto-assigned" type="success">
+        {{ __('Age group automatically assigned.') }}
+    </x-toast>
+
+    <x-toast on="contact-added" type="success">
+        {{ __('Emergency contact added successfully.') }}
+    </x-toast>
+
+    <x-toast on="contact-updated" type="success">
+        {{ __('Emergency contact updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="contact-deleted" type="success">
+        {{ __('Emergency contact deleted successfully.') }}
+    </x-toast>
+
+    <x-toast on="medical-info-saved" type="success">
+        {{ __('Medical information saved successfully.') }}
+    </x-toast>
 </section>

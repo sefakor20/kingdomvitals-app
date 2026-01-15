@@ -5,12 +5,86 @@
             <flux:subheading>{{ __('Manage members for :branch', ['branch' => $branch->name]) }}</flux:subheading>
         </div>
 
-        @if($this->canCreate)
+        @if($this->canCreate && $this->canCreateWithinQuota)
             <flux:button variant="primary" wire:click="create" icon="plus">
                 {{ __('Add Member') }}
             </flux:button>
+        @elseif($this->canCreate && !$this->canCreateWithinQuota)
+            <flux:button variant="ghost" disabled icon="lock-closed" class="cursor-not-allowed">
+                {{ __('Member Limit Reached') }}
+            </flux:button>
         @endif
     </div>
+
+    {{-- Quota Warning Banner --}}
+    @if($this->showQuotaWarning && !$this->memberQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ __('Approaching Member Limit') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('You have :current of :max members (:percent% used). Consider upgrading your plan for more capacity.', [
+                            'current' => $this->memberQuota['current'],
+                            'max' => $this->memberQuota['max'],
+                            'percent' => $this->memberQuota['percent'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'members']) }}" variant="ghost" size="sm">
+                    {{ __('Upgrade') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Quota Exceeded Banner --}}
+    @if(!$this->canCreateWithinQuota && !$this->memberQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="x-circle" class="size-5 text-red-600 dark:text-red-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-red-800 dark:text-red-200">
+                        {{ __('Member Limit Reached') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-red-700 dark:text-red-300">
+                        {{ __('You have reached your limit of :max members. Upgrade your plan to add more members.', [
+                            'max' => $this->memberQuota['max'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'members']) }}" variant="primary" size="sm">
+                    {{ __('Upgrade Now') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Storage Quota Warning Banner --}}
+    @if($this->showStorageWarning && !$this->storageQuota['unlimited'])
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                <div class="flex-1">
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ __('Approaching Storage Limit') }}
+                    </flux:text>
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('You have used :used GB of :max GB storage (:percent% used). Consider upgrading your plan for more storage.', [
+                            'used' => $this->storageQuota['used'],
+                            'max' => $this->storageQuota['max'],
+                            'percent' => $this->storageQuota['percent'],
+                        ]) }}
+                    </flux:text>
+                </div>
+                <flux:button href="{{ route('upgrade.required', ['module' => 'storage']) }}" variant="ghost" size="sm">
+                    {{ __('Upgrade') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
 
     <!-- View Filter Tabs -->
     @if($this->canRestore)

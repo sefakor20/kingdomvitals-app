@@ -9,6 +9,7 @@ use App\Enums\VisitorStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -186,6 +187,35 @@ class VisitorIndex extends Component
         return auth()->user()->can('deleteAny', [Visitor::class, $this->branch]);
     }
 
+    /**
+     * Get visitor quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function visitorQuota(): array
+    {
+        return app(PlanAccessService::class)->getVisitorQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('visitors', 80);
+    }
+
+    /**
+     * Check if visitor creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateVisitor();
+    }
+
     #[Computed]
     public function visitorStats(): array
     {
@@ -285,6 +315,14 @@ class VisitorIndex extends Component
     public function store(): void
     {
         $this->authorize('create', [Visitor::class, $this->branch]);
+
+        // Check quota before creating
+        if (! $this->canCreateWithinQuota) {
+            $this->addError('first_name', 'You have reached your visitor limit. Please upgrade your plan to add more visitors.');
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;

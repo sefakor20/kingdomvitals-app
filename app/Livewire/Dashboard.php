@@ -14,6 +14,7 @@ use App\Models\Tenant\MemberActivity;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\BranchContextService;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -52,6 +53,14 @@ class Dashboard extends Component
         unset($this->donationsThisMonth);
         unset($this->lastServiceAttendance);
         unset($this->recentActivity);
+
+        // Clear quota caches
+        unset($this->memberQuota);
+        unset($this->smsQuota);
+        unset($this->storageQuota);
+        unset($this->branchQuota);
+        unset($this->hasAnyQuotaLimits);
+        unset($this->planName);
     }
 
     #[Computed]
@@ -238,6 +247,77 @@ class Dashboard extends Component
             ->latest()
             ->limit(10)
             ->get();
+    }
+
+    // ============================================
+    // PLAN QUOTA METRICS
+    // ============================================
+
+    /**
+     * Get member quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function memberQuota(): array
+    {
+        return app(PlanAccessService::class)->getMemberQuota();
+    }
+
+    /**
+     * Get SMS quota information for display.
+     *
+     * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function smsQuota(): array
+    {
+        return app(PlanAccessService::class)->getSmsQuota();
+    }
+
+    /**
+     * Get storage quota information for display.
+     *
+     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
+     */
+    #[Computed]
+    public function storageQuota(): array
+    {
+        return app(PlanAccessService::class)->getStorageQuota();
+    }
+
+    /**
+     * Get branch quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function branchQuota(): array
+    {
+        return app(PlanAccessService::class)->getBranchQuota();
+    }
+
+    /**
+     * Check if the tenant has any quota limits (not all unlimited).
+     */
+    #[Computed]
+    public function hasAnyQuotaLimits(): bool
+    {
+        return ! $this->memberQuota['unlimited']
+            || ! $this->smsQuota['unlimited']
+            || ! $this->storageQuota['unlimited']
+            || ! $this->branchQuota['unlimited'];
+    }
+
+    /**
+     * Get the current plan name for display.
+     */
+    #[Computed]
+    public function planName(): ?string
+    {
+        $plan = app(PlanAccessService::class)->getPlan();
+
+        return $plan?->name;
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View

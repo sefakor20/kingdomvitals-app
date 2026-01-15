@@ -339,7 +339,7 @@ class RecurringExpenseIndex extends Component
 
         $expense = $this->generatingRecurringExpense->generateExpense();
 
-        if (!$expense instanceof \App\Models\Tenant\Expense) {
+        if (! $expense instanceof \App\Models\Tenant\Expense) {
             // Restore original date if generation failed
             $this->generatingRecurringExpense->update(['next_generation_date' => $originalDate]);
             $this->dispatch('recurring-expense-generation-failed');

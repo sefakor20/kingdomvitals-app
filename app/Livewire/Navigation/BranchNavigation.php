@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Navigation;
 
+use App\Enums\PlanModule;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
@@ -17,6 +18,7 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
+use App\Services\PlanAccessService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -47,9 +49,16 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function planAccess(): PlanAccessService
+    {
+        return app(PlanAccessService::class);
+    }
+
+    #[Computed]
     public function canViewMembers(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Members) &&
             auth()->user()?->can('viewAny', [Member::class, $this->currentBranch]);
     }
 
@@ -57,6 +66,7 @@ class BranchNavigation extends Component
     public function canViewClusters(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Clusters) &&
             auth()->user()?->can('viewAny', [Cluster::class, $this->currentBranch]);
     }
 
@@ -64,6 +74,7 @@ class BranchNavigation extends Component
     public function canViewServices(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Services) &&
             auth()->user()?->can('viewAny', [Service::class, $this->currentBranch]);
     }
 
@@ -71,6 +82,7 @@ class BranchNavigation extends Component
     public function canViewVisitors(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Visitors) &&
             auth()->user()?->can('viewAny', [Visitor::class, $this->currentBranch]);
     }
 
@@ -78,6 +90,7 @@ class BranchNavigation extends Component
     public function canViewAttendance(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Attendance) &&
             auth()->user()?->can('viewAny', [Attendance::class, $this->currentBranch]);
     }
 
@@ -85,6 +98,7 @@ class BranchNavigation extends Component
     public function canViewDonations(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Donations) &&
             auth()->user()?->can('viewAny', [Donation::class, $this->currentBranch]);
     }
 
@@ -92,6 +106,7 @@ class BranchNavigation extends Component
     public function canViewExpenses(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Expenses) &&
             auth()->user()?->can('viewAny', [Expense::class, $this->currentBranch]);
     }
 
@@ -99,6 +114,7 @@ class BranchNavigation extends Component
     public function canViewPledges(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Pledges) &&
             auth()->user()?->can('viewAny', [Pledge::class, $this->currentBranch]);
     }
 
@@ -106,6 +122,7 @@ class BranchNavigation extends Component
     public function canViewBudgets(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Budgets) &&
             auth()->user()?->can('viewAny', [Budget::class, $this->currentBranch]);
     }
 
@@ -113,6 +130,7 @@ class BranchNavigation extends Component
     public function canViewFinanceReports(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Reports) &&
             auth()->user()?->can('viewReports', [Donation::class, $this->currentBranch]);
     }
 
@@ -120,6 +138,7 @@ class BranchNavigation extends Component
     public function canViewSms(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Sms) &&
             auth()->user()?->can('viewAny', [SmsLog::class, $this->currentBranch]);
     }
 
@@ -127,6 +146,7 @@ class BranchNavigation extends Component
     public function canViewEquipment(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Equipment) &&
             auth()->user()?->can('viewAny', [Equipment::class, $this->currentBranch]);
     }
 
@@ -134,6 +154,7 @@ class BranchNavigation extends Component
     public function canViewHouseholds(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Households) &&
             auth()->user()?->can('viewAny', [Household::class, $this->currentBranch]);
     }
 
@@ -141,6 +162,7 @@ class BranchNavigation extends Component
     public function canViewPrayerRequests(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::PrayerRequests) &&
             auth()->user()?->can('viewAny', [PrayerRequest::class, $this->currentBranch]);
     }
 
@@ -148,20 +170,24 @@ class BranchNavigation extends Component
     public function canViewChildren(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Children) &&
             auth()->user()?->can('viewAny', [Member::class, $this->currentBranch]);
     }
 
     #[Computed]
     public function canViewGivingHistory(): bool
     {
-        // All authenticated users can view their own giving history
-        return $this->currentBranch && auth()->check();
+        // All authenticated users can view their own giving history if donations module is enabled
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Donations) &&
+            auth()->check();
     }
 
     #[Computed]
     public function canViewReports(): bool
     {
         return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Reports) &&
             auth()->user()?->can('viewReports', $this->currentBranch);
     }
 

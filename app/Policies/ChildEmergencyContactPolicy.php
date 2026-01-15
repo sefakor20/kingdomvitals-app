@@ -3,21 +3,29 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\ChildEmergencyContact;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 /**
  * Policy for Child Emergency Contact management in the Children module.
  */
 class ChildEmergencyContactPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any emergency contacts for a branch.
      * All roles can view emergency contacts.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -29,6 +37,10 @@ class ChildEmergencyContactPolicy
      */
     public function view(User $user, ChildEmergencyContact $contact): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $contact->member->primary_branch_id)
             ->exists();
@@ -40,6 +52,10 @@ class ChildEmergencyContactPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

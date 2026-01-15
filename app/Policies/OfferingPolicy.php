@@ -3,9 +3,11 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 /**
  * Policy for Regular Offerings module.
@@ -14,12 +16,18 @@ use App\Models\User;
  */
 class OfferingPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any offerings for a branch.
      * All roles can view offerings.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Donations)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -31,6 +39,10 @@ class OfferingPolicy
      */
     public function view(User $user, Donation $offering): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Donations)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $offering->branch_id)
             ->exists();
@@ -42,6 +54,10 @@ class OfferingPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Donations)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Service;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class ServicePolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any services for a branch.
      * All roles can view services.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Services)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class ServicePolicy
      */
     public function view(User $user, Service $service): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Services)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $service->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class ServicePolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Services)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

@@ -387,7 +387,7 @@ class VisitorShow extends Component
 
     public function completeFollowUp(): void
     {
-        if (!$this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return;
         }
 

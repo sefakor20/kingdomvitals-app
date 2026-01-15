@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class VisitorPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any visitors for a branch.
      * All roles can view visitors.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Visitors)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class VisitorPolicy
      */
     public function view(User $user, Visitor $visitor): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Visitors)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $visitor->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class VisitorPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Visitors)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

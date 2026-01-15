@@ -11,6 +11,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\EquipmentCheckout;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -177,6 +178,35 @@ class EquipmentIndex extends Component
         return auth()->user()->can('deleteAny', [Equipment::class, $this->branch]);
     }
 
+    /**
+     * Get equipment quota information for display.
+     *
+     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function equipmentQuota(): array
+    {
+        return app(PlanAccessService::class)->getEquipmentQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('equipment', 80);
+    }
+
+    /**
+     * Check if equipment creation is allowed based on quota.
+     */
+    #[Computed]
+    public function canCreateWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateEquipment();
+    }
+
     #[Computed]
     public function equipmentStats(): array
     {
@@ -242,6 +272,14 @@ class EquipmentIndex extends Component
     public function store(): void
     {
         $this->authorize('create', [Equipment::class, $this->branch]);
+
+        // Check quota before creating
+        if (! $this->canCreateWithinQuota) {
+            $this->addError('name', 'You have reached your equipment limit. Please upgrade your plan to add more equipment.');
+
+            return;
+        }
+
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;

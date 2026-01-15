@@ -44,6 +44,52 @@
                 </div>
             </div>
         @endif
+
+        {{-- SMS Quota Warning Banner --}}
+        @if($this->showQuotaWarning && !$this->smsQuota['unlimited'])
+            <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                <div class="flex items-center gap-3">
+                    <flux:icon name="exclamation-triangle" class="size-5 text-amber-600 dark:text-amber-400" />
+                    <div class="flex-1">
+                        <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                            {{ __('Approaching SMS Limit') }}
+                        </flux:text>
+                        <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                            {{ __('You have sent :sent of :max SMS this month (:percent% used).', [
+                                'sent' => $this->smsQuota['sent'],
+                                'max' => $this->smsQuota['max'],
+                                'percent' => $this->smsQuota['percent'],
+                            ]) }}
+                        </flux:text>
+                    </div>
+                    <flux:button href="{{ route('upgrade.required', ['module' => 'sms']) }}" variant="ghost" size="sm">
+                        {{ __('Upgrade') }}
+                    </flux:button>
+                </div>
+            </div>
+        @endif
+
+        {{-- SMS Quota Exceeded Banner --}}
+        @if(!$this->smsQuota['unlimited'] && ($this->smsQuota['remaining'] ?? 0) <= 0)
+            <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                <div class="flex items-center gap-3">
+                    <flux:icon name="x-circle" class="size-5 text-red-600 dark:text-red-400" />
+                    <div class="flex-1">
+                        <flux:text class="font-medium text-red-800 dark:text-red-200">
+                            {{ __('SMS Limit Reached') }}
+                        </flux:text>
+                        <flux:text class="text-sm text-red-700 dark:text-red-300">
+                            {{ __('You have used all :max SMS credits for this month. Upgrade your plan to send more.', [
+                                'max' => $this->smsQuota['max'],
+                            ]) }}
+                        </flux:text>
+                    </div>
+                    <flux:button href="{{ route('upgrade.required', ['module' => 'sms']) }}" variant="primary" size="sm">
+                        {{ __('Upgrade Now') }}
+                    </flux:button>
+                </div>
+            </div>
+        @endif
     @endif
 
     <div class="grid gap-6 lg:grid-cols-3">
@@ -237,26 +283,45 @@
                 </div>
 
                 <!-- Schedule Option -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <flux:switch wire:model.live="isScheduled" />
-                        <flux:text class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Schedule for later') }}</flux:text>
-                    </div>
-
-                    @if($isScheduled)
-                        <div>
-                            <flux:input
-                                wire:model="scheduledAt"
-                                type="datetime-local"
-                                :label="__('Send At')"
-                                min="{{ now()->format('Y-m-d\TH:i') }}"
-                            />
-                            @error('scheduledAt')
-                                <flux:text class="mt-1 text-sm text-red-500">{{ $message }}</flux:text>
-                            @enderror
+                @if ($this->canScheduleSms)
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <flux:switch wire:model.live="isScheduled" />
+                            <flux:text class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Schedule for later') }}</flux:text>
                         </div>
-                    @endif
-                </div>
+
+                        @if ($isScheduled)
+                            <div>
+                                <flux:input
+                                    wire:model="scheduledAt"
+                                    type="datetime-local"
+                                    :label="__('Send At')"
+                                    min="{{ now()->format('Y-m-d\TH:i') }}"
+                                />
+                                @error('scheduledAt')
+                                    <flux:text class="mt-1 text-sm text-red-500">{{ $message }}</flux:text>
+                                @enderror
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                        <div class="flex items-center gap-3">
+                            <flux:icon name="clock" class="size-5 text-zinc-400" />
+                            <div class="flex-1">
+                                <flux:text class="font-medium text-zinc-700 dark:text-zinc-300">
+                                    {{ __('SMS Scheduling') }}
+                                </flux:text>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ __('Upgrade your plan to schedule SMS messages for later delivery.') }}
+                                </flux:text>
+                            </div>
+                            <flux:button href="{{ route('upgrade.required', ['module' => 'sms']) }}" variant="ghost" size="sm">
+                                {{ __('Upgrade') }}
+                            </flux:button>
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Actions -->
                 <div class="flex items-center justify-between border-t border-zinc-200 pt-4 dark:border-zinc-700">

@@ -8,6 +8,7 @@ use App\Enums\SmsStatus;
 use App\Enums\SmsType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
+use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -154,6 +155,26 @@ class SmsIndex extends Component
     public function isSmsConfigured(): bool
     {
         return TextTangoService::forBranch($this->branch)->isConfigured();
+    }
+
+    /**
+     * Get SMS quota information for display.
+     *
+     * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    #[Computed]
+    public function smsQuota(): array
+    {
+        return app(PlanAccessService::class)->getSmsQuota();
+    }
+
+    /**
+     * Check if the quota warning should be shown (above 80% usage).
+     */
+    #[Computed]
+    public function showQuotaWarning(): bool
+    {
+        return app(PlanAccessService::class)->isQuotaWarning('sms', 80);
     }
 
     public function applyQuickFilter(string $filter): void

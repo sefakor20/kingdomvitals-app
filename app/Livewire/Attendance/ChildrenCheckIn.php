@@ -219,7 +219,7 @@ class ChildrenCheckIn extends Component
 
     public function confirmCheckout(): void
     {
-        if (!$this->checkoutRecord instanceof \App\Models\Tenant\ChildrenCheckinSecurity) {
+        if (! $this->checkoutRecord instanceof \App\Models\Tenant\ChildrenCheckinSecurity) {
             return;
         }
 

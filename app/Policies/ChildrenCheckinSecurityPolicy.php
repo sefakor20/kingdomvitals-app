@@ -5,18 +5,26 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\ChildrenCheckinSecurity;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class ChildrenCheckinSecurityPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any children check-in security records for a branch.
      * All roles can view.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -28,6 +36,10 @@ class ChildrenCheckinSecurityPolicy
      */
     public function view(User $user, ChildrenCheckinSecurity $security): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $security->attendance->branch_id)
             ->exists();
@@ -39,6 +51,10 @@ class ChildrenCheckinSecurityPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Children)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

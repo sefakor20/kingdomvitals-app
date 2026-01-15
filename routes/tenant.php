@@ -6,6 +6,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
+use App\Livewire\Settings\Subscription;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -68,148 +69,193 @@ Route::middleware(['web'])->group(function (): void {
         ->name('webhooks.paystack')
         ->withoutMiddleware(['web']);
 
+    // Upgrade required page (auth required but no onboarding check)
+    Route::middleware(['auth'])->group(function (): void {
+        Route::get('/upgrade', function () {
+            $module = request('module');
+            $moduleName = $module
+                ? \App\Enums\PlanModule::tryFrom($module)?->label() ?? __('This feature')
+                : __('This feature');
+
+            return view('upgrade-required', compact('moduleName'));
+        })->name('upgrade.required');
+    });
+
     // Authenticated routes (require completed onboarding)
     Route::middleware(['auth', 'onboarding.complete'])->group(function (): void {
-        // Settings
+        // Settings (no module restriction)
         Route::redirect('settings', 'settings/profile');
         Route::get('settings/profile', Profile::class)->name('profile.edit');
         Route::get('settings/password', Password::class)->name('user-password.edit');
         Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
+        Route::get('settings/subscription', Subscription::class)->name('subscription.show');
 
-        // Branch Management
+        // Branch Management (no module restriction - core feature)
         Route::get('/branches', \App\Livewire\Branches\BranchIndex::class)
             ->name('branches.index');
+        Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)
+            ->name('branches.settings');
 
-        // Branch User Management
+        // Branch User Management (no module restriction - core feature)
         Route::get('/branches/{branch}/users', \App\Livewire\Users\BranchUserIndex::class)
             ->name('branches.users.index');
 
-        // Member Management
-        Route::get('/branches/{branch}/members', \App\Livewire\Members\MemberIndex::class)
-            ->name('members.index');
-        Route::get('/branches/{branch}/members/{member}', \App\Livewire\Members\MemberShow::class)
-            ->name('members.show');
+        // Member Management (requires members module)
+        Route::middleware(['module:members'])->group(function (): void {
+            Route::get('/branches/{branch}/members', \App\Livewire\Members\MemberIndex::class)
+                ->name('members.index');
+            Route::get('/branches/{branch}/members/{member}', \App\Livewire\Members\MemberShow::class)
+                ->name('members.show');
+        });
 
-        // Cluster Management
-        Route::get('/branches/{branch}/clusters', \App\Livewire\Clusters\ClusterIndex::class)
-            ->name('clusters.index');
-        Route::get('/branches/{branch}/clusters/{cluster}', \App\Livewire\Clusters\ClusterShow::class)
-            ->name('clusters.show');
+        // Cluster Management (requires clusters module)
+        Route::middleware(['module:clusters'])->group(function (): void {
+            Route::get('/branches/{branch}/clusters', \App\Livewire\Clusters\ClusterIndex::class)
+                ->name('clusters.index');
+            Route::get('/branches/{branch}/clusters/{cluster}', \App\Livewire\Clusters\ClusterShow::class)
+                ->name('clusters.show');
+        });
 
-        // Service Management
-        Route::get('/branches/{branch}/services', \App\Livewire\Services\ServiceIndex::class)
-            ->name('services.index');
-        Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
-            ->name('services.show');
+        // Service Management (requires services module)
+        Route::middleware(['module:services'])->group(function (): void {
+            Route::get('/branches/{branch}/services', \App\Livewire\Services\ServiceIndex::class)
+                ->name('services.index');
+            Route::get('/branches/{branch}/services/{service}', \App\Livewire\Services\ServiceShow::class)
+                ->name('services.show');
+        });
 
-        // Attendance Management
-        Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
-            ->name('attendance.index');
-        Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
-            ->name('attendance.live-check-in');
-        Route::get('/branches/{branch}/services/{service}/dashboard', \App\Livewire\Attendance\AttendanceDashboard::class)
-            ->name('attendance.dashboard');
-        Route::get('/branches/{branch}/services/{service}/children', \App\Livewire\Attendance\ChildrenCheckIn::class)
-            ->name('attendance.children');
+        // Attendance Management (requires attendance module)
+        Route::middleware(['module:attendance'])->group(function (): void {
+            Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
+                ->name('attendance.index');
+            Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
+                ->name('attendance.live-check-in');
+            Route::get('/branches/{branch}/services/{service}/dashboard', \App\Livewire\Attendance\AttendanceDashboard::class)
+                ->name('attendance.dashboard');
+            Route::get('/branches/{branch}/services/{service}/children', \App\Livewire\Attendance\ChildrenCheckIn::class)
+                ->name('attendance.children');
+        });
 
-        // Household Management
-        Route::get('/branches/{branch}/households', \App\Livewire\Households\HouseholdIndex::class)
-            ->name('households.index');
-        Route::get('/branches/{branch}/households/{household}', \App\Livewire\Households\HouseholdShow::class)
-            ->name('households.show');
+        // Household Management (requires households module)
+        Route::middleware(['module:households'])->group(function (): void {
+            Route::get('/branches/{branch}/households', \App\Livewire\Households\HouseholdIndex::class)
+                ->name('households.index');
+            Route::get('/branches/{branch}/households/{household}', \App\Livewire\Households\HouseholdShow::class)
+                ->name('households.show');
+        });
 
-        // Visitor Management
-        Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
-            ->name('visitors.index');
-        Route::get('/branches/{branch}/visitors/{visitor}', \App\Livewire\Visitors\VisitorShow::class)
-            ->name('visitors.show');
+        // Visitor Management (requires visitors module)
+        Route::middleware(['module:visitors'])->group(function (): void {
+            Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
+                ->name('visitors.index');
+            Route::get('/branches/{branch}/visitors/{visitor}', \App\Livewire\Visitors\VisitorShow::class)
+                ->name('visitors.show');
+        });
 
-        // Financial Management
-        Route::get('/branches/{branch}/finance/dashboard', \App\Livewire\Finance\FinanceDashboard::class)
-            ->name('finance.dashboard');
-        Route::get('/branches/{branch}/finance/donor-engagement', \App\Livewire\Finance\DonorEngagement::class)
-            ->name('finance.donor-engagement');
-        Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
-            ->name('donations.index');
-        Route::get('/branches/{branch}/offerings', \App\Livewire\Offerings\OfferingIndex::class)
-            ->name('offerings.index');
+        // Donations Management (requires donations module)
+        Route::middleware(['module:donations'])->group(function (): void {
+            Route::get('/branches/{branch}/finance/dashboard', \App\Livewire\Finance\FinanceDashboard::class)
+                ->name('finance.dashboard');
+            Route::get('/branches/{branch}/finance/donor-engagement', \App\Livewire\Finance\DonorEngagement::class)
+                ->name('finance.donor-engagement');
+            Route::get('/branches/{branch}/donations', \App\Livewire\Donations\DonationIndex::class)
+                ->name('donations.index');
+            Route::get('/branches/{branch}/offerings', \App\Livewire\Offerings\OfferingIndex::class)
+                ->name('offerings.index');
+            Route::get('/branches/{branch}/my-giving', \App\Livewire\Giving\MemberGivingHistory::class)
+                ->name('giving.history');
+        });
 
-        // Member Giving History
-        Route::get('/branches/{branch}/my-giving', \App\Livewire\Giving\MemberGivingHistory::class)
-            ->name('giving.history');
-        Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
-            ->name('expenses.index');
-        Route::get('/branches/{branch}/expenses/recurring', \App\Livewire\Expenses\RecurringExpenseIndex::class)
-            ->name('expenses.recurring');
-        Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
-            ->name('pledges.index');
-        Route::get('/branches/{branch}/campaigns', \App\Livewire\Pledges\CampaignIndex::class)
-            ->name('campaigns.index');
-        Route::get('/branches/{branch}/budgets', \App\Livewire\Budgets\BudgetIndex::class)
-            ->name('budgets.index');
-        Route::get('/branches/{branch}/finance/reports', \App\Livewire\Finance\FinanceReports::class)
-            ->name('finance.reports');
+        // Expenses Management (requires expenses module)
+        Route::middleware(['module:expenses'])->group(function (): void {
+            Route::get('/branches/{branch}/expenses', \App\Livewire\Expenses\ExpenseIndex::class)
+                ->name('expenses.index');
+            Route::get('/branches/{branch}/expenses/recurring', \App\Livewire\Expenses\RecurringExpenseIndex::class)
+                ->name('expenses.recurring');
+        });
 
-        // SMS Management
-        Route::get('/branches/{branch}/sms', \App\Livewire\Sms\SmsIndex::class)
-            ->name('sms.index');
-        Route::get('/branches/{branch}/sms/compose', \App\Livewire\Sms\SmsCompose::class)
-            ->name('sms.compose');
-        Route::get('/branches/{branch}/sms/templates', \App\Livewire\Sms\SmsTemplateIndex::class)
-            ->name('sms.templates');
-        Route::get('/branches/{branch}/sms/analytics', \App\Livewire\Sms\SmsAnalytics::class)
-            ->name('sms.analytics');
+        // Pledges Management (requires pledges module)
+        Route::middleware(['module:pledges'])->group(function (): void {
+            Route::get('/branches/{branch}/pledges', \App\Livewire\Pledges\PledgeIndex::class)
+                ->name('pledges.index');
+            Route::get('/branches/{branch}/campaigns', \App\Livewire\Pledges\CampaignIndex::class)
+                ->name('campaigns.index');
+        });
 
-        // Equipment Management
-        Route::get('/branches/{branch}/equipment', \App\Livewire\Equipment\EquipmentIndex::class)
-            ->name('equipment.index');
-        Route::get('/branches/{branch}/equipment/{equipment}', \App\Livewire\Equipment\EquipmentShow::class)
-            ->name('equipment.show');
+        // Budgets Management (requires budgets module)
+        Route::middleware(['module:budgets'])->group(function (): void {
+            Route::get('/branches/{branch}/budgets', \App\Livewire\Budgets\BudgetIndex::class)
+                ->name('budgets.index');
+            Route::get('/branches/{branch}/finance/reports', \App\Livewire\Finance\FinanceReports::class)
+                ->name('finance.reports');
+        });
 
-        // Prayer Request Management
-        Route::get('/branches/{branch}/prayer-requests', \App\Livewire\PrayerRequests\PrayerRequestIndex::class)
-            ->name('prayer-requests.index');
-        Route::get('/branches/{branch}/prayer-requests/{prayerRequest}', \App\Livewire\PrayerRequests\PrayerRequestShow::class)
-            ->name('prayer-requests.show');
+        // SMS Management (requires sms module)
+        Route::middleware(['module:sms'])->group(function (): void {
+            Route::get('/branches/{branch}/sms', \App\Livewire\Sms\SmsIndex::class)
+                ->name('sms.index');
+            Route::get('/branches/{branch}/sms/compose', \App\Livewire\Sms\SmsCompose::class)
+                ->name('sms.compose');
+            Route::get('/branches/{branch}/sms/templates', \App\Livewire\Sms\SmsTemplateIndex::class)
+                ->name('sms.templates');
+            Route::get('/branches/{branch}/sms/analytics', \App\Livewire\Sms\SmsAnalytics::class)
+                ->name('sms.analytics');
+        });
 
-        // Children's Ministry Management
-        Route::get('/branches/{branch}/children', \App\Livewire\Children\ChildrenDirectory::class)
-            ->name('children.index');
-        Route::get('/branches/{branch}/children/dashboard', \App\Livewire\Children\ChildrenDashboard::class)
-            ->name('children.dashboard');
-        Route::get('/branches/{branch}/children/age-groups', \App\Livewire\Children\AgeGroupIndex::class)
-            ->name('children.age-groups');
+        // Equipment Management (requires equipment module)
+        Route::middleware(['module:equipment'])->group(function (): void {
+            Route::get('/branches/{branch}/equipment', \App\Livewire\Equipment\EquipmentIndex::class)
+                ->name('equipment.index');
+            Route::get('/branches/{branch}/equipment/{equipment}', \App\Livewire\Equipment\EquipmentShow::class)
+                ->name('equipment.show');
+        });
 
-        // Report Center
-        Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)
-            ->name('reports.index');
+        // Prayer Request Management (requires prayer_requests module)
+        Route::middleware(['module:prayer_requests'])->group(function (): void {
+            Route::get('/branches/{branch}/prayer-requests', \App\Livewire\PrayerRequests\PrayerRequestIndex::class)
+                ->name('prayer-requests.index');
+            Route::get('/branches/{branch}/prayer-requests/{prayerRequest}', \App\Livewire\PrayerRequests\PrayerRequestShow::class)
+                ->name('prayer-requests.show');
+        });
 
-        // Membership Reports
-        Route::get('/branches/{branch}/reports/membership/directory', \App\Livewire\Reports\Membership\MemberDirectory::class)
-            ->name('reports.membership.directory');
-        Route::get('/branches/{branch}/reports/membership/new-members', \App\Livewire\Reports\Membership\NewMembersReport::class)
-            ->name('reports.membership.new-members');
-        Route::get('/branches/{branch}/reports/membership/inactive', \App\Livewire\Reports\Membership\InactiveMembersReport::class)
-            ->name('reports.membership.inactive');
-        Route::get('/branches/{branch}/reports/membership/demographics', \App\Livewire\Reports\Membership\MemberDemographics::class)
-            ->name('reports.membership.demographics');
-        Route::get('/branches/{branch}/reports/membership/growth', \App\Livewire\Reports\Membership\MemberGrowthTrends::class)
-            ->name('reports.membership.growth');
+        // Children's Ministry Management (requires children module)
+        Route::middleware(['module:children'])->group(function (): void {
+            Route::get('/branches/{branch}/children', \App\Livewire\Children\ChildrenDirectory::class)
+                ->name('children.index');
+            Route::get('/branches/{branch}/children/dashboard', \App\Livewire\Children\ChildrenDashboard::class)
+                ->name('children.dashboard');
+            Route::get('/branches/{branch}/children/age-groups', \App\Livewire\Children\AgeGroupIndex::class)
+                ->name('children.age-groups');
+        });
 
-        // Attendance Reports
-        Route::get('/branches/{branch}/reports/attendance/weekly', \App\Livewire\Reports\Attendance\WeeklyAttendanceSummary::class)
-            ->name('reports.attendance.weekly');
-        Route::get('/branches/{branch}/reports/attendance/monthly', \App\Livewire\Reports\Attendance\MonthlyAttendanceComparison::class)
-            ->name('reports.attendance.monthly');
-        Route::get('/branches/{branch}/reports/attendance/by-service', \App\Livewire\Reports\Attendance\ServiceWiseAttendance::class)
-            ->name('reports.attendance.by-service');
-        Route::get('/branches/{branch}/reports/attendance/absent-members', \App\Livewire\Reports\Attendance\AbsentMembersReport::class)
-            ->name('reports.attendance.absent-members');
-        Route::get('/branches/{branch}/reports/attendance/visitors', \App\Livewire\Reports\Attendance\FirstTimeVisitorsReport::class)
-            ->name('reports.attendance.visitors');
+        // Report Center (requires reports module)
+        Route::middleware(['module:reports'])->group(function (): void {
+            Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)
+                ->name('reports.index');
 
-        // Branch Settings
-        Route::get('/branches/{branch}/settings', \App\Livewire\Branches\BranchSettings::class)
-            ->name('branches.settings');
+            // Membership Reports
+            Route::get('/branches/{branch}/reports/membership/directory', \App\Livewire\Reports\Membership\MemberDirectory::class)
+                ->name('reports.membership.directory');
+            Route::get('/branches/{branch}/reports/membership/new-members', \App\Livewire\Reports\Membership\NewMembersReport::class)
+                ->name('reports.membership.new-members');
+            Route::get('/branches/{branch}/reports/membership/inactive', \App\Livewire\Reports\Membership\InactiveMembersReport::class)
+                ->name('reports.membership.inactive');
+            Route::get('/branches/{branch}/reports/membership/demographics', \App\Livewire\Reports\Membership\MemberDemographics::class)
+                ->name('reports.membership.demographics');
+            Route::get('/branches/{branch}/reports/membership/growth', \App\Livewire\Reports\Membership\MemberGrowthTrends::class)
+                ->name('reports.membership.growth');
+
+            // Attendance Reports
+            Route::get('/branches/{branch}/reports/attendance/weekly', \App\Livewire\Reports\Attendance\WeeklyAttendanceSummary::class)
+                ->name('reports.attendance.weekly');
+            Route::get('/branches/{branch}/reports/attendance/monthly', \App\Livewire\Reports\Attendance\MonthlyAttendanceComparison::class)
+                ->name('reports.attendance.monthly');
+            Route::get('/branches/{branch}/reports/attendance/by-service', \App\Livewire\Reports\Attendance\ServiceWiseAttendance::class)
+                ->name('reports.attendance.by-service');
+            Route::get('/branches/{branch}/reports/attendance/absent-members', \App\Livewire\Reports\Attendance\AbsentMembersReport::class)
+                ->name('reports.attendance.absent-members');
+            Route::get('/branches/{branch}/reports/attendance/visitors', \App\Livewire\Reports\Attendance\FirstTimeVisitorsReport::class)
+                ->name('reports.attendance.visitors');
+        });
     });
 });

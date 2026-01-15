@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsTemplate;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class SmsTemplatePolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any SMS templates for a branch.
      * All roles can view SMS templates.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Sms)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class SmsTemplatePolicy
      */
     public function view(User $user, SmsTemplate $smsTemplate): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Sms)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $smsTemplate->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class SmsTemplatePolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Sms)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

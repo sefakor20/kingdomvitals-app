@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\User;
+use App\Policies\Concerns\ChecksPlanAccess;
 
 class DonationPolicy
 {
+    use ChecksPlanAccess;
+
     /**
      * Determine whether the user can view any donations for a branch.
      * All roles can view donations.
      */
     public function viewAny(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Donations)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->exists();
@@ -26,6 +34,10 @@ class DonationPolicy
      */
     public function view(User $user, Donation $donation): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Donations)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $donation->branch_id)
             ->exists();
@@ -37,6 +49,10 @@ class DonationPolicy
      */
     public function create(User $user, Branch $branch): bool
     {
+        if (! $this->moduleEnabled(PlanModule::Donations)) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $branch->id)
             ->whereIn('role', [

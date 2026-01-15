@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Enums\SmsStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
+use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -62,6 +63,19 @@ class SendBulkSmsJob implements ShouldQueue
             return;
         }
 
+        // Check SMS quota before sending (secondary safety check)
+        $planAccess = app(PlanAccessService::class);
+        $recipientCount = count($this->phoneNumbers);
+        if (! $planAccess->canSendSms($recipientCount)) {
+            Log::warning('SendBulkSmsJob: SMS quota exceeded', [
+                'recipients' => $recipientCount,
+                'smsLogIds' => $this->smsLogIds,
+            ]);
+            $this->markAllAsFailed('SMS quota exceeded');
+
+            return;
+        }
+
         // Get the TextTango service for this branch
         $service = TextTangoService::forBranch($branch);
 
@@ -73,7 +87,7 @@ class SendBulkSmsJob implements ShouldQueue
         }
 
         // Send the bulk SMS
-        $isScheduled = !in_array($this->scheduledAt, [null, '', '0'], true);
+        $isScheduled = ! in_array($this->scheduledAt, [null, '', '0'], true);
         $result = $service->sendBulkSms(
             $this->phoneNumbers,
             $this->message,
@@ -91,6 +105,9 @@ class SendBulkSmsJob implements ShouldQueue
                 'provider_message_id' => $trackingId,
                 'sent_at' => now(),
             ]);
+
+            // Invalidate SMS count cache for quota tracking
+            $planAccess->invalidateCountCache('sms');
 
             Log::info('SendBulkSmsJob: Bulk SMS sent successfully', [
                 'tracking_id' => $trackingId,

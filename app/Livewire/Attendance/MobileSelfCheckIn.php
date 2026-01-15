@@ -42,7 +42,7 @@ class MobileSelfCheckIn extends Component
     #[Computed]
     public function qrCodeSvg(): ?string
     {
-        if (!$this->member instanceof \App\Models\Tenant\Member) {
+        if (! $this->member instanceof \App\Models\Tenant\Member) {
             return null;
         }
 
@@ -85,7 +85,7 @@ class MobileSelfCheckIn extends Component
         $this->errorMessage = null;
         $this->showSuccess = false;
 
-        if (!$this->member instanceof \App\Models\Tenant\Member) {
+        if (! $this->member instanceof \App\Models\Tenant\Member) {
             $this->errorMessage = __('Invalid member token.');
 
             return;
@@ -138,7 +138,7 @@ class MobileSelfCheckIn extends Component
 
     public function regenerateQrCode(): void
     {
-        if (!$this->member instanceof \App\Models\Tenant\Member) {
+        if (! $this->member instanceof \App\Models\Tenant\Member) {
             return;
         }
 

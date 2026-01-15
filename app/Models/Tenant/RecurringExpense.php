@@ -108,6 +108,7 @@ class RecurringExpense extends Model
         if ($this->next_generation_date->isToday()) {
             return true;
         }
+
         return (bool) $this->next_generation_date->isPast();
     }
 
@@ -139,6 +140,7 @@ class RecurringExpense extends Model
         if ($this->day_of_week !== null) {
             return $from->copy()->next($this->day_of_week);
         }
+
         return $from->copy()->addWeek();
     }
 
@@ -207,7 +209,7 @@ class RecurringExpense extends Model
         ]);
 
         // Mark as completed if no more dates
-        if (!$nextDate instanceof \Carbon\Carbon) {
+        if (! $nextDate instanceof \Carbon\Carbon) {
             $this->update(['status' => RecurringExpenseStatus::Completed]);
         }
 
