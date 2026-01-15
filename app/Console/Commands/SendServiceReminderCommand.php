@@ -277,6 +277,7 @@ class SendServiceReminderCommand extends Command
         if ($nextOccurrence->isToday()) {
             return 'Hi {first_name}, reminder: {service_name} is today at {service_time}. We look forward to seeing you!';
         }
+
         return 'Hi {first_name}, reminder: {service_name} is tomorrow ({service_day}) at {service_time}. We look forward to seeing you!';
     }
 

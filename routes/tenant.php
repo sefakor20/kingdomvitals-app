@@ -68,6 +68,18 @@ Route::middleware(['web'])->group(function (): void {
         ->name('webhooks.paystack')
         ->withoutMiddleware(['web']);
 
+    // Upgrade required page (auth required but no onboarding check)
+    Route::middleware(['auth'])->group(function (): void {
+        Route::get('/upgrade', function () {
+            $module = request('module');
+            $moduleName = $module
+                ? \App\Enums\PlanModule::tryFrom($module)?->label() ?? __('This feature')
+                : __('This feature');
+
+            return view('upgrade-required', compact('moduleName'));
+        })->name('upgrade.required');
+    });
+
     // Authenticated routes (require completed onboarding)
     Route::middleware(['auth', 'onboarding.complete'])->group(function (): void {
         // Settings

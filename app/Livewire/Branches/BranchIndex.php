@@ -86,7 +86,7 @@ class BranchIndex extends Component
 
     public function updatedName(string $value): void
     {
-        if (!$this->editingBranch instanceof \App\Models\Tenant\Branch) {
+        if (! $this->editingBranch instanceof \App\Models\Tenant\Branch) {
             $this->slug = Str::slug($value);
         }
     }

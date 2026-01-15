@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Tenant;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\ChildrenCheckinSecurity;
 use App\Models\Tenant\Donation;
@@ -17,6 +18,7 @@ use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Observers\TenantObserver;
 use App\Policies\BudgetPolicy;
 use App\Policies\ChildrenCheckinSecurityPolicy;
 use App\Policies\DonationPolicy;
@@ -33,7 +35,9 @@ use App\Policies\SmsLogPolicy;
 use App\Policies\SmsTemplatePolicy;
 use App\Policies\UserBranchAccessPolicy;
 use App\Policies\VisitorFollowUpPolicy;
+use App\Services\PlanAccessService;
 use App\Services\SystemSettingService;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SystemSettingService::class);
+        $this->app->scoped(PlanAccessService::class);
     }
 
     /**
@@ -98,6 +103,47 @@ class AppServiceProvider extends ServiceProvider
                     'web',
                     \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
                 ]);
+        });
+
+        $this->registerPlanAccessDirectives();
+
+        // Register observers
+        Tenant::observe(TenantObserver::class);
+    }
+
+    /**
+     * Register Blade directives for plan-based access control.
+     */
+    private function registerPlanAccessDirectives(): void
+    {
+        // @module('members') ... @endmodule
+        Blade::if('module', function (string $module) {
+            return app(PlanAccessService::class)->hasModule($module);
+        });
+
+        // @feature('advanced_reports') ... @endfeature
+        Blade::if('feature', function (string $feature) {
+            return app(PlanAccessService::class)->hasFeature($feature);
+        });
+
+        // @canCreateMember ... @endcanCreateMember
+        Blade::if('canCreateMember', function () {
+            return app(PlanAccessService::class)->canCreateMember();
+        });
+
+        // @canCreateBranch ... @endcanCreateBranch
+        Blade::if('canCreateBranch', function () {
+            return app(PlanAccessService::class)->canCreateBranch();
+        });
+
+        // @canSendSms ... @endcanSendSms
+        Blade::if('canSendSms', function (int $count = 1) {
+            return app(PlanAccessService::class)->canSendSms($count);
+        });
+
+        // @quotaWarning('members') ... @endquotaWarning
+        Blade::if('quotaWarning', function (string $quotaType, int $threshold = 80) {
+            return app(PlanAccessService::class)->isQuotaWarning($quotaType, $threshold);
         });
     }
 }
