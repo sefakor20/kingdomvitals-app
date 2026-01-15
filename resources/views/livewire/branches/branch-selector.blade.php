@@ -25,4 +25,8 @@
             </flux:menu>
         </flux:dropdown>
     @endif
+
+    <x-toast on="branch-switched" type="success">
+        {{ __('Branch switched successfully.') }}
+    </x-toast>
 </div>

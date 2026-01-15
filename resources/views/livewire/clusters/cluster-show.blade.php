@@ -360,4 +360,8 @@
     <x-toast on="member-role-updated" type="success">
         {{ __('Member role updated.') }}
     </x-toast>
+
+    <x-toast on="cluster-deleted" type="success">
+        {{ __('Cluster deleted successfully.') }}
+    </x-toast>
 </section>
