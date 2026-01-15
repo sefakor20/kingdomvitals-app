@@ -52,6 +52,16 @@ class SendPrayerChainSmsJob implements ShouldQueue
             return;
         }
 
+        // Check if prayer chain SMS feature is enabled (defense-in-depth)
+        $planAccess = app(PlanAccessService::class);
+        if (! $planAccess->hasFeature('prayer_chain_sms')) {
+            Log::warning('SendPrayerChainSmsJob: Prayer chain SMS feature is not enabled', [
+                'prayer_request_id' => $prayerRequest->id,
+            ]);
+
+            return;
+        }
+
         // Get cluster members who haven't opted out of SMS
         $members = $this->getEligibleMembers($prayerRequest);
 
@@ -62,7 +72,6 @@ class SendPrayerChainSmsJob implements ShouldQueue
         }
 
         // Check SMS quota before sending (secondary safety check)
-        $planAccess = app(PlanAccessService::class);
         $recipientCount = $members->count();
         if (! $planAccess->canSendSms($recipientCount)) {
             Log::warning('SendPrayerChainSmsJob: SMS quota exceeded', [

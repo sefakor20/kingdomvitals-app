@@ -156,6 +156,15 @@ class SmsCompose extends Component
         return app(PlanAccessService::class)->canSendSms($this->recipientCount);
     }
 
+    /**
+     * Check if SMS scheduling is available on the current plan.
+     */
+    #[Computed]
+    public function canScheduleSms(): bool
+    {
+        return app(PlanAccessService::class)->hasFeature('bulk_sms_scheduling');
+    }
+
     #[Computed]
     public function characterCount(): int
     {
@@ -360,6 +369,14 @@ class SmsCompose extends Component
     public function send(): void
     {
         $this->authorize('create', [SmsLog::class, $this->branch]);
+
+        // Check if scheduling feature is available before processing scheduled SMS
+        if ($this->isScheduled && ! $this->canScheduleSms) {
+            $this->addError('scheduledAt', 'SMS scheduling is not available on your plan. Please upgrade to use this feature.');
+
+            return;
+        }
+
         $this->validate();
 
         $recipients = $this->getRecipients();

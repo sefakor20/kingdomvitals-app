@@ -219,6 +219,16 @@ class MemberIndex extends Component
         return app(PlanAccessService::class)->isQuotaWarning('storage', 80);
     }
 
+    /**
+     * Check if member import feature is available on the current plan.
+     * This is a placeholder for future member import functionality.
+     */
+    #[Computed]
+    public function canImportMembers(): bool
+    {
+        return app(PlanAccessService::class)->hasFeature('member_import');
+    }
+
     protected function rules(): array
     {
         return [

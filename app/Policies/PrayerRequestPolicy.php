@@ -159,9 +159,14 @@ class PrayerRequestPolicy
 
     /**
      * Admin, Manager, and Staff can send prayer chain notifications.
+     * Requires the prayer_chain_sms feature to be enabled.
      */
     public function sendPrayerChain(User $user, PrayerRequest $prayerRequest): bool
     {
+        if (! $this->featureEnabled('prayer_chain_sms')) {
+            return false;
+        }
+
         return $user->branchAccess()
             ->where('branch_id', $prayerRequest->branch_id)
             ->whereIn('role', [
