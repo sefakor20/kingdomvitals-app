@@ -3,6 +3,7 @@
 namespace App\Livewire\Services;
 
 use App\Enums\ServiceType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Service;
 use Illuminate\Support\Collection;
@@ -14,6 +15,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class ServiceIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     public string $search = '';
@@ -56,19 +59,19 @@ class ServiceIndex extends Component
     {
         $query = Service::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $query->where('name', 'like', "%{$this->search}%");
-        }
-
-        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
-            $query->where('service_type', $this->typeFilter);
-        }
-
-        if ($this->statusFilter !== '') {
-            $query->where('is_active', $this->statusFilter === 'active');
-        }
+        $this->applySearch($query, ['name']);
+        $this->applyEnumFilter($query, 'typeFilter', 'service_type');
+        $this->applyBooleanFilter($query, 'statusFilter', 'is_active', 'active');
 
         return $query->orderBy('day_of_week')->orderBy('time')->get();
+    }
+
+    #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->typeFilter)
+            || $this->isFilterActive($this->statusFilter);
     }
 
     #[Computed]

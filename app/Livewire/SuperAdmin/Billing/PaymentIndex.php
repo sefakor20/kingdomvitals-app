@@ -6,6 +6,7 @@ namespace App\Livewire\SuperAdmin\Billing;
 
 use App\Enums\PlatformPaymentMethod;
 use App\Enums\PlatformPaymentStatus;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\PlatformPayment;
 use App\Models\SuperAdminActivityLog;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentIndex extends Component
 {
+    use HasFilterableQuery;
     use HasReportExport;
     use WithPagination;
 
@@ -76,7 +78,8 @@ class PaymentIndex extends Component
     {
         $query = PlatformPayment::with(['invoice', 'tenant']);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes tenant relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $query->where(function ($q): void {
                 $q->where('payment_reference', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"))
@@ -84,17 +87,20 @@ class PaymentIndex extends Component
             });
         }
 
-        if ($this->status !== '' && $this->status !== '0') {
-            $query->where('status', $this->status);
-        }
-
-        if ($this->method !== '' && $this->method !== '0') {
-            $query->where('payment_method', $this->method);
-        }
+        $this->applyEnumFilter($query, 'status', 'status');
+        $this->applyEnumFilter($query, 'method', 'payment_method');
 
         $query->orderBy($this->sortBy, $this->sortDirection);
 
         return $query->paginate($this->perPage);
+    }
+
+    #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->status)
+            || $this->isFilterActive($this->method);
     }
 
     #[Computed]
@@ -117,7 +123,8 @@ class PaymentIndex extends Component
     {
         $query = PlatformPayment::with(['invoice', 'tenant']);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes tenant relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $query->where(function ($q): void {
                 $q->where('payment_reference', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"))
@@ -125,13 +132,8 @@ class PaymentIndex extends Component
             });
         }
 
-        if ($this->status !== '' && $this->status !== '0') {
-            $query->where('status', $this->status);
-        }
-
-        if ($this->method !== '' && $this->method !== '0') {
-            $query->where('payment_method', $this->method);
-        }
+        $this->applyEnumFilter($query, 'status', 'status');
+        $this->applyEnumFilter($query, 'method', 'payment_method');
 
         $payments = $query->orderBy($this->sortBy, $this->sortDirection)->get();
 

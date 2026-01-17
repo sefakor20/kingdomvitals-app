@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Billing;
 
 use App\Enums\InvoiceStatus;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\PlatformInvoice;
 use App\Models\SuperAdminActivityLog;
@@ -19,6 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceIndex extends Component
 {
+    use HasFilterableQuery;
     use HasReportExport;
     use WithPagination;
 
@@ -67,20 +69,26 @@ class InvoiceIndex extends Component
     {
         $query = PlatformInvoice::with(['tenant', 'subscriptionPlan']);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes tenant relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $query->where(function ($q): void {
                 $q->where('invoice_number', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"));
             });
         }
 
-        if ($this->status !== '' && $this->status !== '0') {
-            $query->where('status', $this->status);
-        }
+        $this->applyEnumFilter($query, 'status', 'status');
 
         $query->orderBy($this->sortBy, $this->sortDirection);
 
         return $query->paginate($this->perPage);
+    }
+
+    #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->status);
     }
 
     #[Computed]
@@ -124,16 +132,15 @@ class InvoiceIndex extends Component
     {
         $query = PlatformInvoice::with(['tenant', 'subscriptionPlan']);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes tenant relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $query->where(function ($q): void {
                 $q->where('invoice_number', 'like', "%{$this->search}%")
                     ->orWhereHas('tenant', fn ($t) => $t->where('name', 'like', "%{$this->search}%"));
             });
         }
 
-        if ($this->status !== '' && $this->status !== '0') {
-            $query->where('status', $this->status);
-        }
+        $this->applyEnumFilter($query, 'status', 'status');
 
         $invoices = $query->orderBy($this->sortBy, $this->sortDirection)->get();
 

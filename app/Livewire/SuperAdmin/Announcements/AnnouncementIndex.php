@@ -10,12 +10,14 @@ use App\Enums\AnnouncementTargetAudience;
 use App\Enums\DeliveryStatus;
 use App\Jobs\ProcessAnnouncementJob;
 use App\Jobs\SendAnnouncementJob;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\Announcement;
 use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -23,7 +25,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AnnouncementIndex extends Component
 {
-    use HasReportExport, WithPagination;
+    use HasFilterableQuery, HasReportExport, WithPagination;
 
     // Modal states
     public bool $showCreateModal = false;
@@ -408,18 +410,20 @@ class AnnouncementIndex extends Component
         return $rules;
     }
 
+    #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter);
+    }
+
     public function render(): View
     {
         $query = Announcement::with('superAdmin')
             ->orderBy('created_at', 'desc');
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $query->where('title', 'like', "%{$this->search}%");
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
+        $this->applySearch($query, ['title']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
 
         return view('livewire.super-admin.announcements.announcement-index', [
             'announcements' => $query->paginate(15),

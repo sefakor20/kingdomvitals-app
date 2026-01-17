@@ -6,6 +6,7 @@ namespace App\Livewire\Pledges;
 
 use App\Enums\PledgeFrequency;
 use App\Enums\PledgeStatus;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
@@ -19,6 +20,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class PledgeIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -76,7 +79,8 @@ class PledgeIndex extends Component
     {
         $query = Pledge::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->where(function ($q) use ($search): void {
                 $q->where('campaign_name', 'like', "%{$search}%")
@@ -88,17 +92,9 @@ class PledgeIndex extends Component
             });
         }
 
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->memberFilter !== null) {
-            $query->where('member_id', $this->memberFilter);
-        }
-
-        if ($this->campaignFilter !== '' && $this->campaignFilter !== '0') {
-            $query->where('pledge_campaign_id', $this->campaignFilter);
-        }
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'memberFilter', 'member_id');
+        $this->applyEnumFilter($query, 'campaignFilter', 'pledge_campaign_id');
 
         return $query->with(['member', 'campaign'])
             ->orderBy('created_at', 'desc')
@@ -192,10 +188,10 @@ class PledgeIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->statusFilter !== ''
-            || $this->memberFilter !== null
-            || $this->campaignFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->memberFilter)
+            || $this->isFilterActive($this->campaignFilter);
     }
 
     protected function rules(): array

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Sms;
 
 use App\Enums\SmsType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsTemplate;
 use Illuminate\Support\Collection;
@@ -15,6 +16,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class SmsTemplateIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -55,21 +58,9 @@ class SmsTemplateIndex extends Component
     {
         $query = SmsTemplate::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('body', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
-            $query->where('type', $this->typeFilter);
-        }
-
-        if ($this->statusFilter !== '') {
-            $query->where('is_active', $this->statusFilter === 'active');
-        }
+        $this->applySearch($query, ['name', 'body']);
+        $this->applyEnumFilter($query, 'typeFilter', 'type');
+        $this->applyBooleanFilter($query, 'statusFilter', 'is_active', 'active');
 
         return $query->orderBy('name')->get();
     }
@@ -89,9 +80,9 @@ class SmsTemplateIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->typeFilter !== ''
-            || $this->statusFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->typeFilter)
+            || $this->isFilterActive($this->statusFilter);
     }
 
     #[Computed]

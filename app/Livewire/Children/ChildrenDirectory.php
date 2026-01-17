@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Children;
 
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\AgeGroup;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\ChildEmergencyContact;
@@ -18,6 +19,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class ChildrenDirectory extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Filters
@@ -127,15 +130,10 @@ class ChildrenDirectory extends Component
             ->children()
             ->with(['household', 'ageGroup', 'emergencyContacts', 'medicalInfo']);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%");
-            });
-        }
+        $this->applySearch($query, ['first_name', 'last_name']);
 
-        if ($this->ageGroupFilter !== '' && $this->ageGroupFilter !== '0') {
+        // Custom age group filter with unassigned support
+        if ($this->isFilterActive($this->ageGroupFilter)) {
             if ($this->ageGroupFilter === 'unassigned') {
                 $query->whereNull('age_group_id');
             } else {
@@ -143,10 +141,9 @@ class ChildrenDirectory extends Component
             }
         }
 
-        if ($this->householdFilter !== '' && $this->householdFilter !== '0') {
-            $query->where('household_id', $this->householdFilter);
-        }
+        $this->applyEnumFilter($query, 'householdFilter', 'household_id');
 
+        // Custom age range filters using raw SQL
         if ($this->minAge !== null) {
             $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$this->minAge]);
         }
@@ -203,9 +200,9 @@ class ChildrenDirectory extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->ageGroupFilter !== ''
-            || $this->householdFilter !== ''
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->ageGroupFilter)
+            || $this->isFilterActive($this->householdFilter)
             || $this->minAge !== null
             || $this->maxAge !== null;
     }

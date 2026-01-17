@@ -6,6 +6,7 @@ namespace App\Livewire\Budgets;
 
 use App\Enums\BudgetStatus;
 use App\Enums\ExpenseCategory;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use Illuminate\Support\Collection;
@@ -17,6 +18,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class BudgetIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -75,25 +78,10 @@ class BudgetIndex extends Component
     {
         $query = Budget::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
-            $query->where('category', $this->categoryFilter);
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->yearFilter !== '' && $this->yearFilter !== '0') {
-            $query->where('fiscal_year', $this->yearFilter);
-        }
+        $this->applySearch($query, ['name', 'notes']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'yearFilter', 'fiscal_year');
 
         return $query->with('creator')
             ->orderBy('fiscal_year', 'desc')
@@ -169,10 +157,10 @@ class BudgetIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->categoryFilter !== ''
-            || $this->statusFilter !== ''
-            || $this->yearFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->categoryFilter)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->yearFilter);
     }
 
     protected function rules(): array
