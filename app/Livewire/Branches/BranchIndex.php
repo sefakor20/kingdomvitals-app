@@ -4,6 +4,8 @@ namespace App\Livewire\Branches;
 
 use App\Enums\BranchRole;
 use App\Enums\BranchStatus;
+use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
 use App\Services\PlanAccessService;
@@ -15,6 +17,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class BranchIndex extends Component
 {
+    use HasQuotaComputed;
+
     public bool $showCreateModal = false;
 
     public bool $showEditModal = false;
@@ -86,23 +90,12 @@ class BranchIndex extends Component
     }
 
     /**
-     * Get branch quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function branchQuota(): array
-    {
-        return app(PlanAccessService::class)->getBranchQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('branches', 80);
+        return $this->showQuotaWarningFor(QuotaType::Branches);
     }
 
     /**
@@ -111,7 +104,7 @@ class BranchIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateBranch();
+        return $this->canCreateWithinQuotaFor(QuotaType::Branches);
     }
 
     public function updatedName(string $value): void

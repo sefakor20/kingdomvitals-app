@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire\Visitors;
 
 use App\Enums\FollowUpOutcome;
+use App\Enums\QuotaType;
 use App\Enums\VisitorStatus;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
-use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -19,6 +20,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class VisitorIndex extends Component
 {
+    use HasQuotaComputed;
+
     public Branch $branch;
 
     // Search and filters
@@ -188,23 +191,12 @@ class VisitorIndex extends Component
     }
 
     /**
-     * Get visitor quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function visitorQuota(): array
-    {
-        return app(PlanAccessService::class)->getVisitorQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('visitors', 80);
+        return $this->showQuotaWarningFor(QuotaType::Visitors);
     }
 
     /**
@@ -213,7 +205,7 @@ class VisitorIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateVisitor();
+        return $this->canCreateWithinQuotaFor(QuotaType::Visitors);
     }
 
     #[Computed]

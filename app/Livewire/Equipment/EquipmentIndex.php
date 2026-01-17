@@ -7,11 +7,12 @@ namespace App\Livewire\Equipment;
 use App\Enums\CheckoutStatus;
 use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentCondition;
+use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\EquipmentCheckout;
 use App\Models\Tenant\Member;
-use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -21,6 +22,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class EquipmentIndex extends Component
 {
+    use HasQuotaComputed;
+
     public Branch $branch;
 
     // Search and filters
@@ -179,23 +182,12 @@ class EquipmentIndex extends Component
     }
 
     /**
-     * Get equipment quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function equipmentQuota(): array
-    {
-        return app(PlanAccessService::class)->getEquipmentQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('equipment', 80);
+        return $this->showQuotaWarningFor(QuotaType::Equipment);
     }
 
     /**
@@ -204,7 +196,7 @@ class EquipmentIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateEquipment();
+        return $this->canCreateWithinQuotaFor(QuotaType::Equipment);
     }
 
     #[Computed]

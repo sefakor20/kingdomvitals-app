@@ -6,6 +6,8 @@ use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Services\PlanAccessService;
@@ -19,6 +21,7 @@ use Livewire\WithFileUploads;
 #[Layout('components.layouts.app')]
 class MemberIndex extends Component
 {
+    use HasQuotaComputed;
     use WithFileUploads;
 
     public Branch $branch;
@@ -171,23 +174,12 @@ class MemberIndex extends Component
     }
 
     /**
-     * Get member quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function memberQuota(): array
-    {
-        return app(PlanAccessService::class)->getMemberQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('members', 80);
+        return $this->showQuotaWarningFor(QuotaType::Members);
     }
 
     /**
@@ -196,18 +188,7 @@ class MemberIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateMember();
-    }
-
-    /**
-     * Get storage quota information for display.
-     *
-     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
-     */
-    #[Computed]
-    public function storageQuota(): array
-    {
-        return app(PlanAccessService::class)->getStorageQuota();
+        return $this->canCreateWithinQuotaFor(QuotaType::Members);
     }
 
     /**
@@ -216,7 +197,7 @@ class MemberIndex extends Component
     #[Computed]
     public function showStorageWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('storage', 80);
+        return $this->showQuotaWarningFor(QuotaType::Storage);
     }
 
     /**
