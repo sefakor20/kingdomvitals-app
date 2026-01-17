@@ -29,17 +29,16 @@
     <!-- Plans Grid -->
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         @forelse($this->plans as $plan)
-            <div
-                wire:key="plan-{{ $plan->id }}"
-                class="relative flex flex-col overflow-visible rounded-xl border {{ $this->isCurrentPlan($plan->id) ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-zinc-200 dark:border-zinc-700' }} bg-white dark:bg-zinc-800"
-            >
+            <div wire:key="plan-{{ $plan->id }}" class="relative">
                 @if($this->isCurrentPlan($plan->id))
-                    <div class="absolute -top-3 left-1/2 z-20 -translate-x-1/2">
+                    <div class="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
                         <flux:badge color="indigo">{{ __('Current Plan') }}</flux:badge>
                     </div>
                 @endif
-
-                <div class="flex flex-1 flex-col p-6">
+                <div
+                    class="flex h-full flex-col rounded-xl border {{ $this->isCurrentPlan($plan->id) ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-zinc-200 dark:border-zinc-700' }} bg-white dark:bg-zinc-800"
+                >
+                    <div class="flex flex-1 flex-col p-6">
                     <!-- Plan Name -->
                     <div class="mb-4">
                         <flux:heading size="lg">{{ $plan->name }}</flux:heading>
@@ -145,6 +144,7 @@
                                 {{ __('Select Plan') }}
                             </flux:button>
                         @endif
+                    </div>
                     </div>
                 </div>
             </div>
