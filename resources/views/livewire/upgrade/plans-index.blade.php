@@ -31,10 +31,10 @@
         @forelse($this->plans as $plan)
             <div
                 wire:key="plan-{{ $plan->id }}"
-                class="relative flex flex-col rounded-xl border {{ $this->isCurrentPlan($plan->id) ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-zinc-200 dark:border-zinc-700' }} bg-white dark:bg-zinc-800"
+                class="relative flex flex-col overflow-visible rounded-xl border {{ $this->isCurrentPlan($plan->id) ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-zinc-200 dark:border-zinc-700' }} bg-white dark:bg-zinc-800"
             >
                 @if($this->isCurrentPlan($plan->id))
-                    <div class="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
+                    <div class="absolute -top-3 left-1/2 z-20 -translate-x-1/2">
                         <flux:badge color="indigo">{{ __('Current Plan') }}</flux:badge>
                     </div>
                 @endif
