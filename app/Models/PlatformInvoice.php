@@ -19,6 +19,13 @@ class PlatformInvoice extends Model
     use HasUuids;
     use SoftDeletes;
 
+    /**
+     * The database connection that should be used by the model.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'invoice_number',
         'tenant_id',

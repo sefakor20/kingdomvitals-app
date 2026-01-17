@@ -14,6 +14,13 @@ class PlatformInvoiceItem extends Model
     use HasFactory;
     use HasUuids;
 
+    /**
+     * The database connection that should be used by the model.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'platform_invoice_id',
         'description',

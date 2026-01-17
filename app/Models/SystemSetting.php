@@ -14,6 +14,14 @@ class SystemSetting extends Model
     use HasUuids;
 
     /**
+     * The database connection that should be used by the model.
+     * SystemSettings are stored in the central database, not tenant databases.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
+    /**
      * @var array<int, string>
      */
     protected $fillable = [
@@ -34,13 +42,22 @@ class SystemSetting extends Model
     }
 
     /**
+     * Get the cache store directly to bypass tenancy's tagging wrapper.
+     * The database cache driver doesn't support tags.
+     */
+    private static function cache(): \Illuminate\Contracts\Cache\Repository
+    {
+        return Cache::store(config('cache.default'));
+    }
+
+    /**
      * Get a setting value by key.
      */
     public static function get(string $key, mixed $default = null): mixed
     {
         $cacheKey = "system_setting:{$key}";
 
-        return Cache::remember($cacheKey, 3600, function () use ($key, $default) {
+        return self::cache()->remember($cacheKey, 3600, function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
 
             if (! $setting) {
@@ -94,7 +111,7 @@ class SystemSetting extends Model
             ]
         );
 
-        Cache::forget("system_setting:{$key}");
+        self::cache()->forget("system_setting:{$key}");
     }
 
     /**
@@ -121,7 +138,7 @@ class SystemSetting extends Model
     {
         $settings = static::all();
         foreach ($settings as $setting) {
-            Cache::forget("system_setting:{$setting->key}");
+            self::cache()->forget("system_setting:{$setting->key}");
         }
     }
 
@@ -139,6 +156,6 @@ class SystemSetting extends Model
     public static function remove(string $key): void
     {
         static::where('key', $key)->delete();
-        Cache::forget("system_setting:{$key}");
+        self::cache()->forget("system_setting:{$key}");
     }
 }

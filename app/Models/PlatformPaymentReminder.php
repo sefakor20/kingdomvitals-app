@@ -15,6 +15,13 @@ class PlatformPaymentReminder extends Model
     use HasFactory;
     use HasUuids;
 
+    /**
+     * The database connection that should be used by the model.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
     public const TYPE_UPCOMING = 'upcoming';
 
     public const TYPE_OVERDUE_7 = 'overdue_7';

@@ -14,7 +14,7 @@
             </flux:text>
 
             <div class="space-y-3">
-                <flux:button variant="primary" class="w-full" icon="arrow-up-circle">
+                <flux:button variant="primary" class="w-full" icon="arrow-up-circle" href="{{ route('plans.index') }}" wire:navigate>
                     {{ __('View Available Plans') }}
                 </flux:button>
 
