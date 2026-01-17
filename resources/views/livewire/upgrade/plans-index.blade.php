@@ -21,7 +21,7 @@
                 wire:click="setBillingCycle('annual')"
             >
                 {{ __('Annual') }}
-                <flux:badge color="green" size="sm" class="ml-1">{{ __('Save up to 20%') }}</flux:badge>
+                <flux:badge variant="solid" color="green" size="sm" class="ml-1">{{ __('Save up to 20%') }}</flux:badge>
             </flux:button>
         </div>
     </div>
