@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Households;
 
 use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
@@ -17,6 +18,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class HouseholdIndex extends Component
 {
+    use HasFilterableQuery;
     use HasQuotaComputed;
 
     public Branch $branch;
@@ -52,7 +54,8 @@ class HouseholdIndex extends Component
         $query = Household::where('branch_id', $this->branch->id)
             ->withCount('members');
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")

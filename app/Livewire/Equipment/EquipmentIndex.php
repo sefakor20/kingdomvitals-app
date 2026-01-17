@@ -8,6 +8,7 @@ use App\Enums\CheckoutStatus;
 use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentCondition;
 use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Equipment;
@@ -22,6 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class EquipmentIndex extends Component
 {
+    use HasFilterableQuery;
     use HasQuotaComputed;
 
     public Branch $branch;
@@ -112,26 +114,12 @@ class EquipmentIndex extends Component
     {
         $query = Equipment::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('serial_number', 'like', "%{$search}%")
-                    ->orWhere('manufacturer', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%");
-            });
-        }
+        $this->applySearch($query, ['name', 'description', 'serial_number', 'manufacturer', 'location']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'conditionFilter', 'condition');
 
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
-            $query->where('category', $this->categoryFilter);
-        }
-
-        if ($this->conditionFilter !== '' && $this->conditionFilter !== '0') {
-            $query->where('condition', $this->conditionFilter);
-        }
-
-        if ($this->availabilityFilter !== '' && $this->availabilityFilter !== '0') {
+        // Custom availability filter with complex logic
+        if ($this->isFilterActive($this->availabilityFilter)) {
             if ($this->availabilityFilter === 'available') {
                 $query->where('condition', '!=', EquipmentCondition::OutOfService->value)
                     ->whereDoesntHave('activeCheckout');
@@ -224,10 +212,10 @@ class EquipmentIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->categoryFilter !== ''
-            || $this->conditionFilter !== ''
-            || $this->availabilityFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->categoryFilter)
+            || $this->isFilterActive($this->conditionFilter)
+            || $this->isFilterActive($this->availabilityFilter);
     }
 
     protected function rules(): array

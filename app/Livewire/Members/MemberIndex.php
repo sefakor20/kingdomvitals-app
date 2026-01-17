@@ -7,6 +7,7 @@ use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
@@ -21,6 +22,7 @@ use Livewire\WithFileUploads;
 #[Layout('components.layouts.app')]
 class MemberIndex extends Component
 {
+    use HasFilterableQuery;
     use HasQuotaComputed;
     use WithFileUploads;
 
@@ -116,23 +118,9 @@ class MemberIndex extends Component
             $query->onlyTrashed();
         }
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->smsOptOutFilter !== '') {
-            $query->where('sms_opt_out', $this->smsOptOutFilter === 'opted_out');
-        }
+        $this->applySearch($query, ['first_name', 'last_name', 'email', 'phone']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyBooleanFilter($query, 'smsOptOutFilter', 'sms_opt_out', 'opted_out');
 
         return $query->orderBy('last_name')->orderBy('first_name')->get();
     }

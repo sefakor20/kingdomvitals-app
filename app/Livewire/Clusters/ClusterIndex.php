@@ -4,6 +4,7 @@ namespace App\Livewire\Clusters;
 
 use App\Enums\ClusterType;
 use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
@@ -17,6 +18,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class ClusterIndex extends Component
 {
+    use HasFilterableQuery;
     use HasQuotaComputed;
 
     public Branch $branch;
@@ -73,17 +75,9 @@ class ClusterIndex extends Component
             ->withCount('members')
             ->with(['leader', 'assistantLeader']);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $query->where('name', 'like', "%{$this->search}%");
-        }
-
-        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
-            $query->where('cluster_type', $this->typeFilter);
-        }
-
-        if ($this->statusFilter !== '') {
-            $query->where('is_active', $this->statusFilter === 'active');
-        }
+        $this->applySearch($query, ['name']);
+        $this->applyEnumFilter($query, 'typeFilter', 'cluster_type');
+        $this->applyBooleanFilter($query, 'statusFilter', 'is_active', 'active');
 
         return $query->orderBy('name')->get();
     }
