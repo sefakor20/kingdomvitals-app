@@ -6,6 +6,9 @@ use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Services\PlanAccessService;
@@ -19,6 +22,8 @@ use Livewire\WithFileUploads;
 #[Layout('components.layouts.app')]
 class MemberIndex extends Component
 {
+    use HasFilterableQuery;
+    use HasQuotaComputed;
     use WithFileUploads;
 
     public Branch $branch;
@@ -113,23 +118,9 @@ class MemberIndex extends Component
             $query->onlyTrashed();
         }
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->smsOptOutFilter !== '') {
-            $query->where('sms_opt_out', $this->smsOptOutFilter === 'opted_out');
-        }
+        $this->applySearch($query, ['first_name', 'last_name', 'email', 'phone']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyBooleanFilter($query, 'smsOptOutFilter', 'sms_opt_out', 'opted_out');
 
         return $query->orderBy('last_name')->orderBy('first_name')->get();
     }
@@ -171,23 +162,12 @@ class MemberIndex extends Component
     }
 
     /**
-     * Get member quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function memberQuota(): array
-    {
-        return app(PlanAccessService::class)->getMemberQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('members', 80);
+        return $this->showQuotaWarningFor(QuotaType::Members);
     }
 
     /**
@@ -196,18 +176,7 @@ class MemberIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateMember();
-    }
-
-    /**
-     * Get storage quota information for display.
-     *
-     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
-     */
-    #[Computed]
-    public function storageQuota(): array
-    {
-        return app(PlanAccessService::class)->getStorageQuota();
+        return $this->canCreateWithinQuotaFor(QuotaType::Members);
     }
 
     /**
@@ -216,7 +185,7 @@ class MemberIndex extends Component
     #[Computed]
     public function showStorageWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('storage', 80);
+        return $this->showQuotaWarningFor(QuotaType::Storage);
     }
 
     /**

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Households;
 
+use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
-use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -16,6 +18,9 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class HouseholdIndex extends Component
 {
+    use HasFilterableQuery;
+    use HasQuotaComputed;
+
     public Branch $branch;
 
     public string $search = '';
@@ -49,7 +54,8 @@ class HouseholdIndex extends Component
         $query = Household::where('branch_id', $this->branch->id)
             ->withCount('members');
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
@@ -83,23 +89,12 @@ class HouseholdIndex extends Component
     }
 
     /**
-     * Get household quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function householdQuota(): array
-    {
-        return app(PlanAccessService::class)->getHouseholdQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('households', 80);
+        return $this->showQuotaWarningFor(QuotaType::Households);
     }
 
     /**
@@ -108,7 +103,7 @@ class HouseholdIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateHousehold();
+        return $this->canCreateWithinQuotaFor(QuotaType::Households);
     }
 
     protected function rules(): array

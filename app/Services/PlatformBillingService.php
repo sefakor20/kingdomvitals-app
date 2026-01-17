@@ -13,6 +13,7 @@ use App\Models\PlatformInvoice;
 use App\Models\PlatformInvoiceItem;
 use App\Models\PlatformPayment;
 use App\Models\PlatformPaymentReminder;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +108,66 @@ class PlatformBillingService
             PlatformInvoiceItem::create([
                 'platform_invoice_id' => $invoice->id,
                 'description' => "{$plan->name} - {$cycle->label()} Subscription",
+                'quantity' => 1,
+                'unit_price' => $price,
+                'total' => $price,
+            ]);
+
+            return $invoice;
+        });
+    }
+
+    /**
+     * Generate an upgrade invoice for a tenant switching to a new plan.
+     * The invoice is created in SENT status, ready for immediate payment.
+     */
+    public function generateUpgradeInvoice(
+        Tenant $tenant,
+        SubscriptionPlan $newPlan,
+        BillingCycle $cycle,
+        ?string $upgradeReason = null
+    ): PlatformInvoice {
+        $price = $cycle === BillingCycle::Annual
+            ? $newPlan->price_annual
+            : $newPlan->price_monthly;
+
+        $periodStart = now();
+        $periodEnd = $cycle === BillingCycle::Annual
+            ? now()->addYear()
+            : now()->addMonth();
+
+        $billingPeriod = $cycle === BillingCycle::Annual
+            ? now()->format('Y').' Annual Upgrade'
+            : now()->format('F Y').' Upgrade';
+
+        return DB::transaction(function () use ($tenant, $newPlan, $price, $periodStart, $periodEnd, $billingPeriod, $cycle, $upgradeReason) {
+            $invoice = PlatformInvoice::create([
+                'tenant_id' => $tenant->id,
+                'subscription_plan_id' => $newPlan->id,
+                'billing_period' => $billingPeriod,
+                'period_start' => $periodStart,
+                'period_end' => $periodEnd,
+                'issue_date' => now(),
+                'due_date' => now()->addDay(),
+                'subtotal' => $price,
+                'tax_amount' => 0,
+                'discount_amount' => 0,
+                'total_amount' => $price,
+                'amount_paid' => 0,
+                'balance_due' => $price,
+                'status' => InvoiceStatus::Sent,
+                'currency' => 'GHS',
+                'notes' => $upgradeReason,
+                'metadata' => [
+                    'upgrade_type' => 'self_service',
+                    'previous_plan_id' => $tenant->subscription_id,
+                    'billing_cycle' => $cycle->value,
+                ],
+            ]);
+
+            PlatformInvoiceItem::create([
+                'platform_invoice_id' => $invoice->id,
+                'description' => "{$newPlan->name} - {$cycle->label()} Subscription (Upgrade)",
                 'quantity' => 1,
                 'unit_price' => $price,
                 'total' => $price,

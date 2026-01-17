@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Enums\FollowUpOutcome;
 use App\Enums\MembershipStatus;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
@@ -24,6 +25,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class Dashboard extends Component
 {
+    use HasQuotaComputed;
+
     public ?string $currentBranchId = null;
 
     public function mount(BranchContextService $branchContext): void
@@ -252,50 +255,7 @@ class Dashboard extends Component
     // ============================================
     // PLAN QUOTA METRICS
     // ============================================
-
-    /**
-     * Get member quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function memberQuota(): array
-    {
-        return app(PlanAccessService::class)->getMemberQuota();
-    }
-
-    /**
-     * Get SMS quota information for display.
-     *
-     * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function smsQuota(): array
-    {
-        return app(PlanAccessService::class)->getSmsQuota();
-    }
-
-    /**
-     * Get storage quota information for display.
-     *
-     * @return array{used: float, max: int|null, unlimited: bool, remaining: float|null, percent: float}
-     */
-    #[Computed]
-    public function storageQuota(): array
-    {
-        return app(PlanAccessService::class)->getStorageQuota();
-    }
-
-    /**
-     * Get branch quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function branchQuota(): array
-    {
-        return app(PlanAccessService::class)->getBranchQuota();
-    }
+    // memberQuota, smsQuota, storageQuota, branchQuota are provided by HasQuotaComputed trait
 
     /**
      * Check if the tenant has any quota limits (not all unlimited).

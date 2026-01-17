@@ -6,6 +6,7 @@ namespace App\Livewire\Pledges;
 
 use App\Enums\CampaignCategory;
 use App\Enums\CampaignStatus;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\PledgeCampaign;
 use Illuminate\Support\Collection;
@@ -17,6 +18,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class CampaignIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -67,21 +70,9 @@ class CampaignIndex extends Component
     {
         $query = PledgeCampaign::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
-            $query->where('category', $this->categoryFilter);
-        }
+        $this->applySearch($query, ['name', 'description']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
 
         return $query->withCount('pledges')
             ->orderBy('created_at', 'desc')
@@ -141,9 +132,9 @@ class CampaignIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->statusFilter !== ''
-            || $this->categoryFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->categoryFilter);
     }
 
     protected function rules(): array

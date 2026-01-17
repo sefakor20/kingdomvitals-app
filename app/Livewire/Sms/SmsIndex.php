@@ -6,6 +6,7 @@ namespace App\Livewire\Sms;
 
 use App\Enums\SmsStatus;
 use App\Enums\SmsType;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use App\Services\PlanAccessService;
@@ -19,6 +20,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class SmsIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -51,8 +54,8 @@ class SmsIndex extends Component
     {
         $query = SmsLog::where('branch_id', $this->branch->id);
 
-        // Apply search filter (phone number or member name)
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->where(function ($q) use ($search): void {
                 $q->where('phone_number', 'like', "%{$search}%")
@@ -63,17 +66,10 @@ class SmsIndex extends Component
             });
         }
 
-        // Apply status filter
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'typeFilter', 'message_type');
 
-        // Apply type filter
-        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
-            $query->where('message_type', $this->typeFilter);
-        }
-
-        // Apply quick filter
+        // Apply quick filter (custom logic for date range shortcuts)
         if ($this->quickFilter === 'today') {
             $query->whereDate('created_at', today());
         } elseif ($this->quickFilter === 'this_week') {
@@ -82,14 +78,7 @@ class SmsIndex extends Component
             $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
         }
 
-        // Apply date range filters
-        if ($this->dateFrom) {
-            $query->whereDate('created_at', '>=', $this->dateFrom);
-        }
-
-        if ($this->dateTo) {
-            $query->whereDate('created_at', '<=', $this->dateTo);
-        }
+        $this->applyDateRange($query, 'created_at');
 
         return $query->with(['member'])
             ->orderBy('created_at', 'desc')
@@ -131,12 +120,12 @@ class SmsIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->statusFilter !== ''
-            || $this->typeFilter !== ''
-            || $this->dateFrom !== null
-            || $this->dateTo !== null
-            || $this->quickFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->typeFilter)
+            || $this->isFilterActive($this->dateFrom)
+            || $this->isFilterActive($this->dateTo)
+            || $this->isFilterActive($this->quickFilter);
     }
 
     #[Computed]

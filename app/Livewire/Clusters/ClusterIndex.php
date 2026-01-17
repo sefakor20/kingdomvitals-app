@@ -3,10 +3,12 @@
 namespace App\Livewire\Clusters;
 
 use App\Enums\ClusterType;
+use App\Enums\QuotaType;
+use App\Livewire\Concerns\HasFilterableQuery;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
-use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -16,6 +18,9 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class ClusterIndex extends Component
 {
+    use HasFilterableQuery;
+    use HasQuotaComputed;
+
     public Branch $branch;
 
     public string $search = '';
@@ -70,17 +75,9 @@ class ClusterIndex extends Component
             ->withCount('members')
             ->with(['leader', 'assistantLeader']);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $query->where('name', 'like', "%{$this->search}%");
-        }
-
-        if ($this->typeFilter !== '' && $this->typeFilter !== '0') {
-            $query->where('cluster_type', $this->typeFilter);
-        }
-
-        if ($this->statusFilter !== '') {
-            $query->where('is_active', $this->statusFilter === 'active');
-        }
+        $this->applySearch($query, ['name']);
+        $this->applyEnumFilter($query, 'typeFilter', 'cluster_type');
+        $this->applyBooleanFilter($query, 'statusFilter', 'is_active', 'active');
 
         return $query->orderBy('name')->get();
     }
@@ -114,23 +111,12 @@ class ClusterIndex extends Component
     }
 
     /**
-     * Get cluster quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function clusterQuota(): array
-    {
-        return app(PlanAccessService::class)->getClusterQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('clusters', 80);
+        return $this->showQuotaWarningFor(QuotaType::Clusters);
     }
 
     /**
@@ -139,7 +125,7 @@ class ClusterIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateCluster();
+        return $this->canCreateWithinQuotaFor(QuotaType::Clusters);
     }
 
     protected function rules(): array

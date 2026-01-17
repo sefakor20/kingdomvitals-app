@@ -8,6 +8,7 @@ use App\Enums\ExpenseCategory;
 use App\Enums\PaymentMethod;
 use App\Enums\PledgeFrequency;
 use App\Enums\RecurringExpenseStatus;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\RecurringExpense;
 use Illuminate\Support\Collection;
@@ -18,6 +19,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class RecurringExpenseIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -76,22 +79,9 @@ class RecurringExpenseIndex extends Component
     {
         $query = RecurringExpense::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('description', 'like', "%{$search}%")
-                    ->orWhere('vendor_name', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
-            $query->where('category', $this->categoryFilter);
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
+        $this->applySearch($query, ['description', 'vendor_name', 'notes']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
 
         return $query->with('creator')
             ->orderByRaw("CASE WHEN status = 'active' THEN 0 WHEN status = 'paused' THEN 1 ELSE 2 END")
@@ -162,9 +152,9 @@ class RecurringExpenseIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->categoryFilter !== ''
-            || $this->statusFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->categoryFilter)
+            || $this->isFilterActive($this->statusFilter);
     }
 
     protected function rules(): array

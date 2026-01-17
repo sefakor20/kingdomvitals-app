@@ -79,6 +79,12 @@ Route::middleware(['web'])->group(function (): void {
 
             return view('upgrade-required', compact('moduleName'));
         })->name('upgrade.required');
+
+        // Plan upgrade routes
+        Route::get('/plans', \App\Livewire\Upgrade\PlansIndex::class)
+            ->name('plans.index');
+        Route::get('/plans/{plan}/checkout', \App\Livewire\Upgrade\PlanCheckout::class)
+            ->name('plans.checkout');
     });
 
     // Authenticated routes (require completed onboarding)

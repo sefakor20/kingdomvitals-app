@@ -8,6 +8,7 @@ use App\Enums\PrayerRequestCategory;
 use App\Enums\PrayerRequestPrivacy;
 use App\Enums\PrayerRequestStatus;
 use App\Jobs\SendPrayerChainSmsJob;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
@@ -21,6 +22,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class PrayerRequestIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -78,29 +81,11 @@ class PrayerRequestIndex extends Component
     {
         $query = PrayerRequest::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
-            $query->where('category', $this->categoryFilter);
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->privacyFilter !== '' && $this->privacyFilter !== '0') {
-            $query->where('privacy', $this->privacyFilter);
-        }
-
-        if ($this->clusterFilter !== '' && $this->clusterFilter !== '0') {
-            $query->where('cluster_id', $this->clusterFilter);
-        }
+        $this->applySearch($query, ['title', 'description']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'privacyFilter', 'privacy');
+        $this->applyEnumFilter($query, 'clusterFilter', 'cluster_id');
 
         return $query->with(['member', 'cluster'])
             ->orderBy('submitted_at', 'desc')
@@ -169,11 +154,11 @@ class PrayerRequestIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->categoryFilter !== ''
-            || $this->statusFilter !== ''
-            || $this->privacyFilter !== ''
-            || $this->clusterFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->categoryFilter)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->privacyFilter)
+            || $this->isFilterActive($this->clusterFilter);
     }
 
     protected function rules(): array

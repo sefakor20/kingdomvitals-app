@@ -9,6 +9,7 @@ use App\Enums\BudgetStatus;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
 use App\Enums\PaymentMethod;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\Expense;
@@ -23,6 +24,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class ExpenseIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // Search and filters
@@ -85,31 +88,10 @@ class ExpenseIndex extends Component
     {
         $query = Expense::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('description', 'like', "%{$search}%")
-                    ->orWhere('vendor_name', 'like', "%{$search}%")
-                    ->orWhere('reference_number', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
-            });
-        }
-
-        if ($this->categoryFilter !== '' && $this->categoryFilter !== '0') {
-            $query->where('category', $this->categoryFilter);
-        }
-
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->dateFrom) {
-            $query->whereDate('expense_date', '>=', $this->dateFrom);
-        }
-
-        if ($this->dateTo) {
-            $query->whereDate('expense_date', '<=', $this->dateTo);
-        }
+        $this->applySearch($query, ['description', 'vendor_name', 'reference_number', 'notes']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyDateRange($query, 'expense_date');
 
         return $query->with(['submitter', 'approver'])
             ->orderBy('expense_date', 'desc')
@@ -193,11 +175,11 @@ class ExpenseIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->categoryFilter !== ''
-            || $this->statusFilter !== ''
-            || $this->dateFrom !== null
-            || $this->dateTo !== null;
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->categoryFilter)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->dateFrom)
+            || $this->isFilterActive($this->dateTo);
     }
 
     protected function rules(): array

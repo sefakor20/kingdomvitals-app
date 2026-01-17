@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Livewire\Visitors;
 
 use App\Enums\FollowUpOutcome;
+use App\Enums\QuotaType;
 use App\Enums\VisitorStatus;
+use App\Livewire\Concerns\HasFilterableQuery;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
-use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -19,6 +21,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class VisitorIndex extends Component
 {
+    use HasFilterableQuery;
+    use HasQuotaComputed;
+
     public Branch $branch;
 
     // Search and filters
@@ -100,43 +105,19 @@ class VisitorIndex extends Component
     {
         $query = Visitor::where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
+        $this->applySearch($query, ['first_name', 'last_name', 'email', 'phone']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyBooleanFilter($query, 'convertedFilter', 'is_converted', 'yes');
+        $this->applyDateRange($query, 'visit_date');
+        $this->applyEnumFilter($query, 'sourceFilter', 'how_did_you_hear');
 
-        if ($this->statusFilter !== '' && $this->statusFilter !== '0') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->convertedFilter !== '') {
-            $query->where('is_converted', $this->convertedFilter === 'yes');
-        }
-
-        // Advanced filters
-        if ($this->dateFrom) {
-            $query->whereDate('visit_date', '>=', $this->dateFrom);
-        }
-
-        if ($this->dateTo) {
-            $query->whereDate('visit_date', '<=', $this->dateTo);
-        }
-
+        // Custom assigned member filter with unassigned support
         if ($this->assignedMemberFilter !== null) {
             if ($this->assignedMemberFilter === 'unassigned') {
                 $query->whereNull('assigned_to');
             } else {
                 $query->where('assigned_to', $this->assignedMemberFilter);
             }
-        }
-
-        if ($this->sourceFilter !== '' && $this->sourceFilter !== '0') {
-            $query->where('how_did_you_hear', $this->sourceFilter);
         }
 
         return $query->with(['assignedMember', 'convertedMember'])
@@ -188,23 +169,12 @@ class VisitorIndex extends Component
     }
 
     /**
-     * Get visitor quota information for display.
-     *
-     * @return array{current: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
-     */
-    #[Computed]
-    public function visitorQuota(): array
-    {
-        return app(PlanAccessService::class)->getVisitorQuota();
-    }
-
-    /**
      * Check if the quota warning should be shown (above 80% usage).
      */
     #[Computed]
     public function showQuotaWarning(): bool
     {
-        return app(PlanAccessService::class)->isQuotaWarning('visitors', 80);
+        return $this->showQuotaWarningFor(QuotaType::Visitors);
     }
 
     /**
@@ -213,7 +183,7 @@ class VisitorIndex extends Component
     #[Computed]
     public function canCreateWithinQuota(): bool
     {
-        return app(PlanAccessService::class)->canCreateVisitor();
+        return $this->canCreateWithinQuotaFor(QuotaType::Visitors);
     }
 
     #[Computed]
@@ -244,13 +214,13 @@ class VisitorIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->statusFilter !== ''
-            || $this->convertedFilter !== ''
-            || $this->dateFrom !== null
-            || $this->dateTo !== null
-            || $this->assignedMemberFilter !== null
-            || $this->sourceFilter !== '';
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->convertedFilter)
+            || $this->isFilterActive($this->dateFrom)
+            || $this->isFilterActive($this->dateTo)
+            || $this->isFilterActive($this->assignedMemberFilter)
+            || $this->isFilterActive($this->sourceFilter);
     }
 
     #[Computed]

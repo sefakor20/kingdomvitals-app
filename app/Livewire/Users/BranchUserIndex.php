@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Enums\BranchRole;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
@@ -15,6 +16,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class BranchUserIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     public string $search = '';
@@ -52,7 +55,8 @@ class BranchUserIndex extends Component
         $query = UserBranchAccess::with('user')
             ->where('branch_id', $this->branch->id);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->whereHas('user', function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
@@ -61,6 +65,12 @@ class BranchUserIndex extends Component
         }
 
         return $query->get();
+    }
+
+    #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->isFilterActive($this->search);
     }
 
     #[Computed]

@@ -6,6 +6,7 @@ namespace App\Livewire\Offerings;
 
 use App\Enums\DonationType;
 use App\Enums\PaymentMethod;
+use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
@@ -20,6 +21,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Layout('components.layouts.app')]
 class OfferingIndex extends Component
 {
+    use HasFilterableQuery;
+
     public Branch $branch;
 
     // View mode: 'list' or 'summary'
@@ -83,7 +86,8 @@ class OfferingIndex extends Component
         $query = Donation::where('branch_id', $this->branch->id)
             ->where('donation_type', DonationType::Offering);
 
-        if ($this->search !== '' && $this->search !== '0') {
+        // Search includes relationship, so keep custom logic
+        if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->where(function ($q) use ($search): void {
                 $q->where('donor_name', 'like', "%{$search}%")
@@ -96,14 +100,10 @@ class OfferingIndex extends Component
             });
         }
 
-        if ($this->serviceFilter !== '' && $this->serviceFilter !== '0') {
-            $query->where('service_id', $this->serviceFilter);
-        }
+        $this->applyEnumFilter($query, 'serviceFilter', 'service_id');
+        $this->applyEnumFilter($query, 'paymentMethodFilter', 'payment_method');
 
-        if ($this->paymentMethodFilter !== '' && $this->paymentMethodFilter !== '0') {
-            $query->where('payment_method', $this->paymentMethodFilter);
-        }
-
+        // Custom member filter with anonymous support
         if ($this->memberFilter !== null) {
             if ($this->memberFilter === 'anonymous') {
                 $query->where('is_anonymous', true);
@@ -112,13 +112,7 @@ class OfferingIndex extends Component
             }
         }
 
-        if ($this->dateFrom) {
-            $query->whereDate('donation_date', '>=', $this->dateFrom);
-        }
-
-        if ($this->dateTo) {
-            $query->whereDate('donation_date', '<=', $this->dateTo);
-        }
+        $this->applyDateRange($query, 'donation_date');
 
         return $query->with(['member', 'service', 'recorder'])
             ->orderBy('donation_date', 'desc')
@@ -237,12 +231,12 @@ class OfferingIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== ''
-            || $this->serviceFilter !== ''
-            || $this->paymentMethodFilter !== ''
-            || $this->memberFilter !== null
-            || $this->dateFrom !== null
-            || $this->dateTo !== null;
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->serviceFilter)
+            || $this->isFilterActive($this->paymentMethodFilter)
+            || $this->isFilterActive($this->memberFilter)
+            || $this->isFilterActive($this->dateFrom)
+            || $this->isFilterActive($this->dateTo);
     }
 
     protected function rules(): array
