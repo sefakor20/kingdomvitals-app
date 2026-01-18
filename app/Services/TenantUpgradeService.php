@@ -18,12 +18,13 @@ class TenantUpgradeService
         private PlatformBillingService $billingService,
         private PlatformPaystackService $paystackService,
         private PlanAccessService $planAccessService,
+        private ProrationService $prorationService,
     ) {}
 
     /**
      * Initiate the upgrade process: create invoice and initialize Paystack payment.
      *
-     * @return array{success: bool, invoice?: PlatformInvoice, payment_url?: string, reference?: string, error?: string}
+     * @return array{success: bool, invoice?: PlatformInvoice, payment_url?: string, reference?: string, error?: string, proration?: array}
      */
     public function initiateUpgrade(
         Tenant $tenant,
@@ -41,11 +42,18 @@ class TenantUpgradeService
         }
 
         try {
+            // Calculate proration if tenant has an active billing period
+            $prorationData = null;
+            if ($this->prorationService->shouldApplyProration($tenant)) {
+                $prorationData = $this->prorationService->calculatePlanChange($tenant, $newPlan, $cycle);
+            }
+
             $invoice = $this->billingService->generateUpgradeInvoice(
                 tenant: $tenant,
                 newPlan: $newPlan,
                 cycle: $cycle,
-                upgradeReason: 'Self-service upgrade from tenant portal'
+                upgradeReason: 'Self-service upgrade from tenant portal',
+                prorationData: $prorationData
             );
 
             $amount = PlatformPaystackService::toKobo((float) $invoice->total_amount);
@@ -131,7 +139,20 @@ class TenantUpgradeService
                     'notes' => 'Self-service plan upgrade payment',
                 ]);
 
-                $tenant->update(['subscription_id' => $newPlan->id]);
+                // Update subscription and billing period
+                $billingCycle = BillingCycle::from($invoice->metadata['billing_cycle'] ?? 'monthly');
+                $tenant->update([
+                    'subscription_id' => $newPlan->id,
+                    'billing_cycle' => $billingCycle->value,
+                    'current_period_start' => $invoice->period_start,
+                    'current_period_end' => $invoice->period_end,
+                ]);
+
+                // Apply any credit generated from proration (for downgrades)
+                $creditGenerated = $invoice->metadata['proration']['credit_generated'] ?? 0;
+                if ($creditGenerated > 0) {
+                    $tenant->applyCredit((float) $creditGenerated);
+                }
 
                 $this->planAccessService->clearCache();
 
@@ -141,6 +162,9 @@ class TenantUpgradeService
                     'new_plan_id' => $newPlan->id,
                     'invoice_id' => $invoice->id,
                     'amount' => $invoice->total_amount,
+                    'billing_cycle' => $billingCycle->value,
+                    'period_start' => $invoice->period_start,
+                    'period_end' => $invoice->period_end,
                 ]);
 
                 return [

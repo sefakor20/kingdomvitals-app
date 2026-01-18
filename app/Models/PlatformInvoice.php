@@ -30,6 +30,7 @@ class PlatformInvoice extends Model
         'invoice_number',
         'tenant_id',
         'subscription_plan_id',
+        'previous_plan_id',
         'billing_period',
         'period_start',
         'period_end',
@@ -38,6 +39,7 @@ class PlatformInvoice extends Model
         'subtotal',
         'tax_amount',
         'discount_amount',
+        'proration_credit',
         'total_amount',
         'amount_paid',
         'balance_due',
@@ -45,6 +47,7 @@ class PlatformInvoice extends Model
         'currency',
         'notes',
         'metadata',
+        'change_type',
         'sent_at',
         'paid_at',
     ];
@@ -59,6 +62,7 @@ class PlatformInvoice extends Model
             'subtotal' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'proration_credit' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'amount_paid' => 'decimal:2',
             'balance_due' => 'decimal:2',
@@ -106,6 +110,11 @@ class PlatformInvoice extends Model
     public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class);
+    }
+
+    public function previousPlan(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPlan::class, 'previous_plan_id');
     }
 
     public function items(): HasMany

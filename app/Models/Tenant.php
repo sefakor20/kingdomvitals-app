@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BillingCycle;
 use App\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'cancelled_at',
         'cancellation_reason',
         'subscription_ends_at',
+        'billing_cycle',
+        'current_period_start',
+        'current_period_end',
+        'account_credit',
     ];
 
     protected function casts(): array
@@ -38,6 +43,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'suspended_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
+            'current_period_start' => 'date',
+            'current_period_end' => 'date',
+            'account_credit' => 'decimal:2',
             'status' => TenantStatus::class,
         ];
     }
@@ -58,6 +66,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'cancelled_at',
             'cancellation_reason',
             'subscription_ends_at',
+            'billing_cycle',
+            'current_period_start',
+            'current_period_end',
+            'account_credit',
         ];
     }
 
@@ -195,6 +207,72 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         }
 
         return max(0, now()->diffInDays($this->trial_ends_at, false));
+    }
+
+    // ============================================
+    // BILLING PERIOD METHODS
+    // ============================================
+
+    /**
+     * Get the billing cycle as an enum.
+     */
+    public function getBillingCycle(): ?BillingCycle
+    {
+        $cycle = $this->getAttribute('billing_cycle');
+
+        return $cycle ? BillingCycle::from($cycle) : null;
+    }
+
+    /**
+     * Check if tenant is in an active billing period.
+     */
+    public function isInActiveBillingPeriod(): bool
+    {
+        return $this->current_period_end && $this->current_period_end->isFuture();
+    }
+
+    /**
+     * Get days remaining in the current billing period.
+     */
+    public function getDaysRemainingInPeriod(): int
+    {
+        if (! $this->current_period_end) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInDays($this->current_period_end, false));
+    }
+
+    /**
+     * Apply credit to the tenant's account.
+     */
+    public function applyCredit(float $amount): void
+    {
+        $this->increment('account_credit', $amount);
+    }
+
+    /**
+     * Use credit from the tenant's account.
+     * Returns the amount of credit actually used.
+     */
+    public function useCredit(float $amount): float
+    {
+        $available = min((float) $this->account_credit, $amount);
+        $this->decrement('account_credit', $available);
+
+        return $available;
+    }
+
+    /**
+     * Set the billing period for the tenant.
+     */
+    public function setBillingPeriod(BillingCycle $cycle, \Carbon\Carbon $periodStart, \Carbon\Carbon $periodEnd): void
+    {
+        $this->update([
+            'billing_cycle' => $cycle->value,
+            'current_period_start' => $periodStart,
+            'current_period_end' => $periodEnd,
+        ]);
     }
 
     /**
