@@ -33,6 +33,9 @@
                                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                                             {{ __('Status') }}
                                         </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                            {{ __('Actions') }}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
@@ -54,6 +57,15 @@
                                                 <flux:badge color="{{ $invoice->status->color() }}" size="sm">
                                                     {{ $invoice->status->label() }}
                                                 </flux:badge>
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
+                                                <flux:button
+                                                    :href="route('invoices.download', $invoice)"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    icon="arrow-down-tray"
+                                                    :title="__('Download PDF')"
+                                                />
                                             </td>
                                         </tr>
                                     @endforeach
