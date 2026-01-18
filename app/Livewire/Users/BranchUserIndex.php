@@ -5,10 +5,13 @@ namespace App\Livewire\Users;
 use App\Enums\BranchRole;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\BranchUserInvitation;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
+use App\Notifications\BranchUserInvitationNotification;
 use App\Notifications\InvitedToBranchNotification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -79,6 +82,16 @@ class BranchUserIndex extends Component
         return BranchRole::cases();
     }
 
+    #[Computed]
+    public function pendingInvitations(): Collection
+    {
+        return BranchUserInvitation::where('branch_id', $this->branch->id)
+            ->pending()
+            ->with('invitedBy')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
     public function openInviteModal(): void
     {
         $this->authorize('create', [UserBranchAccess::class, $this->branch]);
@@ -97,12 +110,15 @@ class BranchUserIndex extends Component
 
         $user = User::where('email', $this->inviteEmail)->first();
 
-        if (! $user) {
-            $this->addError('inviteEmail', __('No user found with this email address.'));
-
-            return;
+        if ($user) {
+            $this->addExistingUser($user);
+        } else {
+            $this->createPendingInvitation();
         }
+    }
 
+    private function addExistingUser(User $user): void
+    {
         $exists = UserBranchAccess::where('user_id', $user->id)
             ->where('branch_id', $this->branch->id)
             ->exists();
@@ -128,7 +144,54 @@ class BranchUserIndex extends Component
 
         $this->showInviteModal = false;
         $this->resetInviteForm();
+        unset($this->pendingInvitations);
         $this->dispatch('user-invited');
+    }
+
+    private function createPendingInvitation(): void
+    {
+        $existing = BranchUserInvitation::where('branch_id', $this->branch->id)
+            ->where('email', $this->inviteEmail)
+            ->pending()
+            ->first();
+
+        if ($existing) {
+            $acceptUrl = tenant_route(tenant()->domains->first()?->domain ?? '', 'invitations.accept', ['token' => $existing->token]);
+
+            Notification::route('mail', $this->inviteEmail)
+                ->notify(new BranchUserInvitationNotification($existing, $acceptUrl));
+
+            $this->showInviteModal = false;
+            $this->resetInviteForm();
+            $this->dispatch('notification', [
+                'type' => 'success',
+                'message' => __('Invitation resent to :email.', ['email' => $existing->email]),
+            ]);
+
+            return;
+        }
+
+        $invitation = BranchUserInvitation::create([
+            'branch_id' => $this->branch->id,
+            'email' => $this->inviteEmail,
+            'role' => $this->inviteRole,
+            'token' => BranchUserInvitation::generateToken(),
+            'invited_by' => auth()->id(),
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        $acceptUrl = tenant_route(tenant()->domains->first()?->domain ?? '', 'invitations.accept', ['token' => $invitation->token]);
+
+        Notification::route('mail', $this->inviteEmail)
+            ->notify(new BranchUserInvitationNotification($invitation, $acceptUrl));
+
+        $this->showInviteModal = false;
+        $this->resetInviteForm();
+        unset($this->pendingInvitations);
+        $this->dispatch('notification', [
+            'type' => 'success',
+            'message' => __('Invitation sent to :email.', ['email' => $invitation->email]),
+        ]);
     }
 
     public function edit(UserBranchAccess $access): void
@@ -201,6 +264,45 @@ class BranchUserIndex extends Component
     {
         $this->showRevokeModal = false;
         $this->revokingAccess = null;
+    }
+
+    public function resendInvitation(string $invitationId): void
+    {
+        $this->authorize('create', [UserBranchAccess::class, $this->branch]);
+
+        $invitation = BranchUserInvitation::where('branch_id', $this->branch->id)
+            ->where('id', $invitationId)
+            ->pending()
+            ->firstOrFail();
+
+        $acceptUrl = tenant_route(tenant()->domains->first()?->domain ?? '', 'invitations.accept', ['token' => $invitation->token]);
+
+        Notification::route('mail', $invitation->email)
+            ->notify(new BranchUserInvitationNotification($invitation, $acceptUrl));
+
+        $this->dispatch('notification', [
+            'type' => 'success',
+            'message' => __('Invitation resent to :email.', ['email' => $invitation->email]),
+        ]);
+    }
+
+    public function cancelPendingInvitation(string $invitationId): void
+    {
+        $this->authorize('create', [UserBranchAccess::class, $this->branch]);
+
+        $invitation = BranchUserInvitation::where('branch_id', $this->branch->id)
+            ->where('id', $invitationId)
+            ->pending()
+            ->firstOrFail();
+
+        $invitation->delete();
+
+        unset($this->pendingInvitations);
+
+        $this->dispatch('notification', [
+            'type' => 'success',
+            'message' => __('Invitation cancelled.'),
+        ]);
     }
 
     private function resetInviteForm(): void

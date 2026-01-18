@@ -16,6 +16,7 @@ use App\Models\Tenant\Pledge;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
+use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
 use App\Services\PlanAccessService;
@@ -196,6 +197,13 @@ class BranchNavigation extends Component
     {
         return $this->currentBranch &&
             auth()->user()?->can('update', $this->currentBranch);
+    }
+
+    #[Computed]
+    public function canViewUsers(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewAny', [UserBranchAccess::class, $this->currentBranch]);
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View

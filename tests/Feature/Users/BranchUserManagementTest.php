@@ -8,6 +8,7 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -21,6 +22,18 @@ beforeEach(function (): void {
     config(['app.url' => 'http://test.localhost']);
     url()->forceRootUrl('http://test.localhost');
     $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+
+    // Register tenant routes for testing
+    Route::middleware(['web', 'auth', 'onboarding.complete'])->group(function (): void {
+        Route::get('/branches/{branch}/users', \App\Livewire\Users\BranchUserIndex::class)
+            ->name('branches.users.index');
+    });
+
+    Route::middleware(['web'])->group(function (): void {
+        Route::get('/invitations/{token}/accept', \App\Livewire\Auth\AcceptBranchInvitation::class)
+            ->name('invitations.accept')
+            ->middleware('guest');
+    });
 
     $this->branch = Branch::factory()->main()->create();
 });
@@ -121,7 +134,7 @@ test('admin can invite existing user to branch', function (): void {
     expect($access->role)->toBe(BranchRole::Staff);
 });
 
-test('cannot invite user who does not exist', function (): void {
+test('inviting non-existing user creates pending invitation', function (): void {
     $admin = User::factory()->create();
 
     UserBranchAccess::factory()->create([
@@ -137,7 +150,15 @@ test('cannot invite user who does not exist', function (): void {
         ->set('inviteEmail', 'nonexistent@example.com')
         ->set('inviteRole', 'staff')
         ->call('invite')
-        ->assertHasErrors(['inviteEmail']);
+        ->assertHasNoErrors()
+        ->assertSet('showInviteModal', false);
+
+    // Should create a pending invitation
+    $this->assertDatabaseHas('branch_user_invitations', [
+        'email' => 'nonexistent@example.com',
+        'branch_id' => $this->branch->id,
+        'role' => 'staff',
+    ]);
 });
 
 test('cannot invite user who already has access', function (): void {

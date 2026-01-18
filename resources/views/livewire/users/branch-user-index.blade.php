@@ -15,6 +15,83 @@
         <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search users by name or email...') }}" icon="magnifying-glass" />
     </div>
 
+    {{-- Pending Invitations --}}
+    @if($this->pendingInvitations->isNotEmpty())
+        <div class="mb-6">
+            <flux:heading size="lg" class="mb-4">{{ __('Pending Invitations') }}</flux:heading>
+            <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <thead class="bg-zinc-50 dark:bg-zinc-800">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                {{ __('Email') }}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                {{ __('Role') }}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                {{ __('Expires') }}
+                            </th>
+                            <th scope="col" class="relative px-6 py-3">
+                                <span class="sr-only">{{ __('Actions') }}</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+                        @foreach($this->pendingInvitations as $invitation)
+                            <tr wire:key="invitation-{{ $invitation->id }}">
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <flux:avatar size="sm" name="{{ $invitation->email }}" />
+                                        <div>
+                                            <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                                {{ $invitation->email }}
+                                            </div>
+                                            @if($invitation->invitedBy)
+                                                <div class="text-sm text-zinc-500 dark:text-zinc-400">
+                                                    {{ __('Invited by :name', ['name' => $invitation->invitedBy->name]) }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <flux:badge
+                                        :color="match($invitation->role->value) {
+                                            'admin' => 'red',
+                                            'manager' => 'amber',
+                                            'staff' => 'blue',
+                                            'volunteer' => 'green',
+                                            default => 'zinc',
+                                        }"
+                                        size="sm"
+                                    >
+                                        {{ ucfirst($invitation->role->value) }}
+                                    </flux:badge>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                                        {{ $invitation->expires_at->diffForHumans() }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <flux:button variant="ghost" size="sm" wire:click="resendInvitation('{{ $invitation->id }}')" icon="envelope">
+                                            {{ __('Resend') }}
+                                        </flux:button>
+                                        <flux:button variant="ghost" size="sm" wire:click="cancelPendingInvitation('{{ $invitation->id }}')" icon="x-mark" class="text-red-600 hover:text-red-700">
+                                            {{ __('Cancel') }}
+                                        </flux:button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     @if($this->users->isEmpty())
         <div class="flex flex-col items-center justify-center py-12">
             <flux:icon icon="users" class="size-12 text-zinc-400" />
@@ -109,6 +186,10 @@
         <div class="space-y-6">
             <flux:heading size="lg">{{ __('Add User to Branch') }}</flux:heading>
 
+            <flux:text class="text-sm text-zinc-500">
+                {{ __('Enter the email address of the user you want to add. If they don\'t have an account, they\'ll receive an invitation to join.') }}
+            </flux:text>
+
             <form wire:submit="invite" class="space-y-4">
                 <flux:input
                     wire:model="inviteEmail"
@@ -131,7 +212,7 @@
                         {{ __('Cancel') }}
                     </flux:button>
                     <flux:button variant="primary" type="submit">
-                        {{ __('Add User') }}
+                        {{ __('Send Invite') }}
                     </flux:button>
                 </div>
             </form>
