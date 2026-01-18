@@ -36,6 +36,11 @@ class PlatformBillingService
             ->get();
 
         foreach ($tenants as $tenant) {
+            // Skip if tenant has cancelled and their subscription has ended
+            if ($tenant->hasCancellationExpired()) {
+                continue;
+            }
+
             // Skip if invoice already exists for this period
             $existingInvoice = PlatformInvoice::where('tenant_id', $tenant->id)
                 ->where('billing_period', $billingPeriod)
@@ -120,16 +125,19 @@ class PlatformBillingService
     /**
      * Generate an upgrade invoice for a tenant switching to a new plan.
      * The invoice is created in SENT status, ready for immediate payment.
+     *
+     * @param  array{days_remaining: int, days_used: int, days_in_period: int, old_plan_credit: float, new_plan_cost: float, amount_due: float, credit_generated: float, change_type: string}|null  $prorationData
      */
     public function generateUpgradeInvoice(
         Tenant $tenant,
         SubscriptionPlan $newPlan,
         BillingCycle $cycle,
-        ?string $upgradeReason = null
+        ?string $upgradeReason = null,
+        ?array $prorationData = null
     ): PlatformInvoice {
-        $price = $cycle === BillingCycle::Annual
-            ? $newPlan->price_annual
-            : $newPlan->price_monthly;
+        $fullPrice = $cycle === BillingCycle::Annual
+            ? (float) $newPlan->price_annual
+            : (float) $newPlan->price_monthly;
 
         $periodStart = now();
         $periodEnd = $cycle === BillingCycle::Annual
@@ -140,37 +148,63 @@ class PlatformBillingService
             ? now()->format('Y').' Annual Upgrade'
             : now()->format('F Y').' Upgrade';
 
-        return DB::transaction(function () use ($tenant, $newPlan, $price, $periodStart, $periodEnd, $billingPeriod, $cycle, $upgradeReason) {
+        // Calculate amounts with proration
+        $prorationCredit = $prorationData['old_plan_credit'] ?? 0;
+        $subtotal = $prorationData ? $prorationData['new_plan_cost'] : $fullPrice;
+        $totalAmount = $prorationData ? $prorationData['amount_due'] : $fullPrice;
+        $changeType = $prorationData['change_type'] ?? 'upgrade';
+
+        return DB::transaction(function () use ($tenant, $newPlan, $fullPrice, $periodStart, $periodEnd, $billingPeriod, $cycle, $upgradeReason, $prorationData, $prorationCredit, $subtotal, $totalAmount, $changeType) {
             $invoice = PlatformInvoice::create([
                 'tenant_id' => $tenant->id,
                 'subscription_plan_id' => $newPlan->id,
+                'previous_plan_id' => $tenant->subscription_id,
                 'billing_period' => $billingPeriod,
                 'period_start' => $periodStart,
                 'period_end' => $periodEnd,
                 'issue_date' => now(),
                 'due_date' => now()->addDay(),
-                'subtotal' => $price,
+                'subtotal' => $subtotal,
                 'tax_amount' => 0,
                 'discount_amount' => 0,
-                'total_amount' => $price,
+                'proration_credit' => $prorationCredit,
+                'total_amount' => $totalAmount,
                 'amount_paid' => 0,
-                'balance_due' => $price,
+                'balance_due' => $totalAmount,
                 'status' => InvoiceStatus::Sent,
                 'currency' => 'GHS',
                 'notes' => $upgradeReason,
+                'change_type' => $changeType,
                 'metadata' => [
                     'upgrade_type' => 'self_service',
                     'previous_plan_id' => $tenant->subscription_id,
                     'billing_cycle' => $cycle->value,
+                    'proration' => $prorationData,
                 ],
             ]);
 
+            // Add credit line item if there's proration
+            if ($prorationCredit > 0 && $tenant->subscriptionPlan) {
+                PlatformInvoiceItem::create([
+                    'platform_invoice_id' => $invoice->id,
+                    'description' => "Credit for unused {$tenant->subscriptionPlan->name} plan ({$prorationData['days_remaining']} days)",
+                    'quantity' => 1,
+                    'unit_price' => -$prorationCredit,
+                    'total' => -$prorationCredit,
+                ]);
+            }
+
+            // Add the new plan line item
+            $lineItemDescription = $prorationData
+                ? "{$newPlan->name} - {$cycle->label()} Subscription ({$prorationData['days_remaining']} days prorated)"
+                : "{$newPlan->name} - {$cycle->label()} Subscription (Upgrade)";
+
             PlatformInvoiceItem::create([
                 'platform_invoice_id' => $invoice->id,
-                'description' => "{$newPlan->name} - {$cycle->label()} Subscription (Upgrade)",
+                'description' => $lineItemDescription,
                 'quantity' => 1,
-                'unit_price' => $price,
-                'total' => $price,
+                'unit_price' => $prorationData ? $prorationData['new_plan_cost'] : $fullPrice,
+                'total' => $prorationData ? $prorationData['new_plan_cost'] : $fullPrice,
             ]);
 
             return $invoice;

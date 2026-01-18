@@ -36,6 +36,23 @@
 
             <flux:spacer />
 
+            <!-- Billing Navigation (only in tenant context) -->
+            @if(tenant() && auth()->check())
+                <flux:navlist variant="outline">
+                    <flux:navlist.group :heading="__('Billing')" class="grid">
+                        <flux:navlist.item icon="credit-card" :href="route('subscription.show')" :current="request()->routeIs('subscription.show')" wire:navigate>
+                            {{ __('Subscription') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item icon="document-text" :href="route('payments.history')" :current="request()->routeIs('payments.history')" wire:navigate>
+                            {{ __('Payment History') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item icon="rectangle-stack" :href="route('plans.index')" :current="request()->routeIs('plans.*')" wire:navigate>
+                            {{ __('Plans') }}
+                        </flux:navlist.item>
+                    </flux:navlist.group>
+                </flux:navlist>
+            @endif
+
             {{--  <flux:navlist variant="outline">
                 <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
                 {{ __('Repository') }}

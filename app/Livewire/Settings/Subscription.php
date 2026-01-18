@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Services\PlanAccessService;
+use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -13,6 +15,10 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class Subscription extends Component
 {
+    public bool $showCancelModal = false;
+
+    public string $cancellationReason = '';
+
     /**
      * Get the current subscription plan.
      */
@@ -155,6 +161,50 @@ class Subscription extends Component
             || ! $this->clusterQuota['unlimited']
             || ! $this->visitorQuota['unlimited']
             || ! $this->equipmentQuota['unlimited'];
+    }
+
+    /**
+     * Get the current tenant.
+     */
+    #[Computed]
+    public function tenant(): Tenant
+    {
+        return tenant();
+    }
+
+    /**
+     * Show the cancellation confirmation modal.
+     */
+    public function confirmCancellation(): void
+    {
+        $this->showCancelModal = true;
+    }
+
+    /**
+     * Cancel the subscription.
+     */
+    public function cancelSubscription(): void
+    {
+        $this->validate([
+            'cancellationReason' => 'required|string|min:10|max:500',
+        ]);
+
+        tenant()->cancelSubscription($this->cancellationReason);
+
+        $this->showCancelModal = false;
+        $this->cancellationReason = '';
+
+        Flux::toast(__('Your subscription has been cancelled. You will retain access until the end of your billing period.'));
+    }
+
+    /**
+     * Reactivate a cancelled subscription.
+     */
+    public function reactivateSubscription(): void
+    {
+        tenant()->reactivateSubscription();
+
+        Flux::toast(__('Your subscription has been reactivated.'));
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
