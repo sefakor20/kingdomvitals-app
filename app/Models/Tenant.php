@@ -26,6 +26,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'suspended_at',
         'suspension_reason',
         'subscription_id',
+        'cancelled_at',
+        'cancellation_reason',
+        'subscription_ends_at',
     ];
 
     protected function casts(): array
@@ -33,6 +36,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return [
             'trial_ends_at' => 'datetime',
             'suspended_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'subscription_ends_at' => 'datetime',
             'status' => TenantStatus::class,
         ];
     }
@@ -50,6 +55,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'suspended_at',
             'suspension_reason',
             'subscription_id',
+            'cancelled_at',
+            'cancellation_reason',
+            'subscription_ends_at',
         ];
     }
 
@@ -109,6 +117,72 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'suspended_at' => null,
             'suspension_reason' => null,
         ]);
+    }
+
+    /**
+     * Cancel the subscription with a reason.
+     * Access continues until the end of the current billing period.
+     */
+    public function cancelSubscription(string $reason): void
+    {
+        $this->update([
+            'cancelled_at' => now(),
+            'cancellation_reason' => $reason,
+            'subscription_ends_at' => now()->endOfMonth(),
+        ]);
+    }
+
+    /**
+     * Check if the subscription has been cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->cancelled_at !== null;
+    }
+
+    /**
+     * Check if the tenant is in the cancellation grace period.
+     * (Cancelled but still has access until subscription_ends_at)
+     */
+    public function isInCancellationGracePeriod(): bool
+    {
+        return $this->isCancelled()
+            && $this->subscription_ends_at
+            && $this->subscription_ends_at->isFuture();
+    }
+
+    /**
+     * Check if the cancelled subscription has expired.
+     */
+    public function hasCancellationExpired(): bool
+    {
+        return $this->isCancelled()
+            && $this->subscription_ends_at
+            && $this->subscription_ends_at->isPast();
+    }
+
+    /**
+     * Reactivate a cancelled subscription (before expiration).
+     */
+    public function reactivateSubscription(): void
+    {
+        $this->update([
+            'cancelled_at' => null,
+            'cancellation_reason' => null,
+            'subscription_ends_at' => null,
+        ]);
+    }
+
+    /**
+     * Get days remaining until subscription ends.
+     */
+    public function subscriptionDaysRemaining(): ?int
+    {
+        if (! $this->isCancelled() || ! $this->subscription_ends_at) {
+            return null;
+        }
+
+        return max(0, (int) now()->diffInDays($this->subscription_ends_at, false));
     }
 
     /**

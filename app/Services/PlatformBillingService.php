@@ -36,6 +36,11 @@ class PlatformBillingService
             ->get();
 
         foreach ($tenants as $tenant) {
+            // Skip if tenant has cancelled and their subscription has ended
+            if ($tenant->hasCancellationExpired()) {
+                continue;
+            }
+
             // Skip if invoice already exists for this period
             $existingInvoice = PlatformInvoice::where('tenant_id', $tenant->id)
                 ->where('billing_period', $billingPeriod)

@@ -6,6 +6,33 @@
         </flux:subheading>
     </div>
 
+    {{-- Cancellation Status Banner --}}
+    @if($this->tenant->isCancelled())
+        <div class="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-900/20">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-start gap-3">
+                    <flux:icon name="exclamation-triangle" class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <div>
+                        <flux:heading size="sm" class="text-amber-800 dark:text-amber-200">
+                            {{ __('Subscription Cancelled') }}
+                        </flux:heading>
+                        <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                            {{ __('Your subscription has been cancelled. You have access until :date.', ['date' => $this->tenant->subscription_ends_at->format('M d, Y')]) }}
+                        </flux:text>
+                        @if($this->tenant->subscriptionDaysRemaining() !== null)
+                            <flux:text class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                                {{ trans_choice(':count day remaining|:count days remaining', $this->tenant->subscriptionDaysRemaining(), ['count' => $this->tenant->subscriptionDaysRemaining()]) }}
+                            </flux:text>
+                        @endif
+                    </div>
+                </div>
+                <flux:button wire:click="reactivateSubscription" variant="primary" size="sm">
+                    {{ __('Reactivate Subscription') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
     <div class="space-y-8">
         {{-- Current Plan Section --}}
         <div class="space-y-4">
@@ -328,7 +355,7 @@
         @endif
 
         {{-- Upgrade Section --}}
-        @if($this->plan)
+        @if($this->plan && !$this->tenant->isCancelled())
             <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700">
                 <div class="flex items-center justify-between">
                     <div>
@@ -345,5 +372,68 @@
                 </div>
             </div>
         @endif
+
+        {{-- Danger Zone - Cancel Subscription --}}
+        @if($this->plan && !$this->tenant->isCancelled())
+            <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                    <flux:heading size="sm" class="text-red-800 dark:text-red-200">
+                        {{ __('Danger Zone') }}
+                    </flux:heading>
+                    <flux:text class="mt-2 text-sm text-red-700 dark:text-red-300">
+                        {{ __('Once you cancel your subscription, you will lose access to premium features at the end of your billing period. Your data will be preserved.') }}
+                    </flux:text>
+                    <div class="mt-4">
+                        <flux:button wire:click="confirmCancellation" variant="danger" size="sm">
+                            {{ __('Cancel Subscription') }}
+                        </flux:button>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
+
+    {{-- Cancellation Confirmation Modal --}}
+    @if($this->plan && !$this->tenant->isCancelled())
+        <flux:modal wire:model="showCancelModal" class="max-w-md">
+            <div class="space-y-4">
+                <div>
+                    <flux:heading size="lg">{{ __('Cancel Subscription') }}</flux:heading>
+                    <flux:text class="mt-2 text-zinc-600 dark:text-zinc-400">
+                        {{ __('Are you sure you want to cancel your subscription? You will retain access until the end of your current billing period.') }}
+                    </flux:text>
+                </div>
+
+                <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-900/20">
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                        <strong>{{ __('What happens when you cancel:') }}</strong>
+                    </flux:text>
+                    <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-amber-600 dark:text-amber-400">
+                        <li>{{ __('Access continues until :date', ['date' => now()->endOfMonth()->format('M d, Y')]) }}</li>
+                        <li>{{ __('Your data will be preserved') }}</li>
+                        <li>{{ __('You can reactivate anytime before the end date') }}</li>
+                    </ul>
+                </div>
+
+                <flux:field>
+                    <flux:label>{{ __('Please tell us why you\'re cancelling') }}</flux:label>
+                    <flux:textarea
+                        wire:model="cancellationReason"
+                        rows="3"
+                        placeholder="{{ __('Your feedback helps us improve...') }}"
+                    />
+                    <flux:error name="cancellationReason" />
+                </flux:field>
+
+                <div class="flex justify-end gap-3">
+                    <flux:button wire:click="$set('showCancelModal', false)" variant="ghost">
+                        {{ __('Keep Subscription') }}
+                    </flux:button>
+                    <flux:button wire:click="cancelSubscription" variant="danger">
+                        {{ __('Yes, Cancel Subscription') }}
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
+    @endif
 </div>
