@@ -30,6 +30,11 @@
             <flux:button wire:click="downloadPdf" icon="arrow-down-tray" variant="ghost">
                 {{ __('Download PDF') }}
             </flux:button>
+            @if($this->invoice->status !== \App\Enums\InvoiceStatus::Draft && $this->invoice->tenant?->contact_email)
+                <flux:button wire:click="resendInvoiceEmail" icon="envelope" variant="ghost">
+                    {{ __('Resend Email') }}
+                </flux:button>
+            @endif
             @if($this->invoice->status->canBeCancelled())
                 <flux:button wire:click="openCancelModal" icon="x-mark" variant="danger">
                     {{ __('Cancel') }}
@@ -204,15 +209,20 @@
                 </dl>
             </div>
 
-            {{-- Reminders Sent --}}
+            {{-- Email History --}}
             @if($this->invoice->reminders->isNotEmpty())
                 <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-                    <flux:heading size="lg" class="mb-4">{{ __('Reminders Sent') }}</flux:heading>
-                    <ul class="space-y-2">
+                    <flux:heading size="lg" class="mb-4">{{ __('Email History') }}</flux:heading>
+                    <ul class="space-y-3">
                         @foreach($this->invoice->reminders as $reminder)
-                            <li class="flex items-center justify-between text-sm">
-                                <span class="text-zinc-600 dark:text-zinc-400">{{ $reminder->getTypeLabel() }}</span>
-                                <span class="text-zinc-500">{{ $reminder->sent_at->format('M d') }}</span>
+                            <li class="text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-600 dark:text-zinc-400">{{ $reminder->getTypeLabel() }}</span>
+                                    <span class="text-zinc-500">{{ $reminder->sent_at->format('M d, g:i A') }}</span>
+                                </div>
+                                @if($reminder->recipient_email)
+                                    <div class="text-xs text-zinc-400 mt-0.5">{{ $reminder->recipient_email }}</div>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

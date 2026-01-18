@@ -9,6 +9,8 @@ use App\Enums\InvoiceStatus;
 use App\Enums\PlatformPaymentMethod;
 use App\Enums\PlatformPaymentStatus;
 use App\Enums\TenantStatus;
+use App\Mail\PlatformInvoiceMail;
+use App\Mail\PlatformPaymentReceivedMail;
 use App\Models\PlatformInvoice;
 use App\Models\PlatformInvoiceItem;
 use App\Models\PlatformPayment;
@@ -18,6 +20,7 @@ use App\Models\Tenant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PlatformBillingService
 {
@@ -214,7 +217,7 @@ class PlatformBillingService
     /**
      * Record a payment for an invoice.
      *
-     * @param  array{amount: float, payment_method: PlatformPaymentMethod, notes?: string, paystack_reference?: string}  $data
+     * @param  array{amount: float, payment_method: PlatformPaymentMethod, notes?: string, paystack_reference?: string, send_confirmation?: bool}  $data
      */
     public function recordPayment(PlatformInvoice $invoice, array $data): PlatformPayment
     {
@@ -231,6 +234,11 @@ class PlatformBillingService
         ]);
 
         $invoice->recordPayment($data['amount']);
+
+        // Send confirmation email if requested (default: true)
+        if ($data['send_confirmation'] ?? true) {
+            $this->sendPaymentConfirmationEmail($payment);
+        }
 
         return $payment;
     }
@@ -431,5 +439,112 @@ class PlatformBillingService
         }
 
         return $data;
+    }
+
+    /**
+     * Send invoice email to tenant.
+     */
+    public function sendInvoiceEmail(PlatformInvoice $invoice): bool
+    {
+        $email = $invoice->tenant?->contact_email;
+
+        if (empty($email)) {
+            Log::warning('Cannot send invoice email: no contact email', [
+                'invoice_id' => $invoice->id,
+                'tenant_id' => $invoice->tenant_id,
+            ]);
+
+            return false;
+        }
+
+        try {
+            Mail::to($email)->send(new PlatformInvoiceMail($invoice));
+
+            $this->recordEmailSent($invoice, PlatformPaymentReminder::TYPE_INVOICE_SENT, $email);
+
+            Log::info('Invoice email sent', [
+                'invoice_id' => $invoice->id,
+                'email' => $email,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to send invoice email', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Send payment confirmation email to tenant.
+     */
+    public function sendPaymentConfirmationEmail(PlatformPayment $payment, bool $attachInvoice = true): bool
+    {
+        $email = $payment->invoice->tenant?->contact_email;
+
+        if (empty($email)) {
+            Log::warning('Cannot send payment confirmation email: no contact email', [
+                'payment_id' => $payment->id,
+                'invoice_id' => $payment->platform_invoice_id,
+            ]);
+
+            return false;
+        }
+
+        try {
+            Mail::to($email)->send(new PlatformPaymentReceivedMail($payment, $attachInvoice));
+
+            $this->recordEmailSent($payment->invoice, PlatformPaymentReminder::TYPE_PAYMENT_RECEIVED, $email);
+
+            Log::info('Payment confirmation email sent', [
+                'payment_id' => $payment->id,
+                'invoice_id' => $payment->platform_invoice_id,
+                'email' => $email,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to send payment confirmation email', [
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Record that an email was sent for an invoice.
+     */
+    public function recordEmailSent(
+        PlatformInvoice $invoice,
+        string $type,
+        string $recipientEmail
+    ): PlatformPaymentReminder {
+        return PlatformPaymentReminder::create([
+            'platform_invoice_id' => $invoice->id,
+            'type' => $type,
+            'channel' => PlatformPaymentReminder::CHANNEL_EMAIL,
+            'sent_at' => now(),
+            'recipient_email' => $recipientEmail,
+        ]);
+    }
+
+    /**
+     * Send invoice and mark as sent.
+     * This combines the status update with email sending.
+     */
+    public function sendInvoice(PlatformInvoice $invoice): bool
+    {
+        if (! $invoice->status->canBeSent()) {
+            return false;
+        }
+
+        $invoice->markAsSent();
+
+        return $this->sendInvoiceEmail($invoice);
     }
 }

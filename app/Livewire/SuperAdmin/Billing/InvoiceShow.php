@@ -67,12 +67,52 @@ class InvoiceShow extends Component
             return;
         }
 
-        $invoice->markAsSent();
+        $billingService = app(PlatformBillingService::class);
+        $emailSent = $billingService->sendInvoice($invoice);
 
         SuperAdminActivityLog::log(
             superAdmin: Auth::guard('superadmin')->user(),
             action: 'send_invoice',
-            description: "Sent invoice {$invoice->invoice_number}",
+            description: "Sent invoice {$invoice->invoice_number}".($emailSent ? ' with email notification' : ''),
+            tenant: $invoice->tenant,
+            metadata: [
+                'invoice_id' => $invoice->id,
+                'email_sent' => $emailSent,
+            ],
+        );
+
+        unset($this->invoice);
+
+        $message = $emailSent
+            ? 'Invoice sent and email notification delivered.'
+            : 'Invoice marked as sent. Email could not be delivered (no contact email).';
+
+        $this->dispatch('notification', [
+            'type' => 'success',
+            'message' => $message,
+        ]);
+    }
+
+    public function resendInvoiceEmail(): void
+    {
+        $invoice = $this->invoice;
+
+        if (! $invoice->tenant?->contact_email) {
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'message' => 'Cannot send email: Tenant has no contact email.',
+            ]);
+
+            return;
+        }
+
+        $billingService = app(PlatformBillingService::class);
+        $sent = $billingService->sendInvoiceEmail($invoice);
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'resend_invoice_email',
+            description: "Resent invoice email for {$invoice->invoice_number}",
             tenant: $invoice->tenant,
             metadata: ['invoice_id' => $invoice->id],
         );
@@ -80,8 +120,8 @@ class InvoiceShow extends Component
         unset($this->invoice);
 
         $this->dispatch('notification', [
-            'type' => 'success',
-            'message' => 'Invoice sent successfully.',
+            'type' => $sent ? 'success' : 'error',
+            'message' => $sent ? 'Invoice email sent successfully.' : 'Failed to send invoice email.',
         ]);
     }
 
