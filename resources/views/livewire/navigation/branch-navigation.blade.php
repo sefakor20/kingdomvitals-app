@@ -239,16 +239,28 @@
             </flux:navlist.group>
         @endif
 
-        @if($this->canUpdateBranch)
+        @if($this->canUpdateBranch || $this->canViewUsers)
             <flux:navlist.group :heading="__('Configuration')" class="grid">
-                <flux:navlist.item
-                    icon="cog-6-tooth"
-                    :href="route('branches.settings', $this->currentBranch)"
-                    :current="request()->routeIs('branches.settings')"
-                    wire:navigate
-                >
-                    {{ __('Settings') }}
-                </flux:navlist.item>
+                @if($this->canViewUsers)
+                    <flux:navlist.item
+                        icon="users"
+                        :href="route('branches.users.index', $this->currentBranch)"
+                        :current="request()->routeIs('branches.users.*')"
+                        wire:navigate
+                    >
+                        {{ __('Users') }}
+                    </flux:navlist.item>
+                @endif
+                @if($this->canUpdateBranch)
+                    <flux:navlist.item
+                        icon="cog-6-tooth"
+                        :href="route('branches.settings', $this->currentBranch)"
+                        :current="request()->routeIs('branches.settings')"
+                        wire:navigate
+                    >
+                        {{ __('Settings') }}
+                    </flux:navlist.item>
+                @endif
             </flux:navlist.group>
         @endif
     </flux:navlist>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\Tenant\InvoiceController;
+use App\Livewire\Auth\AcceptBranchInvitation;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\PaymentHistory;
@@ -54,6 +55,11 @@ Route::middleware(['web'])->group(function (): void {
     // Public giving page (no auth required)
     Route::get('/branches/{branch}/give', \App\Livewire\Giving\PublicGivingForm::class)
         ->name('giving.form');
+
+    // Branch user invitation acceptance (guest route)
+    Route::get('/invitations/{token}/accept', AcceptBranchInvitation::class)
+        ->name('invitations.accept')
+        ->middleware('guest');
 
     // Also accessible at /give for convenience
     Route::get('/give', function () {
