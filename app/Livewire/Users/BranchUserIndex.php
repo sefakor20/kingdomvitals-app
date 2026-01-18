@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
@@ -21,6 +22,7 @@ class BranchUserIndex extends Component
 {
     use HasFilterableQuery;
 
+    #[Locked]
     public Branch $branch;
 
     public string $search = '';
