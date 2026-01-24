@@ -35,6 +35,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewDutyRosters)
+                <flux:navlist.item
+                    icon="calendar-days"
+                    :href="route('duty-rosters.index', $this->currentBranch)"
+                    :current="request()->routeIs('duty-rosters.*')"
+                    wire:navigate
+                >
+                    {{ __('Duty Rosters') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewVisitors)
                 <flux:navlist.item
                     icon="user-plus"

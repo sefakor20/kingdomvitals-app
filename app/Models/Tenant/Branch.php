@@ -108,6 +108,11 @@ class Branch extends Model
         return $this->hasMany(SmsTemplate::class);
     }
 
+    public function dutyRosters(): HasMany
+    {
+        return $this->hasMany(DutyRoster::class);
+    }
+
     /**
      * Get a setting value from the branch settings.
      */
