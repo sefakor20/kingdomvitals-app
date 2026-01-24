@@ -123,4 +123,24 @@ class DutyRosterPolicy
             ])
             ->exists();
     }
+
+    /**
+     * Determine whether the user can generate duty rosters.
+     * Admin, Manager, and Staff can generate.
+     */
+    public function generate(User $user, Branch $branch): bool
+    {
+        if (! $this->moduleEnabled(PlanModule::DutyRoster)) {
+            return false;
+        }
+
+        return $user->branchAccess()
+            ->where('branch_id', $branch->id)
+            ->whereIn('role', [
+                BranchRole::Admin->value,
+                BranchRole::Manager->value,
+                BranchRole::Staff->value,
+            ])
+            ->exists();
+    }
 }

@@ -6,6 +6,28 @@
         </div>
 
         <div class="flex gap-2">
+            @if (Route::has('duty-rosters.pools.index'))
+                <flux:dropdown position="bottom" align="end">
+                    <flux:button variant="ghost" icon="cog-6-tooth">
+                        {{ __('Settings') }}
+                    </flux:button>
+                    <flux:menu>
+                        <flux:menu.item href="{{ route('duty-rosters.pools.index', $branch) }}" icon="user-group" wire:navigate>
+                            {{ __('Personnel Pools') }}
+                        </flux:menu.item>
+                        @if (Route::has('duty-rosters.availability.index'))
+                            <flux:menu.item href="{{ route('duty-rosters.availability.index', $branch) }}" icon="calendar" wire:navigate>
+                                {{ __('Member Availability') }}
+                            </flux:menu.item>
+                        @endif
+                    </flux:menu>
+                </flux:dropdown>
+            @endif
+            @if (Route::has('duty-rosters.generate'))
+                <flux:button href="{{ route('duty-rosters.generate', $branch) }}" variant="ghost" icon="sparkles" wire:navigate>
+                    {{ __('Auto-Generate') }}
+                </flux:button>
+            @endif
             @if (Route::has('duty-rosters.print'))
                 <flux:button href="{{ route('duty-rosters.print', ['branch' => $branch, 'month' => $monthFilter]) }}" variant="ghost" icon="printer">
                     {{ __('Print') }}

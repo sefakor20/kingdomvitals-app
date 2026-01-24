@@ -241,6 +241,12 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:duty_roster'])->group(function (): void {
             Route::get('/branches/{branch}/duty-rosters', \App\Livewire\DutyRosters\DutyRosterIndex::class)
                 ->name('duty-rosters.index');
+            Route::get('/branches/{branch}/duty-rosters/pools', \App\Livewire\DutyRosters\DutyRosterPoolIndex::class)
+                ->name('duty-rosters.pools.index');
+            Route::get('/branches/{branch}/duty-rosters/availability', \App\Livewire\DutyRosters\MemberAvailabilityIndex::class)
+                ->name('duty-rosters.availability.index');
+            Route::get('/branches/{branch}/duty-rosters/generate', \App\Livewire\DutyRosters\DutyRosterGenerationWizard::class)
+                ->name('duty-rosters.generate');
             Route::get('/branches/{branch}/duty-rosters/print', \App\Livewire\DutyRosters\DutyRosterPrint::class)
                 ->name('duty-rosters.print');
             Route::get('/branches/{branch}/duty-rosters/{dutyRoster}', \App\Livewire\DutyRosters\DutyRosterShow::class)

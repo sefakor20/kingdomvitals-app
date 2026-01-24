@@ -172,6 +172,19 @@ class Member extends Model
         return $this->hasMany(MemberActivity::class)->latest();
     }
 
+    public function unavailabilities(): HasMany
+    {
+        return $this->hasMany(MemberUnavailability::class);
+    }
+
+    public function dutyRosterPools(): BelongsToMany
+    {
+        return $this->belongsToMany(DutyRosterPool::class, 'duty_roster_pool_member')
+            ->using(DutyRosterPoolMember::class)
+            ->withPivot(['id', 'last_assigned_date', 'assignment_count', 'sort_order', 'is_active'])
+            ->withTimestamps();
+    }
+
     /**
      * Scope a query to only include members who have not opted out of SMS.
      */
