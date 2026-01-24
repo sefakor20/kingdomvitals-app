@@ -29,6 +29,8 @@ class DutyRosterIndex extends Component
 
     public ?string $monthFilter = null;
 
+    public string $viewMode = 'table';
+
     public bool $showCreateModal = false;
 
     public bool $showEditModal = false;
@@ -133,6 +135,41 @@ class DutyRosterIndex extends Component
         return auth()->user()->can('deleteAny', [DutyRoster::class, $this->branch]);
     }
 
+    #[Computed]
+    public function calendarData(): array
+    {
+        $date = Carbon::parse($this->monthFilter.'-01');
+        $startOfMonth = $date->copy()->startOfMonth();
+        $endOfMonth = $date->copy()->endOfMonth();
+
+        // Get the start of the calendar grid (may include days from previous month)
+        $startOfCalendar = $startOfMonth->copy()->startOfWeek(Carbon::SUNDAY);
+        // Get the end of the calendar grid (may include days from next month)
+        $endOfCalendar = $endOfMonth->copy()->endOfWeek(Carbon::SATURDAY);
+
+        $rosters = $this->dutyRosters->keyBy(fn ($r) => $r->service_date->format('Y-m-d'));
+
+        $weeks = [];
+        $current = $startOfCalendar->copy();
+
+        while ($current->lte($endOfCalendar)) {
+            $week = [];
+            for ($i = 0; $i < 7; $i++) {
+                $dateKey = $current->format('Y-m-d');
+                $week[] = [
+                    'date' => $current->copy(),
+                    'isCurrentMonth' => $current->month === $date->month,
+                    'isToday' => $current->isToday(),
+                    'roster' => $rosters->get($dateKey),
+                ];
+                $current->addDay();
+            }
+            $weeks[] = $week;
+        }
+
+        return $weeks;
+    }
+
     protected function rules(): array
     {
         return [
@@ -150,10 +187,23 @@ class DutyRosterIndex extends Component
         ];
     }
 
+    public function setViewMode(string $mode): void
+    {
+        $this->viewMode = $mode;
+    }
+
     public function create(): void
     {
         $this->authorize('create', [DutyRoster::class, $this->branch]);
         $this->resetForm();
+        $this->showCreateModal = true;
+    }
+
+    public function createForDate(string $date): void
+    {
+        $this->authorize('create', [DutyRoster::class, $this->branch]);
+        $this->resetForm();
+        $this->service_date = $date;
         $this->showCreateModal = true;
     }
 

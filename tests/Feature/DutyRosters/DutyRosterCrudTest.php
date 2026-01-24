@@ -704,3 +704,173 @@ test('user cannot delete duty roster from different branch', function (): void {
         ->call('confirmDelete', $roster)
         ->assertForbidden();
 });
+
+// ============================================
+// CALENDAR VIEW TESTS
+// ============================================
+
+test('can toggle to calendar view', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->assertSet('viewMode', 'table')
+        ->call('setViewMode', 'calendar')
+        ->assertSet('viewMode', 'calendar');
+});
+
+test('can toggle back to table view', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->call('setViewMode', 'calendar')
+        ->assertSet('viewMode', 'calendar')
+        ->call('setViewMode', 'table')
+        ->assertSet('viewMode', 'table');
+});
+
+test('calendar data is generated correctly', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $roster = DutyRoster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'service_date' => now()->startOfMonth()->addDays(14),
+        'theme' => 'Calendar Test Theme',
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->call('setViewMode', 'calendar');
+
+    // Get the component instance to access computed property
+    $calendarData = $component->instance()->calendarData;
+
+    expect($calendarData)->toBeArray();
+    expect(count($calendarData))->toBeGreaterThanOrEqual(4); // At least 4 weeks
+
+    // Each week should have 7 days
+    foreach ($calendarData as $week) {
+        expect(count($week))->toBe(7);
+    }
+});
+
+test('calendar shows rosters for the correct dates', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $rosterDate = now()->startOfMonth()->addDays(10);
+    $roster = DutyRoster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'service_date' => $rosterDate,
+        'theme' => 'Mid-Month Theme',
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->call('setViewMode', 'calendar');
+
+    // Get the component instance to access computed property
+    $calendarData = $component->instance()->calendarData;
+
+    // Find the day with our roster
+    $foundRoster = false;
+    foreach ($calendarData as $week) {
+        foreach ($week as $day) {
+            if ($day['date']->format('Y-m-d') === $rosterDate->format('Y-m-d')) {
+                expect($day['roster'])->not->toBeNull();
+                expect($day['roster']->theme)->toBe('Mid-Month Theme');
+                $foundRoster = true;
+                break 2;
+            }
+        }
+    }
+
+    expect($foundRoster)->toBeTrue();
+});
+
+test('can create roster for specific date from calendar', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $specificDate = now()->format('Y-m-d');
+
+    Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->call('createForDate', $specificDate)
+        ->assertSet('showCreateModal', true)
+        ->assertSet('service_date', $specificDate);
+});
+
+test('calendar view shows day headers', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    DutyRoster::factory()->create([
+        'branch_id' => $this->branch->id,
+        'service_date' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->call('setViewMode', 'calendar')
+        ->assertSee('Sun')
+        ->assertSee('Mon')
+        ->assertSee('Tue')
+        ->assertSee('Wed')
+        ->assertSee('Thu')
+        ->assertSee('Fri')
+        ->assertSee('Sat');
+});
+
+test('calendar view displays even when no rosters exist', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(DutyRosterIndex::class, ['branch' => $this->branch])
+        ->call('setViewMode', 'calendar');
+
+    // Get the component instance to access computed property
+    $calendarData = $component->instance()->calendarData;
+    expect($calendarData)->toBeArray();
+    expect(count($calendarData))->toBeGreaterThanOrEqual(4);
+});
