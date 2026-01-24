@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\ChildrenCheckinSecurity;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Household;
@@ -23,6 +24,7 @@ use App\Observers\TenantObserver;
 use App\Policies\BudgetPolicy;
 use App\Policies\ChildrenCheckinSecurityPolicy;
 use App\Policies\DonationPolicy;
+use App\Policies\DutyRosterPolicy;
 use App\Policies\EquipmentPolicy;
 use App\Policies\ExpensePolicy;
 use App\Policies\HouseholdPolicy;
@@ -76,6 +78,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Household::class, HouseholdPolicy::class);
         Gate::policy(ChildrenCheckinSecurity::class, ChildrenCheckinSecurityPolicy::class);
         Gate::policy(PrayerRequest::class, PrayerRequestPolicy::class);
+        Gate::policy(DutyRoster::class, DutyRosterPolicy::class);
 
         // Register Report gates (not model-based)
         Gate::define('viewReports', [ReportPolicy::class, 'viewReports']);

@@ -237,6 +237,16 @@ Route::middleware(['web'])->group(function (): void {
                 ->name('prayer-requests.show');
         });
 
+        // Duty Roster Management (requires duty_roster module)
+        Route::middleware(['module:duty_roster'])->group(function (): void {
+            Route::get('/branches/{branch}/duty-rosters', \App\Livewire\DutyRosters\DutyRosterIndex::class)
+                ->name('duty-rosters.index');
+            Route::get('/branches/{branch}/duty-rosters/print', \App\Livewire\DutyRosters\DutyRosterPrint::class)
+                ->name('duty-rosters.print');
+            Route::get('/branches/{branch}/duty-rosters/{dutyRoster}', \App\Livewire\DutyRosters\DutyRosterShow::class)
+                ->name('duty-rosters.show');
+        });
+
         // Children's Ministry Management (requires children module)
         Route::middleware(['module:children'])->group(function (): void {
             Route::get('/branches/{branch}/children', \App\Livewire\Children\ChildrenDirectory::class)

@@ -8,6 +8,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Household;
@@ -77,6 +78,14 @@ class BranchNavigation extends Component
         return $this->currentBranch &&
             $this->planAccess->hasModule(PlanModule::Services) &&
             auth()->user()?->can('viewAny', [Service::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewDutyRosters(): bool
+    {
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::DutyRoster) &&
+            auth()->user()?->can('viewAny', [DutyRoster::class, $this->currentBranch]);
     }
 
     #[Computed]

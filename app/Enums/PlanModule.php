@@ -21,6 +21,7 @@ enum PlanModule: string
     case Equipment = 'equipment';
     case PrayerRequests = 'prayer_requests';
     case Reports = 'reports';
+    case DutyRoster = 'duty_roster';
 
     public function label(): string
     {
@@ -40,6 +41,7 @@ enum PlanModule: string
             self::Equipment => 'Equipment',
             self::PrayerRequests => 'Prayer Requests',
             self::Reports => 'Reports',
+            self::DutyRoster => 'Duty Roster',
         };
     }
 
@@ -66,6 +68,7 @@ enum PlanModule: string
             'equipment' => self::Equipment,
             'prayer-requests' => self::PrayerRequests,
             'reports' => self::Reports,
+            'duty-rosters' => self::DutyRoster,
             default => null,
         };
     }
