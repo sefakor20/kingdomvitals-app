@@ -80,6 +80,7 @@ class DutyRoster extends Model
     public function clusters(): BelongsToMany
     {
         return $this->belongsToMany(Cluster::class, 'duty_roster_cluster')
+            ->using(DutyRosterCluster::class)
             ->withPivot(['id', 'notes'])
             ->withTimestamps();
     }
