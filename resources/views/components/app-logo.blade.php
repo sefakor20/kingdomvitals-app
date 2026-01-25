@@ -1,9 +1,11 @@
 @php
     $logoUrl = null;
+    $appName = config('app.name'); // Default to platform name
 
-    // Check for tenant logo first, then platform logo
+    // Check for tenant logo and name first
     if (function_exists('tenant') && tenant()) {
         $logoUrl = tenant()->getLogoUrl('small');
+        $appName = tenant()->name ?? $appName;
     }
 
     // Fall back to platform logo if no tenant logo
@@ -19,12 +21,12 @@
 @endphp
 
 @if($logoUrl)
-    <img src="{{ $logoUrl }}" alt="{{ config('app.name') }}" class="size-8 rounded-md object-contain" />
+    <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="size-8 rounded-md object-contain" />
 @else
     <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-accent-content text-accent-foreground">
         <x-app-logo-icon class="size-5 fill-current text-white dark:text-black" />
     </div>
 @endif
 <div class="ms-1 grid flex-1 text-start text-sm">
-    <span class="mb-0.5 truncate leading-tight font-semibold">{{ config('app.name') }}</span>
+    <span class="mb-0.5 truncate leading-tight font-semibold">{{ $appName }}</span>
 </div>
