@@ -6,14 +6,19 @@ namespace App\Livewire\SuperAdmin\Settings;
 
 use App\Models\SuperAdminActivityLog;
 use App\Models\SystemSetting;
+use App\Services\ImageProcessingService;
 use App\Services\PaystackService;
 use App\Services\TextTangoService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class SystemSettings extends Component
 {
+    use WithFileUploads;
+
     // Tab State
     public string $activeTab = 'application';
 
@@ -22,6 +27,11 @@ class SystemSettings extends Component
 
     // Application Settings
     public string $appName = '';
+
+    // Platform Logo
+    public TemporaryUploadedFile|string|null $platformLogo = null;
+
+    public ?string $existingPlatformLogoUrl = null;
 
     public string $supportEmail = '';
 
@@ -85,6 +95,7 @@ class SystemSettings extends Component
         // Load application settings
         $this->appName = (string) SystemSetting::get('name', config('app.name'));
         $this->supportEmail = (string) SystemSetting::get('support_email', '');
+        $this->loadPlatformLogo();
         $this->defaultTrialDays = (int) SystemSetting::get('default_trial_days', 14);
         $this->currency = (string) SystemSetting::get('currency', 'GHS');
         $this->dateFormat = (string) SystemSetting::get('date_format', 'Y-m-d');
@@ -416,6 +427,87 @@ class SystemSettings extends Component
         );
 
         $this->dispatch('credentials-cleared');
+    }
+
+    protected function loadPlatformLogo(): void
+    {
+        $logoPaths = SystemSetting::get('platform_logo');
+
+        if ($logoPaths && is_array($logoPaths)) {
+            $imageService = app(ImageProcessingService::class);
+            $this->existingPlatformLogoUrl = $imageService->getLogoUrl($logoPaths, 'medium');
+        }
+    }
+
+    public function savePlatformLogo(): void
+    {
+        $this->ensureCanModify();
+
+        if (! $this->platformLogo instanceof TemporaryUploadedFile) {
+            return;
+        }
+
+        $imageService = app(ImageProcessingService::class);
+
+        // Validate the logo
+        $errors = $imageService->validateLogo($this->platformLogo);
+        if (! empty($errors)) {
+            foreach ($errors as $message) {
+                $this->addError('platformLogo', $message);
+            }
+
+            return;
+        }
+
+        // Delete existing logo if present
+        $existingPaths = SystemSetting::get('platform_logo');
+        if ($existingPaths && is_array($existingPaths)) {
+            $imageService->deleteLogoByPaths($existingPaths);
+        }
+
+        // Process and store the new logo
+        $paths = $imageService->processLogo($this->platformLogo, 'logos/platform');
+
+        // Save paths to system settings
+        SystemSetting::set('platform_logo', $paths, 'app');
+
+        // Update URL for display
+        $this->existingPlatformLogoUrl = $imageService->getLogoUrl($paths, 'medium');
+        $this->platformLogo = null;
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'settings_updated',
+            description: 'Updated platform logo',
+            metadata: ['section' => 'application', 'action' => 'upload_logo'],
+        );
+
+        $this->dispatch('logo-saved');
+    }
+
+    public function removePlatformLogo(): void
+    {
+        $this->ensureCanModify();
+
+        $existingPaths = SystemSetting::get('platform_logo');
+
+        if ($existingPaths && is_array($existingPaths)) {
+            $imageService = app(ImageProcessingService::class);
+            $imageService->deleteLogoByPaths($existingPaths);
+        }
+
+        SystemSetting::remove('platform_logo');
+        $this->existingPlatformLogoUrl = null;
+        $this->platformLogo = null;
+
+        SuperAdminActivityLog::log(
+            superAdmin: Auth::guard('superadmin')->user(),
+            action: 'settings_updated',
+            description: 'Removed platform logo',
+            metadata: ['section' => 'application', 'action' => 'remove_logo'],
+        );
+
+        $this->dispatch('logo-removed');
     }
 
     public function render(): View
