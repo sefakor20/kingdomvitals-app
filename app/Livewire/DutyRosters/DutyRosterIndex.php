@@ -11,6 +11,7 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -61,6 +62,13 @@ class DutyRosterIndex extends Component
     public ?DutyRoster $editingRoster = null;
 
     public ?DutyRoster $deletingRoster = null;
+
+    // Print modal properties
+    public ?string $printStartDate = null;
+
+    public ?string $printEndDate = null;
+
+    public bool $showPrintModal = false;
 
     public function mount(Branch $branch): void
     {
@@ -352,6 +360,31 @@ class DutyRosterIndex extends Component
     {
         $date = Carbon::parse($this->monthFilter.'-01')->addMonth();
         $this->monthFilter = $date->format('Y-m');
+    }
+
+    public function openPrintModal(): void
+    {
+        $this->printStartDate = Carbon::parse($this->monthFilter.'-01')->startOfMonth()->format('Y-m-d');
+        $this->printEndDate = Carbon::parse($this->monthFilter.'-01')->endOfMonth()->format('Y-m-d');
+        $this->showPrintModal = true;
+    }
+
+    public function getPrintUrlProperty(): ?string
+    {
+        if (! Route::has('duty-rosters.print')) {
+            return null;
+        }
+
+        return route('duty-rosters.print', [
+            'branch' => $this->branch,
+            'start' => $this->printStartDate,
+            'end' => $this->printEndDate,
+        ]);
+    }
+
+    public function closePrintModal(): void
+    {
+        $this->showPrintModal = false;
     }
 
     private function resetForm(): void
