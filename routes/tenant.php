@@ -6,6 +6,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\Tenant\InvoiceController;
 use App\Livewire\Auth\AcceptBranchInvitation;
 use App\Livewire\Settings\Appearance;
+use App\Livewire\Settings\Organization;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\PaymentHistory;
 use App\Livewire\Settings\Profile;
@@ -102,6 +103,7 @@ Route::middleware(['web'])->group(function (): void {
         Route::get('settings/profile', Profile::class)->name('profile.edit');
         Route::get('settings/password', Password::class)->name('user-password.edit');
         Route::get('settings/appearance', Appearance::class)->name('appearance.edit');
+        Route::get('settings/organization', Organization::class)->name('organization.edit');
         Route::get('settings/subscription', Subscription::class)->name('subscription.show');
         Route::get('settings/payments', PaymentHistory::class)->name('payments.history');
 

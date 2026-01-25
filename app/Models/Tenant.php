@@ -22,6 +22,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'contact_email',
         'contact_phone',
         'address',
+        'logo',
         'status',
         'trial_ends_at',
         'suspended_at',
@@ -47,6 +48,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'current_period_end' => 'date',
             'account_credit' => 'decimal:2',
             'status' => TenantStatus::class,
+            'logo' => 'array',
         ];
     }
 
@@ -58,6 +60,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'contact_email',
             'contact_phone',
             'address',
+            'logo',
             'status',
             'trial_ends_at',
             'suspended_at',
@@ -79,6 +82,63 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class, 'subscription_id');
+    }
+
+    // ============================================
+    // LOGO METHODS
+    // ============================================
+
+    /**
+     * Get the URL for the tenant's logo at a specific size.
+     *
+     * @param  string  $size  The size variant (favicon, small, medium, large, apple-touch)
+     */
+    public function getLogoUrl(string $size = 'small'): ?string
+    {
+        $logoPaths = $this->logo;
+
+        if (empty($logoPaths) || ! is_array($logoPaths) || ! isset($logoPaths[$size])) {
+            return null;
+        }
+
+        $path = $logoPaths[$size];
+
+        if (! \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Check if the tenant has a custom logo.
+     */
+    public function hasLogo(): bool
+    {
+        return ! empty($this->logo) && is_array($this->logo);
+    }
+
+    /**
+     * Set logo paths for the tenant.
+     *
+     * @param  array<string, string>|null  $paths
+     */
+    public function setLogoPaths(?array $paths): void
+    {
+        $this->update(['logo' => $paths]);
+    }
+
+    /**
+     * Clear the tenant's logo.
+     */
+    public function clearLogo(): void
+    {
+        if ($this->hasLogo()) {
+            $imageService = app(\App\Services\ImageProcessingService::class);
+            $imageService->deleteLogoByPaths($this->logo);
+        }
+
+        $this->update(['logo' => null]);
     }
 
     /**
