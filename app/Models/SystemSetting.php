@@ -74,6 +74,14 @@ class SystemSetting extends Model
                 }
             }
 
+            // Try to decode JSON (for arrays/objects)
+            if (is_string($value) && (str_starts_with($value, '[') || str_starts_with($value, '{'))) {
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    return $decoded;
+                }
+            }
+
             // Cast boolean strings
             if ($value === 'true') {
                 return true;
@@ -92,6 +100,11 @@ class SystemSetting extends Model
     public static function set(string $key, mixed $value, string $group = 'app', bool $encrypt = false): void
     {
         $storeValue = $value;
+
+        // Convert arrays to JSON for storage
+        if (is_array($value)) {
+            $storeValue = json_encode($value);
+        }
 
         // Convert booleans to strings for storage
         if (is_bool($value)) {
