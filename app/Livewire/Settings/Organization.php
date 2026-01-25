@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Services\ImageProcessingService;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -58,13 +60,13 @@ class Organization extends Component
             return;
         }
 
-        // Delete existing logo if present
+        // Delete existing logo if present (from central storage)
         if ($tenant->hasLogo()) {
-            $imageService->deleteLogoByPaths($tenant->logo);
+            $this->deleteLogoFromCentralStorage($tenant->logo);
         }
 
-        // Process and store the new logo (tenant-specific path)
-        $paths = $imageService->processLogo($this->logo, "logos/tenants/{$tenant->id}");
+        // Process and store the new logo in central storage (bypasses tenant storage isolation)
+        $paths = $this->processLogoToCentralStorage($this->logo, $tenant->id);
 
         // Save paths to tenant
         $tenant->setLogoPaths($paths);
@@ -74,6 +76,55 @@ class Organization extends Component
         $this->logo = null;
 
         $this->dispatch('logo-saved');
+    }
+
+    /**
+     * Process logo and store in central storage (bypasses tenant storage isolation).
+     *
+     * @return array<string, string>
+     */
+    private function processLogoToCentralStorage(TemporaryUploadedFile $file, string $tenantId): array
+    {
+        $paths = [];
+        $sizes = ImageProcessingService::LOGO_SIZES;
+
+        // Use base_path to store in central storage, bypassing tenant storage prefix
+        $directory = base_path("storage/app/public/logos/tenants/{$tenantId}");
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        foreach ($sizes as $sizeName => $targetSize) {
+            $resized = Image::read($file->getRealPath());
+            $resized->cover($targetSize, $targetSize);
+
+            $filename = "logo-{$sizeName}.png";
+            $fullPath = $directory.'/'.$filename;
+
+            $encoded = $resized->encode(new PngEncoder);
+            file_put_contents($fullPath, (string) $encoded);
+
+            // Store relative path for URL generation
+            $paths[$sizeName] = "logos/tenants/{$tenantId}/{$filename}";
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Delete logo files from central storage.
+     *
+     * @param  array<string, string>  $paths
+     */
+    private function deleteLogoFromCentralStorage(array $paths): void
+    {
+        foreach ($paths as $relativePath) {
+            $fullPath = base_path('storage/app/public/'.$relativePath);
+            if (file_exists($fullPath)) {
+                @unlink($fullPath);
+            }
+        }
     }
 
     public function removeLogo(): void

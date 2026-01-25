@@ -90,6 +90,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     /**
      * Get the URL for the tenant's logo at a specific size.
+     * Logo is stored in central storage to bypass tenant storage isolation.
      *
      * @param  string  $size  The size variant (favicon, small, medium, large, apple-touch)
      */
@@ -101,13 +102,16 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             return null;
         }
 
-        $path = $logoPaths[$size];
+        $relativePath = $logoPaths[$size];
 
-        if (! \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        // Check if file exists in central storage
+        $fullPath = base_path('storage/app/public/'.$relativePath);
+        if (! file_exists($fullPath)) {
             return null;
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+        // Use url() instead of asset() to bypass tenancy asset override
+        return url('storage/'.$relativePath);
     }
 
     /**
@@ -130,12 +134,17 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     /**
      * Clear the tenant's logo.
+     * Deletes files from central storage.
      */
     public function clearLogo(): void
     {
         if ($this->hasLogo()) {
-            $imageService = app(\App\Services\ImageProcessingService::class);
-            $imageService->deleteLogoByPaths($this->logo);
+            foreach ($this->logo as $relativePath) {
+                $fullPath = base_path('storage/app/public/'.$relativePath);
+                if (file_exists($fullPath)) {
+                    @unlink($fullPath);
+                }
+            }
         }
 
         $this->update(['logo' => null]);
