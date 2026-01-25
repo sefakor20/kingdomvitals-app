@@ -1,8 +1,29 @@
 <div>
     {{-- Branch Header --}}
     <div class="mb-6 text-center">
-        @if ($branch->logo_url)
-            <img src="{{ $branch->logo_url }}" alt="{{ $branch->name }}" class="mx-auto mb-4 h-16 w-16 rounded-full object-cover" />
+        @php
+            $logoUrl = null;
+
+            // 1. Check for tenant logo first
+            if (function_exists('tenant') && tenant()) {
+                $logoUrl = tenant()->getLogoUrl('medium');
+            }
+
+            // 2. Fall back to platform logo
+            if (!$logoUrl) {
+                $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
+                if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
+                    $path = $platformLogoPaths['medium'];
+                    $fullPath = base_path('storage/app/public/'.$path);
+                    if (file_exists($fullPath)) {
+                        $logoUrl = url('storage/'.$path);
+                    }
+                }
+            }
+        @endphp
+
+        @if ($logoUrl)
+            <img src="{{ $logoUrl }}" alt="{{ $branch->name }}" class="mx-auto mb-4 h-16 w-16 rounded-full object-cover" />
         @else
             <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-200 dark:bg-stone-700">
                 <flux:icon.heart class="size-8 text-stone-500 dark:text-stone-400" />
