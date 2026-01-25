@@ -12,6 +12,7 @@ use App\Notifications\BranchUserInvitationNotification;
 use App\Notifications\InvitedToBranchNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -305,6 +306,17 @@ class BranchUserIndex extends Component
             'type' => 'success',
             'message' => __('Invitation cancelled.'),
         ]);
+    }
+
+    public function sendPasswordResetLink(UserBranchAccess $access): void
+    {
+        $this->authorize('update', $access);
+
+        $user = $access->user;
+
+        Password::broker('users')->sendResetLink(['email' => $user->email]);
+
+        $this->dispatch('password-reset-sent');
     }
 
     private function resetInviteForm(): void

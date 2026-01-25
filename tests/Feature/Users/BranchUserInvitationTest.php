@@ -417,3 +417,48 @@ test('invitation pending scope excludes accepted', function (): void {
     expect($pending)->toHaveCount(1);
     expect($pending->first()->email)->toBe('pending@example.com');
 });
+
+// ============================================
+// PASSWORD RESET LINK TESTS
+// ============================================
+
+test('admin can send password reset link to user', function (): void {
+    $admin = User::factory()->create();
+    $user = User::factory()->create();
+
+    UserBranchAccess::factory()->create([
+        'user_id' => $admin->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $userAccess = UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(BranchUserIndex::class, ['branch' => $this->branch])
+        ->call('sendPasswordResetLink', $userAccess->id)
+        ->assertDispatched('password-reset-sent');
+
+    Notification::assertSentTo($user, \Illuminate\Auth\Notifications\ResetPassword::class);
+});
+
+test('admin cannot send password reset link to themselves', function (): void {
+    $admin = User::factory()->create();
+
+    $adminAccess = UserBranchAccess::factory()->create([
+        'user_id' => $admin->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(BranchUserIndex::class, ['branch' => $this->branch])
+        ->call('sendPasswordResetLink', $adminAccess->id)
+        ->assertForbidden();
+});
