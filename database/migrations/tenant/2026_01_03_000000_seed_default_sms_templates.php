@@ -41,6 +41,11 @@ return new class extends Migration
                 'name' => 'General Announcement',
                 'body' => 'Dear {first_name}, we have an important announcement from {branch_name}. Please check our notice board or contact us for more details.',
             ],
+            [
+                'type' => 'duty_roster_reminder',
+                'name' => 'Duty Roster Reminder',
+                'body' => 'Hi {first_name}, reminder: You are assigned as {role} for the service on {service_date} at {branch_name}. Please prepare accordingly.',
+            ],
         ];
 
         $now = now();
@@ -81,6 +86,7 @@ return new class extends Migration
             'Service Reminder',
             'Attendance Follow-up',
             'General Announcement',
+            'Duty Roster Reminder',
         ];
 
         DB::table('sms_templates')

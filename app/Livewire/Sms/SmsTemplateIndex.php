@@ -117,11 +117,18 @@ class SmsTemplateIndex extends Component
             '{service_time}' => 'Service time (e.g., "9:00 AM")',
         ];
 
+        $dutyRosterPlaceholders = [
+            '{role}' => 'Assigned role (e.g., "Preacher", "Liturgist", "Reader")',
+            '{service_date}' => 'Service date (e.g., "Sunday, Jan 28")',
+            '{theme}' => 'Service theme (if set)',
+        ];
+
         return match ($type) {
             'birthday' => $basePlaceholders,
             'welcome' => array_merge($basePlaceholders, $branchPlaceholder),
             'reminder' => array_merge($basePlaceholders, $branchPlaceholder, $servicePlaceholders, $serviceTimePlaceholder),
             'follow_up' => array_merge($basePlaceholders, $branchPlaceholder, $servicePlaceholders),
+            'duty_roster_reminder' => array_merge($basePlaceholders, $branchPlaceholder, $dutyRosterPlaceholders),
             default => array_merge($basePlaceholders, $branchPlaceholder),
         };
     }

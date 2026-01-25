@@ -66,6 +66,16 @@ class BranchSettings extends Component
 
     public ?string $attendanceFollowupTemplateId = null;
 
+    // Auto Duty Roster Reminder
+    public bool $autoDutyRosterReminder = false;
+
+    public int $dutyRosterReminderDays = 3;
+
+    /** @var array<int, string> */
+    public array $dutyRosterReminderChannels = ['sms'];
+
+    public ?string $dutyRosterReminderTemplateId = null;
+
     // Paystack Credentials
     public string $paystackPublicKey = '';
 
@@ -123,6 +133,12 @@ class BranchSettings extends Component
         $this->attendanceFollowupRecipients = $this->branch->getSetting('attendance_followup_recipients', 'regular');
         $this->attendanceFollowupMinAttendance = (int) $this->branch->getSetting('attendance_followup_min_attendance', 3);
         $this->attendanceFollowupTemplateId = $this->branch->getSetting('attendance_followup_template_id');
+
+        // Load duty roster reminder settings
+        $this->autoDutyRosterReminder = (bool) $this->branch->getSetting('auto_duty_roster_reminder', false);
+        $this->dutyRosterReminderDays = (int) $this->branch->getSetting('duty_roster_reminder_days', 3);
+        $this->dutyRosterReminderChannels = $this->branch->getSetting('duty_roster_reminder_channels', ['sms']);
+        $this->dutyRosterReminderTemplateId = $this->branch->getSetting('duty_roster_reminder_template_id');
 
         // Load Paystack settings
         $this->loadPaystackSettings();
@@ -200,6 +216,16 @@ class BranchSettings extends Component
             ->get();
     }
 
+    #[Computed]
+    public function dutyRosterReminderTemplates(): Collection
+    {
+        return SmsTemplate::where('branch_id', $this->branch->id)
+            ->where('type', SmsType::DutyRosterReminder)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
     protected function rules(): array
     {
         return [
@@ -250,6 +276,12 @@ class BranchSettings extends Component
         $this->branch->setSetting('attendance_followup_recipients', $this->attendanceFollowupRecipients);
         $this->branch->setSetting('attendance_followup_min_attendance', $this->attendanceFollowupMinAttendance);
         $this->branch->setSetting('attendance_followup_template_id', $this->attendanceFollowupTemplateId);
+
+        // Save duty roster reminder settings
+        $this->branch->setSetting('auto_duty_roster_reminder', $this->autoDutyRosterReminder);
+        $this->branch->setSetting('duty_roster_reminder_days', $this->dutyRosterReminderDays);
+        $this->branch->setSetting('duty_roster_reminder_channels', $this->dutyRosterReminderChannels);
+        $this->branch->setSetting('duty_roster_reminder_template_id', $this->dutyRosterReminderTemplateId);
 
         $this->branch->save();
 

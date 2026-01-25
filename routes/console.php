@@ -36,6 +36,11 @@ Schedule::command('sms:send-attendance-followup')
     ->hourly()
     ->withoutOverlapping();
 
+// Send duty roster reminders daily at 8 AM
+Schedule::command('sms:send-duty-roster-reminder')
+    ->dailyAt('08:00')
+    ->withoutOverlapping();
+
 // Check budget thresholds hourly and send alerts
 Schedule::command('budgets:check-thresholds')
     ->hourly()
