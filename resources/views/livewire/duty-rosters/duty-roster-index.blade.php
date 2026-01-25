@@ -29,7 +29,7 @@
                 </flux:button>
             @endif
             @if (Route::has('duty-rosters.print'))
-                <flux:button href="{{ route('duty-rosters.print', ['branch' => $branch, 'month' => $monthFilter]) }}" variant="ghost" icon="printer">
+                <flux:button wire:click="openPrintModal" variant="ghost" icon="printer">
                     <span class="hidden sm:inline">{{ __('Print') }}</span>
                 </flux:button>
             @endif
@@ -291,7 +291,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-2" />
+                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-4" />
                     </div>
                     <div>
                         <flux:select wire:model="liturgist_id" :label="__('Liturgist (Member)')">
@@ -302,7 +302,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-2" />
+                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-4" />
                     </div>
                 </div>
 
@@ -374,7 +374,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-2" />
+                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-4" />
                     </div>
                     <div>
                         <flux:select wire:model="liturgist_id" :label="__('Liturgist (Member)')">
@@ -385,7 +385,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-2" />
+                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-4" />
                     </div>
                 </div>
 
@@ -467,4 +467,43 @@
     <x-toast on="roster-unpublished" type="success">
         {{ __('Duty roster unpublished successfully.') }}
     </x-toast>
+
+    <!-- Print Date Range Modal -->
+    @if (Route::has('duty-rosters.print'))
+        <flux:modal wire:model.self="showPrintModal" name="print-roster" class="w-full max-w-md">
+            <div class="space-y-6">
+                <flux:heading size="lg">{{ __('Print Duty Roster') }}</flux:heading>
+
+                <flux:text class="text-zinc-500">
+                    {{ __('Select the date range for the duty roster you want to print.') }}
+                </flux:text>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:input
+                        wire:model="printStartDate"
+                        type="date"
+                        :label="__('Start Date')"
+                    />
+                    <flux:input
+                        wire:model="printEndDate"
+                        type="date"
+                        :label="__('End Date')"
+                    />
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <flux:button variant="ghost" wire:click="closePrintModal">
+                        {{ __('Cancel') }}
+                    </flux:button>
+                    <flux:button
+                        variant="primary"
+                        icon="printer"
+                        x-on:click="window.open('{{ route('duty-rosters.print', ['branch' => $branch]) }}' + '?start=' + $wire.printStartDate + '&end=' + $wire.printEndDate, '_blank')"
+                    >
+                        {{ __('Print') }}
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
+    @endif
 </section>

@@ -382,6 +382,77 @@
                             @endif
                         </div>
                     @endif
+
+                    <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700"></div>
+
+                    <!-- Duty Roster Reminder Toggle -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <flux:heading size="sm">{{ __('Duty Roster Reminders') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Automatically remind preachers, liturgists, and readers before their assigned service.') }}
+                            </flux:text>
+                        </div>
+                        <flux:switch wire:model.live="autoDutyRosterReminder" />
+                    </div>
+
+                    @if($autoDutyRosterReminder)
+                        <!-- Duty Roster Reminder Settings -->
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <flux:select
+                                    wire:model="dutyRosterReminderDays"
+                                    :label="__('Send Reminder')"
+                                >
+                                    <flux:select.option value="1">{{ __('1 day before') }}</flux:select.option>
+                                    <flux:select.option value="2">{{ __('2 days before') }}</flux:select.option>
+                                    <flux:select.option value="3">{{ __('3 days before (Recommended)') }}</flux:select.option>
+                                    <flux:select.option value="5">{{ __('5 days before') }}</flux:select.option>
+                                    <flux:select.option value="7">{{ __('7 days before') }}</flux:select.option>
+                                </flux:select>
+                            </div>
+
+                            <div>
+                                <flux:field>
+                                    <flux:label>{{ __('Notification Channels') }}</flux:label>
+                                    <div class="mt-2 space-y-2">
+                                        <flux:checkbox
+                                            wire:model="dutyRosterReminderChannels"
+                                            value="sms"
+                                            label="{{ __('SMS') }}"
+                                        />
+                                        <flux:checkbox
+                                            wire:model="dutyRosterReminderChannels"
+                                            value="email"
+                                            label="{{ __('Email') }}"
+                                        />
+                                    </div>
+                                </flux:field>
+                            </div>
+                        </div>
+
+                        <div>
+                            <flux:select
+                                wire:model="dutyRosterReminderTemplateId"
+                                :label="__('SMS Message Template')"
+                            >
+                                <flux:select.option value="">{{ __('Use default message') }}</flux:select.option>
+                                @foreach($this->dutyRosterReminderTemplates as $template)
+                                    <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:text class="mt-1 text-xs text-zinc-500">
+                                {{ __('Available placeholders: {first_name}, {last_name}, {full_name}, {role}, {service_date}, {theme}, {branch_name}') }}
+                            </flux:text>
+                            @if($this->dutyRosterReminderTemplates->isEmpty())
+                                <div class="mt-2">
+                                    <flux:button variant="ghost" size="sm" :href="route('sms.templates', $branch)" wire:navigate icon="plus">
+                                        {{ __('Manage Templates') }}
+                                    </flux:button>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 @endif
 
                 <!-- Save Button for Auto SMS -->

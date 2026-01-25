@@ -38,6 +38,7 @@ class DutyRoster extends Model
         'status',
         'is_published',
         'published_at',
+        'reminder_sent_at',
         'created_by',
     ];
 
@@ -49,6 +50,7 @@ class DutyRoster extends Model
             'status' => DutyRosterStatus::class,
             'is_published' => 'boolean',
             'published_at' => 'datetime',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 
@@ -180,5 +182,21 @@ class DutyRoster extends Model
         $this->update([
             'status' => DutyRosterStatus::Cancelled,
         ]);
+    }
+
+    /**
+     * Check if reminder has been sent for this roster.
+     */
+    public function hasReminderBeenSent(): bool
+    {
+        return $this->reminder_sent_at !== null;
+    }
+
+    /**
+     * Mark reminder as sent.
+     */
+    public function markReminderSent(): void
+    {
+        $this->update(['reminder_sent_at' => now()]);
     }
 }
