@@ -291,7 +291,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-2" />
+                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-4" />
                     </div>
                     <div>
                         <flux:select wire:model="liturgist_id" :label="__('Liturgist (Member)')">
@@ -302,7 +302,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-2" />
+                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-4" />
                     </div>
                 </div>
 
@@ -374,7 +374,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-2" />
+                        <flux:input wire:model="preacher_name" :label="__('Or External Preacher')" placeholder="{{ __('e.g., Rev. John Doe') }}" class="mt-4" />
                     </div>
                     <div>
                         <flux:select wire:model="liturgist_id" :label="__('Liturgist (Member)')">
@@ -385,7 +385,7 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-2" />
+                        <flux:input wire:model="liturgist_name" :label="__('Or External Liturgist')" placeholder="{{ __('e.g., Cat. Jane Smith') }}" class="mt-4" />
                     </div>
                 </div>
 
