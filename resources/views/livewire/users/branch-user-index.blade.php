@@ -162,14 +162,21 @@
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 @if($access->user_id !== auth()->id())
-                                    <div class="flex items-center justify-end gap-2">
-                                        <flux:button variant="ghost" size="sm" wire:click="edit('{{ $access->id }}')" icon="pencil">
-                                            {{ __('Edit') }}
-                                        </flux:button>
-                                        <flux:button variant="ghost" size="sm" wire:click="confirmRevoke('{{ $access->id }}')" icon="trash" class="text-red-600 hover:text-red-700">
-                                            {{ __('Revoke') }}
-                                        </flux:button>
-                                    </div>
+                                    <flux:dropdown position="bottom" align="end">
+                                        <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
+
+                                        <flux:menu>
+                                            <flux:menu.item wire:click="sendPasswordResetLink('{{ $access->id }}')" icon="key">
+                                                {{ __('Reset Password') }}
+                                            </flux:menu.item>
+                                            <flux:menu.item wire:click="edit('{{ $access->id }}')" icon="pencil">
+                                                {{ __('Edit') }}
+                                            </flux:menu.item>
+                                            <flux:menu.item wire:click="confirmRevoke('{{ $access->id }}')" icon="trash" variant="danger">
+                                                {{ __('Revoke') }}
+                                            </flux:menu.item>
+                                        </flux:menu>
+                                    </flux:dropdown>
                                 @else
                                     <flux:text size="sm" class="text-zinc-400">{{ __('(You)') }}</flux:text>
                                 @endif
@@ -292,5 +299,9 @@
 
     <x-toast on="user-revoked" type="success">
         {{ __('User access revoked successfully.') }}
+    </x-toast>
+
+    <x-toast on="password-reset-sent" type="success">
+        {{ __('Password reset link sent successfully.') }}
     </x-toast>
 </section>
