@@ -99,9 +99,30 @@
     </style>
 </head>
 <body>
+    @php
+        $receiptLogoUrl = $branch->logo_url;
+
+        // Fall back to tenant logo if no branch logo
+        if (!$receiptLogoUrl && function_exists('tenant') && tenant() && tenant()->hasLogo()) {
+            $receiptLogoUrl = tenant()->getLogoUrl('medium');
+        }
+
+        // Fall back to platform logo
+        if (!$receiptLogoUrl) {
+            $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
+            if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
+                $path = $platformLogoPaths['medium'];
+                $fullPath = base_path('storage/app/public/'.$path);
+                if (file_exists($fullPath)) {
+                    $receiptLogoUrl = url('storage/'.$path);
+                }
+            }
+        }
+    @endphp
+
     <div class="header">
-        @if($branch->logo_url)
-            <img src="{{ $branch->logo_url }}" class="logo" alt="{{ $branch->name }}">
+        @if($receiptLogoUrl)
+            <img src="{{ $receiptLogoUrl }}" class="logo" alt="{{ $branch->name }}">
         @endif
         <div class="church-name">{{ $branch->name }}</div>
         <div class="church-contact">

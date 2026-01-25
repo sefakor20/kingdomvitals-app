@@ -1,11 +1,35 @@
 @props(['url'])
+
+@php
+    $logoUrl = null;
+    $appName = config('app.name');
+
+    // Check for tenant logo and name first
+    if (function_exists('tenant') && tenant()) {
+        $logoUrl = tenant()->getLogoUrl('medium');
+        $appName = tenant()->name ?? $appName;
+    }
+
+    // Fall back to platform logo
+    if (!$logoUrl) {
+        $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
+        if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
+            $path = $platformLogoPaths['medium'];
+            $fullPath = base_path('storage/app/public/'.$path);
+            if (file_exists($fullPath)) {
+                $logoUrl = url('storage/'.$path);
+            }
+        }
+    }
+@endphp
+
 <tr>
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
-@if (trim($slot) === 'Laravel')
-<img src="https://laravel.com/img/notification-logo-v2.1.png" class="logo" alt="Laravel Logo">
+@if($logoUrl)
+<img src="{{ $logoUrl }}" class="logo" alt="{{ $appName }}" style="max-width: 100px; max-height: 50px;">
 @else
-{!! $slot !!}
+{{ $appName }}
 @endif
 </a>
 </td>

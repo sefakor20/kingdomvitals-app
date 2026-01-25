@@ -4,14 +4,41 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
+        @php
+            $authLogoUrl = null;
+            $authAppName = config('app.name');
+
+            // Check for tenant logo and name first
+            if (function_exists('tenant') && tenant()) {
+                $authLogoUrl = tenant()->getLogoUrl('medium');
+                $authAppName = tenant()->name ?? $authAppName;
+            }
+
+            // Fall back to platform logo
+            if (!$authLogoUrl) {
+                $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
+                if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
+                    $path = $platformLogoPaths['medium'];
+                    $fullPath = base_path('storage/app/public/'.$path);
+                    if (file_exists($fullPath)) {
+                        $authLogoUrl = url('storage/'.$path);
+                    }
+                }
+            }
+        @endphp
+
         <div class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div class="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-e dark:border-neutral-800">
                 <div class="absolute inset-0 bg-neutral-900"></div>
                 <a href="{{ route('home') }}" class="relative z-20 flex items-center text-lg font-medium" wire:navigate>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-md">
-                        <x-app-logo-icon class="me-2 h-7 fill-current text-white" />
-                    </span>
-                    {{ config('app.name', 'Laravel') }}
+                    @if($authLogoUrl)
+                        <img src="{{ $authLogoUrl }}" alt="{{ $authAppName }}" class="me-2 h-8 w-8 rounded-md object-contain" />
+                    @else
+                        <span class="flex h-10 w-10 items-center justify-center rounded-md">
+                            <x-app-logo-icon class="me-2 h-7 fill-current text-white" />
+                        </span>
+                    @endif
+                    {{ $authAppName }}
                 </a>
 
                 @php
@@ -28,11 +55,15 @@
             <div class="w-full lg:p-8">
                 <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden" wire:navigate>
-                        <span class="flex h-9 w-9 items-center justify-center rounded-md">
-                            <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
-                        </span>
+                        @if($authLogoUrl)
+                            <img src="{{ $authLogoUrl }}" alt="{{ $authAppName }}" class="h-12 w-12 rounded-md object-contain" />
+                        @else
+                            <span class="flex h-12 w-12 items-center justify-center rounded-md">
+                                <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
+                            </span>
+                        @endif
 
-                        <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
+                        <span class="sr-only">{{ $authAppName }}</span>
                     </a>
                     {{ $slot }}
                 </div>
