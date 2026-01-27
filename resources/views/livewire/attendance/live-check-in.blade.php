@@ -159,7 +159,7 @@
                 @endif
 
                 <div class="relative w-full max-w-md overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-900 dark:border-zinc-600" style="aspect-ratio: 1;">
-                    <video id="qr-video" x-ref="video" class="size-full object-cover" x-show="$wire.isScanning"></video>
+                    <div id="qr-reader" x-show="$wire.isScanning" class="size-full"></div>
 
                     @if(!$isScanning)
                         <div class="absolute inset-0 flex flex-col items-center justify-center bg-zinc-100 dark:bg-zinc-800">
@@ -196,8 +196,7 @@
 
                         await this.$nextTick();
 
-                        const { Html5Qrcode } = await import('html5-qrcode');
-                        this.scanner = new Html5Qrcode('qr-video');
+                        this.scanner = new window.Html5Qrcode('qr-reader');
 
                         try {
                             await this.scanner.start(
