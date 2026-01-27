@@ -171,6 +171,8 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:visitors'])->group(function (): void {
             Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
                 ->name('visitors.index');
+            Route::get('/branches/{branch}/visitors/analytics', \App\Livewire\Visitors\VisitorAnalytics::class)
+                ->name('visitors.analytics');
             Route::get('/branches/{branch}/visitors/follow-ups', \App\Livewire\Visitors\FollowUpQueue::class)
                 ->name('visitors.follow-ups');
             Route::get('/branches/{branch}/visitors/follow-up-templates', \App\Livewire\Visitors\FollowUpTemplateIndex::class)

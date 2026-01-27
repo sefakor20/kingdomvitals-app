@@ -79,6 +79,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewVisitors)
+                <flux:navlist.item
+                    icon="chart-bar"
+                    :href="route('visitors.analytics', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.analytics')"
+                    wire:navigate
+                >
+                    {{ __('Visitor Analytics') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewHouseholds)
                 <flux:navlist.item
                     icon="home"
