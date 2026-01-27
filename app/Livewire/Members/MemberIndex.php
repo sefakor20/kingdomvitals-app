@@ -7,6 +7,8 @@ use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\QuotaType;
+use App\Exports\MemberImportTemplateExport;
+use App\Imports\MemberImport;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
@@ -18,6 +20,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 #[Layout('components.layouts.app')]
 class MemberIndex extends Component
@@ -102,6 +106,15 @@ class MemberIndex extends Component
     public ?Member $forceDeleting = null;
 
     public bool $showForceDeleteModal = false;
+
+    // Import properties
+    public bool $showImportModal = false;
+
+    public TemporaryUploadedFile|string|null $importFile = null;
+
+    public array $importResults = [];
+
+    public bool $importCompleted = false;
 
     public function mount(Branch $branch): void
     {
@@ -190,12 +203,112 @@ class MemberIndex extends Component
 
     /**
      * Check if member import feature is available on the current plan.
-     * This is a placeholder for future member import functionality.
      */
     #[Computed]
     public function canImportMembers(): bool
     {
         return app(PlanAccessService::class)->hasFeature('member_import');
+    }
+
+    public function openImportModal(): void
+    {
+        $this->authorize('create', [Member::class, $this->branch]);
+
+        if (! $this->canImportMembers) {
+            $this->dispatch('import-feature-unavailable');
+
+            return;
+        }
+
+        $this->reset(['importFile', 'importResults', 'importCompleted']);
+        $this->resetValidation('importFile');
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->reset(['importFile', 'importResults', 'importCompleted']);
+        $this->resetValidation('importFile');
+    }
+
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        return Excel::download(
+            new MemberImportTemplateExport,
+            'member-import-template.xlsx'
+        );
+    }
+
+    public function processImport(): void
+    {
+        $this->authorize('create', [Member::class, $this->branch]);
+
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:csv,xlsx,xls', 'max:5120'],
+        ], [
+            'importFile.required' => __('Please select a file to import.'),
+            'importFile.mimes' => __('The file must be a CSV or Excel file (.csv, .xlsx, .xls).'),
+            'importFile.max' => __('The file may not be larger than 5MB.'),
+        ]);
+
+        // Count rows in file to check quota
+        $rowCount = $this->countImportRows();
+
+        if ($rowCount === 0) {
+            $this->addError('importFile', __('The file appears to be empty or contains only headers.'));
+
+            return;
+        }
+
+        // Check member quota before import
+        if (! app(PlanAccessService::class)->canCreate(QuotaType::Members, $rowCount)) {
+            $remaining = $this->memberQuota['remaining'] ?? 0;
+            $this->addError('importFile', __('Import would exceed member quota. You can import up to :count more members.', [
+                'count' => $remaining,
+            ]));
+
+            return;
+        }
+
+        $import = new MemberImport($this->branch->id);
+
+        try {
+            Excel::import($import, $this->importFile->getRealPath());
+        } catch (\Exception $e) {
+            $this->addError('importFile', __('Failed to process the import file. Please check the file format and try again.'));
+
+            return;
+        }
+
+        // Collect results
+        $this->importResults = [
+            'imported' => $import->getImportedCount(),
+            'skipped_duplicates' => count($import->getSkippedDuplicates()),
+            'failed' => count($import->failures()),
+            'failures' => $import->failures(),
+            'duplicates' => $import->getSkippedDuplicates(),
+        ];
+
+        $this->importCompleted = true;
+
+        // Invalidate member count cache
+        if ($import->getImportedCount() > 0) {
+            app(PlanAccessService::class)->invalidateCountCache('members');
+            $this->dispatch('members-imported');
+        }
+    }
+
+    protected function countImportRows(): int
+    {
+        try {
+            $data = Excel::toArray([], $this->importFile->getRealPath());
+
+            // First sheet, minus header row
+            return isset($data[0]) ? max(0, count($data[0]) - 1) : 0;
+        } catch (\Exception) {
+            return 0;
+        }
     }
 
     protected function rules(): array

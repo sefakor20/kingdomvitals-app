@@ -5,15 +5,23 @@
             <flux:subheading>{{ __('Manage members for :branch', ['branch' => $branch->name]) }}</flux:subheading>
         </div>
 
-        @if($this->canCreate && $this->canCreateWithinQuota)
-            <flux:button variant="primary" wire:click="create" icon="plus">
-                {{ __('Add Member') }}
-            </flux:button>
-        @elseif($this->canCreate && !$this->canCreateWithinQuota)
-            <flux:button variant="ghost" disabled icon="lock-closed" class="cursor-not-allowed">
-                {{ __('Member Limit Reached') }}
-            </flux:button>
-        @endif
+        <div class="flex items-center gap-2">
+            @if($this->canImportMembers && $this->canCreate)
+                <flux:button variant="ghost" wire:click="openImportModal" icon="arrow-up-tray">
+                    {{ __('Import') }}
+                </flux:button>
+            @endif
+
+            @if($this->canCreate && $this->canCreateWithinQuota)
+                <flux:button variant="primary" wire:click="create" icon="plus">
+                    {{ __('Add Member') }}
+                </flux:button>
+            @elseif($this->canCreate && !$this->canCreateWithinQuota)
+                <flux:button variant="ghost" disabled icon="lock-closed" class="cursor-not-allowed">
+                    {{ __('Member Limit Reached') }}
+                </flux:button>
+            @endif
+        </div>
     </div>
 
     {{-- Quota Warning Banner --}}
@@ -579,4 +587,112 @@
     <x-toast on="member-force-deleted" type="success">
         {{ __('Member permanently deleted.') }}
     </x-toast>
+
+    <x-toast on="members-imported" type="success">
+        {{ __('Members imported successfully.') }}
+    </x-toast>
+
+    <x-toast on="import-feature-unavailable" type="warning">
+        {{ __('Member import is not available on your current plan.') }}
+    </x-toast>
+
+    <!-- Import Modal -->
+    <flux:modal wire:model.self="showImportModal" name="import-members" class="w-full max-w-lg">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Import Members') }}</flux:heading>
+
+            @if(!$importCompleted)
+                <div class="space-y-4">
+                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                        {{ __('Upload a CSV or Excel file to import members. Download the template for the correct format.') }}
+                    </flux:text>
+
+                    <flux:button variant="ghost" wire:click="downloadTemplate" icon="arrow-down-tray" size="sm">
+                        {{ __('Download Template') }}
+                    </flux:button>
+
+                    <flux:field>
+                        <flux:label>{{ __('Select File') }}</flux:label>
+                        <input
+                            type="file"
+                            wire:model="importFile"
+                            accept=".csv,.xlsx,.xls"
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-md file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+                        />
+                        <flux:description>{{ __('Supported formats: CSV, XLSX, XLS (max 5MB)') }}</flux:description>
+                        @error('importFile') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+
+                    <div class="flex justify-end gap-3 pt-4">
+                        <flux:button variant="ghost" wire:click="closeImportModal" type="button">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" wire:click="processImport" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="processImport">{{ __('Import') }}</span>
+                            <span wire:loading wire:target="processImport">{{ __('Processing...') }}</span>
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <!-- Import Results -->
+                <div class="space-y-4">
+                    @if($importResults['imported'] > 0)
+                        <div class="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+                            <flux:text class="font-medium text-green-800 dark:text-green-200">
+                                {{ __(':count members imported successfully', ['count' => $importResults['imported']]) }}
+                            </flux:text>
+                        </div>
+                    @endif
+
+                    @if($importResults['skipped_duplicates'] > 0)
+                        <div class="rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
+                            <flux:text class="font-medium text-yellow-800 dark:text-yellow-200">
+                                {{ __(':count rows skipped (duplicate email or phone)', ['count' => $importResults['skipped_duplicates']]) }}
+                            </flux:text>
+                            @if(count($importResults['duplicates']) > 0)
+                                <ul class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                    @foreach(array_slice($importResults['duplicates'], 0, 5) as $dup)
+                                        <li>{{ __('Row :row: :name', ['row' => $dup['row'], 'name' => $dup['first_name'] . ' ' . $dup['last_name']]) }}</li>
+                                    @endforeach
+                                    @if(count($importResults['duplicates']) > 5)
+                                        <li>{{ __('... and :count more', ['count' => count($importResults['duplicates']) - 5]) }}</li>
+                                    @endif
+                                </ul>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if($importResults['failed'] > 0)
+                        <div class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+                            <flux:text class="font-medium text-red-800 dark:text-red-200">
+                                {{ __(':count rows failed validation', ['count' => $importResults['failed']]) }}
+                            </flux:text>
+                            <ul class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                @foreach(array_slice($importResults['failures'], 0, 5) as $failure)
+                                    <li>{{ __('Row :row: :errors', ['row' => $failure->row(), 'errors' => implode(', ', $failure->errors())]) }}</li>
+                                @endforeach
+                                @if(count($importResults['failures']) > 5)
+                                    <li>{{ __('... and :count more errors', ['count' => count($importResults['failures']) - 5]) }}</li>
+                                @endif
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if($importResults['imported'] === 0 && $importResults['skipped_duplicates'] === 0 && $importResults['failed'] === 0)
+                        <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800">
+                            <flux:text class="font-medium text-zinc-800 dark:text-zinc-200">
+                                {{ __('No members were imported. The file may be empty.') }}
+                            </flux:text>
+                        </div>
+                    @endif
+
+                    <div class="flex justify-end pt-4">
+                        <flux:button variant="primary" wire:click="closeImportModal">
+                            {{ __('Done') }}
+                        </flux:button>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </flux:modal>
 </section>
