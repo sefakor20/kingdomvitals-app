@@ -7,15 +7,22 @@ namespace App\Livewire\Visitors;
 use App\Enums\FollowUpOutcome;
 use App\Enums\QuotaType;
 use App\Enums\VisitorStatus;
+use App\Exports\VisitorImportTemplateExport;
+use App\Imports\VisitorImport;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
@@ -23,6 +30,7 @@ class VisitorIndex extends Component
 {
     use HasFilterableQuery;
     use HasQuotaComputed;
+    use WithFileUploads;
 
     public Branch $branch;
 
@@ -66,6 +74,15 @@ class VisitorIndex extends Component
     public bool $showDeleteModal = false;
 
     public bool $showConvertModal = false;
+
+    // Import properties
+    public bool $showImportModal = false;
+
+    public TemporaryUploadedFile|string|null $importFile = null;
+
+    public array $importResults = [];
+
+    public bool $importCompleted = false;
 
     // Form properties
     public string $first_name = '';
@@ -500,6 +517,108 @@ class VisitorIndex extends Component
         }, $filename, [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    // ============================================
+    // CSV IMPORT
+    // ============================================
+
+    public function openImportModal(): void
+    {
+        $this->authorize('create', [Visitor::class, $this->branch]);
+
+        $this->reset(['importFile', 'importResults', 'importCompleted']);
+        $this->resetValidation('importFile');
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->reset(['importFile', 'importResults', 'importCompleted']);
+        $this->resetValidation('importFile');
+    }
+
+    public function downloadImportTemplate(): BinaryFileResponse
+    {
+        return Excel::download(
+            new VisitorImportTemplateExport,
+            'visitor-import-template.xlsx'
+        );
+    }
+
+    public function processImport(): void
+    {
+        $this->authorize('create', [Visitor::class, $this->branch]);
+
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:csv,xlsx,xls', 'max:5120'],
+        ], [
+            'importFile.required' => __('Please select a file to import.'),
+            'importFile.mimes' => __('The file must be a CSV or Excel file.'),
+            'importFile.max' => __('The file may not be larger than 5MB.'),
+        ]);
+
+        // Count rows to check quota
+        $rowCount = $this->countImportRows();
+
+        if ($rowCount === 0) {
+            $this->addError('importFile', __('The file appears to be empty.'));
+
+            return;
+        }
+
+        // Check visitor quota before import
+        $quota = $this->visitorQuota;
+        if (! $quota['unlimited']) {
+            $remaining = max(0, $quota['max'] - $quota['current']);
+            if ($rowCount > $remaining) {
+                $this->addError('importFile', __('Import would exceed visitor quota. You can import up to :count more visitors.', [
+                    'count' => $remaining,
+                ]));
+
+                return;
+            }
+        }
+
+        $import = new VisitorImport($this->branch->id);
+
+        try {
+            Excel::import($import, $this->importFile->getRealPath());
+        } catch (\Exception $e) {
+            $this->addError('importFile', __('Failed to process the import file. Please check the file format.'));
+
+            return;
+        }
+
+        $this->importResults = [
+            'imported' => $import->getImportedCount(),
+            'skipped_duplicates' => count($import->getSkippedDuplicates()),
+            'failed' => count($import->failures()),
+            'failures' => $import->failures(),
+            'duplicates' => $import->getSkippedDuplicates(),
+        ];
+
+        $this->importCompleted = true;
+
+        if ($import->getImportedCount() > 0) {
+            app(PlanAccessService::class)->invalidateCountCache('visitors');
+            unset($this->visitors);
+            unset($this->visitorStats);
+            unset($this->visitorQuota);
+            $this->dispatch('visitors-imported');
+        }
+    }
+
+    protected function countImportRows(): int
+    {
+        try {
+            $data = Excel::toArray([], $this->importFile->getRealPath());
+
+            return isset($data[0]) ? max(0, count($data[0]) - 1) : 0;
+        } catch (\Exception) {
+            return 0;
+        }
     }
 
     // ============================================
