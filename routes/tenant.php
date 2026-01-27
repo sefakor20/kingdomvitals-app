@@ -149,6 +149,8 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:attendance'])->group(function (): void {
             Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
                 ->name('attendance.index');
+            Route::get('/branches/{branch}/attendance/analytics', \App\Livewire\Attendance\AttendanceAnalytics::class)
+                ->name('attendance.analytics');
             Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
                 ->name('attendance.live-check-in');
             Route::get('/branches/{branch}/services/{service}/dashboard', \App\Livewire\Attendance\AttendanceDashboard::class)

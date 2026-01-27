@@ -6,6 +6,9 @@
         </div>
 
         <div class="flex gap-2">
+            <flux:button variant="ghost" href="{{ route('attendance.analytics', $branch) }}" icon="chart-bar" wire:navigate>
+                {{ __('Analytics') }}
+            </flux:button>
             @if($this->attendanceRecords->isNotEmpty())
                 <flux:button variant="ghost" wire:click="exportToCsv" icon="arrow-down-tray">
                     {{ __('Export CSV') }}
