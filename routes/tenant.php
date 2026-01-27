@@ -149,6 +149,8 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:attendance'])->group(function (): void {
             Route::get('/branches/{branch}/attendance', \App\Livewire\Attendance\AttendanceIndex::class)
                 ->name('attendance.index');
+            Route::get('/branches/{branch}/attendance/analytics', \App\Livewire\Attendance\AttendanceAnalytics::class)
+                ->name('attendance.analytics');
             Route::get('/branches/{branch}/services/{service}/check-in', \App\Livewire\Attendance\LiveCheckIn::class)
                 ->name('attendance.live-check-in');
             Route::get('/branches/{branch}/services/{service}/dashboard', \App\Livewire\Attendance\AttendanceDashboard::class)
@@ -169,6 +171,12 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:visitors'])->group(function (): void {
             Route::get('/branches/{branch}/visitors', \App\Livewire\Visitors\VisitorIndex::class)
                 ->name('visitors.index');
+            Route::get('/branches/{branch}/visitors/analytics', \App\Livewire\Visitors\VisitorAnalytics::class)
+                ->name('visitors.analytics');
+            Route::get('/branches/{branch}/visitors/follow-ups', \App\Livewire\Visitors\FollowUpQueue::class)
+                ->name('visitors.follow-ups');
+            Route::get('/branches/{branch}/visitors/follow-up-templates', \App\Livewire\Visitors\FollowUpTemplateIndex::class)
+                ->name('visitors.follow-up-templates');
             Route::get('/branches/{branch}/visitors/{visitor}', \App\Livewire\Visitors\VisitorShow::class)
                 ->name('visitors.show');
         });

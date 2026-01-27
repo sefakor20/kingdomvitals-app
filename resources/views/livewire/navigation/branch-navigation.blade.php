@@ -50,10 +50,43 @@
                 <flux:navlist.item
                     icon="user-plus"
                     :href="route('visitors.index', $this->currentBranch)"
-                    :current="request()->routeIs('visitors.*')"
+                    :current="request()->routeIs('visitors.index', 'visitors.show')"
                     wire:navigate
                 >
                     {{ __('Visitors') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewFollowUpQueue)
+                <flux:navlist.item
+                    icon="clock"
+                    :href="route('visitors.follow-ups', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.follow-ups')"
+                    wire:navigate
+                >
+                    {{ __('Follow-Up Queue') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewFollowUpTemplates)
+                <flux:navlist.item
+                    icon="document-text"
+                    :href="route('visitors.follow-up-templates', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.follow-up-templates')"
+                    wire:navigate
+                >
+                    {{ __('Follow-Up Templates') }}
+                </flux:navlist.item>
+            @endif
+
+            @if($this->canViewVisitors)
+                <flux:navlist.item
+                    icon="chart-bar"
+                    :href="route('visitors.analytics', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.analytics')"
+                    wire:navigate
+                >
+                    {{ __('Visitor Analytics') }}
                 </flux:navlist.item>
             @endif
 

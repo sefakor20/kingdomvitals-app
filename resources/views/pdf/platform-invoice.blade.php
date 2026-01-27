@@ -237,11 +237,29 @@
     </style>
 </head>
 <body>
+    @php
+        $platformLogoUrl = null;
+        $platformName = config('app.name');
+
+        // Get platform logo from SystemSetting
+        $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
+        if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
+            $path = $platformLogoPaths['medium'];
+            $fullPath = base_path('storage/app/public/'.$path);
+            if (file_exists($fullPath)) {
+                $platformLogoUrl = url('storage/'.$path);
+            }
+        }
+    @endphp
+
     <div class="header">
         <table class="header-table">
             <tr>
                 <td style="width: 60%;">
-                    <div class="company-name">Kingdom Vitals</div>
+                    @if($platformLogoUrl)
+                        <img src="{{ $platformLogoUrl }}" style="max-height: 50px; margin-bottom: 10px;" alt="{{ $platformName }}">
+                    @endif
+                    <div class="company-name">{{ $platformName }}</div>
                     <div class="company-info">
                         Church Management Platform<br>
                         admin@kingdomvitals.com

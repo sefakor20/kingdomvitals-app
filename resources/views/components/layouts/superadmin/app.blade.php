@@ -4,14 +4,32 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+        @php
+            $platformLogoUrl = null;
+            $platformName = config('app.name');
+
+            $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
+            if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['small'])) {
+                $path = $platformLogoPaths['small'];
+                $fullPath = base_path('storage/app/public/'.$path);
+                if (file_exists($fullPath)) {
+                    $platformLogoUrl = url('storage/'.$path);
+                }
+            }
+        @endphp
+
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <a href="{{ route('superadmin.dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
-                    <flux:icon.shield-check class="size-5 text-white" />
-                </div>
-                <span class="text-lg font-semibold text-zinc-900 dark:text-white">Admin Panel</span>
+                @if($platformLogoUrl)
+                    <img src="{{ $platformLogoUrl }}" alt="{{ $platformName }}" class="h-9 w-9 rounded-lg object-contain" />
+                @else
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
+                        <flux:icon.shield-check class="size-5 text-white" />
+                    </div>
+                @endif
+                <span class="text-lg font-semibold text-zinc-900 dark:text-white">{{ $platformName }}</span>
             </a>
 
             <flux:navlist variant="outline">

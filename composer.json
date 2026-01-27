@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1.1",
-        "intervention/image-laravel": "^1.5",
+        "intervention/image-laravel": "^1.5.6",
         "laravel/fortify": "^1.33",
         "laravel/framework": "^12.48.1",
         "laravel/tinker": "^2.11.0",
@@ -23,7 +23,7 @@
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16.5",
         "fakerphp/faker": "^1.24.1",
-        "laravel/boost": "^1.8.10",
+        "laravel/boost": "^2.0.1",
         "laravel/pail": "^1.2.4",
         "laravel/pint": "^1.27",
         "laravel/sail": "^1.52",

@@ -9,12 +9,15 @@ use App\Enums\BranchStatus;
 use App\Enums\ServiceType;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\BranchUserInvitation;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
+use App\Notifications\BranchUserInvitationNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class OnboardingService
@@ -212,7 +215,24 @@ class OnboardingService
                     ]);
                 }
 
-                // TODO: Send invitation email
+                // Create invitation record and send email
+                $invitation = BranchUserInvitation::create([
+                    'branch_id' => $branch->id,
+                    'email' => $member['email'],
+                    'role' => BranchRole::from($member['role']),
+                    'token' => BranchUserInvitation::generateToken(),
+                    'invited_by' => auth()->id(),
+                    'expires_at' => now()->addDays(7),
+                ]);
+
+                $acceptUrl = tenant_route(
+                    tenant()->domains->first()?->domain ?? '',
+                    'invitations.accept',
+                    ['token' => $invitation->token]
+                );
+
+                Notification::route('mail', $member['email'])
+                    ->notify(new BranchUserInvitationNotification($invitation, $acceptUrl));
             }
 
             if ($tenant instanceof Tenant) {

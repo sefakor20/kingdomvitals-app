@@ -6,6 +6,14 @@
         </div>
 
         <div class="flex gap-2">
+            <flux:button variant="ghost" :href="route('visitors.analytics', $branch)" icon="chart-bar" wire:navigate>
+                {{ __('Analytics') }}
+            </flux:button>
+            @if ($this->canCreate)
+                <flux:button variant="ghost" wire:click="openImportModal" icon="arrow-up-tray">
+                    {{ __('Import') }}
+                </flux:button>
+            @endif
             @if ($this->visitors->isNotEmpty())
                 <flux:button variant="ghost" wire:click="exportToCsv" icon="arrow-down-tray">
                     {{ __('Export CSV') }}
@@ -620,4 +628,120 @@
     <x-toast on="visitors-bulk-status-changed" type="success">
         {{ __('Visitor statuses updated successfully.') }}
     </x-toast>
+
+    <x-toast on="visitors-imported" type="success">
+        {{ __('Visitors imported successfully.') }}
+    </x-toast>
+
+    <!-- Import Modal -->
+    <flux:modal wire:model.self="showImportModal" name="import-visitors" class="w-full max-w-lg">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Import Visitors') }}</flux:heading>
+
+            @if(!$importCompleted)
+                <div class="space-y-4">
+                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                        {{ __('Upload a CSV or Excel file to import visitors. Download the template for the correct format.') }}
+                    </flux:text>
+
+                    <flux:button variant="ghost" wire:click="downloadImportTemplate" icon="arrow-down-tray" size="sm">
+                        {{ __('Download Template') }}
+                    </flux:button>
+
+                    <flux:field>
+                        <flux:label>{{ __('Select File') }}</flux:label>
+                        <input
+                            type="file"
+                            wire:model="importFile"
+                            accept=".csv,.xlsx,.xls"
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-md file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+                        />
+                        <flux:description>{{ __('Supported formats: CSV, XLSX, XLS (max 5MB)') }}</flux:description>
+                        @error('importFile') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+
+                    <div class="flex justify-end gap-3 pt-4">
+                        <flux:button variant="ghost" wire:click="closeImportModal" type="button">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" wire:click="processImport" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="processImport">{{ __('Import') }}</span>
+                            <span wire:loading wire:target="processImport">{{ __('Processing...') }}</span>
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <div class="space-y-4">
+                    @if($importResults['imported'] > 0)
+                        <div class="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="check-circle" class="size-5 text-green-600 dark:text-green-400" />
+                                <flux:text class="font-medium text-green-800 dark:text-green-200">
+                                    {{ trans_choice(':count visitor imported successfully|:count visitors imported successfully', $importResults['imported'], ['count' => $importResults['imported']]) }}
+                                </flux:text>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($importResults['skipped_duplicates'] > 0)
+                        <div class="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
+                            <div class="flex items-start gap-2">
+                                <flux:icon name="exclamation-triangle" class="mt-0.5 size-5 text-amber-600 dark:text-amber-400" />
+                                <div>
+                                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                                        {{ trans_choice(':count duplicate skipped|:count duplicates skipped', $importResults['skipped_duplicates'], ['count' => $importResults['skipped_duplicates']]) }}
+                                    </flux:text>
+                                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                                        {{ __('Visitors with matching email or phone were not imported.') }}
+                                    </flux:text>
+                                    @if(count($importResults['duplicates']) <= 5)
+                                        <ul class="mt-2 list-inside list-disc text-sm text-amber-700 dark:text-amber-300">
+                                            @foreach($importResults['duplicates'] as $dup)
+                                                <li>{{ __('Row :row: :name', ['row' => $dup['row'], 'name' => $dup['first_name'] . ' ' . $dup['last_name']]) }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($importResults['failed'] > 0)
+                        <div class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+                            <div class="flex items-start gap-2">
+                                <flux:icon name="x-circle" class="mt-0.5 size-5 text-red-600 dark:text-red-400" />
+                                <div>
+                                    <flux:text class="font-medium text-red-800 dark:text-red-200">
+                                        {{ trans_choice(':count row failed validation|:count rows failed validation', $importResults['failed'], ['count' => $importResults['failed']]) }}
+                                    </flux:text>
+                                    <ul class="mt-2 list-inside list-disc text-sm text-red-700 dark:text-red-300">
+                                        @foreach(array_slice($importResults['failures'], 0, 5) as $failure)
+                                            <li>{{ __('Row :row: :errors', ['row' => $failure->row(), 'errors' => implode(', ', $failure->errors())]) }}</li>
+                                        @endforeach
+                                        @if(count($importResults['failures']) > 5)
+                                            <li class="text-red-600 dark:text-red-400">{{ __('...and :count more', ['count' => count($importResults['failures']) - 5]) }}</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($importResults['imported'] === 0 && $importResults['skipped_duplicates'] === 0 && $importResults['failed'] === 0)
+                        <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800">
+                            <flux:text class="text-zinc-600 dark:text-zinc-400">
+                                {{ __('No visitors were imported. Please check your file format.') }}
+                            </flux:text>
+                        </div>
+                    @endif
+
+                    <div class="flex justify-end pt-4">
+                        <flux:button variant="primary" wire:click="closeImportModal">
+                            {{ __('Done') }}
+                        </flux:button>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </flux:modal>
 </section>

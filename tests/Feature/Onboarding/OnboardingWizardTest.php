@@ -3,12 +3,16 @@
 use App\Livewire\Onboarding\OnboardingWizard;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\BranchUserInvitation;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
+use App\Notifications\BranchUserInvitationNotification;
 use App\Services\OnboardingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -18,6 +22,17 @@ beforeEach(function (): void {
     $this->tenant->domains()->create(['domain' => 'test.localhost']);
     tenancy()->initialize($this->tenant);
     Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+
+    config(['app.url' => 'http://test.localhost']);
+    url()->forceRootUrl('http://test.localhost');
+    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+
+    // Load the tenant routes including the invitations.accept route
+    Route::middleware(['web'])->group(function (): void {
+        Route::get('/invitations/{token}/accept', \App\Livewire\Auth\AcceptBranchInvitation::class)
+            ->name('invitations.accept')
+            ->middleware('guest');
+    });
 
     $this->user = User::factory()->create();
 });
@@ -201,6 +216,52 @@ describe('OnboardingWizard', function (): void {
             ->call('completeServicesStep');
 
         expect(Service::count())->toBe(2);
+    });
+
+    it('sends invitation emails when completing team step', function (): void {
+        Notification::fake();
+
+        Livewire::actingAs($this->user)
+            ->test(OnboardingWizard::class)
+            ->set('branchName', 'Main Campus')
+            ->set('timezone', 'Africa/Accra')
+            ->call('completeOrganizationStep')
+            ->set('newTeamEmail', 'pastor@church.org')
+            ->set('newTeamRole', 'manager')
+            ->call('addTeamMember')
+            ->set('newTeamEmail', 'secretary@church.org')
+            ->set('newTeamRole', 'staff')
+            ->call('addTeamMember')
+            ->call('completeTeamStep');
+
+        // Verify invitation records were created
+        expect(BranchUserInvitation::count())->toBe(2);
+
+        $pastorInvitation = BranchUserInvitation::where('email', 'pastor@church.org')->first();
+        expect($pastorInvitation)->not->toBeNull()
+            ->and($pastorInvitation->role->value)->toBe('manager')
+            ->and($pastorInvitation->invited_by)->toBe($this->user->id)
+            ->and($pastorInvitation->token)->toHaveLength(64)
+            ->and($pastorInvitation->expires_at)->toBeInstanceOf(Carbon\Carbon::class);
+
+        $secretaryInvitation = BranchUserInvitation::where('email', 'secretary@church.org')->first();
+        expect($secretaryInvitation)->not->toBeNull()
+            ->and($secretaryInvitation->role->value)->toBe('staff');
+
+        // Verify notifications were sent
+        Notification::assertSentOnDemand(
+            BranchUserInvitationNotification::class,
+            function ($notification, $channels, $notifiable) {
+                return $notifiable->routes['mail'] === 'pastor@church.org';
+            }
+        );
+
+        Notification::assertSentOnDemand(
+            BranchUserInvitationNotification::class,
+            function ($notification, $channels, $notifiable) {
+                return $notifiable->routes['mail'] === 'secretary@church.org';
+            }
+        );
     });
 
     it('shows complete step after services', function (): void {
