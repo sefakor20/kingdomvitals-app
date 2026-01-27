@@ -8,8 +8,10 @@ use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Services\FollowUpTemplatePlaceholderService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -45,6 +47,8 @@ class FollowUpQueue extends Component
     public string $completionNotes = '';
 
     public ?string $completionPerformedBy = null;
+
+    public ?string $selectedTemplateId = null;
 
     // Reschedule modal
     public bool $showRescheduleModal = false;
@@ -130,6 +134,37 @@ class FollowUpQueue extends Component
     }
 
     #[Computed]
+    public function followUpTemplates(): Collection
+    {
+        if (! $this->completingFollowUp) {
+            return collect();
+        }
+
+        return FollowUpTemplate::where('branch_id', $this->branch->id)
+            ->active()
+            ->forTypeOrGeneric($this->completingFollowUp->type)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function updatedSelectedTemplateId(?string $value): void
+    {
+        if (! $value || ! $this->completingFollowUp) {
+            return;
+        }
+
+        $template = FollowUpTemplate::find($value);
+        if (! $template) {
+            return;
+        }
+
+        // Replace placeholders with visitor data
+        $this->completionNotes = app(FollowUpTemplatePlaceholderService::class)
+            ->replacePlaceholders($template->body, $this->completingFollowUp->visitor, $this->branch);
+    }
+
+    #[Computed]
     public function hasActiveFilters(): bool
     {
         return $this->isFilterActive($this->search)
@@ -211,6 +246,7 @@ class FollowUpQueue extends Component
         $this->completionOutcome = 'successful';
         $this->completionNotes = '';
         $this->completionPerformedBy = null;
+        $this->selectedTemplateId = null;
         $this->resetValidation();
     }
 

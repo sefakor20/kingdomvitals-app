@@ -415,13 +415,27 @@
             <flux:heading size="lg">{{ __('Add Follow-up') }}</flux:heading>
 
             <form wire:submit="addFollowUp" class="space-y-4">
-                <flux:select wire:model="followUpType" :label="__('Type')" required>
+                <flux:select wire:model.live="followUpType" :label="__('Type')" required>
                     @foreach($this->followUpTypes as $type)
                         <flux:select.option value="{{ $type->value }}">
                             {{ ucfirst($type->value) }}
                         </flux:select.option>
                     @endforeach
                 </flux:select>
+
+                @if($this->followUpTemplates->isNotEmpty())
+                    <flux:select wire:model.live="selectedTemplateId" :label="__('Template')">
+                        <flux:select.option value="">{{ __('None (write from scratch)') }}</flux:select.option>
+                        @foreach($this->followUpTemplates as $template)
+                            <flux:select.option value="{{ $template->id }}">
+                                {{ $template->name }}
+                                @if(!$template->type)
+                                    ({{ __('Generic') }})
+                                @endif
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                @endif
 
                 <flux:select wire:model="followUpOutcome" :label="__('Outcome')" required>
                     @foreach($this->followUpOutcomes as $outcome)
@@ -462,13 +476,27 @@
             <flux:heading size="lg">{{ __('Schedule Follow-up') }}</flux:heading>
 
             <form wire:submit="scheduleFollowUp" class="space-y-4">
-                <flux:select wire:model="followUpType" :label="__('Type')" required>
+                <flux:select wire:model.live="followUpType" :label="__('Type')" required>
                     @foreach($this->followUpTypes as $type)
                         <flux:select.option value="{{ $type->value }}">
                             {{ ucfirst($type->value) }}
                         </flux:select.option>
                     @endforeach
                 </flux:select>
+
+                @if($this->followUpTemplates->isNotEmpty())
+                    <flux:select wire:model.live="selectedTemplateId" :label="__('Template')">
+                        <flux:select.option value="">{{ __('None (write from scratch)') }}</flux:select.option>
+                        @foreach($this->followUpTemplates as $template)
+                            <flux:select.option value="{{ $template->id }}">
+                                {{ $template->name }}
+                                @if(!$template->type)
+                                    ({{ __('Generic') }})
+                                @endif
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                @endif
 
                 <flux:input type="datetime-local" wire:model="followUpScheduledAt" :label="__('Scheduled Date/Time')" required />
                 @error('followUpScheduledAt') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
@@ -530,6 +558,20 @@
                             </flux:select.option>
                         @endforeach
                     </flux:select>
+
+                    @if($this->followUpTemplates->isNotEmpty())
+                        <flux:select wire:model.live="selectedTemplateId" :label="__('Template')">
+                            <flux:select.option value="">{{ __('None (keep current notes)') }}</flux:select.option>
+                            @foreach($this->followUpTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">
+                                    {{ $template->name }}
+                                    @if(!$template->type)
+                                        ({{ __('Generic') }})
+                                    @endif
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    @endif
 
                     <flux:textarea wire:model="followUpNotes" :label="__('Notes')" rows="3" />
 

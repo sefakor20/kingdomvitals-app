@@ -68,6 +68,17 @@
                 </flux:navlist.item>
             @endif
 
+            @if($this->canViewFollowUpTemplates)
+                <flux:navlist.item
+                    icon="document-text"
+                    :href="route('visitors.follow-up-templates', $this->currentBranch)"
+                    :current="request()->routeIs('visitors.follow-up-templates')"
+                    wire:navigate
+                >
+                    {{ __('Follow-Up Templates') }}
+                </flux:navlist.item>
+            @endif
+
             @if($this->canViewHouseholds)
                 <flux:navlist.item
                     icon="home"

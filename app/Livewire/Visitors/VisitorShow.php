@@ -8,9 +8,11 @@ use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
 use App\Enums\VisitorStatus;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Services\FollowUpTemplatePlaceholderService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -68,6 +70,8 @@ class VisitorShow extends Component
     public ?string $followUpPerformedBy = null;
 
     public ?string $followUpScheduledAt = null;
+
+    public ?string $selectedTemplateId = null;
 
     public function mount(Branch $branch, Visitor $visitor): void
     {
@@ -159,6 +163,42 @@ class VisitorShow extends Component
     public function canAddFollowUp(): bool
     {
         return auth()->user()->can('create', [VisitorFollowUp::class, $this->branch]);
+    }
+
+    #[Computed]
+    public function followUpTemplates(): Collection
+    {
+        $type = FollowUpType::tryFrom($this->followUpType);
+
+        return FollowUpTemplate::where('branch_id', $this->branch->id)
+            ->active()
+            ->forTypeOrGeneric($type)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function updatedFollowUpType(): void
+    {
+        // Clear the selected template when the type changes
+        $this->selectedTemplateId = null;
+        unset($this->followUpTemplates);
+    }
+
+    public function updatedSelectedTemplateId(?string $value): void
+    {
+        if (! $value) {
+            return;
+        }
+
+        $template = FollowUpTemplate::find($value);
+        if (! $template) {
+            return;
+        }
+
+        // Replace placeholders with visitor data
+        $this->followUpNotes = app(FollowUpTemplatePlaceholderService::class)
+            ->replacePlaceholders($template->body, $this->visitor, $this->branch);
     }
 
     protected function rules(): array
@@ -463,6 +503,7 @@ class VisitorShow extends Component
         $this->followUpNotes = '';
         $this->followUpPerformedBy = null;
         $this->followUpScheduledAt = null;
+        $this->selectedTemplateId = null;
         $this->resetValidation();
     }
 

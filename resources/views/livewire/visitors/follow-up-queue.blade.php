@@ -192,6 +192,20 @@
                         @endforeach
                     </flux:select>
 
+                    @if($this->followUpTemplates->isNotEmpty())
+                        <flux:select wire:model.live="selectedTemplateId" :label="__('Template')">
+                            <flux:select.option value="">{{ __('None (keep current notes)') }}</flux:select.option>
+                            @foreach($this->followUpTemplates as $template)
+                                <flux:select.option value="{{ $template->id }}">
+                                    {{ $template->name }}
+                                    @if(!$template->type)
+                                        ({{ __('Generic') }})
+                                    @endif
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    @endif
+
                     <flux:textarea wire:model="completionNotes" :label="__('Notes')" rows="3" />
                 </div>
             @endif

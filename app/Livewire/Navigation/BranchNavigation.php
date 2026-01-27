@@ -11,6 +11,7 @@ use App\Models\Tenant\Donation;
 use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Expense;
+use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
@@ -103,6 +104,14 @@ class BranchNavigation extends Component
         return $this->currentBranch &&
             $this->planAccess->hasModule(PlanModule::Visitors) &&
             auth()->user()?->can('viewAny', [VisitorFollowUp::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewFollowUpTemplates(): bool
+    {
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Visitors) &&
+            auth()->user()?->can('viewAny', [FollowUpTemplate::class, $this->currentBranch]);
     }
 
     #[Computed]
