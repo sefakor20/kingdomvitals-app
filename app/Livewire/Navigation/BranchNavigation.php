@@ -19,6 +19,7 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
+use App\Models\Tenant\VisitorFollowUp;
 use App\Services\BranchContextService;
 use App\Services\PlanAccessService;
 use Livewire\Attributes\Computed;
@@ -94,6 +95,14 @@ class BranchNavigation extends Component
         return $this->currentBranch &&
             $this->planAccess->hasModule(PlanModule::Visitors) &&
             auth()->user()?->can('viewAny', [Visitor::class, $this->currentBranch]);
+    }
+
+    #[Computed]
+    public function canViewFollowUpQueue(): bool
+    {
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Visitors) &&
+            auth()->user()?->can('viewAny', [VisitorFollowUp::class, $this->currentBranch]);
     }
 
     #[Computed]
