@@ -91,11 +91,19 @@ it('requires authentication to download invoice', function (): void {
         ->sent()
         ->create();
 
-    $response = $this->get("/invoices/{$invoice->id}/download");
+    // The auth middleware tries to redirect to login route which throws
+    // RouteNotFoundException in test context. This confirms authentication
+    // is required - without it, we'd get a 200 or 404.
+    $this->withoutExceptionHandling();
 
-    // Unauthenticated users are redirected (to login)
-    $response->assertUnauthorized();
-})->skip('Route redirect to login throws exception in test context without full Fortify routes');
+    try {
+        $this->get("/invoices/{$invoice->id}/download");
+        $this->fail('Expected RouteNotFoundException for login redirect');
+    } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+        // Auth middleware is working - it tried to redirect to login
+        expect($e->getMessage())->toContain('Route [login] not defined');
+    }
+});
 
 it('returns 404 for non-existent invoice', function (): void {
     $response = $this->actingAs($this->admin)
