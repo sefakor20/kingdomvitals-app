@@ -326,6 +326,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->smsRecords->hasPages())
+            <div class="mt-4">
+                {{ $this->smsRecords->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- View Message Modal -->

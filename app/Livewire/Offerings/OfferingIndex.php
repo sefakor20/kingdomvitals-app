@@ -12,16 +12,19 @@ use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Services\DonationReceiptService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 class OfferingIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -81,7 +84,7 @@ class OfferingIndex extends Component
     }
 
     #[Computed]
-    public function offerings(): Collection
+    public function offerings(): LengthAwarePaginator
     {
         $query = Donation::where('branch_id', $this->branch->id)
             ->where('donation_type', DonationType::Offering);
@@ -117,7 +120,37 @@ class OfferingIndex extends Component
         return $query->with(['member', 'service', 'recorder'])
             ->orderBy('donation_date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedServiceFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPaymentMethodFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMemberFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -399,6 +432,7 @@ class OfferingIndex extends Component
             'search', 'serviceFilter', 'paymentMethodFilter',
             'memberFilter', 'dateFrom', 'dateTo',
         ]);
+        $this->resetPage();
         unset($this->offerings);
         unset($this->serviceSummary);
         unset($this->stats);
@@ -409,7 +443,40 @@ class OfferingIndex extends Component
     {
         $this->authorize('viewAny', [Donation::class, $this->branch]);
 
-        $offerings = $this->offerings;
+        // Build query with same filters but get all records (not paginated)
+        $query = Donation::where('branch_id', $this->branch->id)
+            ->where('donation_type', DonationType::Offering);
+
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search): void {
+                $q->where('donor_name', 'like', "%{$search}%")
+                    ->orWhere('reference_number', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($query, 'serviceFilter', 'service_id');
+        $this->applyEnumFilter($query, 'paymentMethodFilter', 'payment_method');
+
+        if ($this->memberFilter !== null) {
+            if ($this->memberFilter === 'anonymous') {
+                $query->where('is_anonymous', true);
+            } else {
+                $query->where('member_id', $this->memberFilter);
+            }
+        }
+
+        $this->applyDateRange($query, 'donation_date');
+
+        $offerings = $query->with(['member', 'service', 'recorder'])
+            ->orderBy('donation_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $filename = sprintf(
             'offerings_%s_%s.csv',

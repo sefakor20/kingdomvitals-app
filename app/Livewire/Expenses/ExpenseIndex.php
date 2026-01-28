@@ -15,16 +15,19 @@ use App\Models\Tenant\Budget;
 use App\Models\Tenant\Expense;
 use App\Models\User;
 use App\Notifications\BudgetThresholdNotification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 class ExpenseIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -84,7 +87,7 @@ class ExpenseIndex extends Component
     }
 
     #[Computed]
-    public function expenses(): Collection
+    public function expenses(): LengthAwarePaginator
     {
         $query = Expense::where('branch_id', $this->branch->id);
 
@@ -96,7 +99,32 @@ class ExpenseIndex extends Component
         return $query->with(['submitter', 'approver'])
             ->orderBy('expense_date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -145,23 +173,29 @@ class ExpenseIndex extends Component
     #[Computed]
     public function expenseStats(): array
     {
-        $expenses = $this->expenses;
-        $total = $expenses->sum('amount');
-        $count = $expenses->count();
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = Expense::where('branch_id', $this->branch->id);
 
-        $pending = $expenses->where('status', ExpenseStatus::Pending)->count();
+        $this->applySearch($baseQuery, ['description', 'vendor_name', 'reference_number', 'notes']);
+        $this->applyEnumFilter($baseQuery, 'categoryFilter', 'category');
+        $this->applyEnumFilter($baseQuery, 'statusFilter', 'status');
+        $this->applyDateRange($baseQuery, 'expense_date');
 
-        $thisMonthExpenses = $expenses->filter(function ($expense): bool {
-            return $expense->expense_date &&
-                $expense->expense_date->isCurrentMonth();
-        });
-        $thisMonth = $thisMonthExpenses->sum('amount');
+        $total = (clone $baseQuery)->sum('amount');
+        $count = (clone $baseQuery)->count();
+        $pending = (clone $baseQuery)->where('status', ExpenseStatus::Pending)->count();
+        $thisMonth = (clone $baseQuery)
+            ->whereMonth('expense_date', now()->month)
+            ->whereYear('expense_date', now()->year)
+            ->sum('amount');
 
-        // Top category by amount
-        $byCategory = $expenses->groupBy(fn ($e) => $e->category->value)
-            ->map(fn ($group) => $group->sum('amount'))
-            ->sortDesc();
-        $topCategory = $byCategory->keys()->first();
+        // Top category by amount - need to get this from a grouped query
+        $topCategoryResult = (clone $baseQuery)
+            ->selectRaw('category, SUM(amount) as total_amount')
+            ->groupBy('category')
+            ->orderByDesc('total_amount')
+            ->first();
+        $topCategory = $topCategoryResult?->category?->value ?? null;
 
         return [
             'total' => $total,
@@ -407,6 +441,7 @@ class ExpenseIndex extends Component
             'search', 'categoryFilter', 'statusFilter',
             'dateFrom', 'dateTo',
         ]);
+        $this->resetPage();
         unset($this->expenses);
         unset($this->expenseStats);
         unset($this->hasActiveFilters);
@@ -416,7 +451,18 @@ class ExpenseIndex extends Component
     {
         $this->authorize('viewAny', [Expense::class, $this->branch]);
 
-        $expenses = $this->expenses;
+        // Build query with same filters but get all records (not paginated)
+        $query = Expense::where('branch_id', $this->branch->id);
+
+        $this->applySearch($query, ['description', 'vendor_name', 'reference_number', 'notes']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyDateRange($query, 'expense_date');
+
+        $expenses = $query->with(['submitter', 'approver'])
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $filename = sprintf(
             'expenses_%s_%s.csv',

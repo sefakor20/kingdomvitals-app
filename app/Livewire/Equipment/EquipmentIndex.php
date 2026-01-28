@@ -14,10 +14,12 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\EquipmentCheckout;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
@@ -25,6 +27,7 @@ class EquipmentIndex extends Component
 {
     use HasFilterableQuery;
     use HasQuotaComputed;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -110,7 +113,7 @@ class EquipmentIndex extends Component
     }
 
     #[Computed]
-    public function equipment(): Collection
+    public function equipment(): LengthAwarePaginator
     {
         $query = Equipment::where('branch_id', $this->branch->id);
 
@@ -132,7 +135,27 @@ class EquipmentIndex extends Component
 
         return $query->with(['assignedMember', 'activeCheckout.member'])
             ->orderBy('name')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedConditionFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedAvailabilityFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -190,14 +213,36 @@ class EquipmentIndex extends Component
     #[Computed]
     public function equipmentStats(): array
     {
-        $equipment = $this->equipment;
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = Equipment::where('branch_id', $this->branch->id);
 
-        $total = $equipment->count();
-        $available = $equipment->filter(fn ($e) => $e->isAvailable())->count();
-        $checkedOut = $equipment->filter(fn ($e) => $e->isCheckedOut())->count();
-        $outOfService = $equipment->filter(fn ($e) => $e->isOutOfService())->count();
-        $maintenanceDue = $equipment->filter(fn ($e) => $e->maintenanceDue())->count();
-        $totalValue = $equipment->sum('purchase_price');
+        $this->applySearch($baseQuery, ['name', 'description', 'serial_number', 'manufacturer', 'location']);
+        $this->applyEnumFilter($baseQuery, 'categoryFilter', 'category');
+        $this->applyEnumFilter($baseQuery, 'conditionFilter', 'condition');
+
+        if ($this->isFilterActive($this->availabilityFilter)) {
+            if ($this->availabilityFilter === 'available') {
+                $baseQuery->where('condition', '!=', EquipmentCondition::OutOfService->value)
+                    ->whereDoesntHave('activeCheckout');
+            } elseif ($this->availabilityFilter === 'checked_out') {
+                $baseQuery->whereHas('activeCheckout');
+            } elseif ($this->availabilityFilter === 'out_of_service') {
+                $baseQuery->where('condition', EquipmentCondition::OutOfService->value);
+            }
+        }
+
+        $total = (clone $baseQuery)->count();
+        $available = (clone $baseQuery)
+            ->where('condition', '!=', EquipmentCondition::OutOfService->value)
+            ->whereDoesntHave('activeCheckout')
+            ->count();
+        $checkedOut = (clone $baseQuery)->whereHas('activeCheckout')->count();
+        $outOfService = (clone $baseQuery)->where('condition', EquipmentCondition::OutOfService->value)->count();
+        $maintenanceDue = (clone $baseQuery)
+            ->whereNotNull('next_maintenance_date')
+            ->where('next_maintenance_date', '<=', now())
+            ->count();
+        $totalValue = (clone $baseQuery)->sum('purchase_price');
 
         return [
             'total' => $total,
@@ -489,6 +534,7 @@ class EquipmentIndex extends Component
     public function clearFilters(): void
     {
         $this->reset(['search', 'categoryFilter', 'conditionFilter', 'availabilityFilter']);
+        $this->resetPage();
         unset($this->equipment);
         unset($this->equipmentStats);
         unset($this->hasActiveFilters);
@@ -498,7 +544,27 @@ class EquipmentIndex extends Component
     {
         $this->authorize('viewAny', [Equipment::class, $this->branch]);
 
-        $equipment = $this->equipment;
+        // Build query with same filters but get all records (not paginated)
+        $query = Equipment::where('branch_id', $this->branch->id);
+
+        $this->applySearch($query, ['name', 'description', 'serial_number', 'manufacturer', 'location']);
+        $this->applyEnumFilter($query, 'categoryFilter', 'category');
+        $this->applyEnumFilter($query, 'conditionFilter', 'condition');
+
+        if ($this->isFilterActive($this->availabilityFilter)) {
+            if ($this->availabilityFilter === 'available') {
+                $query->where('condition', '!=', EquipmentCondition::OutOfService->value)
+                    ->whereDoesntHave('activeCheckout');
+            } elseif ($this->availabilityFilter === 'checked_out') {
+                $query->whereHas('activeCheckout');
+            } elseif ($this->availabilityFilter === 'out_of_service') {
+                $query->where('condition', EquipmentCondition::OutOfService->value);
+            }
+        }
+
+        $equipment = $query->with(['assignedMember', 'activeCheckout.member'])
+            ->orderBy('name')
+            ->get();
 
         $filename = sprintf(
             'equipment_%s_%s.csv',

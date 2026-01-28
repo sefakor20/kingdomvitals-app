@@ -206,6 +206,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->clusters->hasPages())
+            <div class="mt-4">
+                {{ $this->clusters->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

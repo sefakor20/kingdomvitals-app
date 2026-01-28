@@ -11,16 +11,19 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 class SmsIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -50,7 +53,7 @@ class SmsIndex extends Component
     }
 
     #[Computed]
-    public function smsRecords(): Collection
+    public function smsRecords(): LengthAwarePaginator
     {
         $query = SmsLog::where('branch_id', $this->branch->id);
 
@@ -82,21 +85,74 @@ class SmsIndex extends Component
 
         return $query->with(['member'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
     public function smsStats(): array
     {
-        $records = $this->smsRecords;
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = SmsLog::where('branch_id', $this->branch->id);
 
-        $totalCost = $records->sum('cost');
-        $deliveredCount = $records->where('status', SmsStatus::Delivered)->count();
-        $failedCount = $records->where('status', SmsStatus::Failed)->count();
-        $pendingCount = $records->where('status', SmsStatus::Pending)->count();
+        // Apply search filter
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $baseQuery->where(function ($q) use ($search): void {
+                $q->where('phone_number', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($baseQuery, 'statusFilter', 'status');
+        $this->applyEnumFilter($baseQuery, 'typeFilter', 'message_type');
+
+        // Apply quick filter
+        if ($this->quickFilter === 'today') {
+            $baseQuery->whereDate('created_at', today());
+        } elseif ($this->quickFilter === 'this_week') {
+            $baseQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($this->quickFilter === 'this_month') {
+            $baseQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        }
+
+        $this->applyDateRange($baseQuery, 'created_at');
+
+        $total = (clone $baseQuery)->count();
+        $totalCost = (clone $baseQuery)->sum('cost');
+        $deliveredCount = (clone $baseQuery)->where('status', SmsStatus::Delivered)->count();
+        $failedCount = (clone $baseQuery)->where('status', SmsStatus::Failed)->count();
+        $pendingCount = (clone $baseQuery)->where('status', SmsStatus::Pending)->count();
 
         return [
-            'total' => $records->count(),
+            'total' => $total,
             'delivered' => $deliveredCount,
             'failed' => $failedCount,
             'pending' => $pendingCount,
@@ -173,6 +229,7 @@ class SmsIndex extends Component
         $this->dateTo = null;
         $this->quickFilter = $filter;
 
+        $this->resetPage();
         unset($this->smsRecords);
         unset($this->smsStats);
         unset($this->hasActiveFilters);
@@ -185,6 +242,7 @@ class SmsIndex extends Component
             'dateFrom', 'dateTo', 'quickFilter',
         ]);
 
+        $this->resetPage();
         unset($this->smsRecords);
         unset($this->smsStats);
         unset($this->hasActiveFilters);
@@ -206,7 +264,38 @@ class SmsIndex extends Component
     {
         $this->authorize('viewAny', [SmsLog::class, $this->branch]);
 
-        $records = $this->smsRecords;
+        // Build query for export (all filtered records, not paginated)
+        $query = SmsLog::where('branch_id', $this->branch->id);
+
+        // Apply search filter
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search): void {
+                $q->where('phone_number', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'typeFilter', 'message_type');
+
+        // Apply quick filter
+        if ($this->quickFilter === 'today') {
+            $query->whereDate('created_at', today());
+        } elseif ($this->quickFilter === 'this_week') {
+            $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($this->quickFilter === 'this_month') {
+            $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        }
+
+        $this->applyDateRange($query, 'created_at');
+
+        $records = $query->with(['member'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $filename = sprintf(
             'sms_logs_%s_%s.csv',

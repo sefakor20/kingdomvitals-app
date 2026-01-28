@@ -10,16 +10,19 @@ use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 class HouseholdIndex extends Component
 {
     use HasFilterableQuery;
     use HasQuotaComputed;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -49,7 +52,7 @@ class HouseholdIndex extends Component
     }
 
     #[Computed]
-    public function households(): Collection
+    public function households(): LengthAwarePaginator
     {
         $query = Household::where('branch_id', $this->branch->id)
             ->withCount('members');
@@ -68,7 +71,12 @@ class HouseholdIndex extends Component
 
         return $query->with(['head'])
             ->orderBy('name')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
