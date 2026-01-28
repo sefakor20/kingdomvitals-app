@@ -193,6 +193,22 @@ class AttendanceIndex extends Component
         $this->deletingAttendance = null;
     }
 
+    public function checkOut(Attendance $attendance): void
+    {
+        $this->authorize('update', $attendance);
+
+        if ($attendance->check_out_time !== null) {
+            return;
+        }
+
+        $attendance->update(['check_out_time' => now()->format('H:i')]);
+
+        unset($this->attendanceRecords);
+        unset($this->attendanceStats);
+
+        $this->dispatch('attendance-checked-out');
+    }
+
     public function exportToCsv(): StreamedResponse
     {
         $this->authorize('viewAny', [Attendance::class, $this->branch]);
