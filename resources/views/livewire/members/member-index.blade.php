@@ -228,7 +228,7 @@
                             <td class="whitespace-nowrap px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     @if($member->photo_url)
-                                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-10 rounded-full object-cover" />
                                     @else
                                         <flux:avatar size="sm" name="{{ $member->fullName() }}" />
                                     @endif

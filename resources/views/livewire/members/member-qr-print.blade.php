@@ -58,10 +58,10 @@
                     <img
                         src="{{ $member->photo_url }}"
                         alt="{{ $member->fullName() }}"
-                        class="size-16 rounded-lg border-4 border-white object-cover shadow-md print:shadow-none"
+                        class="size-16 rounded-lg ring-4 ring-white object-cover shadow-md print:shadow-none"
                     />
                 @else
-                    <div class="flex size-16 items-center justify-center rounded-lg border-4 border-white bg-zinc-100 shadow-md print:shadow-none">
+                    <div class="flex size-16 items-center justify-center rounded-lg ring-4 ring-white bg-zinc-100 shadow-md print:shadow-none">
                         <span class="text-xl font-bold text-zinc-400">
                             {{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}
                         </span>

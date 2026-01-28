@@ -49,15 +49,15 @@
                 @if($editing)
                     <div class="flex flex-col items-center gap-2">
                         @if($photo && $photo->isPreviewable())
-                            <img src="{{ $photo->temporaryUrl() }}" alt="{{ __('New photo') }}" class="size-16 rounded-full object-cover" />
+                            <img src="{{ $photo->temporaryUrl() }}" alt="{{ __('New photo') }}" class="size-20 rounded-full object-cover" />
                         @elseif($photo)
-                            <div class="flex size-16 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
+                            <div class="flex size-20 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
                                 <flux:icon.photo class="size-8 text-zinc-400" />
                             </div>
                         @elseif($existingPhotoUrl)
-                            <img src="{{ $existingPhotoUrl }}" alt="{{ $member->fullName() }}" class="size-16 rounded-full object-cover" />
+                            <img src="{{ $existingPhotoUrl }}" alt="{{ $member->fullName() }}" class="size-20 rounded-full object-cover" />
                         @else
-                            <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                            <flux:avatar size="xl" name="{{ $member->fullName() }}" />
                         @endif
                         <div class="flex items-center gap-2">
                             <span wire:loading wire:target="photo" class="flex items-center gap-1 text-xs text-zinc-500">
@@ -78,9 +78,9 @@
                     </div>
                 @else
                     @if($member->photo_url)
-                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-16 rounded-full object-cover" />
+                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-20 rounded-full object-cover" />
                     @else
-                        <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                        <flux:avatar size="xl" name="{{ $member->fullName() }}" />
                     @endif
                 @endif
                 <div>
