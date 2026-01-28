@@ -234,6 +234,12 @@
                 </div>
             @endforeach
         </div>
+
+        @if($this->prayerRequests->hasPages())
+            <div class="mt-4">
+                {{ $this->prayerRequests->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

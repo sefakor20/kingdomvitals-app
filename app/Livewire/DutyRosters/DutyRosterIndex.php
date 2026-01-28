@@ -94,6 +94,7 @@ class DutyRosterIndex extends Component
                 ->whereMonth('service_date', $date->month);
         }
 
+        // No pagination - calendar view needs all records for the month
         return $query->orderBy('service_date')->get();
     }
 

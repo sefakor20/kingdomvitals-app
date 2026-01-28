@@ -9,16 +9,19 @@ use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Service;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 class AttendanceIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -50,7 +53,7 @@ class AttendanceIndex extends Component
     }
 
     #[Computed]
-    public function attendanceRecords(): Collection
+    public function attendanceRecords(): LengthAwarePaginator
     {
         $query = Attendance::where('branch_id', $this->branch->id);
 
@@ -94,7 +97,37 @@ class AttendanceIndex extends Component
         return $query->with(['member', 'visitor', 'service'])
             ->orderBy('date', 'desc')
             ->orderBy('check_in_time', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedServiceFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMethodFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -114,13 +147,49 @@ class AttendanceIndex extends Component
     #[Computed]
     public function attendanceStats(): array
     {
-        $records = $this->attendanceRecords;
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = Attendance::where('branch_id', $this->branch->id);
+
+        // Apply same filters as main query
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $baseQuery->where(function ($q) use ($search): void {
+                $q->whereHas('member', function ($memberQuery) use ($search): void {
+                    $memberQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('visitor', function ($visitorQuery) use ($search): void {
+                        $visitorQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($baseQuery, 'serviceFilter', 'service_id');
+
+        if ($this->typeFilter === 'member') {
+            $baseQuery->whereNotNull('member_id');
+        } elseif ($this->typeFilter === 'visitor') {
+            $baseQuery->whereNotNull('visitor_id');
+        }
+
+        $this->applyEnumFilter($baseQuery, 'methodFilter', 'check_in_method');
+
+        if ($this->quickFilter === 'today') {
+            $baseQuery->whereDate('date', today());
+        } elseif ($this->quickFilter === 'this_week') {
+            $baseQuery->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($this->quickFilter === 'this_month') {
+            $baseQuery->whereMonth('date', now()->month)->whereYear('date', now()->year);
+        }
+
+        $this->applyDateRange($baseQuery, 'date');
 
         return [
-            'total' => $records->count(),
-            'members' => $records->whereNotNull('member_id')->count(),
-            'visitors' => $records->whereNotNull('visitor_id')->count(),
-            'today' => $records->filter(fn ($r): bool => $r->date && $r->date->isToday())->count(),
+            'total' => (clone $baseQuery)->count(),
+            'members' => (clone $baseQuery)->whereNotNull('member_id')->count(),
+            'visitors' => (clone $baseQuery)->whereNotNull('visitor_id')->count(),
+            'today' => (clone $baseQuery)->whereDate('date', today())->count(),
         ];
     }
 
@@ -149,6 +218,7 @@ class AttendanceIndex extends Component
         $this->dateTo = null;
         $this->quickFilter = $filter;
 
+        $this->resetPage();
         unset($this->attendanceRecords);
         unset($this->attendanceStats);
         unset($this->hasActiveFilters);
@@ -161,6 +231,7 @@ class AttendanceIndex extends Component
             'typeFilter', 'methodFilter', 'quickFilter',
         ]);
 
+        $this->resetPage();
         unset($this->attendanceRecords);
         unset($this->attendanceStats);
         unset($this->hasActiveFilters);
@@ -193,11 +264,67 @@ class AttendanceIndex extends Component
         $this->deletingAttendance = null;
     }
 
+    public function checkOut(Attendance $attendance): void
+    {
+        $this->authorize('update', $attendance);
+
+        if ($attendance->check_out_time !== null) {
+            return;
+        }
+
+        $attendance->update(['check_out_time' => now()->format('H:i')]);
+
+        unset($this->attendanceRecords);
+        unset($this->attendanceStats);
+
+        $this->dispatch('attendance-checked-out');
+    }
+
     public function exportToCsv(): StreamedResponse
     {
         $this->authorize('viewAny', [Attendance::class, $this->branch]);
 
-        $records = $this->attendanceRecords;
+        // Build query with same filters but get all records (not paginated)
+        $query = Attendance::where('branch_id', $this->branch->id);
+
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search): void {
+                $q->whereHas('member', function ($memberQuery) use ($search): void {
+                    $memberQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('visitor', function ($visitorQuery) use ($search): void {
+                        $visitorQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($query, 'serviceFilter', 'service_id');
+
+        if ($this->typeFilter === 'member') {
+            $query->whereNotNull('member_id');
+        } elseif ($this->typeFilter === 'visitor') {
+            $query->whereNotNull('visitor_id');
+        }
+
+        $this->applyEnumFilter($query, 'methodFilter', 'check_in_method');
+
+        if ($this->quickFilter === 'today') {
+            $query->whereDate('date', today());
+        } elseif ($this->quickFilter === 'this_week') {
+            $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($this->quickFilter === 'this_month') {
+            $query->whereMonth('date', now()->month)->whereYear('date', now()->year);
+        }
+
+        $this->applyDateRange($query, 'date');
+
+        $records = $query->with(['member', 'visitor', 'service'])
+            ->orderBy('date', 'desc')
+            ->orderBy('check_in_time', 'desc')
+            ->get();
 
         $filename = sprintf(
             'attendance_%s_%s.csv',

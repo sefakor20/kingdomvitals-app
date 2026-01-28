@@ -239,7 +239,13 @@
                                 {{ $attendance->check_in_time ? substr($attendance->check_in_time, 0, 5) : '-' }}
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ $attendance->check_out_time ? substr($attendance->check_out_time, 0, 5) : '-' }}
+                                @if($attendance->check_out_time)
+                                    {{ substr($attendance->check_out_time, 0, 5) }}
+                                @else
+                                    <flux:button size="xs" variant="ghost" wire:click="checkOut('{{ $attendance->id }}')" icon="arrow-right-start-on-rectangle">
+                                        {{ __('Out') }}
+                                    </flux:button>
+                                @endif
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
                                 <flux:badge
@@ -264,6 +270,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->attendanceRecords->hasPages())
+            <div class="mt-4">
+                {{ $this->attendanceRecords->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Delete Confirmation Modal -->
@@ -289,5 +301,10 @@
     <!-- Success Toast -->
     <x-toast on="attendance-deleted" type="success">
         {{ __('Attendance record deleted successfully.') }}
+    </x-toast>
+
+    <!-- Check-out Success Toast -->
+    <x-toast on="attendance-checked-out" type="success">
+        {{ __('Member checked out successfully.') }}
     </x-toast>
 </section>

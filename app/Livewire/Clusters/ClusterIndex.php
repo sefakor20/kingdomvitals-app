@@ -9,17 +9,20 @@ use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 class ClusterIndex extends Component
 {
     use HasFilterableQuery;
     use HasQuotaComputed;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -69,7 +72,7 @@ class ClusterIndex extends Component
     }
 
     #[Computed]
-    public function clusters(): Collection
+    public function clusters(): LengthAwarePaginator
     {
         $query = Cluster::where('branch_id', $this->branch->id)
             ->withCount('members')
@@ -79,7 +82,22 @@ class ClusterIndex extends Component
         $this->applyEnumFilter($query, 'typeFilter', 'cluster_type');
         $this->applyBooleanFilter($query, 'statusFilter', 'is_active', 'active');
 
-        return $query->orderBy('name')->get();
+        return $query->orderBy('name')->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]

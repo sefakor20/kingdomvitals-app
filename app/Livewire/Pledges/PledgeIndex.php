@@ -11,16 +11,19 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\PledgeCampaign;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 class PledgeIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -75,7 +78,7 @@ class PledgeIndex extends Component
     }
 
     #[Computed]
-    public function pledges(): Collection
+    public function pledges(): LengthAwarePaginator
     {
         $query = Pledge::where('branch_id', $this->branch->id);
 
@@ -98,7 +101,27 @@ class PledgeIndex extends Component
 
         return $query->with(['member', 'campaign'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMemberFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCampaignFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -168,11 +191,29 @@ class PledgeIndex extends Component
     #[Computed]
     public function pledgeStats(): array
     {
-        $pledges = $this->pledges;
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = Pledge::where('branch_id', $this->branch->id);
 
-        $active = $pledges->where('status', PledgeStatus::Active)->count();
-        $totalPledged = $pledges->sum('amount');
-        $totalFulfilled = $pledges->sum('amount_fulfilled');
+        // Apply same filters as main query
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $baseQuery->where(function ($q) use ($search): void {
+                $q->where('campaign_name', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($baseQuery, 'statusFilter', 'status');
+        $this->applyEnumFilter($baseQuery, 'memberFilter', 'member_id');
+        $this->applyEnumFilter($baseQuery, 'campaignFilter', 'pledge_campaign_id');
+
+        $active = (clone $baseQuery)->where('status', PledgeStatus::Active)->count();
+        $totalPledged = (clone $baseQuery)->sum('amount');
+        $totalFulfilled = (clone $baseQuery)->sum('amount_fulfilled');
         $fulfillmentRate = $totalPledged > 0
             ? round(($totalFulfilled / $totalPledged) * 100, 1)
             : 0;
@@ -442,6 +483,7 @@ class PledgeIndex extends Component
         $this->reset([
             'search', 'statusFilter', 'memberFilter', 'campaignFilter',
         ]);
+        $this->resetPage();
         unset($this->pledges);
         unset($this->pledgeStats);
         unset($this->hasActiveFilters);
@@ -451,7 +493,28 @@ class PledgeIndex extends Component
     {
         $this->authorize('viewAny', [Pledge::class, $this->branch]);
 
-        $pledges = $this->pledges;
+        // Build query with same filters but get all records (not paginated)
+        $query = Pledge::where('branch_id', $this->branch->id);
+
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search): void {
+                $q->where('campaign_name', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyEnumFilter($query, 'memberFilter', 'member_id');
+        $this->applyEnumFilter($query, 'campaignFilter', 'pledge_campaign_id');
+
+        $pledges = $query->with(['member', 'campaign'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $filename = sprintf(
             'pledges_%s_%s.csv',

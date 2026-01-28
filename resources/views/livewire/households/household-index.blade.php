@@ -156,6 +156,12 @@
                 </div>
             @endforeach
         </div>
+
+        @if($this->households->hasPages())
+            <div class="mt-4">
+                {{ $this->households->links() }}
+            </div>
+        @endif
     @endif
 
     {{-- Create Modal --}}

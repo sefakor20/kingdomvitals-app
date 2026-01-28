@@ -14,15 +14,18 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Notifications\PrayerRequestSubmittedNotification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 class PrayerRequestIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -77,7 +80,7 @@ class PrayerRequestIndex extends Component
     }
 
     #[Computed]
-    public function prayerRequests(): Collection
+    public function prayerRequests(): LengthAwarePaginator
     {
         $query = PrayerRequest::where('branch_id', $this->branch->id);
 
@@ -89,7 +92,32 @@ class PrayerRequestIndex extends Component
 
         return $query->with(['member', 'cluster'])
             ->orderBy('submitted_at', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPrivacyFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedClusterFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -357,6 +385,7 @@ class PrayerRequestIndex extends Component
     public function clearFilters(): void
     {
         $this->reset(['search', 'categoryFilter', 'statusFilter', 'privacyFilter', 'clusterFilter']);
+        $this->resetPage();
         unset($this->prayerRequests);
         unset($this->stats);
         unset($this->hasActiveFilters);

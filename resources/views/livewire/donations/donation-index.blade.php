@@ -291,6 +291,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->donations->hasPages())
+            <div class="mt-4">
+                {{ $this->donations->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

@@ -12,16 +12,19 @@ use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Services\DonationReceiptService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 class DonationIndex extends Component
 {
     use HasFilterableQuery;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -80,7 +83,7 @@ class DonationIndex extends Component
     }
 
     #[Computed]
-    public function donations(): Collection
+    public function donations(): LengthAwarePaginator
     {
         $query = Donation::where('branch_id', $this->branch->id);
 
@@ -114,7 +117,37 @@ class DonationIndex extends Component
         return $query->with(['member', 'service', 'recorder'])
             ->orderBy('donation_date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPaymentMethodFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMemberFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -177,18 +210,43 @@ class DonationIndex extends Component
     #[Computed]
     public function donationStats(): array
     {
-        $donations = $this->donations;
-        $total = $donations->sum('amount');
-        $count = $donations->count();
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = Donation::where('branch_id', $this->branch->id);
 
-        $thisMonthDonations = $donations->filter(function ($donation): bool {
-            return $donation->donation_date &&
-                $donation->donation_date->isCurrentMonth();
-        });
-        $thisMonth = $thisMonthDonations->sum('amount');
+        // Apply same filters as main query
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $baseQuery->where(function ($q) use ($search): void {
+                $q->where('donor_name', 'like', "%{$search}%")
+                    ->orWhere('reference_number', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-        $tithes = $donations->where('donation_type', DonationType::Tithe)->sum('amount');
-        $offerings = $donations->where('donation_type', DonationType::Offering)->sum('amount');
+        $this->applyEnumFilter($baseQuery, 'typeFilter', 'donation_type');
+        $this->applyEnumFilter($baseQuery, 'paymentMethodFilter', 'payment_method');
+        $this->applyDateRange($baseQuery, 'donation_date');
+
+        if ($this->memberFilter !== null) {
+            if ($this->memberFilter === 'anonymous') {
+                $baseQuery->where('is_anonymous', true);
+            } else {
+                $baseQuery->where('member_id', $this->memberFilter);
+            }
+        }
+
+        $total = (clone $baseQuery)->sum('amount');
+        $count = (clone $baseQuery)->count();
+        $thisMonth = (clone $baseQuery)
+            ->whereMonth('donation_date', now()->month)
+            ->whereYear('donation_date', now()->year)
+            ->sum('amount');
+        $tithes = (clone $baseQuery)->where('donation_type', DonationType::Tithe)->sum('amount');
+        $offerings = (clone $baseQuery)->where('donation_type', DonationType::Offering)->sum('amount');
 
         return [
             'total' => $total,
@@ -364,6 +422,7 @@ class DonationIndex extends Component
             'search', 'typeFilter', 'paymentMethodFilter',
             'memberFilter', 'dateFrom', 'dateTo',
         ]);
+        $this->resetPage();
         unset($this->donations);
         unset($this->donationStats);
         unset($this->hasActiveFilters);
@@ -373,7 +432,38 @@ class DonationIndex extends Component
     {
         $this->authorize('viewAny', [Donation::class, $this->branch]);
 
-        $donations = $this->donations;
+        // Build query with same filters but get all records (not paginated)
+        $query = Donation::where('branch_id', $this->branch->id);
+
+        if ($this->isFilterActive($this->search)) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search): void {
+                $q->where('donor_name', 'like', "%{$search}%")
+                    ->orWhere('reference_number', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
+                        $memberQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $this->applyEnumFilter($query, 'typeFilter', 'donation_type');
+        $this->applyEnumFilter($query, 'paymentMethodFilter', 'payment_method');
+        $this->applyDateRange($query, 'donation_date');
+
+        if ($this->memberFilter !== null) {
+            if ($this->memberFilter === 'anonymous') {
+                $query->where('is_anonymous', true);
+            } else {
+                $query->where('member_id', $this->memberFilter);
+            }
+        }
+
+        $donations = $query->with(['member', 'service', 'recorder'])
+            ->orderBy('donation_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $filename = sprintf(
             'donations_%s_%s.csv',

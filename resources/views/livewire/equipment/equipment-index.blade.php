@@ -298,6 +298,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->equipment->hasPages())
+            <div class="mt-4">
+                {{ $this->equipment->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

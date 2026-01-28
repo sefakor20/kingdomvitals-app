@@ -252,6 +252,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->expenses->hasPages())
+            <div class="mt-4">
+                {{ $this->expenses->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

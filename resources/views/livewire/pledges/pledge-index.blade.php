@@ -267,6 +267,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->pledges->hasPages())
+            <div class="mt-4">
+                {{ $this->pledges->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

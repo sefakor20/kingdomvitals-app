@@ -374,6 +374,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($this->offerings->hasPages())
+                <div class="mt-4">
+                    {{ $this->offerings->links() }}
+                </div>
+            @endif
         @endif
     @endif
 

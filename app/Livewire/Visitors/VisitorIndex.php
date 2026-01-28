@@ -15,12 +15,14 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -31,6 +33,7 @@ class VisitorIndex extends Component
     use HasFilterableQuery;
     use HasQuotaComputed;
     use WithFileUploads;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -118,7 +121,7 @@ class VisitorIndex extends Component
     }
 
     #[Computed]
-    public function visitors(): Collection
+    public function visitors(): LengthAwarePaginator
     {
         $query = Visitor::where('branch_id', $this->branch->id);
 
@@ -139,7 +142,49 @@ class VisitorIndex extends Component
 
         return $query->with(['assignedMember', 'convertedMember'])
             ->orderBy('visit_date', 'desc')
-            ->get();
+            ->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedConvertedFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedAssignedMemberFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedSourceFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
     }
 
     #[Computed]
@@ -206,17 +251,32 @@ class VisitorIndex extends Component
     #[Computed]
     public function visitorStats(): array
     {
-        $visitors = $this->visitors;
-        $total = $visitors->count();
-        $new = $visitors->where('status', VisitorStatus::New)->count();
-        $converted = $visitors->where('is_converted', true)->count();
+        // Query database directly for stats (not from paginated collection)
+        $baseQuery = Visitor::where('branch_id', $this->branch->id);
+
+        // Apply same filters as main query
+        $this->applySearch($baseQuery, ['first_name', 'last_name', 'email', 'phone']);
+        $this->applyEnumFilter($baseQuery, 'statusFilter', 'status');
+        $this->applyBooleanFilter($baseQuery, 'convertedFilter', 'is_converted', 'yes');
+        $this->applyDateRange($baseQuery, 'visit_date');
+        $this->applyEnumFilter($baseQuery, 'sourceFilter', 'how_did_you_hear');
+
+        if ($this->assignedMemberFilter !== null) {
+            if ($this->assignedMemberFilter === 'unassigned') {
+                $baseQuery->whereNull('assigned_to');
+            } else {
+                $baseQuery->where('assigned_to', $this->assignedMemberFilter);
+            }
+        }
+
+        $total = (clone $baseQuery)->count();
+        $new = (clone $baseQuery)->where('status', VisitorStatus::New)->count();
+        $converted = (clone $baseQuery)->where('is_converted', true)->count();
         $conversionRate = $total > 0 ? round(($converted / $total) * 100, 1) : 0;
 
         // Count visitors with pending follow-ups
-        $pendingFollowUps = $visitors->filter(function ($visitor) {
-            return $visitor->followUps()
-                ->where('outcome', FollowUpOutcome::Pending)
-                ->exists();
+        $pendingFollowUps = (clone $baseQuery)->whereHas('followUps', function ($q): void {
+            $q->where('outcome', FollowUpOutcome::Pending);
         })->count();
 
         return [
@@ -472,7 +532,26 @@ class VisitorIndex extends Component
     {
         $this->authorize('viewAny', [Visitor::class, $this->branch]);
 
-        $visitors = $this->visitors;
+        // Build query with same filters but get all records (not paginated)
+        $query = Visitor::where('branch_id', $this->branch->id);
+
+        $this->applySearch($query, ['first_name', 'last_name', 'email', 'phone']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyBooleanFilter($query, 'convertedFilter', 'is_converted', 'yes');
+        $this->applyDateRange($query, 'visit_date');
+        $this->applyEnumFilter($query, 'sourceFilter', 'how_did_you_hear');
+
+        if ($this->assignedMemberFilter !== null) {
+            if ($this->assignedMemberFilter === 'unassigned') {
+                $query->whereNull('assigned_to');
+            } else {
+                $query->where('assigned_to', $this->assignedMemberFilter);
+            }
+        }
+
+        $visitors = $query->with(['assignedMember', 'convertedMember'])
+            ->orderBy('visit_date', 'desc')
+            ->get();
 
         $filename = sprintf(
             'visitors_%s_%s.csv',
