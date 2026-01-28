@@ -308,7 +308,7 @@ test('today stats are calculated correctly', function (): void {
 // RECENT CHECK-INS TESTS
 // ============================================
 
-test('recent check-ins shows last 5 entries', function (): void {
+test('recent check-ins shows last 10 entries', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -316,8 +316,8 @@ test('recent check-ins shows last 5 entries', function (): void {
         'role' => BranchRole::Staff,
     ]);
 
-    // Create 7 attendance records
-    for ($i = 0; $i < 7; $i++) {
+    // Create 12 attendance records
+    for ($i = 0; $i < 12; $i++) {
         Attendance::factory()->create([
             'service_id' => $this->service->id,
             'branch_id' => $this->branch->id,
@@ -332,7 +332,7 @@ test('recent check-ins shows last 5 entries', function (): void {
     $component = Livewire::test(LiveCheckIn::class, ['branch' => $this->branch, 'service' => $this->service]);
     $recentCheckIns = $component->instance()->recentCheckIns;
 
-    expect($recentCheckIns->count())->toBe(5);
+    expect($recentCheckIns->count())->toBe(10);
 });
 
 // ============================================
@@ -369,4 +369,128 @@ test('search results indicate already checked in status', function (): void {
     $results = $component->instance()->searchResults;
     expect($results->count())->toBe(1);
     expect($results->first()['already_checked_in'])->toBeTrue();
+});
+
+// ============================================
+// CHECK-OUT TESTS
+// ============================================
+
+test('can check out a member', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $attendance = Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'member_id' => $this->member->id,
+        'date' => now()->format('Y-m-d'),
+        'check_out_time' => null,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(LiveCheckIn::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('checkOut', $attendance->id)
+        ->assertDispatched('check-out-success');
+
+    $attendance->refresh();
+    expect($attendance->check_out_time)->not->toBeNull();
+});
+
+test('cannot check out already checked out attendance', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $attendance = Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'member_id' => $this->member->id,
+        'date' => now()->format('Y-m-d'),
+        'check_out_time' => '15:00',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(LiveCheckIn::class, ['branch' => $this->branch, 'service' => $this->service])
+        ->call('checkOut', $attendance->id)
+        ->assertNotDispatched('check-out-success');
+
+    $attendance->refresh();
+    expect($attendance->check_out_time)->toBe('15:00');
+});
+
+test('recent check-ins includes check-out status', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'member_id' => $this->member->id,
+        'date' => now()->format('Y-m-d'),
+        'check_in_time' => '09:00',
+        'check_out_time' => '10:30',
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(LiveCheckIn::class, ['branch' => $this->branch, 'service' => $this->service]);
+    $recentCheckIns = $component->instance()->recentCheckIns;
+
+    expect($recentCheckIns->first()['is_checked_out'])->toBeTrue();
+    expect($recentCheckIns->first()['check_out_time'])->toBe('10:30');
+});
+
+test('today stats includes checked out count', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    // Create 3 attendance records, 2 checked out
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'member_id' => Member::factory()->create(['primary_branch_id' => $this->branch->id])->id,
+        'date' => now()->format('Y-m-d'),
+        'check_out_time' => '10:00',
+    ]);
+
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'member_id' => Member::factory()->create(['primary_branch_id' => $this->branch->id])->id,
+        'date' => now()->format('Y-m-d'),
+        'check_out_time' => '11:00',
+    ]);
+
+    Attendance::factory()->create([
+        'service_id' => $this->service->id,
+        'branch_id' => $this->branch->id,
+        'member_id' => Member::factory()->create(['primary_branch_id' => $this->branch->id])->id,
+        'date' => now()->format('Y-m-d'),
+        'check_out_time' => null,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(LiveCheckIn::class, ['branch' => $this->branch, 'service' => $this->service]);
+    $stats = $component->instance()->todayStats;
+
+    expect($stats['total'])->toBe(3);
+    expect($stats['checked_out'])->toBe(2);
 });

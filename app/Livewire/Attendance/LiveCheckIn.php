@@ -124,13 +124,16 @@ class LiveCheckIn extends Component
             ->where('date', $this->selectedDate)
             ->with(['member', 'visitor'])
             ->orderBy('check_in_time', 'desc')
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->map(fn ($a): array => [
+                'id' => $a->id,
                 'name' => $a->member?->fullName() ?? $a->visitor?->fullName() ?? 'Unknown',
                 'type' => $a->member_id ? 'member' : 'visitor',
                 'photo_url' => $a->member?->photo_url,
-                'time' => $a->check_in_time ? substr($a->check_in_time, 0, 5) : '-',
+                'check_in_time' => $a->check_in_time ? substr($a->check_in_time, 0, 5) : '-',
+                'check_out_time' => $a->check_out_time ? substr($a->check_out_time, 0, 5) : null,
+                'is_checked_out' => $a->check_out_time !== null,
             ]);
     }
 
@@ -145,6 +148,7 @@ class LiveCheckIn extends Component
             'total' => $attendance->count(),
             'members' => (clone $attendance)->whereNotNull('member_id')->count(),
             'visitors' => (clone $attendance)->whereNotNull('visitor_id')->count(),
+            'checked_out' => (clone $attendance)->whereNotNull('check_out_time')->count(),
         ];
     }
 
@@ -382,6 +386,30 @@ class LiveCheckIn extends Component
     public function stopScanning(): void
     {
         $this->isScanning = false;
+    }
+
+    public function checkOut(string $attendanceId): void
+    {
+        $this->authorize('update', [Attendance::class, $this->branch]);
+
+        $attendance = Attendance::where('id', $attendanceId)
+            ->where('service_id', $this->service->id)
+            ->where('branch_id', $this->branch->id)
+            ->whereNull('check_out_time')
+            ->first();
+
+        if (! $attendance) {
+            return;
+        }
+
+        $attendance->update(['check_out_time' => now()->format('H:i')]);
+
+        $name = $attendance->member?->fullName() ?? $attendance->visitor?->fullName() ?? 'Unknown';
+
+        unset($this->recentCheckIns);
+        unset($this->todayStats);
+
+        $this->dispatch('check-out-success', name: $name);
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
