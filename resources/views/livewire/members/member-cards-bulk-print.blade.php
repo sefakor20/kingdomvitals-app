@@ -75,18 +75,18 @@
                     </div>
 
                     <!-- Card Body -->
-                    <div class="relative flex gap-4 px-4 pb-4">
+                    <div class="relative flex gap-3 px-3 pb-3">
                         <!-- Photo (overlapping header) -->
-                        <div class="-mt-8 shrink-0">
+                        <div class="-mt-6 shrink-0">
                             @if($member->photo_url)
                                 <img
                                     src="{{ $member->photo_url }}"
                                     alt="{{ $member->fullName() }}"
-                                    class="size-20 rounded-lg border-4 border-white object-cover shadow-md print:shadow-none"
+                                    class="size-16 rounded-lg border-4 border-white object-cover shadow-md print:shadow-none"
                                 />
                             @else
-                                <div class="flex size-20 items-center justify-center rounded-lg border-4 border-white bg-zinc-100 shadow-md print:shadow-none">
-                                    <span class="text-2xl font-bold text-zinc-400">
+                                <div class="flex size-16 items-center justify-center rounded-lg border-4 border-white bg-zinc-100 shadow-md print:shadow-none">
+                                    <span class="text-xl font-bold text-zinc-400">
                                         {{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}
                                     </span>
                                 </div>
@@ -94,24 +94,20 @@
                         </div>
 
                         <!-- Member Info -->
-                        <div class="flex-1 pt-2">
-                            <h2 class="text-base font-bold leading-tight text-zinc-900">
+                        <div class="flex-1 pt-1">
+                            <h2 class="text-sm font-bold leading-tight text-zinc-900 line-clamp-2">
                                 {{ $member->fullName() }}
                             </h2>
-                            <p class="mt-0.5 text-xs text-zinc-500">
-                                {{ $branch->name }}
-                            </p>
-                            @if($member->status)
-                                <span class="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium uppercase text-green-700">
-                                    {{ $member->status }}
-                                </span>
+                            @if($member->membership_number)
+                                <p class="text-[10px] font-medium text-zinc-600">{{ $member->membership_number }}</p>
                             @endif
+                            <p class="text-[10px] text-zinc-500">{{ $branch->name }}</p>
                         </div>
 
                         <!-- QR Code -->
-                        <div class="-mt-6 shrink-0">
+                        <div class="-mt-4 shrink-0">
                             <div class="rounded-lg border border-zinc-200 bg-white p-1 shadow-sm print:shadow-none">
-                                <div class="size-16">
+                                <div class="size-14">
                                     {!! $this->qrCodes[$member->id] ?? '' !!}
                                 </div>
                             </div>

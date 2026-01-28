@@ -31,8 +31,36 @@ class Member extends Model
         return MemberFactory::new();
     }
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (Member $member): void {
+            if (empty($member->membership_number)) {
+                $member->membership_number = static::generateMembershipNumber();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique membership number in the format MEM-XXXX.
+     */
+    public static function generateMembershipNumber(): string
+    {
+        $lastNumber = static::withTrashed()
+            ->whereNotNull('membership_number')
+            ->where('membership_number', 'like', 'MEM-%')
+            ->orderByRaw('CAST(SUBSTRING(membership_number, 5) AS UNSIGNED) DESC')
+            ->value('membership_number');
+
+        $nextNum = $lastNumber ? (int) substr($lastNumber, 4) + 1 : 1;
+
+        return 'MEM-'.str_pad((string) $nextNum, 4, '0', STR_PAD_LEFT);
+    }
+
     protected $fillable = [
         'primary_branch_id',
+        'membership_number',
         'household_id',
         'age_group_id',
         'household_role',
