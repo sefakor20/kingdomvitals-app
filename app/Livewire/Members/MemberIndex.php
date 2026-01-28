@@ -15,13 +15,14 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -31,6 +32,7 @@ class MemberIndex extends Component
     use HasFilterableQuery;
     use HasQuotaComputed;
     use WithFileUploads;
+    use WithPagination;
 
     public Branch $branch;
 
@@ -131,7 +133,7 @@ class MemberIndex extends Component
     }
 
     #[Computed]
-    public function members(): Collection
+    public function members(): LengthAwarePaginator
     {
         $query = Member::where('primary_branch_id', $this->branch->id);
 
@@ -143,7 +145,31 @@ class MemberIndex extends Component
         $this->applyEnumFilter($query, 'statusFilter', 'status');
         $this->applyBooleanFilter($query, 'smsOptOutFilter', 'sms_opt_out', 'opted_out');
 
-        return $query->orderBy('last_name')->orderBy('first_name')->get();
+        return $query->orderBy('last_name')->orderBy('first_name')->paginate(25);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedSmsOptOutFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function updatedViewFilter(): void
+    {
+        $this->resetPage();
+        $this->clearSelection();
     }
 
     #[Computed]
@@ -275,7 +301,18 @@ class MemberIndex extends Component
 
     public function printAllCards(): mixed
     {
-        $ids = $this->members->pluck('id')->implode(',');
+        // Build query with same filters as members() but get all IDs (not paginated)
+        $query = Member::where('primary_branch_id', $this->branch->id);
+
+        if ($this->viewFilter === 'deleted') {
+            $query->onlyTrashed();
+        }
+
+        $this->applySearch($query, ['first_name', 'last_name', 'email', 'phone']);
+        $this->applyEnumFilter($query, 'statusFilter', 'status');
+        $this->applyBooleanFilter($query, 'smsOptOutFilter', 'sms_opt_out', 'opted_out');
+
+        $ids = $query->orderBy('last_name')->orderBy('first_name')->pluck('id')->implode(',');
 
         return $this->redirect(
             route('members.cards-print', ['branch' => $this->branch, 'ids' => $ids]),

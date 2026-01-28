@@ -313,6 +313,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->members->hasPages())
+            <div class="mt-4">
+                {{ $this->members->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->

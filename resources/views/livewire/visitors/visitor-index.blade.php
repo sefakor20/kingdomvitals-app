@@ -347,6 +347,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->visitors->hasPages())
+            <div class="mt-4">
+                {{ $this->visitors->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Create Modal -->
