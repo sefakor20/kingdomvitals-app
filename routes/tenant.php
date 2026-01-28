@@ -125,6 +125,10 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:members'])->group(function (): void {
             Route::get('/branches/{branch}/members', \App\Livewire\Members\MemberIndex::class)
                 ->name('members.index');
+            Route::get('/branches/{branch}/members/cards-print', \App\Livewire\Members\MemberCardsBulkPrint::class)
+                ->name('members.cards-print');
+            Route::get('/branches/{branch}/members/{member}/qr-print', \App\Livewire\Members\MemberQrPrint::class)
+                ->name('members.qr-print');
             Route::get('/branches/{branch}/members/{member}', \App\Livewire\Members\MemberShow::class)
                 ->name('members.show');
         });

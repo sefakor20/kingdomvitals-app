@@ -6,6 +6,12 @@
         </div>
 
         <div class="flex items-center gap-2">
+            @if($this->members->isNotEmpty() && $viewFilter === 'active')
+                <flux:button variant="ghost" wire:click="printAllCards" icon="printer">
+                    {{ __('Print All Cards') }}
+                </flux:button>
+            @endif
+
             @if($this->canImportMembers && $this->canCreate)
                 <flux:button variant="ghost" wire:click="openImportModal" icon="arrow-up-tray">
                     {{ __('Import') }}
@@ -114,6 +120,25 @@
         </div>
     @endif
 
+    {{-- Bulk Selection Toolbar --}}
+    @if($this->hasSelection && $viewFilter === 'active')
+        <div class="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
+            <div class="flex items-center gap-3">
+                <flux:text class="font-medium text-blue-800 dark:text-blue-200">
+                    {{ __(':count selected', ['count' => $this->selectedCount]) }}
+                </flux:text>
+                <flux:button variant="ghost" size="sm" wire:click="clearSelection">
+                    {{ __('Clear') }}
+                </flux:button>
+            </div>
+            <div class="flex items-center gap-2">
+                <flux:button variant="primary" size="sm" wire:click="printSelectedCards" icon="printer">
+                    {{ __('Print Selected Cards') }}
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
     <!-- Search and Filter -->
     <div class="mb-6 flex flex-col gap-4 sm:flex-row">
         <div class="flex-1">
@@ -168,6 +193,11 @@
             <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-800">
                     <tr>
+                        @if($viewFilter === 'active')
+                            <th scope="col" class="w-12 px-4 py-3">
+                                <flux:checkbox wire:model.live="selectAll" />
+                            </th>
+                        @endif
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             {{ __('Name') }}
                         </th>
@@ -187,11 +217,18 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
                     @foreach($this->members as $member)
-                        <tr wire:key="member-{{ $member->id }}">
+                        <tr wire:key="member-{{ $member->id }}" @class([
+                            'bg-blue-50 dark:bg-blue-900/20' => $viewFilter === 'active' && in_array($member->id, $selectedMembers),
+                        ])>
+                            @if($viewFilter === 'active')
+                                <td class="whitespace-nowrap px-4 py-4">
+                                    <flux:checkbox wire:model.live="selectedMembers" value="{{ $member->id }}" />
+                                </td>
+                            @endif
                             <td class="whitespace-nowrap px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     @if($member->photo_url)
-                                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-10 rounded-full object-cover" />
                                     @else
                                         <flux:avatar size="sm" name="{{ $member->fullName() }}" />
                                     @endif

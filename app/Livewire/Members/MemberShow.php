@@ -10,8 +10,11 @@ use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
+use App\Services\QrCodeService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -95,6 +98,9 @@ class MemberShow extends Component
 
     // Delete modal
     public bool $showDeleteModal = false;
+
+    // QR Code modal
+    public bool $showQrModal = false;
 
     public function mount(Branch $branch, Member $member): void
     {
@@ -215,6 +221,14 @@ class MemberShow extends Component
             'last30Days' => $this->member->attendance()
                 ->where('date', '>=', now()->subDays(30))->count(),
         ];
+    }
+
+    #[Computed]
+    public function qrCodeSvg(): string
+    {
+        $token = $this->member->getOrGenerateQrToken();
+
+        return app(QrCodeService::class)->generateQrCodeSvg($token, 200);
     }
 
     protected function rules(): array
@@ -372,7 +386,7 @@ class MemberShow extends Component
     private function storePhotoInCentralStorage(TemporaryUploadedFile $photo): string
     {
         $tenantId = tenant()->id;
-        $filename = $photo->hashName();
+        $filename = Str::random(40).'.jpg';
 
         // Use base_path to avoid tenant storage path prefix
         $directory = base_path("storage/app/public/members/{$tenantId}");
@@ -381,11 +395,10 @@ class MemberShow extends Component
             mkdir($directory, 0755, true);
         }
 
-        $destination = $directory.'/'.$filename;
+        // Process image (crop to square, resize to 256x256, convert to JPEG)
+        $processed = app(ImageProcessingService::class)->processMemberPhoto($photo);
 
-        // Use copy + unlink instead of move to handle cross-filesystem transfers
-        // (tenant storage to central storage)
-        copy($photo->getRealPath(), $destination);
+        file_put_contents($directory.'/'.$filename, $processed);
         @unlink($photo->getRealPath());
 
         return "/storage/members/{$tenantId}/{$filename}";
@@ -488,6 +501,24 @@ class MemberShow extends Component
         $this->member->delete();
         $this->dispatch('member-deleted');
         $this->redirect(route('members.index', $this->branch), navigate: true);
+    }
+
+    public function openQrModal(): void
+    {
+        $this->showQrModal = true;
+    }
+
+    public function closeQrModal(): void
+    {
+        $this->showQrModal = false;
+    }
+
+    public function regenerateQrCode(): void
+    {
+        $this->authorize('update', $this->member);
+        $this->member->generateQrToken();
+        unset($this->qrCodeSvg);
+        $this->dispatch('qr-regenerated');
     }
 
     public function toggleSmsOptOut(): void

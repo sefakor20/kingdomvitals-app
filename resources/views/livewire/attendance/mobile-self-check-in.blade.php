@@ -68,22 +68,7 @@
 
                 <div class="mx-auto mb-4 flex aspect-square max-w-[280px] items-center justify-center rounded-xl bg-white p-4">
                     @if ($this->qrCodeSvg)
-                        {{-- QR Code Display - large token for scanning --}}
-                        <div
-                            x-data="{ token: @js($this->qrCodeSvg) }"
-                            x-init="
-                                const qr = new QRCode($refs.qrcode, {
-                                    text: token,
-                                    width: 240,
-                                    height: 240,
-                                    colorDark: '#000000',
-                                    colorLight: '#ffffff',
-                                    correctLevel: QRCode.CorrectLevel.M
-                                });
-                            "
-                            x-ref="qrcode"
-                            class="flex items-center justify-center"
-                        ></div>
+                        {!! $this->qrCodeSvg !!}
                     @else
                         <flux:text class="text-zinc-400">{{ __('QR Code not available') }}</flux:text>
                     @endif
@@ -166,6 +151,3 @@
     </div>
 </div>
 
-@script
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-@endscript

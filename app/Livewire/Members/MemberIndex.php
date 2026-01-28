@@ -13,8 +13,10 @@ use App\Livewire\Concerns\HasFilterableQuery;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -106,6 +108,12 @@ class MemberIndex extends Component
     public ?Member $forceDeleting = null;
 
     public bool $showForceDeleteModal = false;
+
+    // Bulk selection
+    /** @var array<string> */
+    public array $selectedMembers = [];
+
+    public bool $selectAll = false;
 
     // Import properties
     public bool $showImportModal = false;
@@ -208,6 +216,71 @@ class MemberIndex extends Component
     public function canImportMembers(): bool
     {
         return app(PlanAccessService::class)->hasFeature('member_import');
+    }
+
+    // ============================================
+    // BULK SELECTION COMPUTED PROPERTIES
+    // ============================================
+
+    #[Computed]
+    public function hasSelection(): bool
+    {
+        return count($this->selectedMembers) > 0;
+    }
+
+    #[Computed]
+    public function selectedCount(): int
+    {
+        return count($this->selectedMembers);
+    }
+
+    // ============================================
+    // BULK SELECTION METHODS
+    // ============================================
+
+    public function updatedSelectAll(): void
+    {
+        $this->selectedMembers = $this->selectAll ? $this->members->pluck('id')->toArray() : [];
+    }
+
+    public function updatedSelectedMembers(): void
+    {
+        $this->selectAll = count($this->selectedMembers) === $this->members->count()
+            && $this->members->count() > 0;
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedMembers = [];
+        $this->selectAll = false;
+    }
+
+    // ============================================
+    // BULK PRINT METHODS
+    // ============================================
+
+    public function printSelectedCards(): mixed
+    {
+        if (! $this->hasSelection) {
+            return null;
+        }
+
+        $ids = implode(',', $this->selectedMembers);
+
+        return $this->redirect(
+            route('members.cards-print', ['branch' => $this->branch, 'ids' => $ids]),
+            navigate: true
+        );
+    }
+
+    public function printAllCards(): mixed
+    {
+        $ids = $this->members->pluck('id')->implode(',');
+
+        return $this->redirect(
+            route('members.cards-print', ['branch' => $this->branch, 'ids' => $ids]),
+            navigate: true
+        );
     }
 
     public function openImportModal(): void
@@ -584,7 +657,7 @@ class MemberIndex extends Component
     private function storePhotoInCentralStorage(TemporaryUploadedFile $photo): string
     {
         $tenantId = tenant()->id;
-        $filename = $photo->hashName();
+        $filename = Str::random(40).'.jpg';
 
         // Use base_path to avoid tenant storage path prefix
         $directory = base_path("storage/app/public/members/{$tenantId}");
@@ -593,11 +666,10 @@ class MemberIndex extends Component
             mkdir($directory, 0755, true);
         }
 
-        $destination = $directory.'/'.$filename;
+        // Process image (crop to square, resize to 256x256, convert to JPEG)
+        $processed = app(ImageProcessingService::class)->processMemberPhoto($photo);
 
-        // Use copy + unlink instead of move to handle cross-filesystem transfers
-        // (tenant storage to central storage)
-        copy($photo->getRealPath(), $destination);
+        file_put_contents($directory.'/'.$filename, $processed);
         @unlink($photo->getRealPath());
 
         return "/storage/members/{$tenantId}/{$filename}";

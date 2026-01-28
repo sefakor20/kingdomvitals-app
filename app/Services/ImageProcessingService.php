@@ -6,6 +6,7 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\PngEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -161,5 +162,25 @@ class ImageProcessingService
     public function getAvailableSizes(): array
     {
         return self::LOGO_SIZES;
+    }
+
+    /**
+     * Process a member photo by cropping to square and resizing.
+     *
+     * This creates a consistently sized square image that works well for both
+     * circular avatars (member index, profile) and rounded squares (ID cards).
+     *
+     * @param  UploadedFile|TemporaryUploadedFile  $file  The uploaded photo
+     * @return string The processed image as a binary string (JPEG format)
+     */
+    public function processMemberPhoto(UploadedFile|TemporaryUploadedFile $file): string
+    {
+        $image = Image::read($file->getRealPath());
+
+        // Cover crop to square (256x256 for 2x retina support on largest display of 80x80)
+        $image->cover(256, 256);
+
+        // Encode as JPEG with 85% quality (good balance of size/quality for photos)
+        return (string) $image->encode(new JpegEncoder(85));
     }
 }
