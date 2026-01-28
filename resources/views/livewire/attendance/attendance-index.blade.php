@@ -270,6 +270,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($this->attendanceRecords->hasPages())
+            <div class="mt-4">
+                {{ $this->attendanceRecords->links() }}
+            </div>
+        @endif
     @endif
 
     <!-- Delete Confirmation Modal -->
