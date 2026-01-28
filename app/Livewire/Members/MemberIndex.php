@@ -107,6 +107,12 @@ class MemberIndex extends Component
 
     public bool $showForceDeleteModal = false;
 
+    // Bulk selection
+    /** @var array<string> */
+    public array $selectedMembers = [];
+
+    public bool $selectAll = false;
+
     // Import properties
     public bool $showImportModal = false;
 
@@ -208,6 +214,71 @@ class MemberIndex extends Component
     public function canImportMembers(): bool
     {
         return app(PlanAccessService::class)->hasFeature('member_import');
+    }
+
+    // ============================================
+    // BULK SELECTION COMPUTED PROPERTIES
+    // ============================================
+
+    #[Computed]
+    public function hasSelection(): bool
+    {
+        return count($this->selectedMembers) > 0;
+    }
+
+    #[Computed]
+    public function selectedCount(): int
+    {
+        return count($this->selectedMembers);
+    }
+
+    // ============================================
+    // BULK SELECTION METHODS
+    // ============================================
+
+    public function updatedSelectAll(): void
+    {
+        $this->selectedMembers = $this->selectAll ? $this->members->pluck('id')->toArray() : [];
+    }
+
+    public function updatedSelectedMembers(): void
+    {
+        $this->selectAll = count($this->selectedMembers) === $this->members->count()
+            && $this->members->count() > 0;
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedMembers = [];
+        $this->selectAll = false;
+    }
+
+    // ============================================
+    // BULK PRINT METHODS
+    // ============================================
+
+    public function printSelectedCards(): mixed
+    {
+        if (! $this->hasSelection) {
+            return null;
+        }
+
+        $ids = implode(',', $this->selectedMembers);
+
+        return $this->redirect(
+            route('members.cards-print', ['branch' => $this->branch, 'ids' => $ids]),
+            navigate: true
+        );
+    }
+
+    public function printAllCards(): mixed
+    {
+        $ids = $this->members->pluck('id')->implode(',');
+
+        return $this->redirect(
+            route('members.cards-print', ['branch' => $this->branch, 'ids' => $ids]),
+            navigate: true
+        );
     }
 
     public function openImportModal(): void
