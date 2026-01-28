@@ -8,6 +8,11 @@
         </div>
 
         <div class="flex items-center gap-2">
+            @if(!$editing)
+                <flux:button variant="ghost" wire:click="openQrModal" icon="qr-code">
+                    {{ __('QR Code') }}
+                </flux:button>
+            @endif
             @if($this->canEdit)
                 @if($editing)
                     <flux:button variant="ghost" wire:click="cancel" wire:loading.attr="disabled" wire:target="save">
@@ -783,4 +788,59 @@
     <x-toast on="sms-opt-out-updated" type="success">
         {{ __('SMS preference updated.') }}
     </x-toast>
+
+    <x-toast on="qr-regenerated" type="success">
+        {{ __('QR code regenerated successfully.') }}
+    </x-toast>
+
+    <!-- QR Code Modal -->
+    <flux:modal wire:model.self="showQrModal" name="qr-code" class="w-full max-w-sm">
+        <div class="space-y-6 text-center">
+            <flux:heading size="lg">{{ __('Member QR Code') }}</flux:heading>
+
+            <!-- Member Photo -->
+            <div class="flex justify-center">
+                @if($member->photo_url)
+                    <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-20 rounded-full object-cover ring-4 ring-zinc-100 dark:ring-zinc-700" />
+                @else
+                    <flux:avatar size="xl" name="{{ $member->fullName() }}" class="ring-4 ring-zinc-100 dark:ring-zinc-700" />
+                @endif
+            </div>
+
+            <!-- Member Name -->
+            <div>
+                <flux:heading size="lg">{{ $member->fullName() }}</flux:heading>
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ $branch->name }}</flux:text>
+            </div>
+
+            <!-- QR Code -->
+            <div class="flex justify-center">
+                <div class="rounded-xl bg-white">
+                    {!! $this->qrCodeSvg !!}
+                </div>
+            </div>
+
+            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                {{ __('Scan this code at the check-in kiosk') }}
+            </flux:text>
+
+            <!-- Actions -->
+            <div class="flex justify-center gap-3 pt-2">
+                <flux:button variant="ghost" onclick="window.open('{{ route('members.qr-print', [$branch, $member]) }}', '_blank')" icon="printer">
+                    {{ __('Print') }}
+                </flux:button>
+                @if($this->canEdit)
+                    <flux:button
+                        variant="ghost"
+                        wire:click="regenerateQrCode"
+                        wire:confirm="{{ __('Are you sure? This will invalidate the current QR code.') }}"
+                        icon="arrow-path"
+                    >
+                        {{ __('Regenerate') }}
+                    </flux:button>
+                @endif
+            </div>
+        </div>
+    </flux:modal>
+
 </section>

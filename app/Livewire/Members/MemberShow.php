@@ -11,6 +11,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Services\PlanAccessService;
+use App\Services\QrCodeService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -95,6 +96,9 @@ class MemberShow extends Component
 
     // Delete modal
     public bool $showDeleteModal = false;
+
+    // QR Code modal
+    public bool $showQrModal = false;
 
     public function mount(Branch $branch, Member $member): void
     {
@@ -215,6 +219,14 @@ class MemberShow extends Component
             'last30Days' => $this->member->attendance()
                 ->where('date', '>=', now()->subDays(30))->count(),
         ];
+    }
+
+    #[Computed]
+    public function qrCodeSvg(): string
+    {
+        $token = $this->member->getOrGenerateQrToken();
+
+        return app(QrCodeService::class)->generateQrCodeSvg($token, 200);
     }
 
     protected function rules(): array
@@ -488,6 +500,24 @@ class MemberShow extends Component
         $this->member->delete();
         $this->dispatch('member-deleted');
         $this->redirect(route('members.index', $this->branch), navigate: true);
+    }
+
+    public function openQrModal(): void
+    {
+        $this->showQrModal = true;
+    }
+
+    public function closeQrModal(): void
+    {
+        $this->showQrModal = false;
+    }
+
+    public function regenerateQrCode(): void
+    {
+        $this->authorize('update', $this->member);
+        $this->member->generateQrToken();
+        unset($this->qrCodeSvg);
+        $this->dispatch('qr-regenerated');
     }
 
     public function toggleSmsOptOut(): void

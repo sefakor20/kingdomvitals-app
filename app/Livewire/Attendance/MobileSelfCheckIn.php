@@ -46,9 +46,9 @@ class MobileSelfCheckIn extends Component
             return null;
         }
 
-        $qrService = app(QrCodeService::class);
+        $token = $this->member->getOrGenerateQrToken();
 
-        return $qrService->getMemberToken($this->member);
+        return app(QrCodeService::class)->generateQrCodeSvg($token, 240);
     }
 
     #[Computed]
