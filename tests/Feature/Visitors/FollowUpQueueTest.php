@@ -7,7 +7,6 @@ use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
 use App\Livewire\Visitors\FollowUpQueue;
 use App\Models\SubscriptionPlan;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
@@ -15,14 +14,15 @@ use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
+    $this->setUpTestTenant();
+
     // Create a subscription plan with visitors module enabled
     $plan = SubscriptionPlan::create([
         'name' => 'Test Plan',
@@ -30,25 +30,9 @@ beforeEach(function (): void {
         'price_monthly' => 10.00,
         'price_annual' => 100.00,
         'enabled_modules' => ['visitors', 'members'],
-    ]);
-
-    $this->tenant = Tenant::create([
-        'name' => 'Test Church',
-        'subscription_id' => $plan->id,
-    ]);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    // Clear cached plan data
+    ]);    // Clear cached plan data
     Cache::flush();
     app()->forgetInstance(\App\Services\PlanAccessService::class);
-
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
-
     $this->branch = Branch::factory()->main()->create();
     $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 
@@ -62,8 +46,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

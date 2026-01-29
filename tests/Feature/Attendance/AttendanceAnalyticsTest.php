@@ -6,7 +6,6 @@ use App\Enums\BranchRole;
 use App\Enums\MembershipStatus;
 use App\Livewire\Attendance\AttendanceAnalytics;
 use App\Models\SubscriptionPlan;
-use App\Models\Tenant;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
@@ -14,15 +13,16 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
+    $this->setUpTestTenant();
+
     // Create a subscription plan with attendance module enabled
     $plan = SubscriptionPlan::create([
         'name' => 'Test Plan',
@@ -30,26 +30,9 @@ beforeEach(function (): void {
         'price_monthly' => 10.00,
         'price_annual' => 100.00,
         'enabled_modules' => ['attendance', 'members', 'visitors'],
-    ]);
-
-    $this->tenant = Tenant::create([
-        'name' => 'Test Church',
-        'subscription_id' => $plan->id,
-    ]);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    // Clear cached plan data
+    ]);    // Clear cached plan data
     Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
-
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
-
-    // Load routes for testing
+    app()->forgetInstance(\App\Services\PlanAccessService::class);    // Load routes for testing
     Route::middleware(['web'])->group(base_path('routes/tenant.php'));
 
     $this->branch = Branch::factory()->main()->create();
@@ -67,8 +50,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

@@ -1,23 +1,15 @@
 <?php
 
 use App\Enums\SmsStatus;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    // Create a test tenant
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    // Initialize tenancy and run migrations
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+    $this->setUpTestTenant();
 
     // Create main branch
     $this->branch = Branch::factory()->main()->create();
@@ -36,8 +28,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 test('webhook updates sms status to delivered', function (): void {
@@ -56,9 +47,7 @@ test('webhook updates sms status to delivered', function (): void {
     $response->assertOk()
         ->assertJson(['status' => 'success']);
 
-    // Verify the SmsLog was updated
-    tenancy()->initialize($this->tenant);
-    $this->smsLog->refresh();
+    // Verify the SmsLog was updated    $this->smsLog->refresh();
 
     expect($this->smsLog->status)->toBe(SmsStatus::Delivered);
     expect($this->smsLog->delivered_at)->not->toBeNull();
@@ -79,8 +68,6 @@ test('webhook updates sms status to failed with error message', function (): voi
     ]);
 
     $response->assertOk();
-
-    tenancy()->initialize($this->tenant);
     $this->smsLog->refresh();
 
     expect($this->smsLog->status)->toBe(SmsStatus::Failed);
@@ -154,8 +141,6 @@ test('webhook handles various status mappings', function (string $inputStatus, S
     $this->postJson('/webhooks/texttango/delivery', $payload, [
         'X-TextTango-Signature' => $signature,
     ]);
-
-    tenancy()->initialize($this->tenant);
     $this->smsLog->refresh();
 
     expect($this->smsLog->status)->toBe($expectedStatus);
@@ -185,10 +170,7 @@ test('webhook allows requests in local environment without secret configured', f
     $response->assertOk();
 });
 
-test('webhook handles campaign with multiple recipients', function (): void {
-    tenancy()->initialize($this->tenant);
-
-    // Create multiple SmsLogs with same tracking_id (campaign)
+test('webhook handles campaign with multiple recipients', function (): void {    // Create multiple SmsLogs with same tracking_id (campaign)
     $smsLog2 = SmsLog::factory()->sent()->create([
         'branch_id' => $this->branch->id,
         'provider_message_id' => 'campaign-123',
@@ -217,8 +199,6 @@ test('webhook handles campaign with multiple recipients', function (): void {
     ]);
 
     $response->assertOk();
-
-    tenancy()->initialize($this->tenant);
     $smsLog2->refresh();
     $smsLog3->refresh();
 

@@ -26,7 +26,23 @@ class PlanAccessService
     public function __construct(
         private ?Tenant $tenant = null
     ) {
-        $this->tenant ??= tenant();
+        // Don't eagerly resolve tenant() here because this service may be
+        // instantiated before tenancy is initialized (e.g., in middleware DI).
+        // Instead, we'll resolve it lazily in getTenant().
+    }
+
+    /**
+     * Get the current tenant, resolving lazily if needed.
+     */
+    private function getTenant(): ?Tenant
+    {
+        // If a tenant was explicitly provided via constructor, use it
+        if ($this->tenant !== null) {
+            return $this->tenant;
+        }
+
+        // Otherwise, resolve from tenancy context
+        return tenant();
     }
 
     /**
@@ -43,14 +59,16 @@ class PlanAccessService
      */
     public function getPlan(): ?SubscriptionPlan
     {
-        if (! $this->tenant) {
+        $tenant = $this->getTenant();
+
+        if (! $tenant) {
             return null;
         }
 
-        $cacheKey = "tenant:{$this->tenant->id}:subscription_plan";
+        $cacheKey = "tenant:{$tenant->id}:subscription_plan";
 
-        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () {
-            return $this->tenant->subscriptionPlan;
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($tenant) {
+            return $tenant->subscriptionPlan;
         });
     }
 
@@ -140,11 +158,11 @@ class PlanAccessService
      */
     private function getCount(QuotaType $type): int|float
     {
-        if (! $this->tenant) {
+        if (! $this->getTenant()) {
             return 0;
         }
 
-        $cacheKey = "tenant:{$this->tenant->id}:{$type->cacheKey()}";
+        $cacheKey = "tenant:{$this->getTenant()->id}:{$type->cacheKey()}";
 
         return $this->cache()->remember($cacheKey, self::COUNT_CACHE_TTL, fn () => match ($type) {
             QuotaType::Members => Member::count(),
@@ -165,7 +183,7 @@ class PlanAccessService
      */
     private function calculateStorageUsed(): float
     {
-        $tenantId = $this->tenant->id;
+        $tenantId = $this->getTenant()->id;
         $storagePath = base_path("storage/app/public/members/{$tenantId}");
 
         if (! is_dir($storagePath)) {
@@ -404,11 +422,11 @@ class PlanAccessService
      */
     public function clearCache(): void
     {
-        if ($this->tenant) {
-            $this->cache()->forget("tenant:{$this->tenant->id}:subscription_plan");
+        if ($this->getTenant()) {
+            $this->cache()->forget("tenant:{$this->getTenant()->id}:subscription_plan");
 
             foreach (QuotaType::cases() as $type) {
-                $this->cache()->forget("tenant:{$this->tenant->id}:{$type->cacheKey()}");
+                $this->cache()->forget("tenant:{$this->getTenant()->id}:{$type->cacheKey()}");
             }
         }
     }
@@ -418,7 +436,7 @@ class PlanAccessService
      */
     public function invalidateCountCache(QuotaType|string $type): void
     {
-        if (! $this->tenant) {
+        if (! $this->getTenant()) {
             return;
         }
 
@@ -427,7 +445,7 @@ class PlanAccessService
             : QuotaType::tryFrom($type);
 
         if ($quotaType) {
-            $this->cache()->forget("tenant:{$this->tenant->id}:{$quotaType->cacheKey()}");
+            $this->cache()->forget("tenant:{$this->getTenant()->id}:{$quotaType->cacheKey()}");
         }
     }
 }

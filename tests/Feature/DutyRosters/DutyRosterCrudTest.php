@@ -4,19 +4,19 @@ use App\Enums\BranchRole;
 use App\Enums\DutyRosterStatus;
 use App\Livewire\DutyRosters\DutyRosterIndex;
 use App\Models\SubscriptionPlan;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Livewire\Livewire;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
+    $this->setUpTestTenant();
+
     // Create a subscription plan with duty_roster module enabled
     $plan = SubscriptionPlan::create([
         'name' => 'Test Plan',
@@ -26,33 +26,12 @@ beforeEach(function (): void {
         'enabled_modules' => ['duty_roster', 'members', 'clusters'],
     ]);
 
-    // Create a test tenant with the subscription plan
-    $this->tenant = Tenant::create([
-        'name' => 'Test Church',
-        'subscription_id' => $plan->id,
-    ]);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    // Initialize tenancy and run migrations
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    // Clear any cached plan data and re-bind PlanAccessService
-    \Illuminate\Support\Facades\Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
-
-    // Configure app URL and host for tenant domain routing
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
-
     // Create main branch
     $this->branch = Branch::factory()->main()->create();
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

@@ -4,7 +4,6 @@ use App\Enums\BranchRole;
 use App\Enums\CheckInMethod;
 use App\Enums\HouseholdRole;
 use App\Livewire\Attendance\LiveCheckIn;
-use App\Models\Tenant;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
@@ -12,30 +11,20 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Livewire\Livewire;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+    $this->setUpTestTenant();
 
     $this->branch = Branch::factory()->main()->create();
     $this->service = Service::factory()->create(['branch_id' => $this->branch->id]);
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

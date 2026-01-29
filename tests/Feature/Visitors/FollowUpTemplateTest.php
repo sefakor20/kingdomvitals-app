@@ -3,20 +3,20 @@
 use App\Enums\BranchRole;
 use App\Enums\FollowUpType;
 use App\Models\SubscriptionPlan;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
 use App\Services\FollowUpTemplatePlaceholderService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
+    $this->setUpTestTenant();
+
     // Create a subscription plan with visitors module enabled
     $plan = SubscriptionPlan::create([
         'name' => 'Test Plan',
@@ -24,34 +24,16 @@ beforeEach(function (): void {
         'price_monthly' => 10.00,
         'price_annual' => 100.00,
         'enabled_modules' => ['visitors', 'members'],
-    ]);
-
-    $this->tenant = Tenant::create([
-        'name' => 'Test Church',
-        'subscription_id' => $plan->id,
-    ]);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    // Initialize tenancy and run migrations
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    // Clear cached plan data
+    ]);    // Initialize tenancy and run migrations    // Clear cached plan data
     Cache::flush();
     app()->forgetInstance(\App\Services\PlanAccessService::class);
 
-    // Configure app URL and host for tenant domain routing
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
-
-    // Create main branch
+    // Configure app URL and host for tenant domain routing    // Create main branch
     $this->branch = Branch::factory()->main()->create();
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

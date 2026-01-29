@@ -3,27 +3,18 @@
 use App\Enums\BranchRole;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\Expense;
 use App\Models\User;
 use App\Notifications\BudgetThresholdNotification;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+    $this->setUpTestTenant();
 
     $this->branch = Branch::factory()->main()->create();
 
@@ -50,8 +41,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // Alert Factory State Tests

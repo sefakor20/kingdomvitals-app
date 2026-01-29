@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Enums\BranchRole;
 use App\Enums\SupportLevel;
 use App\Models\SubscriptionPlan;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
@@ -13,24 +12,12 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Policies\PrayerRequestPolicy;
 use App\Services\PlanAccessService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    // Create a test tenant
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    // Initialize tenancy
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    // Configure app URL and host for tenant domain routing
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+    $this->setUpTestTenant();
 
     // Create main branch
     $this->branch = Branch::factory()->main()->create();
@@ -45,8 +32,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

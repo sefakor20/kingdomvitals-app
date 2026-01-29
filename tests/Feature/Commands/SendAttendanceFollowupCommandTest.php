@@ -1,26 +1,18 @@
 <?php
 
-use App\Models\Tenant;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    // Create a test tenant
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    // Initialize tenancy and run migrations
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+    $this->setUpTestTenant();
 
     // Create main branch with SMS and attendance follow-up configured
     $this->branch = Branch::factory()->main()->create([
@@ -36,8 +28,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 test('command detects missed services within follow-up window', function (): void {
