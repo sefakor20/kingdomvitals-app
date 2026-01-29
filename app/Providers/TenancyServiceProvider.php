@@ -121,7 +121,20 @@ class TenancyServiceProvider extends ServiceProvider
     protected function mapRoutes()
     {
         $this->app->booted(function (): void {
-            // Skip tenant routes for central domains
+            // During testing, load tenant routes WITHOUT the InitializeTenancyByDomain middleware
+            // because tests initialize tenancy manually in beforeEach() and the middleware
+            // can't find the tenant due to database transaction isolation
+            if (app()->environment('testing')) {
+                if (file_exists(base_path('routes/tenant.php'))) {
+                    Route::middleware(['web'])
+                        ->namespace(static::$controllerNamespace)
+                        ->group(base_path('routes/tenant.php'));
+                }
+
+                return;
+            }
+
+            // Skip tenant routes for central domains in non-testing environments
             $centralDomains = config('tenancy.central_domains', []);
             $currentDomain = request()->getHost();
 

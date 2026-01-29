@@ -1,27 +1,19 @@
 <?php
 
-use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
+use Tests\TenantTestCase;
+
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    // Configure app URL and host for tenant domain routing
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
+    $this->setUpTestTenant();
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 test('email verification screen can be rendered', function (): void {

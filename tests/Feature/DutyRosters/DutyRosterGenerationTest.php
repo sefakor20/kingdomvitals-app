@@ -3,7 +3,6 @@
 use App\Enums\BranchRole;
 use App\Enums\DutyRosterRoleType;
 use App\Models\SubscriptionPlan;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\DutyRosterPool;
@@ -14,12 +13,13 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Services\DutyRosterGenerationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
+    $this->setUpTestTenant();
+
     $plan = SubscriptionPlan::create([
         'name' => 'Test Plan',
         'slug' => 'test-plan-'.uniqid(),
@@ -27,29 +27,13 @@ beforeEach(function (): void {
         'price_annual' => 100.00,
         'enabled_modules' => ['duty_roster', 'members', 'clusters', 'services'],
     ]);
-
-    $this->tenant = Tenant::create([
-        'name' => 'Test Church',
-        'subscription_id' => $plan->id,
-    ]);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
     \Illuminate\Support\Facades\Cache::flush();
     app()->forgetInstance(\App\Services\PlanAccessService::class);
-
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
-
     $this->branch = Branch::factory()->main()->create();
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 // ============================================

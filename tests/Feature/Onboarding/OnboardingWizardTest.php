@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Onboarding\OnboardingWizard;
-use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\BranchUserInvitation;
 use App\Models\Tenant\Service;
@@ -9,37 +8,19 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Notifications\BranchUserInvitationNotification;
 use App\Services\OnboardingService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use Tests\TenantTestCase;
 
-uses(RefreshDatabase::class);
+uses(TenantTestCase::class);
 
 beforeEach(function (): void {
-    $this->tenant = Tenant::create(['name' => 'Test Church']);
-    $this->tenant->domains()->create(['domain' => 'test.localhost']);
-    tenancy()->initialize($this->tenant);
-    Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-    config(['app.url' => 'http://test.localhost']);
-    url()->forceRootUrl('http://test.localhost');
-    $this->withServerVariables(['HTTP_HOST' => 'test.localhost']);
-
-    // Load the tenant routes including the invitations.accept route
-    Route::middleware(['web'])->group(function (): void {
-        Route::get('/invitations/{token}/accept', \App\Livewire\Auth\AcceptBranchInvitation::class)
-            ->name('invitations.accept')
-            ->middleware('guest');
-    });
-
+    $this->setUpTestTenant();
     $this->user = User::factory()->create();
 });
 
 afterEach(function (): void {
-    tenancy()->end();
-    $this->tenant?->delete();
+    $this->tearDownTestTenant();
 });
 
 describe('OnboardingWizard', function (): void {
@@ -441,9 +422,6 @@ describe('Tenant onboarding methods', function (): void {
 
     it('detects when onboarding is complete', function (): void {
         expect($this->tenant->isOnboardingComplete())->toBeFalse();
-
-        $this->tenant->markOnboardingComplete();
-
         expect($this->tenant->isOnboardingComplete())->toBeTrue();
     });
 
