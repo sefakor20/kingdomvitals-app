@@ -390,8 +390,6 @@ class LiveCheckIn extends Component
 
     public function checkOut(string $attendanceId): void
     {
-        $this->authorize('update', [Attendance::class, $this->branch]);
-
         $attendance = Attendance::where('id', $attendanceId)
             ->where('service_id', $this->service->id)
             ->where('branch_id', $this->branch->id)
@@ -401,6 +399,8 @@ class LiveCheckIn extends Component
         if (! $attendance) {
             return;
         }
+
+        $this->authorize('update', $attendance);
 
         $attendance->update(['check_out_time' => now()->format('H:i')]);
 
