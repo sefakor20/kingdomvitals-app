@@ -11,12 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function (): void {
             $centralDomains = config('tenancy.central_domains', []);
+            $superadminDomain = config('app.superadmin_domain', 'admin.localhost');
             $currentHost = request()->getHost();
 
-            // Super Admin routes (central domain only)
-            Route::middleware('web')
-                ->domain(config('app.superadmin_domain', 'admin.localhost'))
-                ->group(base_path('routes/superadmin.php'));
+            // Super Admin routes - load for admin domain (exact match or admin. prefix)
+            if ($currentHost === $superadminDomain || str_starts_with($currentHost, 'admin.')) {
+                Route::middleware('web')
+                    ->group(base_path('routes/superadmin.php'));
+
+                return;
+            }
 
             // Web routes only for non-central domains
             if (! in_array($currentHost, $centralDomains)) {
