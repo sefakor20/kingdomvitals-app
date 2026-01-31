@@ -18,7 +18,6 @@ return [
         'localhost',
         'admin.localhost', // Super admin local development
         'admin.kingdomvitals.app', // Production admin domain
-        'kingdomvitals.app'
         'kingdomvitals-app.test', // For local development
         'admin.kingdomvitals-app.test', // For local development
     ],
