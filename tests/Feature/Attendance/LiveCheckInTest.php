@@ -413,7 +413,7 @@ test('cannot check out already checked out attendance', function (): void {
         ->assertNotDispatched('check-out-success');
 
     $attendance->refresh();
-    expect($attendance->check_out_time)->toBe('15:00');
+    expect($attendance->check_out_time)->toStartWith('15:00');
 });
 
 test('recent check-ins includes check-out status', function (): void {

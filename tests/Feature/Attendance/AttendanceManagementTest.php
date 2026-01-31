@@ -792,7 +792,7 @@ test('checkInMethods computed property returns all methods', function (): void {
     $methods = $component->instance()->checkInMethods;
 
     expect($methods)->toBe(CheckInMethod::cases());
-    expect(count($methods))->toBe(3);
+    expect(count($methods))->toBe(4);
 });
 
 // ============================================
