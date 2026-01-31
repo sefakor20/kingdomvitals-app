@@ -22,7 +22,23 @@ class FortifyServiceProvider extends ServiceProvider
         $centralDomains = config('tenancy.central_domains', []);
         if (in_array(request()->getHost(), $centralDomains)) {
             Fortify::ignoreRoutes();
+
+            return;
         }
+
+        // Bind custom response classes for tenant domains
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\LoginResponse::class,
+            \App\Http\Responses\LoginResponse::class
+        );
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\RegisterResponse::class,
+            \App\Http\Responses\RegisterResponse::class
+        );
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\VerifyEmailResponse::class,
+            \App\Http\Responses\VerifyEmailResponse::class
+        );
     }
 
     /**
