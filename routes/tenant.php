@@ -35,8 +35,8 @@ Route::middleware(['web'])->group(function (): void {
     // Include all Fortify authentication routes (login, register, password reset, 2FA, etc.)
     require base_path('vendor/laravel/fortify/routes/routes.php');
 
-    // Onboarding routes (auth but no onboarding.complete middleware)
-    Route::middleware(['auth'])->prefix('onboarding')->name('onboarding.')->group(function (): void {
+    // Onboarding routes (auth + verified, but no onboarding.complete middleware)
+    Route::middleware(['auth', 'verified'])->prefix('onboarding')->name('onboarding.')->group(function (): void {
         Route::get('/', \App\Livewire\Onboarding\OnboardingWizard::class)->name('index');
     });
 
