@@ -60,7 +60,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This is the domain used for the Super Admin platform management panel.
-    | In production, this would be admin.kingdomvitals.com
+    | In production, this would be admin.kingdomvitals.app
     |
     */
 
