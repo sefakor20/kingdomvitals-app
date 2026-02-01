@@ -134,30 +134,12 @@ class TenancyServiceProvider extends ServiceProvider
                 return;
             }
 
-            // In console context (route caching), load tenant routes without domain checks
-            // Domain-specific filtering happens at runtime via middleware
-            if (app()->runningInConsole()) {
-                if (file_exists(base_path('routes/tenant.php'))) {
-                    Route::middleware([
-                        Middleware\InitializeTenancyByDomain::class,
-                    ])
-                        ->namespace(static::$controllerNamespace)
-                        ->group(base_path('routes/tenant.php'));
-                }
-
-                return;
-            }
-
-            // Runtime: Skip tenant routes for central domains
-            $centralDomains = config('tenancy.central_domains', []);
-            $currentDomain = request()->getHost();
-
-            if (in_array($currentDomain, $centralDomains)) {
-                return;
-            }
-
+            // Always register tenant routes - middleware handles domain filtering at runtime
+            // PreventAccessFromCentralDomains returns 404 for central domains (admin, localhost)
+            // InitializeTenancyByDomain identifies the tenant for actual tenant domains
             if (file_exists(base_path('routes/tenant.php'))) {
                 Route::middleware([
+                    Middleware\PreventAccessFromCentralDomains::class,
                     Middleware\InitializeTenancyByDomain::class,
                 ])
                     ->namespace(static::$controllerNamespace)
