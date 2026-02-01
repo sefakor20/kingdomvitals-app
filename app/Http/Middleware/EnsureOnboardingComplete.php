@@ -24,8 +24,19 @@ class EnsureOnboardingComplete
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // DEBUG: Log auth state on every request (REMOVE AFTER DEBUGGING)
+        Log::info('EnsureOnboardingComplete DEBUG', [
+            'url' => $request->fullUrl(),
+            'is_authenticated' => auth()->check(),
+            'user_id' => auth()->id(),
+            'session_id' => $request->session()->getId(),
+            'tenant' => tenant()?->id,
+        ]);
+
         // Skip for guests
         if (! auth()->check()) {
+            Log::info('EnsureOnboardingComplete: User is guest, passing through');
+
             return $next($request);
         }
 
