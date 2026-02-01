@@ -112,6 +112,12 @@ class AppServiceProvider extends ServiceProvider
                 ]);
         });
 
+        // Add tenancy middleware as persistent middleware for Livewire
+        // This ensures tenancy is re-applied on subsequent Livewire requests
+        Livewire::addPersistentMiddleware([
+            \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+        ]);
+
         $this->registerPlanAccessDirectives();
 
         // Register observers
