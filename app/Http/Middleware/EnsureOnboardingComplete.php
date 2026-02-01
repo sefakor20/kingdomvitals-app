@@ -57,8 +57,15 @@ class EnsureOnboardingComplete
                 'user_id' => auth()->id(),
             ]);
 
-            // Redirect to login to re-establish tenant context
-            return redirect()->route('login');
+            // Logout user to break potential redirect loop
+            // (authenticated user without tenant context causes infinite loop:
+            // login -> guest middleware redirects to dashboard -> this middleware redirects to login)
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->with('error', 'Your session has expired. Please login again.');
         }
 
         // Check if onboarding is required
