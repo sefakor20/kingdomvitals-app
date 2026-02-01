@@ -10,6 +10,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function (): void {
+            // Skip dynamic routing in console context (route caching)
+            // Domain-specific routing must be determined at runtime
+            if (app()->runningInConsole()) {
+                return;
+            }
+
             $centralDomains = config('tenancy.central_domains', []);
             $superadminDomain = config('app.superadmin_domain', 'admin.localhost');
             $currentHost = request()->getHost();
