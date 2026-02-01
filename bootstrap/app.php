@@ -3,37 +3,12 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
+        web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
-        then: function (): void {
-            // Skip dynamic routing in console context (route caching)
-            // Domain-specific routing must be determined at runtime
-            if (app()->runningInConsole()) {
-                return;
-            }
-
-            $centralDomains = config('tenancy.central_domains', []);
-            $superadminDomain = config('app.superadmin_domain', 'admin.localhost');
-            $currentHost = request()->getHost();
-
-            // Super Admin routes - load for admin domain (exact match or admin. prefix)
-            if ($currentHost === $superadminDomain || str_starts_with($currentHost, 'admin.')) {
-                Route::middleware('web')
-                    ->group(base_path('routes/superadmin.php'));
-
-                return;
-            }
-
-            // Web routes only for non-central domains
-            if (! in_array($currentHost, $centralDomains)) {
-                Route::middleware('web')
-                    ->group(base_path('routes/web.php'));
-            }
-        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->group('tenant', [

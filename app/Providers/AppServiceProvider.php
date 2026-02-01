@@ -64,6 +64,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configurePreventAccessFromCentralDomains();
+
         // Register policies
         Gate::policy(UserBranchAccess::class, UserBranchAccessPolicy::class);
         Gate::policy(Member::class, MemberPolicy::class);
@@ -123,6 +125,28 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         Tenant::observe(TenantObserver::class);
         SmsLog::observe(SmsLogObserver::class);
+    }
+
+    /**
+     * Configure PreventAccessFromCentralDomains middleware to redirect admin users.
+     *
+     * When someone accesses tenant routes (like /login) from an admin domain,
+     * redirect them to the superadmin login instead of showing 404.
+     */
+    private function configurePreventAccessFromCentralDomains(): void
+    {
+        \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
+            $currentHost = $request->getHost();
+            $superadminDomain = config('app.superadmin_domain', 'admin.localhost');
+
+            // If on admin domain, redirect to superadmin login
+            if ($currentHost === $superadminDomain || str_starts_with($currentHost, 'admin.')) {
+                return redirect()->route('superadmin.login');
+            }
+
+            // For other central domains (localhost, etc.), show 404
+            abort(404);
+        };
     }
 
     /**

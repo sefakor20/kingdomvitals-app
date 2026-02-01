@@ -9,7 +9,15 @@ use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::get('/', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View {
+Route::get('/', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse {
+    // Redirect admin domain to admin login
+    $currentHost = request()->getHost();
+    $superadminDomain = config('app.superadmin_domain', 'admin.localhost');
+
+    if ($currentHost === $superadminDomain || str_starts_with($currentHost, 'admin.')) {
+        return redirect()->route('superadmin.login');
+    }
+
     return view('welcome');
 })->name('home');
 
