@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies (for Laravel Forge / nginx reverse proxy)
+        // This ensures Laravel correctly detects HTTPS requests behind nginx
+        $middleware->trustProxies(at: '*');
+
         $middleware->group('tenant', [
             \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
             \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
