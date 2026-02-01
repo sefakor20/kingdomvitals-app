@@ -96,6 +96,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Configure Livewire update route for multi-tenancy
+        // This conditionally adds tenancy middleware only for tenant domains
         Livewire::setUpdateRoute(function ($handle) {
             $centralDomains = config('tenancy.central_domains', []);
             $currentDomain = request()->getHost();
@@ -113,12 +114,6 @@ class AppServiceProvider extends ServiceProvider
                     \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
                 ]);
         });
-
-        // Add tenancy middleware as persistent middleware for Livewire
-        // This ensures tenancy is re-applied on subsequent Livewire requests
-        Livewire::addPersistentMiddleware([
-            \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
-        ]);
 
         $this->registerPlanAccessDirectives();
 
