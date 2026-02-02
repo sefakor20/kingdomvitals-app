@@ -58,8 +58,13 @@ class TenantCreationService
             $scheme = app()->isProduction() ? 'https' : 'http';
             $resetUrl = "{$scheme}://{$domain}/reset-password/{$token}?email=".urlencode($user->email);
 
-            // Send invitation notification
-            $user->notify(new TenantAdminInvitationNotification($tenant, $resetUrl));
+            // Send invitation notification with logo for email header
+            $user->notify(new TenantAdminInvitationNotification(
+                $tenant,
+                $resetUrl,
+                $tenant->getLogoUrl('medium'),
+                $tenant->name
+            ));
         });
 
         return $tenant;

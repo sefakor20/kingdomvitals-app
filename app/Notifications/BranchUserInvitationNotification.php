@@ -14,10 +14,19 @@ class BranchUserInvitationNotification extends Notification implements ShouldQue
 {
     use Queueable;
 
+    public ?string $logoUrl;
+
+    public ?string $appName;
+
     public function __construct(
         public BranchUserInvitation $invitation,
-        public string $acceptUrl
-    ) {}
+        public string $acceptUrl,
+        ?string $logoUrl = null,
+        ?string $appName = null
+    ) {
+        $this->logoUrl = $logoUrl;
+        $this->appName = $appName;
+    }
 
     /**
      * @return array<int, string>
@@ -33,7 +42,7 @@ class BranchUserInvitationNotification extends Notification implements ShouldQue
         $branchName = $this->invitation->branch->name;
         $inviterName = $this->invitation->invitedBy?->name ?? 'A team member';
 
-        return (new MailMessage)
+        $message = (new MailMessage)
             ->subject(__("You're invited to join :branch", ['branch' => $branchName]))
             ->greeting(__('Hello!'))
             ->line(__(':inviter has invited you to join :branch as a :role.', [
@@ -46,6 +55,13 @@ class BranchUserInvitationNotification extends Notification implements ShouldQue
                 'date' => $this->invitation->expires_at->format('F j, Y'),
             ]))
             ->line(__('If you did not expect this invitation, you can safely ignore this email.'));
+
+        $message->viewData = [
+            'logoUrl' => $this->logoUrl,
+            'appName' => $this->appName,
+        ];
+
+        return $message;
     }
 
     /**
