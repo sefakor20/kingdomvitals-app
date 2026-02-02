@@ -162,7 +162,12 @@ class BranchUserIndex extends Component
             $acceptUrl = tenant_route(tenant()->domains->first()?->domain ?? '', 'invitations.accept', ['token' => $existing->token]);
 
             Notification::route('mail', $this->inviteEmail)
-                ->notify(new BranchUserInvitationNotification($existing, $acceptUrl));
+                ->notify(new BranchUserInvitationNotification(
+                    $existing,
+                    $acceptUrl,
+                    tenant()?->getLogoUrl('medium'),
+                    tenant()?->name
+                ));
 
             $this->showInviteModal = false;
             $this->resetInviteForm();
@@ -186,7 +191,12 @@ class BranchUserIndex extends Component
         $acceptUrl = tenant_route(tenant()->domains->first()?->domain ?? '', 'invitations.accept', ['token' => $invitation->token]);
 
         Notification::route('mail', $this->inviteEmail)
-            ->notify(new BranchUserInvitationNotification($invitation, $acceptUrl));
+            ->notify(new BranchUserInvitationNotification(
+                $invitation,
+                $acceptUrl,
+                tenant()?->getLogoUrl('medium'),
+                tenant()?->name
+            ));
 
         $this->showInviteModal = false;
         $this->resetInviteForm();
@@ -281,7 +291,12 @@ class BranchUserIndex extends Component
         $acceptUrl = tenant_route(tenant()->domains->first()?->domain ?? '', 'invitations.accept', ['token' => $invitation->token]);
 
         Notification::route('mail', $invitation->email)
-            ->notify(new BranchUserInvitationNotification($invitation, $acceptUrl));
+            ->notify(new BranchUserInvitationNotification(
+                $invitation,
+                $acceptUrl,
+                tenant()?->getLogoUrl('medium'),
+                tenant()?->name
+            ));
 
         $this->dispatch('notification', [
             'type' => 'success',

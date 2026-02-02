@@ -14,10 +14,19 @@ class TenantAdminInvitationNotification extends Notification implements ShouldQu
 {
     use Queueable;
 
+    public ?string $logoUrl;
+
+    public ?string $appName;
+
     public function __construct(
         public Tenant $tenant,
-        public string $setupUrl
-    ) {}
+        public string $setupUrl,
+        ?string $logoUrl = null,
+        ?string $appName = null
+    ) {
+        $this->logoUrl = $logoUrl ?? $tenant->getLogoUrl('medium');
+        $this->appName = $appName ?? $tenant->name ?? config('app.name');
+    }
 
     /**
      * @return array<int, string>
@@ -29,7 +38,7 @@ class TenantAdminInvitationNotification extends Notification implements ShouldQu
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $message = (new MailMessage)
             ->subject(__('Welcome to :tenant - Set Up Your Account', ['tenant' => $this->tenant->name]))
             ->greeting(__('Hello :name!', ['name' => $notifiable->name]))
             ->line(__('You have been invited to manage :tenant on Kingdom Vitals.', [
@@ -39,6 +48,13 @@ class TenantAdminInvitationNotification extends Notification implements ShouldQu
             ->action(__('Set Up Your Account'), $this->setupUrl)
             ->line(__('This link will expire in 60 minutes.'))
             ->line(__('If you did not expect this invitation, you can ignore this email.'));
+
+        $message->viewData = [
+            'logoUrl' => $this->logoUrl,
+            'appName' => $this->appName,
+        ];
+
+        return $message;
     }
 
     /**

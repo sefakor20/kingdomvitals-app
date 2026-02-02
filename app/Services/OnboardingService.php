@@ -232,7 +232,12 @@ class OnboardingService
                 );
 
                 Notification::route('mail', $member['email'])
-                    ->notify(new BranchUserInvitationNotification($invitation, $acceptUrl));
+                    ->notify(new BranchUserInvitationNotification(
+                        $invitation,
+                        $acceptUrl,
+                        $tenant?->getLogoUrl('medium'),
+                        $tenant?->name
+                    ));
             }
 
             if ($tenant instanceof Tenant) {
