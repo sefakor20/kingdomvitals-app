@@ -147,7 +147,7 @@
     <!-- Report Content -->
     @if($reportType === 'summary')
         <!-- Summary Report -->
-        <div class="grid gap-6 lg:grid-cols-2">
+        <div class="grid gap-6 lg:grid-cols-2" wire:key="report-summary-{{ $period }}-{{ $dateFrom }}-{{ $dateTo }}">
             <!-- Income vs Expenses Chart -->
             <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:heading size="lg" class="mb-4">{{ __('Income vs Expenses') }}</flux:heading>
@@ -179,7 +179,7 @@
 
     @elseif($reportType === 'donations')
         <!-- Donations Report -->
-        <div class="grid gap-6 lg:grid-cols-2">
+        <div class="grid gap-6 lg:grid-cols-2" wire:key="report-donations-{{ $period }}-{{ $dateFrom }}-{{ $dateTo }}">
             <!-- Donations by Type -->
             <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:heading size="lg" class="mb-4">{{ __('Donations by Type') }}</flux:heading>
@@ -269,7 +269,7 @@
 
     @elseif($reportType === 'expenses')
         <!-- Expenses Report -->
-        <div class="grid gap-6 lg:grid-cols-2">
+        <div class="grid gap-6 lg:grid-cols-2" wire:key="report-expenses-{{ $period }}-{{ $dateFrom }}-{{ $dateTo }}">
             <!-- Expenses by Category -->
             <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:heading size="lg" class="mb-4">{{ __('Expenses by Category') }}</flux:heading>
