@@ -188,13 +188,13 @@
                         x-data="donationsByTypeChart(@js($this->donationsByTypeData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->donationsByTypeData))"
-                        class="h-64"
+                        class="h-80"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-64 items-center justify-center text-zinc-500">
+                    <div class="flex h-80 items-center justify-center text-zinc-500">
                         {{ __('No donation data available') }}
                     </div>
                 @endif
@@ -208,13 +208,13 @@
                         x-data="donationsByPaymentChart(@js($this->donationsByPaymentMethodData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->donationsByPaymentMethodData))"
-                        class="h-64"
+                        class="h-80"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-64 items-center justify-center text-zinc-500">
+                    <div class="flex h-80 items-center justify-center text-zinc-500">
                         {{ __('No donation data available') }}
                     </div>
                 @endif
@@ -278,13 +278,13 @@
                         x-data="expensesByCategoryChart(@js($this->expensesByCategoryData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->expensesByCategoryData))"
-                        class="h-64"
+                        class="h-80"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-64 items-center justify-center text-zinc-500">
+                    <div class="flex h-80 items-center justify-center text-zinc-500">
                         {{ __('No expense data available') }}
                     </div>
                 @endif
@@ -298,13 +298,13 @@
                         x-data="expensesByStatusChart(@js($this->expensesByStatusData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->expensesByStatusData))"
-                        class="h-64"
+                        class="h-80"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-64 items-center justify-center text-zinc-500">
+                    <div class="flex h-80 items-center justify-center text-zinc-500">
                         {{ __('No expense data available') }}
                     </div>
                 @endif
@@ -558,8 +558,14 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: isDark ? '#a1a1aa' : '#71717a',
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
                         }
                     }
                 }
@@ -598,8 +604,14 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: isDark ? '#a1a1aa' : '#71717a',
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
                         }
                     }
                 }
@@ -638,8 +650,14 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: isDark ? '#a1a1aa' : '#71717a',
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
                         }
                     }
                 }
@@ -678,8 +696,14 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: isDark ? '#a1a1aa' : '#71717a',
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
                         }
                     }
                 }
