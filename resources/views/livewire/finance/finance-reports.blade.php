@@ -188,13 +188,13 @@
                         x-data="donationsByTypeChart(@js($this->donationsByTypeData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->donationsByTypeData))"
-                        class="h-80"
+                        class="h-64"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-80 items-center justify-center text-zinc-500">
+                    <div class="flex h-64 items-center justify-center text-zinc-500">
                         {{ __('No donation data available') }}
                     </div>
                 @endif
@@ -208,13 +208,13 @@
                         x-data="donationsByPaymentChart(@js($this->donationsByPaymentMethodData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->donationsByPaymentMethodData))"
-                        class="h-80"
+                        class="h-64"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-80 items-center justify-center text-zinc-500">
+                    <div class="flex h-64 items-center justify-center text-zinc-500">
                         {{ __('No donation data available') }}
                     </div>
                 @endif
@@ -278,13 +278,13 @@
                         x-data="expensesByCategoryChart(@js($this->expensesByCategoryData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->expensesByCategoryData))"
-                        class="h-80"
+                        class="h-64"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-80 items-center justify-center text-zinc-500">
+                    <div class="flex h-64 items-center justify-center text-zinc-500">
                         {{ __('No expense data available') }}
                     </div>
                 @endif
@@ -298,13 +298,13 @@
                         x-data="expensesByStatusChart(@js($this->expensesByStatusData))"
                         x-init="initChart()"
                         @charts-updated.window="updateChart(@js($this->expensesByStatusData))"
-                        class="h-80"
+                        class="h-64"
                         wire:ignore
                     >
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 @else
-                    <div class="flex h-80 items-center justify-center text-zinc-500">
+                    <div class="flex h-64 items-center justify-center text-zinc-500">
                         {{ __('No expense data available') }}
                     </div>
                 @endif
@@ -424,6 +424,11 @@
         data: initialData,
 
         initChart() {
+            // Destroy existing chart to prevent memory leaks and rendering conflicts
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
 
@@ -488,6 +493,11 @@
         data: initialData,
 
         initChart() {
+            // Destroy existing chart to prevent memory leaks and rendering conflicts
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
 
@@ -541,6 +551,11 @@
         data: initialData,
 
         initChart() {
+            // Destroy existing chart to prevent memory leaks and rendering conflicts
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
 
@@ -558,14 +573,8 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                color: isDark ? '#a1a1aa' : '#71717a',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
+                            position: 'right',
+                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
                         }
                     }
                 }
@@ -587,6 +596,11 @@
         data: initialData,
 
         initChart() {
+            // Destroy existing chart to prevent memory leaks and rendering conflicts
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
 
@@ -604,14 +618,8 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                color: isDark ? '#a1a1aa' : '#71717a',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
+                            position: 'right',
+                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
                         }
                     }
                 }
@@ -633,6 +641,11 @@
         data: initialData,
 
         initChart() {
+            // Destroy existing chart to prevent memory leaks and rendering conflicts
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
 
@@ -650,14 +663,8 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                color: isDark ? '#a1a1aa' : '#71717a',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
+                            position: 'right',
+                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
                         }
                     }
                 }
@@ -679,6 +686,11 @@
         data: initialData,
 
         initChart() {
+            // Destroy existing chart to prevent memory leaks and rendering conflicts
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
 
@@ -696,14 +708,8 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                color: isDark ? '#a1a1aa' : '#71717a',
-                                padding: 16,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
+                            position: 'right',
+                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
                         }
                     }
                 }
