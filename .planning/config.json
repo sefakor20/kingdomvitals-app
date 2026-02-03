@@ -1,0 +1,7 @@
+{
+  "workflow_mode": "interactive",
+  "model_profile": "balanced",
+  "planning": {
+    "commit_docs": true
+  }
+}
