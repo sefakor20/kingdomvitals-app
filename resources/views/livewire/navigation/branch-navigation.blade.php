@@ -3,7 +3,7 @@
     <flux:navlist variant="outline">
         {{-- People Group --}}
         @if($this->canViewMembers || $this->canViewHouseholds || $this->canViewChildren)
-            <flux:navlist.group :heading="__('People')" expandable :expanded="request()->routeIs('members.*', 'households.*', 'children.*')" class="grid">
+            <flux:navlist.group :heading="__('Membership')" expandable :expanded="request()->routeIs('members.*', 'households.*', 'children.*')" class="grid">
                 @if($this->canViewMembers)
                     <flux:navlist.item
                         icon="user-group"
