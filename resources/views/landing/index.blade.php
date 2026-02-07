@@ -40,6 +40,9 @@
         {{-- Footer --}}
         @include('landing.partials.footer')
 
+        {{-- Floating WhatsApp Button --}}
+        @include('landing.partials.whatsapp-button')
+
         @fluxScripts
     </body>
 </html>

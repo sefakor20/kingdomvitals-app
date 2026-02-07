@@ -1,4 +1,10 @@
-<section id="faq" class="py-24 sm:py-32">
+<section
+    id="faq"
+    class="py-24 sm:py-32 transition-all duration-700 ease-out"
+    x-data="{ shown: false }"
+    x-intersect.once.threshold.10="shown = true"
+    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+>
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         {{-- Section header --}}
         <div class="mx-auto max-w-2xl text-center">

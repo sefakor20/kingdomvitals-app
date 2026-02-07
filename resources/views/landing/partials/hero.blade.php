@@ -65,23 +65,31 @@
                         </div>
                     </div>
 
-                    {{-- Dashboard preview placeholder --}}
-                    <div class="aspect-[16/9] bg-gradient-to-br from-neutral-800 to-neutral-900 p-8">
-                        <div class="grid h-full grid-cols-4 gap-4">
-                            {{-- Sidebar placeholder --}}
-                            <div class="col-span-1 rounded-lg bg-neutral-800/50"></div>
-                            {{-- Main content placeholder --}}
-                            <div class="col-span-3 space-y-4">
-                                <div class="h-8 w-48 rounded bg-neutral-700/50"></div>
-                                <div class="grid grid-cols-3 gap-4">
-                                    <div class="h-24 rounded-lg bg-neutral-700/30"></div>
-                                    <div class="h-24 rounded-lg bg-neutral-700/30"></div>
-                                    <div class="h-24 rounded-lg bg-neutral-700/30"></div>
+                    {{-- Dashboard preview --}}
+                    @if(file_exists(public_path('images/dashboard-preview.png')))
+                        <img
+                            src="{{ asset('images/dashboard-preview.png') }}"
+                            alt="Kingdom Vitals Dashboard Preview"
+                            class="aspect-[16/9] w-full object-cover object-top"
+                            loading="lazy"
+                        >
+                    @else
+                        {{-- Placeholder until screenshot is added --}}
+                        <div class="aspect-[16/9] bg-gradient-to-br from-neutral-800 to-neutral-900 p-8">
+                            <div class="grid h-full grid-cols-4 gap-4">
+                                <div class="col-span-1 rounded-lg bg-neutral-800/50"></div>
+                                <div class="col-span-3 space-y-4">
+                                    <div class="h-8 w-48 rounded bg-neutral-700/50"></div>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div class="h-24 rounded-lg bg-neutral-700/30"></div>
+                                        <div class="h-24 rounded-lg bg-neutral-700/30"></div>
+                                        <div class="h-24 rounded-lg bg-neutral-700/30"></div>
+                                    </div>
+                                    <div class="h-48 rounded-lg bg-neutral-700/20"></div>
                                 </div>
-                                <div class="h-48 rounded-lg bg-neutral-700/20"></div>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>

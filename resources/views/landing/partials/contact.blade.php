@@ -1,4 +1,10 @@
-<section id="contact" class="py-24 sm:py-32">
+<section
+    id="contact"
+    class="py-24 sm:py-32 transition-all duration-700 ease-out"
+    x-data="{ shown: false }"
+    x-intersect.once.threshold.10="shown = true"
+    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+>
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="mx-auto grid max-w-5xl gap-16 lg:grid-cols-2">
             {{-- Contact Info --}}
