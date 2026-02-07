@@ -13,7 +13,7 @@
             </div>
             <div class="hidden h-8 w-px bg-neutral-300 sm:block dark:bg-neutral-700"></div>
             <div class="text-center">
-                <div class="text-3xl font-semibold text-neutral-900 dark:text-white">$2M+</div>
+                <div class="text-3xl font-semibold text-neutral-900 dark:text-white">GHS 2M+</div>
                 <div class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Donations Processed</div>
             </div>
         </div>

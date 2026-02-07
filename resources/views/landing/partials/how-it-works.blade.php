@@ -1,4 +1,10 @@
-<section id="how-it-works" class="bg-neutral-50 py-24 sm:py-32 dark:bg-neutral-900/50">
+<section
+    id="how-it-works"
+    class="bg-neutral-50 py-24 sm:py-32 dark:bg-neutral-900/50 transition-all duration-700 ease-out"
+    x-data="{ shown: false }"
+    x-intersect.once.threshold.10="shown = true"
+    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+>
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         {{-- Section header --}}
         <div class="mx-auto max-w-2xl text-center">
@@ -17,7 +23,7 @@
                 {{-- Step 1 --}}
                 <div class="relative text-center">
                     {{-- Step number --}}
-                    <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-2xl font-semibold text-white shadow-lg">
+                    <div class="relative z-10 mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-2xl font-semibold text-white shadow-lg">
                         1
                     </div>
                     {{-- Connector line (hidden on mobile) --}}
@@ -31,7 +37,7 @@
 
                 {{-- Step 2 --}}
                 <div class="relative text-center">
-                    <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-2xl font-semibold text-white shadow-lg">
+                    <div class="relative z-10 mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-2xl font-semibold text-white shadow-lg">
                         2
                     </div>
                     <div class="absolute left-1/2 top-8 hidden h-0.5 w-full bg-gradient-to-r from-indigo-300 to-purple-300 md:block dark:from-indigo-700 dark:to-purple-700"></div>
@@ -44,7 +50,7 @@
 
                 {{-- Step 3 --}}
                 <div class="relative text-center">
-                    <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-2xl font-semibold text-white shadow-lg">
+                    <div class="relative z-10 mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-2xl font-semibold text-white shadow-lg">
                         3
                     </div>
 
