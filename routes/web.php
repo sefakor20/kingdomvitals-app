@@ -18,7 +18,7 @@ Route::get('/', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Cont
         return redirect()->route('superadmin.login');
     }
 
-    return view('welcome');
+    return view('landing.index');
 })->name('home');
 
 // Onboarding routes (auth but no onboarding.complete middleware)

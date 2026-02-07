@@ -134,12 +134,19 @@ class TenancyServiceProvider extends ServiceProvider
                 return;
             }
 
-            // Always register tenant routes - middleware handles domain filtering at runtime
-            // PreventAccessFromCentralDomains returns 404 for central domains (admin, localhost)
-            // InitializeTenancyByDomain identifies the tenant for actual tenant domains
+            // Skip tenant routes entirely for central domains to allow central routes to work
+            // This prevents the PreventAccessFromCentralDomains middleware from returning 404
+            // before Laravel can check the central routes in web.php
+            $centralDomains = config('tenancy.central_domains', []);
+            $currentHost = request()->getHost();
+
+            if (in_array($currentHost, $centralDomains)) {
+                return;
+            }
+
+            // Register tenant routes for tenant domains only
             if (file_exists(base_path('routes/tenant.php'))) {
                 Route::middleware([
-                    Middleware\PreventAccessFromCentralDomains::class,
                     Middleware\InitializeTenancyByDomain::class,
                 ])
                     ->namespace(static::$controllerNamespace)
