@@ -23,7 +23,7 @@
         @include('landing.partials.how-it-works')
 
         {{-- Pricing Section --}}
-        @include('landing.partials.pricing')
+        @include('landing.partials.pricing', ['plans' => $plans])
 
         {{-- Testimonials --}}
         @include('landing.partials.testimonials')
