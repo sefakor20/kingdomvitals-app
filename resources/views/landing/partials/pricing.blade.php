@@ -12,8 +12,13 @@
         </div>
 
         @if($plans->isNotEmpty())
+            @php
+                $maxSavings = $plans->max(fn($p) => $p->getAnnualSavingsPercent());
+            @endphp
+
+            <div x-data="{ annual: true }">
             {{-- Pricing toggle --}}
-            <div class="mt-10 flex justify-center" x-data="{ annual: true }">
+            <div class="mt-10 flex justify-center">
                 <div class="flex items-center gap-4 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
                     <button
                         type="button"
@@ -30,7 +35,9 @@
                         @click="annual = true"
                     >
                         Annual
-                        <span class="ml-1 text-xs text-green-600 dark:text-green-400">Save up to 20%</span>
+                        @if($maxSavings > 0)
+                            <span class="ml-1 text-xs text-green-600 dark:text-green-400">Save up to {{ number_format($maxSavings, 0) }}%</span>
+                        @endif
                     </button>
                 </div>
             </div>
@@ -44,7 +51,7 @@
                     default => 'max-w-5xl lg:grid-cols-3',
                 };
             @endphp
-            <div class="mx-auto mt-12 grid gap-8 {{ $gridCols }}" x-data="{ annual: true }">
+            <div class="mx-auto mt-12 grid gap-8 {{ $gridCols }}">
                 @foreach($plans as $index => $plan)
                     @php
                         $isPopular = $plan->is_default || ($plans->count() >= 3 && $index === $popularIndex);
@@ -66,8 +73,8 @@
                             @if($plan->price_monthly > 0)
                                 <span
                                     class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
-                                    x-text="annual ? '${{ number_format($plan->price_annual / 12, 0) }}' : '${{ number_format($plan->price_monthly, 0) }}'"
-                                >${{ number_format($plan->price_annual / 12, 0) }}</span>
+                                    x-text="`GHS ${annual ? {{ number_format($plan->price_annual / 12, 0) }} : {{ number_format($plan->price_monthly, 0) }}}`"
+                                >GHS {{ number_format($plan->price_annual / 12, 0) }}</span>
                                 <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
                             @else
                                 <span class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}">Free</span>
@@ -148,6 +155,7 @@
                         </a>
                     </div>
                 @endforeach
+            </div>
             </div>
         @else
             {{-- No plans available --}}
