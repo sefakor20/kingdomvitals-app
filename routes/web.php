@@ -6,6 +6,7 @@ use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\TwoFactor;
+use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -18,7 +19,13 @@ Route::get('/', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Cont
         return redirect()->route('superadmin.login');
     }
 
-    return view('welcome');
+    $plans = SubscriptionPlan::query()
+        ->where('is_active', true)
+        ->orderBy('display_order')
+        ->orderBy('price_monthly')
+        ->get();
+
+    return view('landing.index', compact('plans'));
 })->name('home');
 
 // Onboarding routes (auth but no onboarding.complete middleware)
