@@ -42,7 +42,7 @@ Route::middleware(['web'])->group(function (): void {
 
     Route::get('/', function () {
         return redirect()->route('dashboard');
-    })->name('home');
+    })->name('tenant.home');
 
     // Dashboard
     Route::get('/dashboard', \App\Livewire\Dashboard::class)
