@@ -28,12 +28,20 @@ class GlobalSearch extends Component
 
     public ?string $currentBranchId = null;
 
+    public int $selectedIndex = -1;
+
+    /** @var array<int, string> */
+    public array $recentSearches = [];
+
     private const MAX_RESULTS_PER_TYPE = 5;
+
+    private const MAX_RECENT_SEARCHES = 5;
 
     public function mount(BranchContextService $branchContext): void
     {
         $this->currentBranchId = $branchContext->getCurrentBranchId()
             ?? $branchContext->getDefaultBranchId();
+        $this->recentSearches = session()->get('global_search.recent', []);
     }
 
     #[On('branch-switched')]
@@ -57,7 +65,129 @@ class GlobalSearch extends Component
     public function resetSearch(): void
     {
         $this->search = '';
+        $this->selectedIndex = -1;
         unset($this->results);
+    }
+
+    /**
+     * Reset selection when search term changes.
+     */
+    public function updatedSearch(): void
+    {
+        $this->selectedIndex = -1;
+    }
+
+    /**
+     * Move selection to the next result.
+     */
+    public function selectNext(): void
+    {
+        $flatResults = $this->getFlatResults();
+        $maxIndex = count($flatResults) - 1;
+
+        if ($maxIndex < 0) {
+            return;
+        }
+
+        $this->selectedIndex = min($this->selectedIndex + 1, $maxIndex);
+    }
+
+    /**
+     * Move selection to the previous result.
+     */
+    public function selectPrevious(): void
+    {
+        $this->selectedIndex = max($this->selectedIndex - 1, 0);
+    }
+
+    /**
+     * Select the currently highlighted result.
+     */
+    public function selectCurrent(): void
+    {
+        $flatResults = $this->getFlatResults();
+
+        if ($this->selectedIndex >= 0 && isset($flatResults[$this->selectedIndex])) {
+            $item = $flatResults[$this->selectedIndex];
+            $this->selectResult($item['type'], $item['id']);
+        }
+    }
+
+    /**
+     * Get a flat array of all results for keyboard navigation.
+     *
+     * @return array<int, array{type: string, id: string}>
+     */
+    private function getFlatResults(): array
+    {
+        $flat = [];
+        foreach ($this->results as $type => $items) {
+            foreach ($items as $item) {
+                $flat[] = ['type' => $type, 'id' => $item['id']];
+            }
+        }
+
+        return $flat;
+    }
+
+    /**
+     * Save a search term to recent searches.
+     */
+    private function saveRecentSearch(string $term): void
+    {
+        if (strlen($term) < 2) {
+            return;
+        }
+
+        // Remove if already exists, then prepend
+        $this->recentSearches = array_values(array_filter(
+            $this->recentSearches,
+            fn (string $s) => $s !== $term
+        ));
+        array_unshift($this->recentSearches, $term);
+
+        // Keep only max recent searches
+        $this->recentSearches = array_slice($this->recentSearches, 0, self::MAX_RECENT_SEARCHES);
+
+        session()->put('global_search.recent', $this->recentSearches);
+    }
+
+    /**
+     * Use a recent search term.
+     */
+    public function useRecentSearch(string $term): void
+    {
+        $this->search = $term;
+        $this->selectedIndex = -1;
+        unset($this->results);
+    }
+
+    /**
+     * Clear all recent searches.
+     */
+    public function clearRecentSearches(): void
+    {
+        $this->recentSearches = [];
+        session()->forget('global_search.recent');
+    }
+
+    /**
+     * Highlight matching text in a string.
+     */
+    public function highlightMatch(?string $text, string $search): string
+    {
+        if ($text === null || $text === '' || strlen($search) < 2) {
+            return e($text ?? '');
+        }
+
+        $escapedText = e($text);
+        $escapedSearch = preg_quote($search, '/');
+
+        return preg_replace(
+            '/('.$escapedSearch.')/i',
+            '<mark class="bg-yellow-200 dark:bg-yellow-700/50 rounded px-0.5">$1</mark>',
+            $escapedText
+        ) ?? $escapedText;
     }
 
     /**
@@ -76,6 +206,7 @@ class GlobalSearch extends Component
             default => route('dashboard'),
         };
 
+        $this->saveRecentSearch($this->search);
         $this->closeModal();
         $this->redirect($route, navigate: true);
     }
