@@ -32,7 +32,7 @@ foreach ($centralDomainsForLanding as $domain) {
                 ->get();
 
             return view('landing.index', compact('plans'));
-        })->name($domain === 'kingdomvitals-app.test' || $domain === 'kingdomvitals.app' ? 'home' : null);
+        })->name($domain === 'kingdomvitals-app.test' ? 'home' : null);
     });
 }
 
