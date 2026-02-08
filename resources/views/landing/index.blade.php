@@ -26,8 +26,8 @@
 
         {{-- JSON-LD Structured Data --}}
         @php
-            $jsonLd = [
-                '@context' => 'https://schema.org',
+            // SoftwareApplication schema
+            $softwareApp = [
                 '@type' => 'SoftwareApplication',
                 'name' => config('app.name'),
                 'applicationCategory' => 'BusinessApplication',
@@ -39,10 +39,92 @@
                     'lowPrice' => '0',
                     'offerCount' => (string) count($plans),
                 ],
-                'provider' => [
-                    '@type' => 'Organization',
-                    'name' => 'Kingdom Vitals',
-                    'url' => url('/'),
+            ];
+
+            // Organization schema with contact info
+            $organization = [
+                '@type' => 'Organization',
+                'name' => 'Kingdom Vitals',
+                'url' => url('/'),
+                'logo' => asset('images/logo.png'),
+                'description' => 'Church management software helping churches in Ghana and beyond manage their membership, giving, and ministry operations.',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressCountry' => 'GH',
+                ],
+                'contactPoint' => [
+                    '@type' => 'ContactPoint',
+                    'telephone' => '+233509228314',
+                    'contactType' => 'customer service',
+                    'availableLanguage' => 'English',
+                ],
+                'sameAs' => [
+                    'https://wa.me/233509228314',
+                ],
+            ];
+
+            // FAQPage schema for rich snippets
+            $faqPage = [
+                '@type' => 'FAQPage',
+                'mainEntity' => [
+                    [
+                        '@type' => 'Question',
+                        'name' => 'How does online giving work?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Members can give online through a secure payment portal powered by Paystack. They can make one-time donations or set up recurring giving for tithes, offerings, building funds, and more. All transactions are tracked automatically and linked to member profiles for easy reporting.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Can I manage multiple branches?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Yes! Kingdom Vitals is built for multi-site churches. You can manage multiple branches from a single account, with each branch having its own members, attendance tracking, and financial records. You can view data by branch or across your entire organization.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Is my data secure?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Absolutely. We use industry-standard encryption for all data in transit and at rest. Each church\'s data is isolated in separate databases, ensuring complete privacy. We also offer two-factor authentication for added account security, and regular backups protect against data loss.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Can I import existing member data?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Yes, you can import member data from spreadsheets (CSV/Excel). Our import wizard guides you through mapping your existing data fields to Kingdom Vitals. If you need help with a complex migration, our support team is available to assist.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'What payment methods are supported?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'We support a wide range of payment methods through our Paystack integration, including credit/debit cards (Visa, Mastercard), mobile money (MTN, Vodafone, AirtelTigo), and bank transfers. This ensures your members can give using their preferred method.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Do you offer a free trial?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to start. This gives you plenty of time to explore the platform and see how it can benefit your church before committing to a plan.',
+                        ],
+                    ],
+                ],
+            ];
+
+            // Combine all schemas using @graph
+            $jsonLd = [
+                '@context' => 'https://schema.org',
+                '@graph' => [
+                    $softwareApp,
+                    $organization,
+                    $faqPage,
                 ],
             ];
         @endphp
