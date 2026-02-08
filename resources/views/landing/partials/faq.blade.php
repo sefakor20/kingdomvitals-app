@@ -25,6 +25,8 @@
                     type="button"
                     class="flex w-full items-start justify-between text-left"
                     @click="openItem = openItem === 1 ? null : 1"
+                    :aria-expanded="openItem === 1"
+                    aria-controls="faq-answer-1"
                 >
                     <span class="text-base font-semibold text-neutral-900 dark:text-white">How does online giving work?</span>
                     <svg
@@ -34,11 +36,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
                 <div
+                    id="faq-answer-1"
                     class="mt-4 text-neutral-600 dark:text-neutral-400"
                     x-show="openItem === 1"
                     x-collapse
@@ -53,6 +57,8 @@
                     type="button"
                     class="flex w-full items-start justify-between text-left"
                     @click="openItem = openItem === 2 ? null : 2"
+                    :aria-expanded="openItem === 2"
+                    aria-controls="faq-answer-2"
                 >
                     <span class="text-base font-semibold text-neutral-900 dark:text-white">Can I manage multiple branches?</span>
                     <svg
@@ -62,11 +68,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
                 <div
+                    id="faq-answer-2"
                     class="mt-4 text-neutral-600 dark:text-neutral-400"
                     x-show="openItem === 2"
                     x-collapse
@@ -81,6 +89,8 @@
                     type="button"
                     class="flex w-full items-start justify-between text-left"
                     @click="openItem = openItem === 3 ? null : 3"
+                    :aria-expanded="openItem === 3"
+                    aria-controls="faq-answer-3"
                 >
                     <span class="text-base font-semibold text-neutral-900 dark:text-white">Is my data secure?</span>
                     <svg
@@ -90,11 +100,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
                 <div
+                    id="faq-answer-3"
                     class="mt-4 text-neutral-600 dark:text-neutral-400"
                     x-show="openItem === 3"
                     x-collapse
@@ -109,6 +121,8 @@
                     type="button"
                     class="flex w-full items-start justify-between text-left"
                     @click="openItem = openItem === 4 ? null : 4"
+                    :aria-expanded="openItem === 4"
+                    aria-controls="faq-answer-4"
                 >
                     <span class="text-base font-semibold text-neutral-900 dark:text-white">Can I import existing member data?</span>
                     <svg
@@ -118,11 +132,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
                 <div
+                    id="faq-answer-4"
                     class="mt-4 text-neutral-600 dark:text-neutral-400"
                     x-show="openItem === 4"
                     x-collapse
@@ -137,6 +153,8 @@
                     type="button"
                     class="flex w-full items-start justify-between text-left"
                     @click="openItem = openItem === 5 ? null : 5"
+                    :aria-expanded="openItem === 5"
+                    aria-controls="faq-answer-5"
                 >
                     <span class="text-base font-semibold text-neutral-900 dark:text-white">What payment methods are supported?</span>
                     <svg
@@ -146,11 +164,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
                 <div
+                    id="faq-answer-5"
                     class="mt-4 text-neutral-600 dark:text-neutral-400"
                     x-show="openItem === 5"
                     x-collapse
@@ -165,6 +185,8 @@
                     type="button"
                     class="flex w-full items-start justify-between text-left"
                     @click="openItem = openItem === 6 ? null : 6"
+                    :aria-expanded="openItem === 6"
+                    aria-controls="faq-answer-6"
                 >
                     <span class="text-base font-semibold text-neutral-900 dark:text-white">Do you offer a free trial?</span>
                     <svg
@@ -174,11 +196,13 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
+                        aria-hidden="true"
                     >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
                 <div
+                    id="faq-answer-6"
                     class="mt-4 text-neutral-600 dark:text-neutral-400"
                     x-show="openItem === 6"
                     x-collapse

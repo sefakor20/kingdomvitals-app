@@ -51,11 +51,18 @@
         <style>[x-cloak] { display: none !important; }</style>
     </head>
     <body class="min-h-screen bg-white antialiased dark:bg-neutral-950">
+        {{-- Skip to content link for keyboard/screen reader users --}}
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-purple-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+            {{ __('Skip to main content') }}
+        </a>
+
         {{-- Navigation --}}
         @include('landing.partials.navigation')
 
-        {{-- Hero Section --}}
-        @include('landing.partials.hero')
+        {{-- Main Content --}}
+        <main id="main-content">
+            {{-- Hero Section --}}
+            @include('landing.partials.hero')
 
         {{-- Social Proof --}}
         @include('landing.partials.social-proof')
@@ -83,6 +90,7 @@
 
         {{-- Footer --}}
         @include('landing.partials.footer')
+        </main>
 
         {{-- Floating WhatsApp Button --}}
         @include('landing.partials.whatsapp-button')

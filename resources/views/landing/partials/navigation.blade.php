@@ -25,11 +25,11 @@
 
             {{-- Desktop navigation --}}
             <div class="hidden lg:flex lg:gap-x-10">
-                <a href="#features" class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">Features</a>
-                <a href="#how-it-works" class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">How It Works</a>
-                <a href="#pricing" class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">Pricing</a>
-                <a href="#faq" class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">FAQ</a>
-                <a href="#contact" class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">Contact</a>
+                <a href="#features" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">Features</a>
+                <a href="#how-it-works" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">How It Works</a>
+                <a href="#pricing" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">Pricing</a>
+                <a href="#faq" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">FAQ</a>
+                <a href="#contact" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">Contact</a>
             </div>
 
             {{-- Desktop CTA --}}
