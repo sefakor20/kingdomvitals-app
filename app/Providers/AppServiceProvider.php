@@ -96,18 +96,10 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Configure Livewire update route for multi-tenancy
-        // This conditionally adds tenancy middleware only for tenant domains
+        // Always include tenancy middleware - InitializeTenancyByDomain checks central domains
+        // internally and skips initialization for them. This approach works correctly with
+        // route caching (unlike using request()->getHost() at route registration time).
         Livewire::setUpdateRoute(function ($handle) {
-            $centralDomains = config('tenancy.central_domains', []);
-            $currentDomain = request()->getHost();
-
-            // For central domains (super admin, etc.), use only web middleware
-            if (in_array($currentDomain, $centralDomains)) {
-                return Route::post('/livewire/update', $handle)
-                    ->middleware(['web']);
-            }
-
-            // For tenant domains, include tenancy middleware
             return Route::post('/livewire/update', $handle)
                 ->middleware([
                     'web',
