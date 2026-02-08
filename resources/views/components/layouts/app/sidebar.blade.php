@@ -151,6 +151,11 @@
 
         {{ $slot }}
 
+        <!-- Global Search (keyboard shortcut only: Cmd+K / Ctrl+K) -->
+        @if(tenant() && auth()->check() && tenant()->isOnboardingComplete())
+            <livewire:search.global-search />
+        @endif
+
         @fluxScripts
     </body>
 </html>
