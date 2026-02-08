@@ -38,7 +38,10 @@
 <link rel="icon" href="{{ $faviconUrl ?? '/favicon.ico' }}" sizes="any">
 <link rel="apple-touch-icon" href="{{ $appleTouchUrl ?? '/apple-touch-icon.png' }}">
 
-<link rel="preconnect" href="https://fonts.bunny.net">
+{{-- Resource hints for performance --}}
+<link rel="dns-prefetch" href="//fonts.bunny.net">
+<link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+<link rel="preload" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" as="style">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
