@@ -11,6 +11,7 @@ use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
+use App\Models\Tenant\SearchAnalytic;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
@@ -244,9 +245,40 @@ class GlobalSearch extends Component
             default => route('dashboard'),
         };
 
+        // Log search analytics
+        $this->logSearchAnalytics($type, $id);
+
         $this->saveRecentSearch($this->search);
         $this->closeModal();
         $this->redirect($route, navigate: true);
+    }
+
+    /**
+     * Log search analytics when a result is selected.
+     */
+    private function logSearchAnalytics(string $selectedType, string $selectedId): void
+    {
+        if (strlen($this->search) < 2) {
+            return;
+        }
+
+        $resultsByType = [];
+        $totalCount = 0;
+
+        foreach ($this->results as $type => $data) {
+            $count = $data['total'] ?? count($data['items'] ?? $data);
+            $resultsByType[$type] = $count;
+            $totalCount += $count;
+        }
+
+        SearchAnalytic::log($this->search, [
+            'branch_id' => $this->currentBranchId,
+            'searched_all_branches' => $this->searchAllBranches,
+            'results_count' => $totalCount,
+            'results_by_type' => $resultsByType,
+            'selected_type' => $selectedType,
+            'selected_id' => $selectedId,
+        ]);
     }
 
     /**
@@ -360,7 +392,7 @@ class GlobalSearch extends Component
 
                 // SOUNDEX match for name-like columns (phonetic matching)
                 if (Str::contains($column, ['first_name', 'last_name', 'name'])) {
-                    $q->orWhereRaw('SOUNDEX(?) = SOUNDEX(?)', [$column, $term]);
+                    $q->orWhereRaw("SOUNDEX($column) = SOUNDEX(?)", [$term]);
                 }
             }
         });
