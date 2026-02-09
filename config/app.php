@@ -135,4 +135,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Demo Video URL
+    |--------------------------------------------------------------------------
+    | This URL is used in various parts of the application to link to demo
+    | videos and tutorials for users.
+    |--------------------------------------------------------------------------
+    */
+    'demo_video_url' => env('DEMO_VIDEO_URL', ''),
+
 ];
