@@ -1,5 +1,5 @@
 <div
-    x-data="{ flatIndex: 0 }"
+    x-data="{ flatIndex: 0, showHelp: false }"
     x-on:keydown.cmd.k.window.prevent="$wire.openModal()"
     x-on:keydown.ctrl.k.window.prevent="$wire.openModal()"
     x-on:keydown.arrow-down.prevent="$wire.selectNext()"
@@ -7,13 +7,66 @@
     x-on:keydown.enter.prevent="$wire.selectCurrent()"
     x-effect="if ($wire.showModal) $nextTick(() => $refs.searchInput?.focus())"
 >
-    {{-- Search Modal (triggered via Cmd+K / Ctrl+K) --}}
+    {{-- Search Modal (triggered via Cmd+K / Ctrl+K) - only render content when modal is open --}}
+    @if($showModal)
     <flux:modal
         wire:model="showModal"
         class="w-full max-w-xl"
         :dismissable="true"
     >
-        <div class="flex flex-col">
+        <div class="relative flex flex-col">
+            {{-- Keyboard Shortcuts Help Overlay --}}
+            <div
+                x-show="showHelp"
+                x-cloak
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/98 dark:bg-zinc-900/98"
+                x-on:keydown.escape.window="showHelp = false"
+            >
+                <div class="w-full max-w-xs px-6 py-8 text-center">
+                    <div class="mb-6">
+                        <flux:icon icon="keyboard" class="mx-auto size-12 text-zinc-300 dark:text-zinc-600" />
+                        <h3 class="mt-3 text-lg font-semibold text-zinc-900 dark:text-white">{{ __('Keyboard Shortcuts') }}</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ __('Open search') }}</span>
+                            <div class="flex gap-1">
+                                <kbd class="rounded border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-xs dark:border-zinc-600 dark:bg-zinc-800">{{ PHP_OS_FAMILY === 'Darwin' ? '⌘' : 'Ctrl' }}</kbd>
+                                <kbd class="rounded border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-xs dark:border-zinc-600 dark:bg-zinc-800">K</kbd>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ __('Navigate results') }}</span>
+                            <div class="flex gap-1">
+                                <kbd class="rounded border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-xs dark:border-zinc-600 dark:bg-zinc-800">&uarr;</kbd>
+                                <kbd class="rounded border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-xs dark:border-zinc-600 dark:bg-zinc-800">&darr;</kbd>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ __('Select result') }}</span>
+                            <kbd class="rounded border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-xs dark:border-zinc-600 dark:bg-zinc-800">Enter</kbd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ __('Close search') }}</span>
+                            <kbd class="rounded border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-xs dark:border-zinc-600 dark:bg-zinc-800">Esc</kbd>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        x-on:click="showHelp = false"
+                        class="mt-6 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                    >
+                        {{ __('Got it') }}
+                    </button>
+                </div>
+            </div>
+
             {{-- Search Input --}}
             <div class="relative">
                 {{-- Loading Spinner / Search Icon --}}
@@ -210,19 +263,24 @@
 
             {{-- Footer --}}
             <div class="flex items-center justify-between border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                <div class="flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400">
-                    <span class="flex items-center gap-1">
+                <div class="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+                    {{-- Help Button --}}
+                    <button
+                        type="button"
+                        x-on:click="showHelp = true"
+                        class="flex size-6 items-center justify-center rounded border border-zinc-300 font-mono text-[10px] font-medium transition hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800"
+                        title="{{ __('Keyboard shortcuts') }}"
+                    >
+                        ?
+                    </button>
+                    <span class="hidden items-center gap-1 sm:flex">
                         <kbd class="rounded border border-zinc-300 px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-600">&uarr;</kbd>
                         <kbd class="rounded border border-zinc-300 px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-600">&darr;</kbd>
-                        {{ __('to navigate') }}
+                        {{ __('navigate') }}
                     </span>
-                    <span class="flex items-center gap-1">
-                        <kbd class="rounded border border-zinc-300 px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-600">enter</kbd>
-                        {{ __('to select') }}
-                    </span>
-                    <span class="flex items-center gap-1">
+                    <span class="hidden items-center gap-1 sm:flex">
                         <kbd class="rounded border border-zinc-300 px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-600">esc</kbd>
-                        {{ __('to close') }}
+                        {{ __('close') }}
                     </span>
                 </div>
                 <div class="text-xs text-zinc-500 dark:text-zinc-400">
@@ -235,4 +293,5 @@
             </div>
         </div>
     </flux:modal>
+    @endif
 </div>
