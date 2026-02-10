@@ -83,3 +83,13 @@ Schedule::command('billing:send-reminders')
 Schedule::command('billing:reconcile-payments')
     ->weeklyOn(0, '00:00')
     ->withoutOverlapping();
+
+// AI: Recalculate conversion and churn scores weekly on Monday at 3 AM
+Schedule::command('ai:recalculate-scores')
+    ->weeklyOn(1, '03:00')
+    ->withoutOverlapping();
+
+// AI: Detect attendance anomalies daily at 4 AM
+Schedule::command('ai:detect-anomalies')
+    ->dailyAt('04:00')
+    ->withoutOverlapping();

@@ -455,14 +455,24 @@ $response = AI::using($provider)
 ## Configuration & Setup
 
 ### Installation
+
+**Option A: Prism PHP (PHP 8.2+)** - Currently installed
 ```bash
+composer require prism-php/prism
+```
+
+**Option B: Laravel AI SDK (PHP 8.4+ required)**
+```bash
+# When upgrading to PHP 8.4:
 composer require laravel/ai
 php artisan vendor:publish --tag=ai-config
 ```
 
+> **Note:** Laravel AI SDK uses Prism under the hood. Both provide the same provider-agnostic interface.
+
 ### Environment Variables
 ```env
-# Default provider (anthropic, openai, google, ollama, groq)
+# Default provider (anthropic, openai, gemini, ollama)
 AI_DEFAULT_PROVIDER=anthropic
 
 # Anthropic (Claude)
@@ -472,44 +482,47 @@ ANTHROPIC_API_KEY=your-key-here
 OPENAI_API_KEY=your-key-here
 
 # Google (Gemini)
-GOOGLE_AI_API_KEY=your-key-here
-
-# Groq (fast inference)
-GROQ_API_KEY=your-key-here
+GEMINI_API_KEY=your-key-here
 
 # Ollama (local - no key needed)
-OLLAMA_HOST=http://localhost:11434
+OLLAMA_URL=http://localhost:11434
 ```
 
-### Config File (config/ai.php)
+### Prism Configuration (config/prism.php)
 ```php
+// Published via: php artisan vendor:publish --tag=prism-config
 return [
-    'default' => env('AI_DEFAULT_PROVIDER', 'anthropic'),
-
+    'prism_server' => [
+        'enabled' => env('PRISM_SERVER_ENABLED', false),
+    ],
     'providers' => [
         'anthropic' => [
             'api_key' => env('ANTHROPIC_API_KEY'),
-            'model' => 'claude-3-5-sonnet-20241022',
         ],
         'openai' => [
             'api_key' => env('OPENAI_API_KEY'),
-            'model' => 'gpt-4o',
         ],
-        'google' => [
-            'api_key' => env('GOOGLE_AI_API_KEY'),
-            'model' => 'gemini-pro',
+        'gemini' => [
+            'api_key' => env('GEMINI_API_KEY'),
         ],
         'ollama' => [
-            'host' => env('OLLAMA_HOST', 'http://localhost:11434'),
-            'model' => 'llama3',
+            'url' => env('OLLAMA_URL', 'http://localhost:11434'),
         ],
     ],
+];
+```
 
-    // Feature-specific provider overrides
+### AI Feature Configuration (config/ai.php)
+```php
+return [
+    'default' => env('AI_DEFAULT_PROVIDER', 'anthropic'),
+    'fallback_chain' => ['anthropic', 'openai', 'ollama'],
+
     'features' => [
-        'follow_up_messages' => env('AI_FOLLOWUP_PROVIDER'),
-        'prayer_summaries' => env('AI_PRAYER_PROVIDER'),
-        'chatbot' => env('AI_CHATBOT_PROVIDER'),
+        'conversion_prediction' => ['enabled' => env('AI_FEATURE_CONVERSION', true)],
+        'donor_churn' => ['enabled' => env('AI_FEATURE_CHURN', true)],
+        'message_generation' => ['enabled' => env('AI_FEATURE_MESSAGES', true)],
+        'attendance_anomaly' => ['enabled' => env('AI_FEATURE_ATTENDANCE', true)],
     ],
 ];
 ```

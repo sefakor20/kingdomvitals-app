@@ -36,6 +36,9 @@ class Visitor extends Model
         'follow_up_count',
         'is_converted',
         'converted_member_id',
+        'conversion_score',
+        'conversion_factors',
+        'conversion_score_calculated_at',
     ];
 
     protected function casts(): array
@@ -47,6 +50,9 @@ class Visitor extends Model
             'next_follow_up_at' => 'datetime',
             'last_follow_up_at' => 'datetime',
             'follow_up_count' => 'integer',
+            'conversion_score' => 'decimal:2',
+            'conversion_factors' => 'array',
+            'conversion_score_calculated_at' => 'datetime',
         ];
     }
 

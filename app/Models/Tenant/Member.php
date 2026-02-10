@@ -92,6 +92,11 @@ class Member extends Model
         'notes',
         'previous_congregation',
         'photo_url',
+        'churn_risk_score',
+        'churn_risk_factors',
+        'churn_risk_calculated_at',
+        'attendance_anomaly_score',
+        'attendance_anomaly_detected_at',
     ];
 
     protected function casts(): array
@@ -108,6 +113,11 @@ class Member extends Model
             'status' => MembershipStatus::class,
             'household_role' => HouseholdRole::class,
             'sms_opt_out' => 'boolean',
+            'churn_risk_score' => 'decimal:2',
+            'churn_risk_factors' => 'array',
+            'churn_risk_calculated_at' => 'datetime',
+            'attendance_anomaly_score' => 'decimal:2',
+            'attendance_anomaly_detected_at' => 'datetime',
         ];
     }
 

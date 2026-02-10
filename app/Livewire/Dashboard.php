@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Enums\FollowUpOutcome;
 use App\Enums\MembershipStatus;
+use App\Enums\PlanModule;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
@@ -64,6 +65,12 @@ class Dashboard extends Component
         unset($this->branchQuota);
         unset($this->hasAnyQuotaLimits);
         unset($this->planName);
+
+        // Clear AI insights caches
+        unset($this->aiInsightsEnabled);
+        unset($this->atRiskDonorsCount);
+        unset($this->attendanceAnomaliesCount);
+        unset($this->highPotentialVisitors);
     }
 
     #[Computed]
@@ -278,6 +285,68 @@ class Dashboard extends Component
         $plan = app(PlanAccessService::class)->getPlan();
 
         return $plan?->name;
+    }
+
+    // ============================================
+    // AI INSIGHTS METRICS
+    // ============================================
+
+    /**
+     * Check if AI insights module is enabled.
+     */
+    #[Computed]
+    public function aiInsightsEnabled(): bool
+    {
+        return app(PlanAccessService::class)->hasModule(PlanModule::AiInsights);
+    }
+
+    /**
+     * Get count of donors at high churn risk.
+     */
+    #[Computed]
+    public function atRiskDonorsCount(): int
+    {
+        if (! $this->aiInsightsEnabled || ! $this->currentBranchId) {
+            return 0;
+        }
+
+        return Member::where('primary_branch_id', $this->currentBranchId)
+            ->where('churn_risk_score', '>', 70)
+            ->count();
+    }
+
+    /**
+     * Get count of members with attendance anomalies.
+     */
+    #[Computed]
+    public function attendanceAnomaliesCount(): int
+    {
+        if (! $this->aiInsightsEnabled || ! $this->currentBranchId) {
+            return 0;
+        }
+
+        return Member::where('primary_branch_id', $this->currentBranchId)
+            ->whereNotNull('attendance_anomaly_detected_at')
+            ->where('attendance_anomaly_detected_at', '>=', now()->subDays(7))
+            ->count();
+    }
+
+    /**
+     * Get visitors with high conversion scores.
+     */
+    #[Computed]
+    public function highPotentialVisitors(): Collection
+    {
+        if (! $this->aiInsightsEnabled || ! $this->currentBranchId) {
+            return collect();
+        }
+
+        return Visitor::where('branch_id', $this->currentBranchId)
+            ->where('is_converted', false)
+            ->where('conversion_score', '>=', 70)
+            ->orderByDesc('conversion_score')
+            ->limit(5)
+            ->get();
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View

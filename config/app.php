@@ -135,7 +135,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-
     /*
     |--------------------------------------------------------------------------
     | Demo Video URL
