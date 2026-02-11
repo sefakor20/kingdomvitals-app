@@ -93,3 +93,8 @@ Schedule::command('ai:recalculate-scores')
 Schedule::command('ai:detect-anomalies')
     ->dailyAt('04:00')
     ->withoutOverlapping();
+
+// AI: Generate attendance forecasts weekly on Sunday at 11 PM
+Schedule::command('ai:forecast-attendance --weeks=4')
+    ->weeklyOn(0, '23:00')
+    ->withoutOverlapping();

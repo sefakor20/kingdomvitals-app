@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Laravel\Ai\Provider;
-
 return [
 
     /*
@@ -169,6 +167,13 @@ return [
             'decline_threshold_percent' => 50,
             'weeks_lookback' => 4,
         ],
+
+        'attendance_forecast' => [
+            'enabled' => env('AI_FEATURE_FORECAST', true),
+            'provider' => env('AI_FORECAST_PROVIDER'),
+            'weeks_ahead' => 4,
+            'history_weeks' => 12,
+        ],
     ],
 
     /*
@@ -203,6 +208,14 @@ return [
             'decline_threshold_percent' => 50,
             'baseline_weeks' => 8,
             'comparison_weeks' => 4,
+        ],
+
+        'forecast' => [
+            'base_confidence' => 70,
+            'min_data_weeks' => 4,
+            'seasonal_weight' => 0.15,
+            'trend_weight' => 0.20,
+            'holiday_adjustment' => -0.30,
         ],
     ],
 

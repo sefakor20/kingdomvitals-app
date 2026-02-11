@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace App\Livewire\Attendance;
 
 use App\Enums\MembershipStatus;
+use App\Enums\PlanModule;
 use App\Models\Tenant\Attendance;
+use App\Models\Tenant\AttendanceForecast as AttendanceForecastModel;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\Visitor;
+use App\Services\AI\AttendanceForecastService;
+use App\Services\PlanAccessService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -652,6 +657,84 @@ class AttendanceAnalytics extends Component
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+    }
+
+    // ============================================
+    // ATTENDANCE FORECASTING
+    // ============================================
+
+    #[Computed]
+    public function forecastEnabled(): bool
+    {
+        return app(PlanAccessService::class)->hasModule(PlanModule::AiInsights)
+            && config('ai.features.attendance_forecast.enabled', false);
+    }
+
+    #[Computed]
+    public function upcomingForecasts(): Collection
+    {
+        if (! $this->forecastEnabled) {
+            return collect();
+        }
+
+        return AttendanceForecastModel::where('branch_id', $this->branch->id)
+            ->where('forecast_date', '>=', today())
+            ->where('forecast_date', '<=', today()->addWeeks(4))
+            ->orderBy('forecast_date')
+            ->with('service')
+            ->get()
+            ->groupBy(fn ($forecast) => $forecast->forecast_date->format('Y-m-d'))
+            ->map(function ($forecasts, $date) {
+                return [
+                    'date' => Carbon::parse($date),
+                    'forecasts' => $forecasts->map(fn ($f) => [
+                        'service_name' => $f->service->name,
+                        'predicted_attendance' => $f->predicted_attendance,
+                        'predicted_members' => $f->predicted_members,
+                        'predicted_visitors' => $f->predicted_visitors,
+                        'confidence' => $f->confidence_score,
+                        'confidence_level' => $f->confidenceLevel(),
+                        'confidence_color' => $f->confidenceBadgeColor(),
+                    ]),
+                    'total_predicted' => $forecasts->sum('predicted_attendance'),
+                ];
+            })
+            ->values();
+    }
+
+    #[Computed]
+    public function forecastAccuracy(): ?float
+    {
+        if (! $this->forecastEnabled) {
+            return null;
+        }
+
+        return app(AttendanceForecastService::class)->calculateAccuracy($this->branch->id, 30);
+    }
+
+    #[Computed]
+    public function recentForecastComparison(): Collection
+    {
+        if (! $this->forecastEnabled) {
+            return collect();
+        }
+
+        return AttendanceForecastModel::where('branch_id', $this->branch->id)
+            ->whereNotNull('actual_attendance')
+            ->where('forecast_date', '>=', today()->subDays(30))
+            ->orderByDesc('forecast_date')
+            ->with('service')
+            ->limit(10)
+            ->get()
+            ->map(fn ($f) => [
+                'date' => $f->forecast_date->format('M d'),
+                'service_name' => $f->service->name,
+                'predicted' => $f->predicted_attendance,
+                'actual' => $f->actual_attendance,
+                'variance' => $f->variance,
+                'variance_percent' => round($f->variance_percent ?? 0, 1),
+                'accurate' => $f->wasAccurate(),
+            ]);
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
