@@ -174,6 +174,13 @@ return [
             'weeks_ahead' => 4,
             'history_weeks' => 12,
         ],
+
+        'prayer_analysis' => [
+            'enabled' => env('AI_FEATURE_PRAYER', true),
+            'provider' => env('AI_PRAYER_PROVIDER'),
+            'auto_analyze' => true,
+            'notify_on_critical' => true,
+        ],
     ],
 
     /*
@@ -216,6 +223,17 @@ return [
             'seasonal_weight' => 0.15,
             'trend_weight' => 0.20,
             'holiday_adjustment' => -0.30,
+        ],
+
+        'prayer' => [
+            'base_score' => 50,
+            'urgency_critical' => 40,
+            'urgency_high' => 30,
+            'urgency_elevated' => 15,
+            'recency_max_bonus' => 10,
+            'open_duration_max' => 15,
+            'member_bonus' => 2,
+            'leaders_only_bonus' => 3,
         ],
     ],
 

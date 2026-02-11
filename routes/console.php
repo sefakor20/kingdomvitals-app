@@ -98,3 +98,8 @@ Schedule::command('ai:detect-anomalies')
 Schedule::command('ai:forecast-attendance --weeks=4')
     ->weeklyOn(0, '23:00')
     ->withoutOverlapping();
+
+// AI: Analyze new prayer requests hourly
+Schedule::command('ai:analyze-prayers')
+    ->hourly()
+    ->withoutOverlapping();
