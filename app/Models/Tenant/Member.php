@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\HouseholdRole;
+use App\Enums\LifecycleStage;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\SmsEngagementLevel;
@@ -107,6 +108,9 @@ class Member extends Model
         'sms_total_received',
         'sms_total_delivered',
         'sms_engagement_calculated_at',
+        'lifecycle_stage',
+        'lifecycle_stage_changed_at',
+        'lifecycle_stage_factors',
     ];
 
     protected function casts(): array
@@ -137,6 +141,9 @@ class Member extends Model
             'sms_total_received' => 'integer',
             'sms_total_delivered' => 'integer',
             'sms_engagement_calculated_at' => 'datetime',
+            'lifecycle_stage' => LifecycleStage::class,
+            'lifecycle_stage_changed_at' => 'datetime',
+            'lifecycle_stage_factors' => 'array',
         ];
     }
 
@@ -369,5 +376,53 @@ class Member extends Model
         }
 
         return $ageGroup;
+    }
+
+    /**
+     * Scope to get members by lifecycle stage.
+     */
+    public function scopeInLifecycleStage(Builder $query, LifecycleStage $stage): Builder
+    {
+        return $query->where('lifecycle_stage', $stage->value);
+    }
+
+    /**
+     * Scope to get members needing attention (at-risk, disengaging, dormant).
+     */
+    public function scopeNeedingAttention(Builder $query): Builder
+    {
+        return $query->whereIn('lifecycle_stage', [
+            LifecycleStage::AtRisk->value,
+            LifecycleStage::Disengaging->value,
+            LifecycleStage::Dormant->value,
+        ]);
+    }
+
+    /**
+     * Scope to get actively engaged members.
+     */
+    public function scopeEngaged(Builder $query): Builder
+    {
+        return $query->whereIn('lifecycle_stage', [
+            LifecycleStage::NewMember->value,
+            LifecycleStage::Growing->value,
+            LifecycleStage::Engaged->value,
+        ]);
+    }
+
+    /**
+     * Check if the member needs attention based on lifecycle stage.
+     */
+    public function needsLifecycleAttention(): bool
+    {
+        return $this->lifecycle_stage?->needsAttention() ?? false;
+    }
+
+    /**
+     * Check if the member is actively engaged.
+     */
+    public function isActivelyEngaged(): bool
+    {
+        return $this->lifecycle_stage?->isActive() ?? false;
     }
 }

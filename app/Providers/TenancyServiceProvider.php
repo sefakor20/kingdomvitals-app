@@ -139,6 +139,7 @@ class TenancyServiceProvider extends ServiceProvider
             // Central domains are handled by Route::domain() in web.php.
             if (file_exists(base_path('routes/tenant.php'))) {
                 Route::middleware([
+                    Middleware\PreventAccessFromCentralDomains::class,
                     Middleware\InitializeTenancyByDomain::class,
                 ])
                     ->namespace(static::$controllerNamespace)

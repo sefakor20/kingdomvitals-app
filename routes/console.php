@@ -113,3 +113,18 @@ Schedule::command('ai:optimize-roster-scores')
 Schedule::command('ai:calculate-sms-engagement')
     ->weeklyOn(2, '02:00')
     ->withoutOverlapping();
+
+// AI: Detect member lifecycle stages weekly on Monday at 4 AM
+Schedule::command('ai:detect-lifecycle-stages')
+    ->weeklyOn(1, '04:00')
+    ->withoutOverlapping();
+
+// AI: Calculate household engagement weekly on Monday at 5 AM
+Schedule::command('ai:calculate-household-engagement')
+    ->weeklyOn(1, '05:00')
+    ->withoutOverlapping();
+
+// AI: Calculate cluster health weekly on Monday at 6 AM
+Schedule::command('ai:calculate-cluster-health')
+    ->weeklyOn(1, '06:00')
+    ->withoutOverlapping();

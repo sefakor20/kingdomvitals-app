@@ -2,13 +2,16 @@
 
 namespace App\Models\Tenant;
 
+use App\Enums\ClusterHealthLevel;
 use App\Enums\ClusterType;
 use Database\Factories\Tenant\ClusterFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cluster extends Model
 {
@@ -33,6 +36,10 @@ class Cluster extends Model
         'capacity',
         'is_active',
         'notes',
+        'health_score',
+        'health_level',
+        'health_factors',
+        'health_calculated_at',
     ];
 
     protected function casts(): array
@@ -41,6 +48,10 @@ class Cluster extends Model
             'capacity' => 'integer',
             'is_active' => 'boolean',
             'cluster_type' => ClusterType::class,
+            'health_score' => 'decimal:2',
+            'health_level' => ClusterHealthLevel::class,
+            'health_factors' => 'array',
+            'health_calculated_at' => 'datetime',
         ];
     }
 
@@ -65,5 +76,80 @@ class Cluster extends Model
             ->using(ClusterMember::class)
             ->withPivot(['id', 'role', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(ClusterMeeting::class);
+    }
+
+    /**
+     * Scope to get clusters by health level.
+     */
+    public function scopeWithHealthLevel(Builder $query, ClusterHealthLevel $level): Builder
+    {
+        return $query->where('health_level', $level->value);
+    }
+
+    /**
+     * Scope to get clusters needing attention.
+     */
+    public function scopeNeedingAttention(Builder $query): Builder
+    {
+        return $query->whereIn('health_level', [
+            ClusterHealthLevel::Struggling->value,
+            ClusterHealthLevel::Critical->value,
+        ]);
+    }
+
+    /**
+     * Scope to get healthy clusters.
+     */
+    public function scopeHealthy(Builder $query): Builder
+    {
+        return $query->whereIn('health_level', [
+            ClusterHealthLevel::Thriving->value,
+            ClusterHealthLevel::Healthy->value,
+        ]);
+    }
+
+    /**
+     * Scope to get only active clusters.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Check if the cluster needs attention.
+     */
+    public function needsAttention(): bool
+    {
+        return $this->health_level?->needsAttention() ?? false;
+    }
+
+    /**
+     * Check if the cluster is performing well.
+     */
+    public function isPerformingWell(): bool
+    {
+        return $this->health_level?->isPerformingWell() ?? false;
+    }
+
+    /**
+     * Check if the cluster is thriving.
+     */
+    public function isThriving(): bool
+    {
+        return $this->health_level === ClusterHealthLevel::Thriving;
+    }
+
+    /**
+     * Get recommended check-in frequency in days.
+     */
+    public function checkInFrequencyDays(): int
+    {
+        return $this->health_level?->checkInFrequencyDays() ?? 30;
     }
 }

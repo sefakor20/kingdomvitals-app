@@ -192,6 +192,26 @@ return [
             'provider' => env('AI_SMS_OPT_PROVIDER'),
             'inactivity_threshold_days' => 60,
         ],
+
+        'lifecycle_detection' => [
+            'enabled' => env('AI_FEATURE_LIFECYCLE', true),
+            'provider' => env('AI_LIFECYCLE_PROVIDER'),
+            'new_member_days' => 90,
+            'dormant_days' => 90,
+            'notify_on_at_risk' => true,
+        ],
+
+        'household_engagement' => [
+            'enabled' => env('AI_FEATURE_HOUSEHOLD', true),
+            'provider' => env('AI_HOUSEHOLD_PROVIDER'),
+            'variance_threshold' => 30,
+        ],
+
+        'cluster_health' => [
+            'enabled' => env('AI_FEATURE_CLUSTER_HEALTH', true),
+            'provider' => env('AI_CLUSTER_HEALTH_PROVIDER'),
+            'notify_on_struggling' => true,
+        ],
     ],
 
     /*
@@ -265,6 +285,33 @@ return [
             'consistency_max_bonus' => 15,
             'inactivity_decay_per_week' => 2,
             'opt_out_penalty' => 50,
+        ],
+
+        'lifecycle' => [
+            'new_member_days' => 90,
+            'dormant_days' => 90,
+            'churn_risk_disengaging_threshold' => 50,
+            'churn_risk_at_risk_threshold' => 70,
+            'min_attendance_for_engaged' => 4,
+            'min_giving_for_engaged' => 1,
+        ],
+
+        'household' => [
+            'attendance_weight' => 0.40,
+            'giving_weight' => 0.30,
+            'lifecycle_weight' => 0.20,
+            'sms_engagement_weight' => 0.10,
+            'head_member_bonus' => 1.2,
+            'variance_threshold' => 30,
+        ],
+
+        'cluster' => [
+            'attendance_weight' => 0.25,
+            'engagement_weight' => 0.20,
+            'growth_weight' => 0.20,
+            'retention_weight' => 0.20,
+            'leadership_weight' => 0.15,
+            'meeting_frequency_target' => 4,
         ],
     ],
 
