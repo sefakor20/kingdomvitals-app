@@ -7,6 +7,7 @@ use App\Enums\Gender;
 use App\Enums\HouseholdRole;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\SmsEngagementLevel;
 use App\Observers\MemberObserver;
 use Database\Factories\Tenant\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -97,6 +98,15 @@ class Member extends Model
         'churn_risk_calculated_at',
         'attendance_anomaly_score',
         'attendance_anomaly_detected_at',
+        'sms_engagement_score',
+        'sms_engagement_level',
+        'sms_optimal_send_hour',
+        'sms_optimal_send_day',
+        'sms_response_rate',
+        'sms_last_engaged_at',
+        'sms_total_received',
+        'sms_total_delivered',
+        'sms_engagement_calculated_at',
     ];
 
     protected function casts(): array
@@ -118,6 +128,15 @@ class Member extends Model
             'churn_risk_calculated_at' => 'datetime',
             'attendance_anomaly_score' => 'decimal:2',
             'attendance_anomaly_detected_at' => 'datetime',
+            'sms_engagement_score' => 'decimal:2',
+            'sms_engagement_level' => SmsEngagementLevel::class,
+            'sms_optimal_send_hour' => 'integer',
+            'sms_optimal_send_day' => 'integer',
+            'sms_response_rate' => 'decimal:2',
+            'sms_last_engaged_at' => 'datetime',
+            'sms_total_received' => 'integer',
+            'sms_total_delivered' => 'integer',
+            'sms_engagement_calculated_at' => 'datetime',
         ];
     }
 

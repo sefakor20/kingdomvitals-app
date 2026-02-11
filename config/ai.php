@@ -181,6 +181,17 @@ return [
             'auto_analyze' => true,
             'notify_on_critical' => true,
         ],
+
+        'roster_optimization' => [
+            'enabled' => env('AI_FEATURE_ROSTER', true),
+            'provider' => env('AI_ROSTER_PROVIDER'),
+        ],
+
+        'sms_optimization' => [
+            'enabled' => env('AI_FEATURE_SMS_OPT', true),
+            'provider' => env('AI_SMS_OPT_PROVIDER'),
+            'inactivity_threshold_days' => 60,
+        ],
     ],
 
     /*
@@ -234,6 +245,26 @@ return [
             'open_duration_max' => 15,
             'member_bonus' => 2,
             'leaders_only_bonus' => 3,
+        ],
+
+        'roster' => [
+            'base_score' => 50,
+            'fairness_max_bonus' => 20,
+            'experience_max_bonus' => 15,
+            'reliability_max_bonus' => 15,
+            'recency_max_bonus' => 10,
+            'conflict_penalty' => 30,
+            'overwork_penalty' => 20,
+        ],
+
+        'sms_engagement' => [
+            'base_score' => 50,
+            'delivery_weight' => 15,
+            'response_weight' => 30,
+            'recency_max_bonus' => 20,
+            'consistency_max_bonus' => 15,
+            'inactivity_decay_per_week' => 2,
+            'opt_out_penalty' => 50,
         ],
     ],
 

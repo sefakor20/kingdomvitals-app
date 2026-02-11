@@ -103,3 +103,13 @@ Schedule::command('ai:forecast-attendance --weeks=4')
 Schedule::command('ai:analyze-prayers')
     ->hourly()
     ->withoutOverlapping();
+
+// AI: Optimize duty roster pool scores weekly on Monday at 2 AM
+Schedule::command('ai:optimize-roster-scores')
+    ->weeklyOn(1, '02:00')
+    ->withoutOverlapping();
+
+// AI: Calculate SMS engagement scores weekly on Tuesday at 2 AM
+Schedule::command('ai:calculate-sms-engagement')
+    ->weeklyOn(2, '02:00')
+    ->withoutOverlapping();
