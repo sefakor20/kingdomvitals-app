@@ -307,6 +307,227 @@
                         </flux:text>
                     </div>
                 </div>
+
+                {{-- Member Lifecycle Distribution Widget --}}
+                <div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900 lg:col-span-2">
+                        <div class="mb-4 flex items-center justify-between">
+                            <div>
+                                <flux:heading size="base">{{ __('Member Lifecycle') }}</flux:heading>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Distribution by engagement stage') }}</flux:text>
+                            </div>
+                            @if($this->membersNeedingAttentionCount > 0)
+                                <flux:badge color="amber">{{ $this->membersNeedingAttentionCount }} {{ __('need attention') }}</flux:badge>
+                            @endif
+                        </div>
+
+                        @if(empty($this->lifecycleDistribution) || collect($this->lifecycleDistribution)->sum('count') === 0)
+                            <div class="flex flex-col items-center justify-center py-8 text-center">
+                                <flux:icon icon="users" class="size-12 text-zinc-400" />
+                                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No lifecycle data available') }}</flux:text>
+                            </div>
+                        @else
+                            <div class="space-y-3">
+                                @foreach($this->lifecycleDistribution as $stageData)
+                                    @if($stageData['count'] > 0)
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex w-32 items-center gap-2">
+                                                <flux:icon :icon="$stageData['stage']->icon()" class="size-4 {{ $stageData['stage']->color() }}" />
+                                                <flux:text class="text-sm">{{ $stageData['stage']->label() }}</flux:text>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                                    @php
+                                                        $total = collect($this->lifecycleDistribution)->sum('count');
+                                                        $percent = $total > 0 ? ($stageData['count'] / $total) * 100 : 0;
+                                                    @endphp
+                                                    <div class="h-full rounded-full {{ str_replace('text-', 'bg-', $stageData['stage']->color()) }}" style="width: {{ $percent }}%"></div>
+                                                </div>
+                                            </div>
+                                            <flux:text class="w-12 text-right text-sm font-medium">{{ $stageData['count'] }}</flux:text>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Cluster Health Widget --}}
+                    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="mb-4">
+                            <flux:heading size="base">{{ __('Cluster Health') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Small group health overview') }}</flux:text>
+                        </div>
+
+                        @if(empty($this->clusterHealthDistribution) || collect($this->clusterHealthDistribution)->sum('count') === 0)
+                            <div class="flex flex-col items-center justify-center py-8 text-center">
+                                <flux:icon icon="user-group" class="size-12 text-zinc-400" />
+                                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No cluster data available') }}</flux:text>
+                            </div>
+                        @else
+                            <div class="space-y-2">
+                                @foreach($this->clusterHealthDistribution as $levelData)
+                                    @if($levelData['count'] > 0)
+                                        <div class="flex items-center justify-between rounded-lg border border-zinc-100 p-2 dark:border-zinc-800">
+                                            <div class="flex items-center gap-2">
+                                                <div class="size-3 rounded-full {{ str_replace('text-', 'bg-', $levelData['level']->color()) }}"></div>
+                                                <flux:text class="text-sm">{{ $levelData['level']->label() }}</flux:text>
+                                            </div>
+                                            <flux:badge size="sm" :color="match($levelData['level']->value) {
+                                                'thriving' => 'green',
+                                                'healthy' => 'lime',
+                                                'stable' => 'zinc',
+                                                'struggling' => 'amber',
+                                                'critical' => 'red',
+                                                default => 'zinc',
+                                            }">{{ $levelData['count'] }}</flux:badge>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            @if($this->clustersNeedingAttention->isNotEmpty())
+                                <div class="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                                    <flux:text class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Needs Attention') }}</flux:text>
+                                    @foreach($this->clustersNeedingAttention->take(3) as $cluster)
+                                        <div class="flex items-center justify-between py-1">
+                                            <flux:text class="text-sm">{{ $cluster->name }}</flux:text>
+                                            <flux:badge size="sm" :color="$cluster->health_level === \App\Enums\ClusterHealthLevel::Critical ? 'red' : 'amber'">
+                                                {{ $cluster->health_level->label() }}
+                                            </flux:badge>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Household, Prayer, and SMS Widgets Row --}}
+                <div class="mt-4 grid gap-4 md:grid-cols-3">
+                    {{-- Household Engagement Widget --}}
+                    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="mb-4 flex items-center justify-between">
+                            <div>
+                                <flux:heading size="base">{{ __('Household Engagement') }}</flux:heading>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Family unit engagement') }}</flux:text>
+                            </div>
+                        </div>
+
+                        @if(empty($this->householdEngagementDistribution) || collect($this->householdEngagementDistribution)->sum('count') === 0)
+                            <div class="flex flex-col items-center justify-center py-8 text-center">
+                                <flux:icon icon="home" class="size-12 text-zinc-400" />
+                                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No household data available') }}</flux:text>
+                            </div>
+                        @else
+                            <div class="space-y-2">
+                                @foreach($this->householdEngagementDistribution as $levelData)
+                                    @if($levelData['count'] > 0)
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <flux:icon :icon="$levelData['level']->icon()" class="size-4 {{ $levelData['level']->color() }}" />
+                                                <flux:text class="text-sm">{{ $levelData['level']->label() }}</flux:text>
+                                            </div>
+                                            <flux:text class="text-sm font-medium">{{ $levelData['count'] }}</flux:text>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            @if($this->householdsNeedingOutreachCount > 0)
+                                <div class="mt-4 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
+                                    <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                                        <strong>{{ $this->householdsNeedingOutreachCount }}</strong> {{ __('households need outreach') }}
+                                    </flux:text>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+
+                    {{-- Prayer Request Triage Widget --}}
+                    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="mb-4 flex items-center justify-between">
+                            <div>
+                                <flux:heading size="base">{{ __('Prayer Requests') }}</flux:heading>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Triage by urgency') }}</flux:text>
+                            </div>
+                            @if($this->openPrayerRequestsCount > 0)
+                                <flux:badge color="zinc">{{ $this->openPrayerRequestsCount }} {{ __('open') }}</flux:badge>
+                            @endif
+                        </div>
+
+                        @if($this->openPrayerRequestsCount === 0)
+                            <div class="flex flex-col items-center justify-center py-8 text-center">
+                                <flux:icon icon="heart" class="size-12 text-zinc-400" />
+                                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No open prayer requests') }}</flux:text>
+                            </div>
+                        @else
+                            <div class="space-y-3">
+                                @if($this->urgentPrayerRequestsCount > 0)
+                                    <div class="rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+                                        <div class="flex items-center gap-2">
+                                            <flux:icon icon="exclamation-circle" class="size-5 text-red-600 dark:text-red-400" />
+                                            <flux:text class="font-medium text-red-700 dark:text-red-300">
+                                                {{ $this->urgentPrayerRequestsCount }} {{ __('urgent requests') }}
+                                            </flux:text>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if($this->criticalPrayerRequests->isNotEmpty())
+                                    <div class="space-y-2">
+                                        <flux:text class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Critical') }}</flux:text>
+                                        @foreach($this->criticalPrayerRequests as $request)
+                                            <div class="rounded-lg border border-red-200 p-2 dark:border-red-800">
+                                                <flux:text class="text-sm font-medium">{{ $request->member?->first_name ?? __('Anonymous') }}</flux:text>
+                                                <flux:text class="line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($request->request, 50) }}</flux:text>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- SMS Engagement Widget --}}
+                    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="mb-4 flex items-center justify-between">
+                            <div>
+                                <flux:heading size="base">{{ __('SMS Engagement') }}</flux:heading>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Member response rates') }}</flux:text>
+                            </div>
+                        </div>
+
+                        @if(empty($this->smsEngagementDistribution) || collect($this->smsEngagementDistribution)->sum('count') === 0)
+                            <div class="flex flex-col items-center justify-center py-8 text-center">
+                                <flux:icon icon="chat-bubble-left-right" class="size-12 text-zinc-400" />
+                                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No SMS engagement data') }}</flux:text>
+                            </div>
+                        @else
+                            <div class="space-y-2">
+                                @foreach($this->smsEngagementDistribution as $levelData)
+                                    @if($levelData['count'] > 0)
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <flux:icon :icon="$levelData['level']->icon()" class="size-4 {{ $levelData['level']->color() }}" />
+                                                <flux:text class="text-sm">{{ $levelData['level']->label() }}</flux:text>
+                                            </div>
+                                            <flux:text class="text-sm font-medium">{{ $levelData['count'] }}</flux:text>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            @if($this->lowSmsEngagementCount > 0)
+                                <div class="mt-4 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                                        <strong>{{ $this->lowSmsEngagementCount }}</strong> {{ __('with low engagement') }}
+                                    </flux:text>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                </div>
             </div>
         @endif
 
