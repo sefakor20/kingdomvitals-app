@@ -17,6 +17,7 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
+use App\Models\Tenant\PrayerSummary;
 use App\Models\Tenant\Visitor;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -326,6 +327,32 @@ class InsightsDashboard extends Component
         return PrayerRequest::where('branch_id', $this->branch->id)
             ->where('status', PrayerRequestStatus::Open)
             ->count();
+    }
+
+    #[Computed]
+    public function latestPrayerSummary(): ?PrayerSummary
+    {
+        return PrayerSummary::where('branch_id', $this->branch->id)
+            ->orderByDesc('period_end')
+            ->first();
+    }
+
+    #[Computed]
+    public function latestWeeklyPrayerSummary(): ?PrayerSummary
+    {
+        return PrayerSummary::where('branch_id', $this->branch->id)
+            ->weekly()
+            ->orderByDesc('period_end')
+            ->first();
+    }
+
+    #[Computed]
+    public function latestMonthlyPrayerSummary(): ?PrayerSummary
+    {
+        return PrayerSummary::where('branch_id', $this->branch->id)
+            ->monthly()
+            ->orderByDesc('period_end')
+            ->first();
     }
 
     // ============================================

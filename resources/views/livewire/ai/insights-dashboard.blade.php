@@ -352,6 +352,83 @@
         </div>
     </div>
 
+    {{-- Prayer Summary --}}
+    @if($this->latestPrayerSummary)
+        <div class="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-white p-6 dark:border-purple-800 dark:from-purple-950 dark:to-zinc-900">
+            <div class="mb-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="rounded-lg bg-purple-100 p-2 dark:bg-purple-900">
+                        <flux:icon icon="sparkles" class="size-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                        <flux:heading size="base">{{ __('AI Prayer Summary') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ ucfirst($this->latestPrayerSummary->period_type) }}: {{ $this->latestPrayerSummary->period_label }}
+                        </flux:text>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <flux:badge color="purple">{{ $this->latestPrayerSummary->total_requests }} {{ __('requests') }}</flux:badge>
+                    @if($this->latestPrayerSummary->answer_rate > 0)
+                        <flux:badge color="green">{{ $this->latestPrayerSummary->answer_rate }}% {{ __('answered') }}</flux:badge>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Summary Text --}}
+            <div class="prose prose-sm max-w-none dark:prose-invert">
+                <p class="text-zinc-700 dark:text-zinc-300">{{ $this->latestPrayerSummary->summary_text }}</p>
+            </div>
+
+            {{-- Key Themes & Recommendations --}}
+            <div class="mt-6 grid gap-6 md:grid-cols-2">
+                {{-- Key Themes --}}
+                @if(!empty($this->latestPrayerSummary->key_themes))
+                    <div>
+                        <flux:text class="mb-2 text-xs font-medium uppercase tracking-wider text-purple-600 dark:text-purple-400">{{ __('Key Themes') }}</flux:text>
+                        <ul class="space-y-1.5">
+                            @foreach($this->latestPrayerSummary->key_themes as $theme)
+                                <li class="flex items-start gap-2">
+                                    <flux:icon icon="check-circle" class="mt-0.5 size-4 shrink-0 text-purple-500" />
+                                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">{{ $theme }}</flux:text>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                {{-- Pastoral Recommendations --}}
+                @if(!empty($this->latestPrayerSummary->pastoral_recommendations))
+                    <div>
+                        <flux:text class="mb-2 text-xs font-medium uppercase tracking-wider text-purple-600 dark:text-purple-400">{{ __('Recommendations') }}</flux:text>
+                        <ul class="space-y-1.5">
+                            @foreach($this->latestPrayerSummary->pastoral_recommendations as $recommendation)
+                                <li class="flex items-start gap-2">
+                                    <flux:icon icon="light-bulb" class="mt-0.5 size-4 shrink-0 text-amber-500" />
+                                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">{{ $recommendation }}</flux:text>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Category Breakdown --}}
+            @if(!empty($this->latestPrayerSummary->category_breakdown))
+                <div class="mt-6 border-t border-purple-100 pt-4 dark:border-purple-900">
+                    <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Request Categories') }}</flux:text>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($this->latestPrayerSummary->category_breakdown as $category => $count)
+                            <flux:badge size="sm" color="zinc">
+                                {{ ucfirst($category) }}: {{ $count }}
+                            </flux:badge>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
     {{-- Attendance Forecasts --}}
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="mb-4">
