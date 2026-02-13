@@ -219,6 +219,20 @@ return [
             'history_months' => 24,
             'periods_ahead' => 4,
         ],
+
+        'alerts' => [
+            'enabled' => env('AI_ALERTS_ENABLED', true),
+            'default_cooldown_hours' => 24,
+            'send_immediate_notifications' => true,
+            'send_daily_digest' => true,
+            'digest_hour' => 8, // 8 AM
+            'thresholds' => [
+                'churn_risk' => 70,
+                'attendance_anomaly' => 50,
+                'cluster_health_critical' => 30,
+                'cluster_health_struggling' => 50,
+            ],
+        ],
     ],
 
     /*

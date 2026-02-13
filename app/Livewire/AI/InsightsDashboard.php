@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\AI;
 
+use App\Enums\AiAlertType;
+use App\Enums\AlertSeverity;
 use App\Enums\ClusterHealthLevel;
 use App\Enums\HouseholdEngagementLevel;
 use App\Enums\LifecycleStage;
@@ -11,6 +13,7 @@ use App\Enums\MembershipStatus;
 use App\Enums\PrayerRequestStatus;
 use App\Enums\PrayerUrgencyLevel;
 use App\Enums\SmsEngagementLevel;
+use App\Models\Tenant\AiAlert;
 use App\Models\Tenant\AttendanceForecast;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
@@ -34,6 +37,85 @@ class InsightsDashboard extends Component
     {
         $this->authorize('view', $branch);
         $this->branch = $branch;
+    }
+
+    // ============================================
+    // AI ALERTS
+    // ============================================
+
+    #[Computed]
+    public function recentAlerts(): Collection
+    {
+        return AiAlert::forBranch($this->branch->id)
+            ->recent(7)
+            ->orderBySeverity()
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+    }
+
+    #[Computed]
+    public function unreadAlertsCount(): int
+    {
+        return AiAlert::forBranch($this->branch->id)
+            ->unread()
+            ->count();
+    }
+
+    #[Computed]
+    public function highPriorityAlertsCount(): int
+    {
+        return AiAlert::forBranch($this->branch->id)
+            ->highPriority()
+            ->unacknowledged()
+            ->count();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    #[Computed]
+    public function alertStats(): array
+    {
+        $alerts = AiAlert::forBranch($this->branch->id)->recent(7)->get();
+
+        $bySeverity = [];
+        foreach (AlertSeverity::cases() as $severity) {
+            $bySeverity[$severity->value] = $alerts->where('severity', $severity)->count();
+        }
+
+        $byType = [];
+        foreach (AiAlertType::cases() as $type) {
+            $count = $alerts->where('alert_type', $type)->count();
+            if ($count > 0) {
+                $byType[$type->value] = $count;
+            }
+        }
+
+        return [
+            'total' => $alerts->count(),
+            'unread' => $alerts->where('is_read', false)->count(),
+            'critical' => $bySeverity[AlertSeverity::Critical->value] ?? 0,
+            'high' => $bySeverity[AlertSeverity::High->value] ?? 0,
+            'by_severity' => $bySeverity,
+            'by_type' => $byType,
+        ];
+    }
+
+    public function markAlertAsRead(string $alertId): void
+    {
+        $alert = AiAlert::find($alertId);
+        if ($alert && $alert->branch_id === $this->branch->id) {
+            $alert->markAsRead();
+        }
+    }
+
+    public function acknowledgeAlert(string $alertId): void
+    {
+        $alert = AiAlert::find($alertId);
+        if ($alert && $alert->branch_id === $this->branch->id) {
+            $alert->acknowledge(auth()->id());
+        }
     }
 
     // ============================================

@@ -143,3 +143,13 @@ Schedule::command('ai:generate-prayer-summaries --period=monthly')
 Schedule::command('ai:forecast-financial --type=monthly --periods=4')
     ->weeklyOn(1, '08:00')
     ->withoutOverlapping();
+
+// AI: Process alerts daily at 9 AM (after all AI scoring jobs complete)
+Schedule::command('ai:process-alerts')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();
+
+// AI: Send daily alert digest at 8 AM
+Schedule::command('ai:send-alert-digest')
+    ->dailyAt('08:00')
+    ->withoutOverlapping();

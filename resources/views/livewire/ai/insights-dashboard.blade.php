@@ -35,6 +35,96 @@
         </div>
     </div>
 
+    {{-- AI Alerts Panel --}}
+    @if($this->recentAlerts->isNotEmpty())
+        <div class="rounded-xl border {{ $this->highPriorityAlertsCount > 0 ? 'border-red-200 dark:border-red-800' : 'border-zinc-200 dark:border-zinc-700' }} bg-white dark:bg-zinc-900">
+            <div class="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                <div class="flex items-center gap-3">
+                    <div class="rounded-full {{ $this->highPriorityAlertsCount > 0 ? 'bg-red-100 dark:bg-red-900' : 'bg-purple-100 dark:bg-purple-900' }} p-2">
+                        <flux:icon icon="bell-alert" class="size-5 {{ $this->highPriorityAlertsCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-purple-600 dark:text-purple-400' }}" />
+                    </div>
+                    <div>
+                        <flux:heading size="lg">{{ __('AI Alerts') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Recent alerts requiring attention') }}
+                        </flux:text>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    @if($this->alertStats['critical'] > 0)
+                        <flux:badge color="red">{{ $this->alertStats['critical'] }} {{ __('Critical') }}</flux:badge>
+                    @endif
+                    @if($this->alertStats['high'] > 0)
+                        <flux:badge color="orange">{{ $this->alertStats['high'] }} {{ __('High') }}</flux:badge>
+                    @endif
+                    @if($this->alertStats['unread'] > 0)
+                        <flux:badge color="zinc">{{ $this->alertStats['unread'] }} {{ __('Unread') }}</flux:badge>
+                    @endif
+                </div>
+            </div>
+            <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                @foreach($this->recentAlerts as $alert)
+                    <div class="flex items-start gap-4 px-6 py-4 {{ !$alert->is_read ? 'bg-zinc-50 dark:bg-zinc-800/50' : '' }}">
+                        <div class="rounded-full p-2 {{ match($alert->severity->value) {
+                            'critical' => 'bg-red-100 dark:bg-red-900',
+                            'high' => 'bg-orange-100 dark:bg-orange-900',
+                            'medium' => 'bg-amber-100 dark:bg-amber-900',
+                            default => 'bg-zinc-100 dark:bg-zinc-800',
+                        } }}">
+                            <flux:icon :icon="$alert->icon" class="size-4 {{ match($alert->severity->value) {
+                                'critical' => 'text-red-600 dark:text-red-400',
+                                'high' => 'text-orange-600 dark:text-orange-400',
+                                'medium' => 'text-amber-600 dark:text-amber-400',
+                                default => 'text-zinc-600 dark:text-zinc-400',
+                            } }}" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <flux:text class="font-medium">{{ $alert->title }}</flux:text>
+                                @if(!$alert->is_read)
+                                    <span class="size-2 rounded-full bg-blue-500"></span>
+                                @endif
+                            </div>
+                            <flux:text class="mt-1 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ $alert->description }}
+                            </flux:text>
+                            <div class="mt-2 flex items-center gap-3">
+                                <flux:badge size="sm" :color="$alert->color">{{ $alert->severity->label() }}</flux:badge>
+                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ $alert->created_at->diffForHumans() }}
+                                </flux:text>
+                                @if($alert->relatedEntityName)
+                                    <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
+                                        {{ $alert->relatedEntityName }}
+                                    </flux:text>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            @if(!$alert->is_read)
+                                <flux:button size="xs" variant="ghost" wire:click="markAlertAsRead('{{ $alert->id }}')">
+                                    <flux:icon icon="check" class="size-4" />
+                                </flux:button>
+                            @endif
+                            @if(!$alert->is_acknowledged)
+                                <flux:button size="xs" variant="ghost" wire:click="acknowledgeAlert('{{ $alert->id }}')">
+                                    <flux:icon icon="check-circle" class="size-4" />
+                                </flux:button>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            @if($this->alertStats['total'] > 10)
+                <div class="border-t border-zinc-200 px-6 py-3 dark:border-zinc-700">
+                    <flux:text class="text-center text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('Showing :shown of :total alerts', ['shown' => min(10, $this->alertStats['total']), 'total' => $this->alertStats['total']]) }}
+                    </flux:text>
+                </div>
+            @endif
+        </div>
+    @endif
+
     {{-- Alert Cards Row --}}
     <div class="grid gap-4 md:grid-cols-3">
         {{-- At-Risk Donors Card --}}
