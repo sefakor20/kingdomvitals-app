@@ -111,6 +111,11 @@ class Member extends Model
         'lifecycle_stage',
         'lifecycle_stage_changed_at',
         'lifecycle_stage_factors',
+        'giving_consistency_score',
+        'giving_growth_rate',
+        'donor_tier',
+        'giving_trend',
+        'giving_analyzed_at',
     ];
 
     protected function casts(): array
@@ -144,6 +149,9 @@ class Member extends Model
             'lifecycle_stage' => LifecycleStage::class,
             'lifecycle_stage_changed_at' => 'datetime',
             'lifecycle_stage_factors' => 'array',
+            'giving_consistency_score' => 'integer',
+            'giving_growth_rate' => 'decimal:2',
+            'giving_analyzed_at' => 'datetime',
         ];
     }
 

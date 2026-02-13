@@ -559,6 +559,111 @@ class InsightsDashboard extends Component
     }
 
     // ============================================
+    // GIVING TRENDS
+    // ============================================
+
+    #[Computed]
+    public function majorDonors(): Collection
+    {
+        return Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->where('donor_tier', 'top_10')
+            ->whereNotNull('giving_analyzed_at')
+            ->orderByDesc('giving_consistency_score')
+            ->limit(10)
+            ->get();
+    }
+
+    #[Computed]
+    public function decliningDonors(): Collection
+    {
+        return Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->where('giving_trend', 'declining')
+            ->whereNotNull('giving_analyzed_at')
+            ->orderBy('giving_growth_rate')
+            ->limit(5)
+            ->get();
+    }
+
+    #[Computed]
+    public function growingDonors(): Collection
+    {
+        return Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->where('giving_trend', 'growing')
+            ->whereNotNull('giving_analyzed_at')
+            ->orderByDesc('giving_growth_rate')
+            ->limit(5)
+            ->get();
+    }
+
+    #[Computed]
+    public function newDonors(): Collection
+    {
+        return Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->where('giving_trend', 'new')
+            ->whereNotNull('giving_analyzed_at')
+            ->orderByDesc('giving_analyzed_at')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * @return array<string, array{count: int, percentage: float}>
+     */
+    #[Computed]
+    public function donorTierDistribution(): array
+    {
+        $counts = Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->whereNotNull('donor_tier')
+            ->selectRaw('donor_tier, COUNT(*) as count')
+            ->groupBy('donor_tier')
+            ->pluck('count', 'donor_tier')
+            ->toArray();
+
+        $total = array_sum($counts);
+
+        $tiers = ['top_10', 'top_25', 'middle', 'bottom'];
+        $distribution = [];
+
+        foreach ($tiers as $tier) {
+            $count = $counts[$tier] ?? 0;
+            $distribution[$tier] = [
+                'count' => $count,
+                'percentage' => $total > 0 ? round(($count / $total) * 100, 1) : 0,
+            ];
+        }
+
+        return $distribution;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    #[Computed]
+    public function givingTrendCounts(): array
+    {
+        $counts = Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->whereNotNull('giving_trend')
+            ->selectRaw('giving_trend, COUNT(*) as count')
+            ->groupBy('giving_trend')
+            ->pluck('count', 'giving_trend')
+            ->toArray();
+
+        return [
+            'growing' => $counts['growing'] ?? 0,
+            'stable' => $counts['stable'] ?? 0,
+            'declining' => $counts['declining'] ?? 0,
+            'new' => $counts['new'] ?? 0,
+            'lapsed' => $counts['lapsed'] ?? 0,
+        ];
+    }
+
+    // ============================================
     // SUMMARY STATS
     // ============================================
 

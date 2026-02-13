@@ -233,6 +233,14 @@ return [
                 'cluster_health_struggling' => 50,
             ],
         ],
+
+        'giving_trends' => [
+            'enabled' => env('AI_FEATURE_GIVING_TRENDS', true),
+            'history_months' => 12,
+            'lapsed_threshold_days' => 90,
+            'growth_threshold_percent' => 20,
+            'decline_threshold_percent' => -20,
+        ],
     ],
 
     /*

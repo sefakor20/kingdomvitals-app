@@ -144,6 +144,11 @@ Schedule::command('ai:forecast-financial --type=monthly --periods=4')
     ->weeklyOn(1, '08:00')
     ->withoutOverlapping();
 
+// AI: Analyze giving trends weekly on Tuesday at 3 AM
+Schedule::command('ai:analyze-giving-trends')
+    ->weeklyOn(2, '03:00')
+    ->withoutOverlapping();
+
 // AI: Process alerts daily at 9 AM (after all AI scoring jobs complete)
 Schedule::command('ai:process-alerts')
     ->dailyAt('09:00')

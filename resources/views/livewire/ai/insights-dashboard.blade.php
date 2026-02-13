@@ -652,6 +652,140 @@
         @endif
     </div>
 
+    {{-- Giving Insights --}}
+    @if($this->majorDonors->isNotEmpty() || $this->decliningDonors->isNotEmpty() || $this->newDonors->isNotEmpty())
+        <div class="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 dark:border-blue-800 dark:from-blue-950 dark:to-zinc-900">
+            <div class="mb-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="rounded-lg bg-blue-100 p-2 dark:bg-blue-900">
+                        <flux:icon icon="banknotes" class="size-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                        <flux:heading size="base">{{ __('Giving Insights') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Donor trends and giving patterns') }}</flux:text>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    @if($this->givingTrendCounts['growing'] > 0)
+                        <flux:badge color="green">{{ $this->givingTrendCounts['growing'] }} {{ __('growing') }}</flux:badge>
+                    @endif
+                    @if($this->givingTrendCounts['declining'] > 0)
+                        <flux:badge color="red">{{ $this->givingTrendCounts['declining'] }} {{ __('declining') }}</flux:badge>
+                    @endif
+                </div>
+            </div>
+
+            <div class="grid gap-6 lg:grid-cols-2">
+                {{-- Major Donors --}}
+                <div>
+                    <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-blue-600 dark:text-blue-400">{{ __('Top Donors') }}</flux:text>
+                    @if($this->majorDonors->isNotEmpty())
+                        <div class="space-y-2">
+                            @foreach($this->majorDonors->take(5) as $donor)
+                                <div class="flex items-center justify-between rounded-lg border border-blue-100 p-3 dark:border-blue-900">
+                                    <div class="flex items-center gap-3">
+                                        <flux:avatar size="xs" :name="$donor->fullName()" />
+                                        <div>
+                                            <flux:text class="font-medium">{{ $donor->fullName() }}</flux:text>
+                                            <flux:text class="text-xs text-zinc-500">
+                                                @if($donor->giving_trend === 'growing')
+                                                    <span class="text-green-600">+{{ number_format($donor->giving_growth_rate, 0) }}%</span>
+                                                @elseif($donor->giving_trend === 'declining')
+                                                    <span class="text-red-600">{{ number_format($donor->giving_growth_rate, 0) }}%</span>
+                                                @else
+                                                    {{ __('Stable') }}
+                                                @endif
+                                            </flux:text>
+                                        </div>
+                                    </div>
+                                    <flux:badge size="sm" color="purple">{{ $donor->giving_consistency_score }}%</flux:badge>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-sm text-zinc-500">{{ __('Run analysis to identify top donors') }}</flux:text>
+                    @endif
+                </div>
+
+                {{-- Declining Donors --}}
+                <div>
+                    <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-red-600 dark:text-red-400">{{ __('Declining Donors') }}</flux:text>
+                    @if($this->decliningDonors->isNotEmpty())
+                        <div class="space-y-2">
+                            @foreach($this->decliningDonors->take(5) as $donor)
+                                <div class="flex items-center justify-between rounded-lg border border-red-100 bg-red-50/50 p-3 dark:border-red-900 dark:bg-red-950/30">
+                                    <div class="flex items-center gap-3">
+                                        <flux:avatar size="xs" :name="$donor->fullName()" />
+                                        <flux:text class="font-medium">{{ $donor->fullName() }}</flux:text>
+                                    </div>
+                                    <flux:badge size="sm" color="red">{{ number_format($donor->giving_growth_rate, 0) }}%</flux:badge>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="rounded-lg border border-green-100 bg-green-50 p-4 text-center dark:border-green-900 dark:bg-green-950/30">
+                            <flux:icon icon="check-circle" class="mx-auto size-8 text-green-500" />
+                            <flux:text class="mt-2 text-sm text-green-700 dark:text-green-300">{{ __('No declining donors') }}</flux:text>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- New Donors & Tier Distribution --}}
+            <div class="mt-6 grid gap-6 border-t border-blue-100 pt-6 dark:border-blue-900 lg:grid-cols-2">
+                {{-- New Donors --}}
+                <div>
+                    <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-purple-600 dark:text-purple-400">{{ __('New Donors') }}</flux:text>
+                    @if($this->newDonors->isNotEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($this->newDonors->take(8) as $donor)
+                                <div class="flex items-center gap-2 rounded-full border border-purple-100 bg-purple-50 px-3 py-1 dark:border-purple-900 dark:bg-purple-950/30">
+                                    <flux:icon icon="star" class="size-3 text-purple-500" />
+                                    <flux:text class="text-sm">{{ $donor->fullName() }}</flux:text>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-sm text-zinc-500">{{ __('No new donors in the analysis period') }}</flux:text>
+                    @endif
+                </div>
+
+                {{-- Donor Tier Distribution --}}
+                <div>
+                    <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Donor Distribution') }}</flux:text>
+                    <div class="space-y-2">
+                        @php
+                            $tierLabels = [
+                                'top_10' => __('Top 10%'),
+                                'top_25' => __('Top 25%'),
+                                'middle' => __('Middle 50%'),
+                                'bottom' => __('Bottom 50%'),
+                            ];
+                            $tierColors = [
+                                'top_10' => 'purple',
+                                'top_25' => 'blue',
+                                'middle' => 'zinc',
+                                'bottom' => 'zinc',
+                            ];
+                        @endphp
+                        @foreach($this->donorTierDistribution as $tier => $data)
+                            @if($data['count'] > 0)
+                                <div class="flex items-center gap-3">
+                                    <div class="h-2 w-24 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                        <div class="h-full rounded-full {{ $tier === 'top_10' ? 'bg-purple-500' : ($tier === 'top_25' ? 'bg-blue-500' : 'bg-zinc-400') }}"
+                                             style="width: {{ $data['percentage'] }}%"></div>
+                                    </div>
+                                    <flux:text class="text-sm">{{ $tierLabels[$tier] ?? $tier }}</flux:text>
+                                    <flux:badge size="sm" :color="$tierColors[$tier] ?? 'zinc'">{{ $data['count'] }}</flux:badge>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Attendance Forecasts --}}
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="mb-4">
