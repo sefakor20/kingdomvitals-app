@@ -220,6 +220,14 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewAiInsights(): bool
+    {
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::AiInsights) &&
+            auth()->user()?->can('view', $this->currentBranch);
+    }
+
+    #[Computed]
     public function canUpdateBranch(): bool
     {
         return $this->currentBranch &&

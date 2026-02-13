@@ -297,16 +297,28 @@
         @endif
 
         {{-- Analytics Group --}}
-        @if($this->canViewReports)
-            <flux:navlist.group :heading="__('Analytics')" expandable :expanded="request()->routeIs('reports.*')" class="grid">
-                <flux:navlist.item
-                    icon="chart-bar-square"
-                    :href="route('reports.index', $this->currentBranch)"
-                    :current="request()->routeIs('reports.*')"
-                    wire:navigate
-                >
-                    {{ __('Report Center') }}
-                </flux:navlist.item>
+        @if($this->canViewReports || $this->canViewAiInsights)
+            <flux:navlist.group :heading="__('Analytics')" expandable :expanded="request()->routeIs('reports.*', 'ai-insights.*')" class="grid">
+                @if($this->canViewAiInsights)
+                    <flux:navlist.item
+                        icon="sparkles"
+                        :href="route('ai-insights.dashboard', $this->currentBranch)"
+                        :current="request()->routeIs('ai-insights.*')"
+                        wire:navigate
+                    >
+                        {{ __('AI Insights') }}
+                    </flux:navlist.item>
+                @endif
+                @if($this->canViewReports)
+                    <flux:navlist.item
+                        icon="chart-bar-square"
+                        :href="route('reports.index', $this->currentBranch)"
+                        :current="request()->routeIs('reports.*')"
+                        wire:navigate
+                    >
+                        {{ __('Report Center') }}
+                    </flux:navlist.item>
+                @endif
             </flux:navlist.group>
         @endif
 

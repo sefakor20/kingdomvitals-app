@@ -252,10 +252,18 @@
         {{-- AI Insights Section (only show if AI module is enabled) --}}
         @if($this->aiInsightsEnabled)
             <div class="mt-6">
-                <div class="mb-4 flex items-center gap-2">
-                    <flux:icon icon="sparkles" class="size-5 text-purple-500" />
-                    <flux:heading size="lg">{{ __('AI Insights') }}</flux:heading>
-                    <flux:badge size="sm" color="purple">{{ __('Beta') }}</flux:badge>
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <flux:icon icon="sparkles" class="size-5 text-purple-500" />
+                        <flux:heading size="lg">{{ __('AI Insights') }}</flux:heading>
+                        <flux:badge size="sm" color="purple">{{ __('Beta') }}</flux:badge>
+                    </div>
+                    @if($this->currentBranch)
+                        <flux:button variant="ghost" size="sm" :href="route('ai-insights.dashboard', $this->currentBranch)" wire:navigate>
+                            {{ __('View Full Dashboard') }}
+                            <flux:icon icon="arrow-right" class="ml-1 size-4" />
+                        </flux:button>
+                    @endif
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-3">
