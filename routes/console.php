@@ -128,3 +128,18 @@ Schedule::command('ai:calculate-household-engagement')
 Schedule::command('ai:calculate-cluster-health')
     ->weeklyOn(1, '06:00')
     ->withoutOverlapping();
+
+// AI: Generate prayer summaries weekly on Monday at 7 AM
+Schedule::command('ai:generate-prayer-summaries --period=weekly')
+    ->weeklyOn(1, '07:00')
+    ->withoutOverlapping();
+
+// AI: Generate monthly prayer summaries on 1st of each month at 7 AM
+Schedule::command('ai:generate-prayer-summaries --period=monthly')
+    ->monthlyOn(1, '07:00')
+    ->withoutOverlapping();
+
+// AI: Generate financial forecasts weekly on Monday at 8 AM
+Schedule::command('ai:forecast-financial --type=monthly --periods=4')
+    ->weeklyOn(1, '08:00')
+    ->withoutOverlapping();
