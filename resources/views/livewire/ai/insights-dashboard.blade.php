@@ -429,6 +429,139 @@
         </div>
     @endif
 
+    {{-- Financial Forecasts --}}
+    <div class="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 dark:border-emerald-800 dark:from-emerald-950 dark:to-zinc-900">
+        <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-900">
+                    <flux:icon icon="currency-dollar" class="size-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                    <flux:heading size="base">{{ __('Financial Forecasts') }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Predicted giving for upcoming periods') }}</flux:text>
+                </div>
+            </div>
+            @if($this->financialForecastSummary['average_confidence'] > 0)
+                <flux:badge :color="$this->financialForecastSummary['average_confidence'] >= 70 ? 'green' : ($this->financialForecastSummary['average_confidence'] >= 50 ? 'amber' : 'zinc')">
+                    {{ $this->financialForecastSummary['average_confidence'] }}% {{ __('confidence') }}
+                </flux:badge>
+            @endif
+        </div>
+
+        @if($this->financialForecasts->isEmpty())
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+                <flux:icon icon="banknotes" class="size-12 text-zinc-400" />
+                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No financial forecasts available') }}</flux:text>
+                <flux:text class="text-sm text-zinc-400">{{ __('Forecasts are generated based on historical giving data') }}</flux:text>
+            </div>
+        @else
+            {{-- Summary Cards --}}
+            <div class="mb-6 grid gap-4 sm:grid-cols-3">
+                <div class="rounded-lg border border-emerald-100 bg-white p-4 dark:border-emerald-900 dark:bg-zinc-900">
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Total Predicted') }}</flux:text>
+                    <flux:heading size="lg" class="text-emerald-600 dark:text-emerald-400">
+                        {{ number_format($this->financialForecastSummary['total_predicted'], 2) }}
+                    </flux:heading>
+                    <flux:text class="text-xs text-zinc-400">{{ __('Next 4 months') }}</flux:text>
+                </div>
+                @if($this->financialForecastSummary['total_budget'] > 0)
+                    <div class="rounded-lg border border-emerald-100 bg-white p-4 dark:border-emerald-900 dark:bg-zinc-900">
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Budget Target') }}</flux:text>
+                        <flux:heading size="lg">
+                            {{ number_format($this->financialForecastSummary['total_budget'], 2) }}
+                        </flux:heading>
+                    </div>
+                    <div class="rounded-lg border border-emerald-100 bg-white p-4 dark:border-emerald-900 dark:bg-zinc-900">
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Gap') }}</flux:text>
+                        @php
+                            $gap = $this->financialForecastSummary['total_gap'];
+                            $gapColor = $gap >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                        @endphp
+                        <flux:heading size="lg" class="{{ $gapColor }}">
+                            {{ $gap >= 0 ? '+' : '' }}{{ number_format($gap, 2) }}
+                        </flux:heading>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Forecast Table --}}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-emerald-100 dark:border-emerald-900">
+                            <th class="pb-3 text-left text-sm font-medium text-zinc-500">{{ __('Period') }}</th>
+                            <th class="pb-3 text-right text-sm font-medium text-zinc-500">{{ __('Predicted') }}</th>
+                            <th class="pb-3 text-right text-sm font-medium text-zinc-500">{{ __('Confidence') }}</th>
+                            <th class="pb-3 text-right text-sm font-medium text-zinc-500">{{ __('Status') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-emerald-50 dark:divide-emerald-900/50">
+                        @foreach($this->financialForecasts as $forecast)
+                            <tr>
+                                <td class="py-3">
+                                    <flux:text class="font-medium">{{ $forecast->period_label }}</flux:text>
+                                </td>
+                                <td class="py-3 text-right">
+                                    <flux:text>{{ number_format($forecast->predicted_total, 2) }}</flux:text>
+                                </td>
+                                <td class="py-3 text-right">
+                                    <flux:badge size="sm" :color="$forecast->confidenceBadgeColor()">
+                                        {{ number_format($forecast->confidence_score, 0) }}%
+                                    </flux:badge>
+                                </td>
+                                <td class="py-3 text-right">
+                                    @if($forecast->isOnTrack() === true)
+                                        <flux:badge size="sm" color="green">{{ __('On Track') }}</flux:badge>
+                                    @elseif($forecast->isOnTrack() === false)
+                                        <flux:badge size="sm" color="red">{{ __('At Risk') }}</flux:badge>
+                                    @else
+                                        <flux:badge size="sm" color="zinc">{{ __('No Target') }}</flux:badge>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Giving Breakdown for First Forecast --}}
+            @php $firstForecast = $this->financialForecasts->first(); @endphp
+            @if($firstForecast && $firstForecast->predicted_total > 0)
+                <div class="mt-6 border-t border-emerald-100 pt-4 dark:border-emerald-900">
+                    <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                        {{ __('Expected Giving Breakdown for :period', ['period' => $firstForecast->period_label]) }}
+                    </flux:text>
+                    <div class="flex flex-wrap gap-3">
+                        @if($firstForecast->predicted_tithes > 0)
+                            <div class="rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-900/30">
+                                <flux:text class="text-xs text-zinc-500">{{ __('Tithes') }}</flux:text>
+                                <flux:text class="font-medium text-emerald-600 dark:text-emerald-400">{{ number_format($firstForecast->predicted_tithes, 2) }}</flux:text>
+                            </div>
+                        @endif
+                        @if($firstForecast->predicted_offerings > 0)
+                            <div class="rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-900/30">
+                                <flux:text class="text-xs text-zinc-500">{{ __('Offerings') }}</flux:text>
+                                <flux:text class="font-medium text-emerald-600 dark:text-emerald-400">{{ number_format($firstForecast->predicted_offerings, 2) }}</flux:text>
+                            </div>
+                        @endif
+                        @if($firstForecast->predicted_special > 0)
+                            <div class="rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-900/30">
+                                <flux:text class="text-xs text-zinc-500">{{ __('Special') }}</flux:text>
+                                <flux:text class="font-medium text-emerald-600 dark:text-emerald-400">{{ number_format($firstForecast->predicted_special, 2) }}</flux:text>
+                            </div>
+                        @endif
+                        @if($firstForecast->predicted_other > 0)
+                            <div class="rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-900/30">
+                                <flux:text class="text-xs text-zinc-500">{{ __('Other') }}</flux:text>
+                                <flux:text class="font-medium text-emerald-600 dark:text-emerald-400">{{ number_format($firstForecast->predicted_other, 2) }}</flux:text>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        @endif
+    </div>
+
     {{-- Attendance Forecasts --}}
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="mb-4">

@@ -14,6 +14,7 @@ use App\Enums\SmsEngagementLevel;
 use App\Models\Tenant\AttendanceForecast;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
+use App\Models\Tenant\FinancialForecast;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
@@ -415,6 +416,64 @@ class InsightsDashboard extends Component
             ->where('forecast_date', '<=', now()->addWeeks(4))
             ->orderBy('forecast_date')
             ->get();
+    }
+
+    // ============================================
+    // FINANCIAL FORECAST
+    // ============================================
+
+    #[Computed]
+    public function financialForecasts(): Collection
+    {
+        return FinancialForecast::where('branch_id', $this->branch->id)
+            ->monthly()
+            ->upcoming()
+            ->limit(4)
+            ->get();
+    }
+
+    #[Computed]
+    public function financialForecastSummary(): array
+    {
+        $forecasts = $this->financialForecasts;
+
+        if ($forecasts->isEmpty()) {
+            return [
+                'total_predicted' => 0,
+                'total_budget' => 0,
+                'total_gap' => 0,
+                'periods_on_track' => 0,
+                'periods_at_risk' => 0,
+                'average_confidence' => 0,
+            ];
+        }
+
+        $totalPredicted = $forecasts->sum('predicted_total');
+        $totalBudget = $forecasts->sum('budget_target');
+        $totalGap = $totalPredicted - $totalBudget;
+
+        $periodsOnTrack = $forecasts->filter(fn ($f) => $f->isOnTrack() === true)->count();
+        $periodsAtRisk = $forecasts->filter(fn ($f) => $f->isOnTrack() === false)->count();
+
+        $avgConfidence = $forecasts->avg('confidence_score');
+
+        return [
+            'total_predicted' => $totalPredicted,
+            'total_budget' => $totalBudget,
+            'total_gap' => $totalGap,
+            'periods_on_track' => $periodsOnTrack,
+            'periods_at_risk' => $periodsAtRisk,
+            'average_confidence' => round($avgConfidence ?? 0, 1),
+        ];
+    }
+
+    #[Computed]
+    public function quarterlyFinancialForecast(): ?FinancialForecast
+    {
+        return FinancialForecast::where('branch_id', $this->branch->id)
+            ->quarterly()
+            ->upcoming()
+            ->first();
     }
 
     // ============================================

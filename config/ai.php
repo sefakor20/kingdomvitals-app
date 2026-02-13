@@ -212,6 +212,13 @@ return [
             'provider' => env('AI_CLUSTER_HEALTH_PROVIDER'),
             'notify_on_struggling' => true,
         ],
+
+        'financial_forecast' => [
+            'enabled' => env('AI_FEATURE_FINANCIAL_FORECAST', true),
+            'provider' => env('AI_FINANCIAL_FORECAST_PROVIDER'),
+            'history_months' => 24,
+            'periods_ahead' => 4,
+        ],
     ],
 
     /*
@@ -312,6 +319,13 @@ return [
             'retention_weight' => 0.20,
             'leadership_weight' => 0.15,
             'meeting_frequency_target' => 4,
+        ],
+
+        'financial' => [
+            'base_confidence' => 70,
+            'min_data_months' => 6,
+            'seasonal_weight' => 0.20,
+            'trend_weight' => 0.25,
         ],
     ],
 
