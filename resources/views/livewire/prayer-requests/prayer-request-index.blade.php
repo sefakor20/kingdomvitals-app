@@ -57,6 +57,32 @@
         </div>
     </div>
 
+    <!-- Urgent Prayers Alert (AI Feature) -->
+    @if($this->aiEnabled && $this->urgentPrayers->isNotEmpty())
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+            <div class="mb-3 flex items-center gap-2">
+                <flux:icon icon="exclamation-triangle" class="size-5 text-red-600 dark:text-red-400" />
+                <flux:heading size="sm" class="text-red-800 dark:text-red-200">{{ __('Prayers Requiring Attention') }}</flux:heading>
+                <flux:badge color="red" size="sm">{{ $this->urgentPrayers->count() }}</flux:badge>
+            </div>
+            <div class="space-y-2">
+                @foreach($this->urgentPrayers as $urgentPrayer)
+                    <div class="flex items-center justify-between rounded-lg bg-white p-3 dark:bg-zinc-900">
+                        <div class="flex items-center gap-3">
+                            <flux:badge :color="$urgentPrayer->urgency_level->color()" size="sm">
+                                {{ $urgentPrayer->urgency_level->label() }}
+                            </flux:badge>
+                            <a href="{{ route('prayer-requests.show', [$branch, $urgentPrayer]) }}" class="text-sm font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400" wire:navigate>
+                                {{ Str::limit($urgentPrayer->title, 50) }}
+                            </a>
+                        </div>
+                        <flux:text class="text-xs text-zinc-500">{{ $urgentPrayer->submitted_at->diffForHumans() }}</flux:text>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <!-- Search and Filters -->
     <div class="mb-4 flex flex-col gap-4 sm:flex-row">
         <div class="flex-1">
@@ -101,6 +127,24 @@
                             {{ $cluster->name }}
                         </flux:select.option>
                     @endforeach
+                </flux:select>
+            </div>
+        @endif
+        @if($this->aiEnabled)
+            <div class="w-full sm:w-36">
+                <flux:select wire:model.live="urgencyFilter">
+                    <flux:select.option value="">{{ __('All Urgency') }}</flux:select.option>
+                    @foreach($this->urgencyLevels as $urgency)
+                        <flux:select.option value="{{ $urgency->value }}">
+                            {{ $urgency->label() }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+            <div class="w-full sm:w-36">
+                <flux:select wire:model.live="sortBy">
+                    <flux:select.option value="submitted_at">{{ __('By Date') }}</flux:select.option>
+                    <flux:select.option value="priority">{{ __('By Priority') }}</flux:select.option>
                 </flux:select>
             </div>
         @endif
@@ -163,6 +207,12 @@
                                 >
                                     {{ ucfirst(str_replace('_', ' ', $prayerRequest->privacy->value)) }}
                                 </flux:badge>
+                                @if($this->aiEnabled && $prayerRequest->urgency_level && $prayerRequest->urgency_level->value !== 'normal')
+                                    <flux:badge :color="$prayerRequest->urgency_level->color()" size="sm">
+                                        <flux:icon :icon="$prayerRequest->urgency_level->icon()" class="mr-1 size-3" />
+                                        {{ $prayerRequest->urgency_level->label() }}
+                                    </flux:badge>
+                                @endif
                             </div>
 
                             <div class="mt-2 flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">

@@ -6,12 +6,15 @@ namespace App\Livewire\Visitors;
 
 use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
+use App\Jobs\AI\GenerateFollowUpMessageJob;
 use App\Livewire\Concerns\HasFilterableQuery;
+use App\Models\Tenant\AiGeneratedMessage;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\FollowUpTemplatePlaceholderService;
+use App\Services\PlanAccessService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -56,6 +59,15 @@ class FollowUpQueue extends Component
     public ?VisitorFollowUp $reschedulingFollowUp = null;
 
     public ?string $rescheduleDate = null;
+
+    // AI Message modal
+    public bool $showAiMessageModal = false;
+
+    public ?AiGeneratedMessage $generatedMessage = null;
+
+    public bool $isGeneratingMessage = false;
+
+    public bool $sortByConversionScore = false;
 
     public function mount(Branch $branch): void
     {
@@ -113,6 +125,18 @@ class FollowUpQueue extends Component
     public function followUpTypes(): array
     {
         return FollowUpType::cases();
+    }
+
+    #[Computed]
+    public function aiEnabled(): bool
+    {
+        return app(PlanAccessService::class)->hasAiFeature('message_generation');
+    }
+
+    #[Computed]
+    public function conversionPredictionEnabled(): bool
+    {
+        return app(PlanAccessService::class)->hasAiFeature('conversion_prediction');
     }
 
     #[Computed]
@@ -298,6 +322,65 @@ class FollowUpQueue extends Component
         $this->resetValidation();
     }
 
+    // AI Message modal methods
+    public function generateAiMessage(VisitorFollowUp $followUp): void
+    {
+        if (! $this->aiEnabled) {
+            return;
+        }
+
+        $this->isGeneratingMessage = true;
+        $this->showAiMessageModal = true;
+
+        // Dispatch job synchronously for immediate response
+        $message = dispatch_sync(new GenerateFollowUpMessageJob(
+            'visitor',
+            $followUp->visitor_id,
+            $followUp->type->value
+        ));
+
+        $this->generatedMessage = $message;
+        $this->isGeneratingMessage = false;
+    }
+
+    public function approveAiMessage(): void
+    {
+        if (! $this->generatedMessage || ! auth()->user()) {
+            return;
+        }
+
+        $this->generatedMessage->approve(auth()->user());
+
+        $this->dispatch('ai-message-approved', [
+            'message' => $this->generatedMessage->generated_content,
+        ]);
+
+        $this->closeAiMessageModal();
+    }
+
+    public function rejectAiMessage(): void
+    {
+        if (! $this->generatedMessage) {
+            return;
+        }
+
+        $this->generatedMessage->reject();
+        $this->closeAiMessageModal();
+    }
+
+    public function closeAiMessageModal(): void
+    {
+        $this->showAiMessageModal = false;
+        $this->generatedMessage = null;
+        $this->isGeneratingMessage = false;
+    }
+
+    public function toggleConversionSort(): void
+    {
+        $this->sortByConversionScore = ! $this->sortByConversionScore;
+        $this->clearComputedCache();
+    }
+
     private function getBaseQuery()
     {
         $query = VisitorFollowUp::query()
@@ -337,6 +420,13 @@ class FollowUpQueue extends Component
         }
         if ($this->dateTo) {
             $query->where('scheduled_at', '<=', $this->dateTo);
+        }
+
+        // Sort by conversion score if enabled and AI feature is available
+        if ($this->sortByConversionScore && $this->conversionPredictionEnabled) {
+            $query->join('visitors', 'visitor_follow_ups.visitor_id', '=', 'visitors.id')
+                ->orderByDesc('visitors.conversion_score')
+                ->select('visitor_follow_ups.*');
         }
 
         return $query;

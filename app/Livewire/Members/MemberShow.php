@@ -10,6 +10,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use App\Services\AI\MemberRecommendationService;
 use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
 use App\Services\QrCodeService;
@@ -159,6 +160,22 @@ class MemberShow extends Component
             ->whereNotIn('id', $existingClusterIds)
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * Get AI-powered cluster recommendations for this member.
+     *
+     * @return array<\App\Services\AI\DTOs\ClusterRecommendation>
+     */
+    #[Computed]
+    public function clusterRecommendations(): array
+    {
+        if (! config('ai.features.member_recommendation.enabled', true)) {
+            return [];
+        }
+
+        return app(MemberRecommendationService::class)
+            ->getRecommendations($this->member);
     }
 
     #[Computed]

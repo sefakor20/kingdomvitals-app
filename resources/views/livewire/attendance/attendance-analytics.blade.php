@@ -251,6 +251,98 @@
         </div>
     </div>
 
+    {{-- Attendance Forecast (AI Feature) --}}
+    @if($this->forecastEnabled)
+        <div class="mb-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ __('Attendance Forecast') }}</flux:heading>
+                    <flux:badge size="sm" color="purple">{{ __('AI') }}</flux:badge>
+                </div>
+                @if($this->forecastAccuracy !== null)
+                    <div class="flex items-center gap-2">
+                        <flux:text class="text-sm text-zinc-500">{{ __('Accuracy') }}</flux:text>
+                        <flux:badge size="sm" color="{{ $this->forecastAccuracy >= 80 ? 'green' : ($this->forecastAccuracy >= 60 ? 'amber' : 'zinc') }}">
+                            {{ number_format($this->forecastAccuracy, 1) }}%
+                        </flux:badge>
+                    </div>
+                @endif
+            </div>
+
+            @if($this->upcomingForecasts->count() > 0)
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    @foreach($this->upcomingForecasts->take(4) as $dayForecast)
+                        <div class="rounded-lg border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
+                            <div class="mb-2 flex items-center justify-between">
+                                <flux:text class="text-sm font-medium">{{ $dayForecast['date']->format('D, M d') }}</flux:text>
+                                @php
+                                    $avgConfidence = $dayForecast['forecasts']->avg('confidence');
+                                    $confidenceColor = $avgConfidence >= 80 ? 'green' : ($avgConfidence >= 50 ? 'yellow' : 'zinc');
+                                @endphp
+                                <flux:badge size="sm" color="{{ $confidenceColor }}">
+                                    {{ $avgConfidence >= 80 ? 'high' : ($avgConfidence >= 50 ? 'medium' : 'low') }}
+                                </flux:badge>
+                            </div>
+                            <flux:heading size="xl" class="text-blue-600 dark:text-blue-400">
+                                {{ number_format($dayForecast['total_predicted']) }}
+                            </flux:heading>
+                            <flux:text class="text-xs text-zinc-500">
+                                {{ $dayForecast['forecasts']->count() }} {{ __('service(s)') }}
+                            </flux:text>
+                            @if($dayForecast['forecasts']->count() <= 2)
+                                @foreach($dayForecast['forecasts'] as $service)
+                                    <flux:text class="mt-1 text-xs text-zinc-400">
+                                        {{ $service['service_name'] }}: {{ $service['predicted_attendance'] }}
+                                    </flux:text>
+                                @endforeach
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Recent Forecast Comparison --}}
+                @if($this->recentForecastComparison->count() > 0)
+                    <div class="mt-6 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                        <flux:text class="mb-3 text-sm font-medium text-zinc-500">{{ __('Recent Predictions vs Actual') }}</flux:text>
+                        <div class="space-y-2">
+                            @foreach($this->recentForecastComparison->take(3) as $comparison)
+                                <div class="flex items-center justify-between text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <flux:text>{{ $comparison['date'] }}</flux:text>
+                                        <flux:text class="text-zinc-500">{{ $comparison['service_name'] }}</flux:text>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-zinc-400">{{ __('Predicted') }}: {{ $comparison['predicted'] }}</span>
+                                        <span class="font-medium">{{ __('Actual') }}: {{ $comparison['actual'] }}</span>
+                                        @php
+                                            $variance = $comparison['variance'];
+                                            $variancePercent = abs($comparison['variance_percent']);
+                                        @endphp
+                                        @if($variancePercent <= 10)
+                                            <flux:badge size="sm" color="green">
+                                                {{ $variance >= 0 ? '+' : '' }}{{ $variance }}
+                                            </flux:badge>
+                                        @else
+                                            <flux:badge size="sm" color="{{ $variance >= 0 ? 'blue' : 'amber' }}">
+                                                {{ $variance >= 0 ? '+' : '' }}{{ $variance }}
+                                            </flux:badge>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            @else
+                <div class="py-8 text-center">
+                    <flux:icon icon="chart-bar" class="mx-auto mb-2 size-8 text-zinc-400" />
+                    <flux:text class="text-zinc-500">{{ __('No forecast data available yet.') }}</flux:text>
+                    <flux:text class="text-sm text-zinc-400">{{ __('Forecasts are generated weekly based on historical attendance.') }}</flux:text>
+                </div>
+            @endif
+        </div>
+    @endif
+
     {{-- Engagement Alerts --}}
     <div class="mb-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg" class="mb-4">{{ __('Engagement Alerts') }}</flux:heading>

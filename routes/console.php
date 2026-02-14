@@ -83,3 +83,78 @@ Schedule::command('billing:send-reminders')
 Schedule::command('billing:reconcile-payments')
     ->weeklyOn(0, '00:00')
     ->withoutOverlapping();
+
+// AI: Recalculate conversion and churn scores weekly on Monday at 3 AM
+Schedule::command('ai:recalculate-scores')
+    ->weeklyOn(1, '03:00')
+    ->withoutOverlapping();
+
+// AI: Detect attendance anomalies daily at 4 AM
+Schedule::command('ai:detect-anomalies')
+    ->dailyAt('04:00')
+    ->withoutOverlapping();
+
+// AI: Generate attendance forecasts weekly on Sunday at 11 PM
+Schedule::command('ai:forecast-attendance --weeks=4')
+    ->weeklyOn(0, '23:00')
+    ->withoutOverlapping();
+
+// AI: Analyze new prayer requests hourly
+Schedule::command('ai:analyze-prayers')
+    ->hourly()
+    ->withoutOverlapping();
+
+// AI: Optimize duty roster pool scores weekly on Monday at 2 AM
+Schedule::command('ai:optimize-roster-scores')
+    ->weeklyOn(1, '02:00')
+    ->withoutOverlapping();
+
+// AI: Calculate SMS engagement scores weekly on Tuesday at 2 AM
+Schedule::command('ai:calculate-sms-engagement')
+    ->weeklyOn(2, '02:00')
+    ->withoutOverlapping();
+
+// AI: Detect member lifecycle stages weekly on Monday at 4 AM
+Schedule::command('ai:detect-lifecycle-stages')
+    ->weeklyOn(1, '04:00')
+    ->withoutOverlapping();
+
+// AI: Calculate household engagement weekly on Monday at 5 AM
+Schedule::command('ai:calculate-household-engagement')
+    ->weeklyOn(1, '05:00')
+    ->withoutOverlapping();
+
+// AI: Calculate cluster health weekly on Monday at 6 AM
+Schedule::command('ai:calculate-cluster-health')
+    ->weeklyOn(1, '06:00')
+    ->withoutOverlapping();
+
+// AI: Generate prayer summaries weekly on Monday at 7 AM
+Schedule::command('ai:generate-prayer-summaries --period=weekly')
+    ->weeklyOn(1, '07:00')
+    ->withoutOverlapping();
+
+// AI: Generate monthly prayer summaries on 1st of each month at 7 AM
+Schedule::command('ai:generate-prayer-summaries --period=monthly')
+    ->monthlyOn(1, '07:00')
+    ->withoutOverlapping();
+
+// AI: Generate financial forecasts weekly on Monday at 8 AM
+Schedule::command('ai:forecast-financial --type=monthly --periods=4')
+    ->weeklyOn(1, '08:00')
+    ->withoutOverlapping();
+
+// AI: Analyze giving trends weekly on Tuesday at 3 AM
+Schedule::command('ai:analyze-giving-trends')
+    ->weeklyOn(2, '03:00')
+    ->withoutOverlapping();
+
+// AI: Process alerts daily at 9 AM (after all AI scoring jobs complete)
+Schedule::command('ai:process-alerts')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();
+
+// AI: Send daily alert digest at 8 AM
+Schedule::command('ai:send-alert-digest')
+    ->dailyAt('08:00')
+    ->withoutOverlapping();

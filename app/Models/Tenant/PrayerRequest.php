@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use App\Enums\PrayerRequestCategory;
 use App\Enums\PrayerRequestPrivacy;
 use App\Enums\PrayerRequestStatus;
+use App\Enums\PrayerUrgencyLevel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,10 @@ class PrayerRequest extends Model
         'submitted_at',
         'answered_at',
         'answer_details',
+        'urgency_level',
+        'priority_score',
+        'ai_classification',
+        'ai_analyzed_at',
     ];
 
     protected function casts(): array
@@ -36,8 +41,12 @@ class PrayerRequest extends Model
             'category' => PrayerRequestCategory::class,
             'status' => PrayerRequestStatus::class,
             'privacy' => PrayerRequestPrivacy::class,
+            'urgency_level' => PrayerUrgencyLevel::class,
+            'priority_score' => 'decimal:2',
+            'ai_classification' => 'array',
             'submitted_at' => 'datetime',
             'answered_at' => 'datetime',
+            'ai_analyzed_at' => 'datetime',
         ];
     }
 
@@ -151,5 +160,60 @@ class PrayerRequest extends Model
                         ->where('privacy', PrayerRequestPrivacy::LeadersOnly);
                 });
         });
+    }
+
+    // ============================================
+    // AI ANALYSIS METHODS
+    // ============================================
+
+    /**
+     * Check if this prayer request is urgent (high or critical).
+     */
+    public function isUrgent(): bool
+    {
+        return $this->urgency_level?->shouldNotifyPastor() ?? false;
+    }
+
+    /**
+     * Check if this prayer request needs AI analysis.
+     */
+    public function needsAnalysis(): bool
+    {
+        return $this->ai_analyzed_at === null;
+    }
+
+    /**
+     * Scope to get urgent prayer requests.
+     */
+    public function scopeUrgent(Builder $query): Builder
+    {
+        return $query->whereIn('urgency_level', [
+            PrayerUrgencyLevel::High->value,
+            PrayerUrgencyLevel::Critical->value,
+        ]);
+    }
+
+    /**
+     * Scope to get prayer requests needing AI analysis.
+     */
+    public function scopeNeedsAnalysis(Builder $query): Builder
+    {
+        return $query->whereNull('ai_analyzed_at');
+    }
+
+    /**
+     * Scope to order by priority score descending.
+     */
+    public function scopeByPriority(Builder $query): Builder
+    {
+        return $query->orderByDesc('priority_score');
+    }
+
+    /**
+     * Scope to filter by urgency level.
+     */
+    public function scopeWithUrgency(Builder $query, PrayerUrgencyLevel $level): Builder
+    {
+        return $query->where('urgency_level', $level->value);
     }
 }
