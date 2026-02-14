@@ -247,6 +247,12 @@ return [
             'max_per_alert' => 3,
             'show_priority_badges' => true,
         ],
+
+        'member_recommendation' => [
+            'enabled' => env('AI_FEATURE_MEMBER_RECOMMENDATION', true),
+            'max_recommendations' => 3,
+            'min_score_threshold' => 30,
+        ],
     ],
 
     /*
@@ -347,6 +353,17 @@ return [
             'retention_weight' => 0.20,
             'leadership_weight' => 0.15,
             'meeting_frequency_target' => 4,
+        ],
+
+        'member_recommendation' => [
+            'location_weight' => 0.25,
+            'demographics_weight' => 0.25,
+            'capacity_weight' => 0.20,
+            'health_weight' => 0.15,
+            'lifecycle_weight' => 0.15,
+            'same_city_score' => 100,
+            'same_state_score' => 70,
+            'age_bracket_years' => 10,
         ],
 
         'financial' => [
