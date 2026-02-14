@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin\Plans;
 
+use App\Enums\Currency;
 use App\Enums\SupportLevel;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdminActivityLog;
+use App\Models\SystemSetting;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -40,9 +41,15 @@ class PlanIndex extends Component
 
     public string $description = '';
 
+    // GHS pricing (existing)
     public string $priceMonthly = '0';
 
     public string $priceAnnual = '0';
+
+    // USD pricing (new)
+    public string $priceMonthlyUsd = '0';
+
+    public string $priceAnnualUsd = '0';
 
     public ?int $maxMembers = null;
 
@@ -62,6 +69,14 @@ class PlanIndex extends Component
 
     public int $displayOrder = 0;
 
+    // Pricing strategy
+    public string $pricingStrategy = 'manual';
+
+    public function mount(): void
+    {
+        $this->pricingStrategy = (string) SystemSetting::get('pricing_strategy', 'manual');
+    }
+
     public function updatedName(): void
     {
         if (! $this->editPlanId) {
@@ -76,6 +91,8 @@ class PlanIndex extends Component
         $this->description = '';
         $this->priceMonthly = '0';
         $this->priceAnnual = '0';
+        $this->priceMonthlyUsd = '0';
+        $this->priceAnnualUsd = '0';
         $this->maxMembers = null;
         $this->maxBranches = null;
         $this->storageQuotaGb = 5;
@@ -108,6 +125,8 @@ class PlanIndex extends Component
             'description' => $this->description ?: null,
             'price_monthly' => $this->priceMonthly,
             'price_annual' => $this->priceAnnual,
+            'price_monthly_usd' => $this->priceMonthlyUsd ?: null,
+            'price_annual_usd' => $this->priceAnnualUsd ?: null,
             'max_members' => $this->maxMembers,
             'max_branches' => $this->maxBranches,
             'storage_quota_gb' => $this->storageQuotaGb,
@@ -126,7 +145,8 @@ class PlanIndex extends Component
             metadata: [
                 'plan_id' => $plan->id,
                 'plan_name' => $plan->name,
-                'price_monthly' => $plan->price_monthly,
+                'price_monthly_ghs' => $plan->price_monthly,
+                'price_monthly_usd' => $plan->price_monthly_usd,
             ],
         );
 
@@ -147,6 +167,8 @@ class PlanIndex extends Component
         $this->description = $plan->description ?? '';
         $this->priceMonthly = (string) $plan->price_monthly;
         $this->priceAnnual = (string) $plan->price_annual;
+        $this->priceMonthlyUsd = (string) ($plan->price_monthly_usd ?? '0');
+        $this->priceAnnualUsd = (string) ($plan->price_annual_usd ?? '0');
         $this->maxMembers = $plan->max_members;
         $this->maxBranches = $plan->max_branches;
         $this->storageQuotaGb = $plan->storage_quota_gb;
@@ -178,7 +200,7 @@ class PlanIndex extends Component
             SubscriptionPlan::where('is_default', true)->update(['is_default' => false]);
         }
 
-        $oldValues = $plan->only(['name', 'slug', 'price_monthly', 'price_annual', 'is_active', 'is_default']);
+        $oldValues = $plan->only(['name', 'slug', 'price_monthly', 'price_annual', 'price_monthly_usd', 'price_annual_usd', 'is_active', 'is_default']);
 
         $plan->update([
             'name' => $this->name,
@@ -186,6 +208,8 @@ class PlanIndex extends Component
             'description' => $this->description ?: null,
             'price_monthly' => $this->priceMonthly,
             'price_annual' => $this->priceAnnual,
+            'price_monthly_usd' => $this->priceMonthlyUsd ?: null,
+            'price_annual_usd' => $this->priceAnnualUsd ?: null,
             'max_members' => $this->maxMembers,
             'max_branches' => $this->maxBranches,
             'storage_quota_gb' => $this->storageQuotaGb,
@@ -209,6 +233,8 @@ class PlanIndex extends Component
                     'slug' => $this->slug,
                     'price_monthly' => $this->priceMonthly,
                     'price_annual' => $this->priceAnnual,
+                    'price_monthly_usd' => $this->priceMonthlyUsd,
+                    'price_annual_usd' => $this->priceAnnualUsd,
                     'is_active' => $this->isActive,
                     'is_default' => $this->isDefault,
                 ],
@@ -311,8 +337,10 @@ class PlanIndex extends Component
         $data = $plans->map(fn (SubscriptionPlan $plan): array => [
             'name' => $plan->name,
             'slug' => $plan->slug,
-            'price_monthly' => Number::currency((float) $plan->price_monthly, in: 'GHS'),
-            'price_annual' => Number::currency((float) $plan->price_annual, in: 'GHS'),
+            'price_monthly_ghs' => $plan->getFormattedPriceMonthly(Currency::GHS),
+            'price_annual_ghs' => $plan->getFormattedPriceAnnual(Currency::GHS),
+            'price_monthly_usd' => $plan->getFormattedPriceMonthly(Currency::USD),
+            'price_annual_usd' => $plan->getFormattedPriceAnnual(Currency::USD),
             'max_members' => $plan->max_members ?? 'Unlimited',
             'max_branches' => $plan->max_branches ?? 'Unlimited',
             'storage_quota_gb' => $plan->storage_quota_gb,
@@ -327,6 +355,8 @@ class PlanIndex extends Component
             'Slug',
             'Monthly Price (GHS)',
             'Annual Price (GHS)',
+            'Monthly Price (USD)',
+            'Annual Price (USD)',
             'Max Members',
             'Max Branches',
             'Storage (GB)',
@@ -359,6 +389,8 @@ class PlanIndex extends Component
             'description' => ['nullable', 'string'],
             'priceMonthly' => ['required', 'numeric', 'min:0'],
             'priceAnnual' => ['required', 'numeric', 'min:0'],
+            'priceMonthlyUsd' => ['nullable', 'numeric', 'min:0'],
+            'priceAnnualUsd' => ['nullable', 'numeric', 'min:0'],
             'maxMembers' => ['nullable', 'integer', 'min:1'],
             'maxBranches' => ['nullable', 'integer', 'min:1'],
             'storageQuotaGb' => ['required', 'integer', 'min:1'],
@@ -400,7 +432,9 @@ class PlanIndex extends Component
         return view('livewire.super-admin.plans.plan-index', [
             'plans' => SubscriptionPlan::orderBy('display_order')->orderBy('price_monthly')->get(),
             'supportLevels' => SupportLevel::cases(),
+            'currencies' => Currency::cases(),
             'canManage' => $canManage,
+            'pricingStrategy' => $this->pricingStrategy,
         ])->layout('components.layouts.superadmin.app');
     }
 }

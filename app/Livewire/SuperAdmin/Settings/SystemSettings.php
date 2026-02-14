@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin\Settings;
 
+use App\Enums\Currency;
 use App\Models\SuperAdminActivityLog;
 use App\Models\SystemSetting;
 use App\Services\ImageProcessingService;
@@ -38,6 +39,13 @@ class SystemSettings extends Component
     public int $defaultTrialDays = 14;
 
     public string $currency = 'GHS';
+
+    // Currency Pricing Settings
+    public string $pricingStrategy = 'manual';
+
+    public string $baseCurrency = 'GHS';
+
+    public string $exchangeRateUsdToGhs = '15.00';
 
     public string $dateFormat = 'Y-m-d';
 
@@ -98,6 +106,9 @@ class SystemSettings extends Component
         $this->loadPlatformLogo();
         $this->defaultTrialDays = (int) SystemSetting::get('default_trial_days', 14);
         $this->currency = (string) SystemSetting::get('currency', 'GHS');
+        $this->pricingStrategy = (string) SystemSetting::get('pricing_strategy', 'manual');
+        $this->baseCurrency = (string) SystemSetting::get('base_currency', 'GHS');
+        $this->exchangeRateUsdToGhs = (string) SystemSetting::get('exchange_rate_usd_to_ghs', '15.00');
         $this->dateFormat = (string) SystemSetting::get('date_format', 'Y-m-d');
         $this->maintenanceMode = (bool) SystemSetting::get('maintenance_mode', false);
         $this->maintenanceMessage = (string) SystemSetting::get('maintenance_message', '');
@@ -182,6 +193,9 @@ class SystemSettings extends Component
             'supportEmail' => ['nullable', 'email', 'max:255'],
             'defaultTrialDays' => ['required', 'integer', 'min:0', 'max:365'],
             'currency' => ['required', 'string', 'max:10'],
+            'pricingStrategy' => ['required', 'in:manual,exchange_rate'],
+            'baseCurrency' => ['required', 'in:GHS,USD'],
+            'exchangeRateUsdToGhs' => ['required', 'numeric', 'min:0.01'],
             'dateFormat' => ['required', 'string', 'max:20'],
             'maintenanceMessage' => ['nullable', 'string', 'max:500'],
         ]);
@@ -190,6 +204,9 @@ class SystemSettings extends Component
         SystemSetting::set('support_email', $this->supportEmail ?: null, 'app');
         SystemSetting::set('default_trial_days', (string) $this->defaultTrialDays, 'app');
         SystemSetting::set('currency', $this->currency, 'app');
+        SystemSetting::set('pricing_strategy', $this->pricingStrategy, 'currency');
+        SystemSetting::set('base_currency', $this->baseCurrency, 'currency');
+        SystemSetting::set('exchange_rate_usd_to_ghs', $this->exchangeRateUsdToGhs, 'currency');
         SystemSetting::set('date_format', $this->dateFormat, 'app');
         SystemSetting::set('maintenance_mode', $this->maintenanceMode, 'app');
         SystemSetting::set('maintenance_message', $this->maintenanceMessage ?: null, 'app');
@@ -202,6 +219,8 @@ class SystemSettings extends Component
                 'section' => 'application',
                 'app_name' => $this->appName,
                 'maintenance_mode' => $this->maintenanceMode,
+                'pricing_strategy' => $this->pricingStrategy,
+                'base_currency' => $this->baseCurrency,
             ],
         );
 
@@ -512,7 +531,8 @@ class SystemSettings extends Component
 
     public function render(): View
     {
-        return view('livewire.super-admin.settings.system-settings')
-            ->layout('components.layouts.superadmin.app');
+        return view('livewire.super-admin.settings.system-settings', [
+            'currencies' => Currency::cases(),
+        ])->layout('components.layouts.superadmin.app');
     }
 }
