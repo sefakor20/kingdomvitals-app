@@ -22,6 +22,7 @@ enum PlanModule: string
     case PrayerRequests = 'prayer_requests';
     case Reports = 'reports';
     case DutyRoster = 'duty_roster';
+    case AiInsights = 'ai_insights';
 
     public function label(): string
     {
@@ -42,6 +43,7 @@ enum PlanModule: string
             self::PrayerRequests => 'Prayer Requests',
             self::Reports => 'Reports',
             self::DutyRoster => 'Duty Roster',
+            self::AiInsights => 'AI Insights',
         };
     }
 
@@ -69,6 +71,7 @@ enum PlanModule: string
             'prayer-requests' => self::PrayerRequests,
             'reports' => self::Reports,
             'duty-rosters' => self::DutyRoster,
+            'ai', 'ai-insights' => self::AiInsights,
             default => null,
         };
     }

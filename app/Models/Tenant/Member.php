@@ -5,8 +5,10 @@ namespace App\Models\Tenant;
 use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\HouseholdRole;
+use App\Enums\LifecycleStage;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\SmsEngagementLevel;
 use App\Observers\MemberObserver;
 use Database\Factories\Tenant\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -92,6 +94,28 @@ class Member extends Model
         'notes',
         'previous_congregation',
         'photo_url',
+        'churn_risk_score',
+        'churn_risk_factors',
+        'churn_risk_calculated_at',
+        'attendance_anomaly_score',
+        'attendance_anomaly_detected_at',
+        'sms_engagement_score',
+        'sms_engagement_level',
+        'sms_optimal_send_hour',
+        'sms_optimal_send_day',
+        'sms_response_rate',
+        'sms_last_engaged_at',
+        'sms_total_received',
+        'sms_total_delivered',
+        'sms_engagement_calculated_at',
+        'lifecycle_stage',
+        'lifecycle_stage_changed_at',
+        'lifecycle_stage_factors',
+        'giving_consistency_score',
+        'giving_growth_rate',
+        'donor_tier',
+        'giving_trend',
+        'giving_analyzed_at',
     ];
 
     protected function casts(): array
@@ -108,6 +132,26 @@ class Member extends Model
             'status' => MembershipStatus::class,
             'household_role' => HouseholdRole::class,
             'sms_opt_out' => 'boolean',
+            'churn_risk_score' => 'decimal:2',
+            'churn_risk_factors' => 'array',
+            'churn_risk_calculated_at' => 'datetime',
+            'attendance_anomaly_score' => 'decimal:2',
+            'attendance_anomaly_detected_at' => 'datetime',
+            'sms_engagement_score' => 'decimal:2',
+            'sms_engagement_level' => SmsEngagementLevel::class,
+            'sms_optimal_send_hour' => 'integer',
+            'sms_optimal_send_day' => 'integer',
+            'sms_response_rate' => 'decimal:2',
+            'sms_last_engaged_at' => 'datetime',
+            'sms_total_received' => 'integer',
+            'sms_total_delivered' => 'integer',
+            'sms_engagement_calculated_at' => 'datetime',
+            'lifecycle_stage' => LifecycleStage::class,
+            'lifecycle_stage_changed_at' => 'datetime',
+            'lifecycle_stage_factors' => 'array',
+            'giving_consistency_score' => 'integer',
+            'giving_growth_rate' => 'decimal:2',
+            'giving_analyzed_at' => 'datetime',
         ];
     }
 
@@ -340,5 +384,53 @@ class Member extends Model
         }
 
         return $ageGroup;
+    }
+
+    /**
+     * Scope to get members by lifecycle stage.
+     */
+    public function scopeInLifecycleStage(Builder $query, LifecycleStage $stage): Builder
+    {
+        return $query->where('lifecycle_stage', $stage->value);
+    }
+
+    /**
+     * Scope to get members needing attention (at-risk, disengaging, dormant).
+     */
+    public function scopeNeedingAttention(Builder $query): Builder
+    {
+        return $query->whereIn('lifecycle_stage', [
+            LifecycleStage::AtRisk->value,
+            LifecycleStage::Disengaging->value,
+            LifecycleStage::Dormant->value,
+        ]);
+    }
+
+    /**
+     * Scope to get actively engaged members.
+     */
+    public function scopeEngaged(Builder $query): Builder
+    {
+        return $query->whereIn('lifecycle_stage', [
+            LifecycleStage::NewMember->value,
+            LifecycleStage::Growing->value,
+            LifecycleStage::Engaged->value,
+        ]);
+    }
+
+    /**
+     * Check if the member needs attention based on lifecycle stage.
+     */
+    public function needsLifecycleAttention(): bool
+    {
+        return $this->lifecycle_stage?->needsAttention() ?? false;
+    }
+
+    /**
+     * Check if the member is actively engaged.
+     */
+    public function isActivelyEngaged(): bool
+    {
+        return $this->lifecycle_stage?->isActive() ?? false;
     }
 }

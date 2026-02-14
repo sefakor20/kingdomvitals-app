@@ -434,7 +434,7 @@
                 <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="mb-4 flex items-center justify-between">
                         <flux:heading size="lg">{{ __('Groups & Clusters') }}</flux:heading>
-                        @if($editing && $this->canEdit)
+                        @if($this->canEdit)
                             <flux:button variant="ghost" size="sm" wire:click="openAddClusterModal" icon="plus">
                                 {{ __('Add to Group') }}
                             </flux:button>
@@ -506,6 +506,80 @@
                         </div>
                     @endif
                 </div>
+
+                <!-- AI Cluster Recommendations -->
+                @if(!$editing && !empty($this->clusterRecommendations))
+                    <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="mb-4 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <flux:icon.sparkles class="size-5 text-amber-500" />
+                                <flux:heading size="lg">{{ __('Recommended Groups') }}</flux:heading>
+                            </div>
+                            <flux:badge color="amber" size="sm">{{ __('AI Suggestions') }}</flux:badge>
+                        </div>
+
+                        <div class="space-y-3">
+                            @foreach($this->clusterRecommendations as $recommendation)
+                                <div wire:key="rec-{{ $recommendation->clusterId }}" class="rounded-lg border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-medium text-zinc-900 dark:text-zinc-100">
+                                                    {{ $recommendation->clusterName }}
+                                                </span>
+                                                <flux:badge :color="$recommendation->scoreBadgeColor()" size="sm">
+                                                    {{ $recommendation->scorePercentage() }}% {{ __('match') }}
+                                                </flux:badge>
+                                            </div>
+
+                                            {{-- Match Reasons --}}
+                                            <div class="mt-2 flex flex-wrap gap-1.5">
+                                                @foreach($recommendation->topMatchReasons(4) as $reason)
+                                                    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                                                        {{ __($reason) }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+
+                                            {{-- Cluster Details --}}
+                                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+                                                @if($recommendation->meetingLocation)
+                                                    <span class="flex items-center gap-1">
+                                                        <flux:icon.map-pin class="size-3" />
+                                                        {{ $recommendation->meetingLocation }}
+                                                    </span>
+                                                @endif
+                                                @if($recommendation->meetingInfo())
+                                                    <span class="flex items-center gap-1">
+                                                        <flux:icon.calendar class="size-3" />
+                                                        {{ $recommendation->meetingInfo() }}
+                                                    </span>
+                                                @endif
+                                                <span class="flex items-center gap-1">
+                                                    <flux:icon.users class="size-3" />
+                                                    {{ $recommendation->capacityLabel() }} {{ __('members') }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Add to Group Button --}}
+                                        @if($this->canEdit)
+                                            <flux:button
+                                                variant="ghost"
+                                                size="sm"
+                                                x-data
+                                                x-on:click="$wire.set('selectedClusterId', '{{ $recommendation->clusterId }}'); $wire.set('selectedClusterRole', 'member'); $wire.set('clusterJoinedAt', '{{ now()->format('Y-m-d') }}'); $wire.set('showAddClusterModal', true)"
+                                            >
+                                                <flux:icon.plus class="size-4" />
+                                                {{ __('Add') }}
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Notes -->
                 <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">

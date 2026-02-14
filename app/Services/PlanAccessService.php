@@ -102,6 +102,21 @@ class PlanAccessService
         return in_array($feature, $plan->features);
     }
 
+    /**
+     * Check if a specific AI feature is enabled.
+     *
+     * This checks both plan-level access (AiInsights module) and
+     * feature-level configuration in config/ai.php.
+     */
+    public function hasAiFeature(string $feature): bool
+    {
+        if (! $this->hasModule(PlanModule::AiInsights)) {
+            return false;
+        }
+
+        return config("ai.features.{$feature}.enabled", false);
+    }
+
     // ============================================
     // GENERIC QUOTA METHODS
     // ============================================

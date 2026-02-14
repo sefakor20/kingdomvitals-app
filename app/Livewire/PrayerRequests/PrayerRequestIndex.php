@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\PrayerRequests;
 
+use App\Enums\PlanModule;
 use App\Enums\PrayerRequestCategory;
 use App\Enums\PrayerRequestPrivacy;
 use App\Enums\PrayerRequestStatus;
+use App\Enums\PrayerUrgencyLevel;
 use App\Jobs\SendPrayerChainSmsJob;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
@@ -14,6 +16,7 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Notifications\PrayerRequestSubmittedNotification;
+use App\Services\PlanAccessService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -39,6 +42,10 @@ class PrayerRequestIndex extends Component
     public string $privacyFilter = '';
 
     public string $clusterFilter = '';
+
+    public string $urgencyFilter = '';
+
+    public string $sortBy = 'submitted_at';
 
     // Modal states
     public bool $showCreateModal = false;
@@ -89,9 +96,16 @@ class PrayerRequestIndex extends Component
         $this->applyEnumFilter($query, 'statusFilter', 'status');
         $this->applyEnumFilter($query, 'privacyFilter', 'privacy');
         $this->applyEnumFilter($query, 'clusterFilter', 'cluster_id');
+        $this->applyEnumFilter($query, 'urgencyFilter', 'urgency_level');
+
+        // Apply sorting
+        if ($this->sortBy === 'priority') {
+            $query->orderByDesc('priority_score')->orderByDesc('submitted_at');
+        } else {
+            $query->orderByDesc('submitted_at');
+        }
 
         return $query->with(['member', 'cluster'])
-            ->orderBy('submitted_at', 'desc')
             ->paginate(25);
     }
 
@@ -120,6 +134,16 @@ class PrayerRequestIndex extends Component
         $this->resetPage();
     }
 
+    public function updatedUrgencyFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSortBy(): void
+    {
+        $this->resetPage();
+    }
+
     #[Computed]
     public function categories(): array
     {
@@ -136,6 +160,35 @@ class PrayerRequestIndex extends Component
     public function privacyOptions(): array
     {
         return PrayerRequestPrivacy::cases();
+    }
+
+    #[Computed]
+    public function urgencyLevels(): array
+    {
+        return PrayerUrgencyLevel::cases();
+    }
+
+    #[Computed]
+    public function aiEnabled(): bool
+    {
+        return app(PlanAccessService::class)->hasModule(PlanModule::AiInsights)
+            && config('ai.features.prayer_analysis.enabled', false);
+    }
+
+    #[Computed]
+    public function urgentPrayers(): Collection
+    {
+        if (! $this->aiEnabled) {
+            return collect();
+        }
+
+        return PrayerRequest::where('branch_id', $this->branch->id)
+            ->open()
+            ->urgent()
+            ->with(['member', 'cluster'])
+            ->orderByDesc('priority_score')
+            ->limit(5)
+            ->get();
     }
 
     #[Computed]
@@ -186,7 +239,8 @@ class PrayerRequestIndex extends Component
             || $this->isFilterActive($this->categoryFilter)
             || $this->isFilterActive($this->statusFilter)
             || $this->isFilterActive($this->privacyFilter)
-            || $this->isFilterActive($this->clusterFilter);
+            || $this->isFilterActive($this->clusterFilter)
+            || $this->isFilterActive($this->urgencyFilter);
     }
 
     protected function rules(): array
@@ -384,11 +438,13 @@ class PrayerRequestIndex extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['search', 'categoryFilter', 'statusFilter', 'privacyFilter', 'clusterFilter']);
+        $this->reset(['search', 'categoryFilter', 'statusFilter', 'privacyFilter', 'clusterFilter', 'urgencyFilter']);
+        $this->sortBy = 'submitted_at';
         $this->resetPage();
         unset($this->prayerRequests);
         unset($this->stats);
         unset($this->hasActiveFilters);
+        unset($this->urgentPrayers);
     }
 
     private function resetForm(): void

@@ -35,6 +35,10 @@ class SmsLog extends Model
         'delivered_at',
         'error_message',
         'sent_by',
+        'campaign_id',
+        'variant',
+        'send_time_slot',
+        'was_optimal_time',
     ];
 
     protected function casts(): array
@@ -45,6 +49,7 @@ class SmsLog extends Model
             'delivered_at' => 'datetime',
             'message_type' => SmsType::class,
             'status' => SmsStatus::class,
+            'was_optimal_time' => 'boolean',
         ];
     }
 

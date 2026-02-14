@@ -28,6 +28,10 @@ class Service extends Model
         'service_type',
         'capacity',
         'is_active',
+        'forecast_next_attendance',
+        'forecast_confidence',
+        'forecast_factors',
+        'forecast_calculated_at',
     ];
 
     protected function casts(): array
@@ -37,6 +41,10 @@ class Service extends Model
             'capacity' => 'integer',
             'is_active' => 'boolean',
             'service_type' => ServiceType::class,
+            'forecast_next_attendance' => 'decimal:2',
+            'forecast_confidence' => 'decimal:2',
+            'forecast_factors' => 'array',
+            'forecast_calculated_at' => 'datetime',
         ];
     }
 

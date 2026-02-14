@@ -2,21 +2,21 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         @include('partials.head')
-        <title>{{ config('app.name') }} - Church Management Made Simple</title>
-        <meta name="description" content="The all-in-one platform to manage your membership, giving, attendance, volunteers, and more — so you can focus on ministry.">
+        <title>{{ config('app.name') }} - AI-Powered Church Management</title>
+        <meta name="description" content="AI-powered church management platform. Predict trends, identify at-risk members, and get actionable insights while managing membership, giving, and attendance.">
 
         {{-- Open Graph Meta Tags --}}
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url('/') }}">
-        <meta property="og:title" content="{{ config('app.name') }} - Church Management Made Simple">
-        <meta property="og:description" content="The all-in-one platform to manage your membership, giving, attendance, volunteers, and more — so you can focus on ministry.">
+        <meta property="og:title" content="{{ config('app.name') }} - AI-Powered Church Management">
+        <meta property="og:description" content="AI-powered church management platform. Predict trends, identify at-risk members, and get actionable insights while managing your ministry.">
         <meta property="og:image" content="{{ asset('images/og-image.png') }}">
         <meta property="og:site_name" content="{{ config('app.name') }}">
 
         {{-- Twitter Card Meta Tags --}}
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ config('app.name') }} - Church Management Made Simple">
-        <meta name="twitter:description" content="The all-in-one platform to manage your membership, giving, attendance, volunteers, and more.">
+        <meta name="twitter:title" content="{{ config('app.name') }} - AI-Powered Church Management">
+        <meta name="twitter:description" content="AI-powered church management with predictive insights, smart alerts, and actionable recommendations.">
         <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
         {{-- Additional SEO --}}
@@ -151,6 +151,9 @@
 
         {{-- Features Section --}}
         @include('landing.partials.features')
+
+        {{-- AI Features Section --}}
+        @include('landing.partials.ai-features')
 
         {{-- How It Works --}}
         @include('landing.partials.how-it-works')

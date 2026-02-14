@@ -1,4 +1,4 @@
-@props(['followUp', 'branch', 'urgency' => 'upcoming'])
+@props(['followUp', 'branch', 'urgency' => 'upcoming', 'showConversionScore' => false, 'showAiMessage' => false])
 
 @php
     $borderColor = match($urgency) {
@@ -38,13 +38,28 @@
         <div class="flex items-center gap-2">
             <flux:avatar size="sm" name="{{ $followUp->visitor->fullName() }}" />
             <div>
-                <a
-                    href="{{ route('visitors.show', [$branch, $followUp->visitor]) }}"
-                    class="font-medium text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
-                    wire:navigate
-                >
-                    {{ $followUp->visitor->fullName() }}
-                </a>
+                <div class="flex items-center gap-2">
+                    <a
+                        href="{{ route('visitors.show', [$branch, $followUp->visitor]) }}"
+                        class="font-medium text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
+                        wire:navigate
+                    >
+                        {{ $followUp->visitor->fullName() }}
+                    </a>
+                    @if($showConversionScore && $followUp->visitor->conversion_score)
+                        @php
+                            $score = $followUp->visitor->conversion_score;
+                            $scoreColor = match(true) {
+                                $score >= 70 => 'green',
+                                $score >= 40 => 'yellow',
+                                default => 'zinc',
+                            };
+                        @endphp
+                        <flux:badge :color="$scoreColor" size="sm" title="{{ __('Conversion likelihood') }}">
+                            {{ round($score) }}%
+                        </flux:badge>
+                    @endif
+                </div>
                 <div class="text-xs text-zinc-500 dark:text-zinc-400">
                     {{ __('Visited') }} {{ $followUp->visitor->visit_date?->format('M d, Y') }}
                 </div>
@@ -123,6 +138,23 @@
         >
             {{ __('Reschedule') }}
         </flux:button>
+        @if($showAiMessage)
+            <flux:button
+                variant="ghost"
+                size="sm"
+                wire:click="generateAiMessage('{{ $followUp->id }}')"
+                wire:loading.attr="disabled"
+                wire:target="generateAiMessage('{{ $followUp->id }}')"
+                title="{{ __('Generate AI message') }}"
+            >
+                <span wire:loading.remove wire:target="generateAiMessage('{{ $followUp->id }}')">
+                    <flux:icon icon="sparkles" class="size-4 text-purple-500" />
+                </span>
+                <span wire:loading wire:target="generateAiMessage('{{ $followUp->id }}')">
+                    <flux:icon icon="arrow-path" class="size-4 animate-spin text-purple-500" />
+                </span>
+            </flux:button>
+        @endif
         <flux:button
             variant="ghost"
             size="sm"

@@ -8,20 +8,23 @@
         <div class="mx-auto max-w-3xl text-center">
             {{-- Badge --}}
             <div class="mb-8 flex justify-center">
-                <div class="relative rounded-full px-4 py-1.5 text-sm leading-6 text-neutral-600 ring-1 ring-neutral-900/10 hover:ring-neutral-900/20 dark:text-neutral-400 dark:ring-white/10 dark:hover:ring-white/20">
-                    Trusted by churches worldwide
+                <div class="relative flex items-center gap-2 rounded-full bg-purple-50 px-4 py-1.5 text-sm leading-6 text-purple-700 ring-1 ring-purple-200 hover:ring-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-800 dark:hover:ring-purple-700">
+                    <svg class="size-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5z" clip-rule="evenodd" />
+                    </svg>
+                    AI-Powered Church Management
                 </div>
             </div>
 
             {{-- Headline --}}
             <h1 class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl dark:text-white">
                 Church Management
-                <span class="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-indigo-400">Made Simple</span>
+                <span class="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-indigo-400">Powered by AI</span>
             </h1>
 
             {{-- Subheadline --}}
             <p class="mt-6 text-lg leading-8 text-neutral-600 sm:text-xl dark:text-neutral-400">
-                The all-in-one platform to manage your membership, giving, attendance, volunteers, and more — so you can focus on ministry.
+                The intelligent platform that helps you understand your congregation better. Manage membership, giving, and attendance while AI predicts trends and surfaces insights.
             </p>
 
             {{-- CTAs --}}

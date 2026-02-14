@@ -2,6 +2,7 @@
 
 namespace App\Models\Tenant;
 
+use App\Enums\ExperienceLevel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -23,6 +24,12 @@ class DutyRosterPoolMember extends Pivot
             'assignment_count' => 'integer',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'experience_level' => ExperienceLevel::class,
+            'skill_score' => 'decimal:2',
+            'reliability_score' => 'decimal:2',
+            'preferred_service_ids' => 'array',
+            'max_monthly_assignments' => 'integer',
+            'scores_calculated_at' => 'datetime',
         ];
     }
 

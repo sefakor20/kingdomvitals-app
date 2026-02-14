@@ -96,9 +96,10 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Configure Livewire update route for multi-tenancy
-        // Always include tenancy middleware - InitializeTenancyByDomain checks central domains
-        // internally and skips initialization for them. This approach works correctly with
-        // route caching (unlike using request()->getHost() at route registration time).
+        // For central domains (admin panel), skip tenancy initialization and continue.
+        // For tenant domains, initialize tenancy normally.
+        $this->configureInitializeTenancyByDomainOnFail();
+
         Livewire::setUpdateRoute(function ($handle) {
             return Route::post('/livewire/update', $handle)
                 ->middleware([
@@ -133,6 +134,28 @@ class AppServiceProvider extends ServiceProvider
 
             // For other central domains (localhost, etc.), show 404
             abort(404);
+        };
+    }
+
+    /**
+     * Configure InitializeTenancyByDomain middleware to allow central domains.
+     *
+     * When tenant identification fails, check if the request is from a central domain.
+     * If so, allow the request to continue without tenancy (for admin panel, landing page, etc.).
+     * If not a central domain, throw the original exception.
+     */
+    private function configureInitializeTenancyByDomainOnFail(): void
+    {
+        \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::$onFail = function ($exception, $request, $next) {
+            $centralDomains = config('tenancy.central_domains', []);
+
+            // If this is a central domain, continue without tenancy
+            if (in_array($request->getHost(), $centralDomains)) {
+                return $next($request);
+            }
+
+            // For non-central domains, throw the exception
+            throw $exception;
         };
     }
 
