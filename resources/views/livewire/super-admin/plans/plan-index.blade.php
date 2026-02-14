@@ -67,11 +67,24 @@
 
                     <!-- Pricing -->
                     <div class="mb-4">
-                        <span class="text-3xl font-bold text-zinc-900 dark:text-white">{{ Number::currency($plan->price_monthly, in: $this->baseCurrency->code()) }}</span>
+                        <!-- GHS Price -->
+                        <span class="text-3xl font-bold text-zinc-900 dark:text-white">{{ Number::currency($plan->price_monthly, in: 'GHS') }}</span>
                         <span class="text-zinc-500">/{{ __('month') }}</span>
+
+                        <!-- USD Price (if set) -->
+                        @if($plan->price_monthly_usd)
+                            <div class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                {{ Number::currency($plan->price_monthly_usd, in: 'USD') }}/{{ __('month') }}
+                            </div>
+                        @endif
+
+                        <!-- Annual prices -->
                         @if($plan->price_annual > 0)
-                            <div class="mt-1 text-sm text-zinc-500">
-                                {{ Number::currency($plan->price_annual, in: $this->baseCurrency->code()) }}/{{ __('year') }}
+                            <div class="mt-2 text-sm text-zinc-500">
+                                {{ Number::currency($plan->price_annual, in: 'GHS') }}/{{ __('year') }}
+                                @if($plan->price_annual_usd)
+                                    · {{ Number::currency($plan->price_annual_usd, in: 'USD') }}/{{ __('year') }}
+                                @endif
                                 @if($plan->getAnnualSavingsPercent() > 0)
                                     <span class="text-green-600">({{ __('Save') }} {{ number_format($plan->getAnnualSavingsPercent(), 0) }}%)</span>
                                 @endif

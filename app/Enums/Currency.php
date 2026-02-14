@@ -13,6 +13,9 @@ enum Currency: string
 {
     case GHS = 'GHS';
     case USD = 'USD';
+    case GBP = 'GBP';
+    case EUR = 'EUR';
+    case NGN = 'NGN';
 
     /**
      * Get the currency symbol.
@@ -22,6 +25,9 @@ enum Currency: string
         return match ($this) {
             self::GHS => '₵',
             self::USD => '$',
+            self::GBP => '£',
+            self::EUR => '€',
+            self::NGN => '₦',
         };
     }
 
@@ -33,6 +39,9 @@ enum Currency: string
         return match ($this) {
             self::GHS => 'Ghanaian Cedi',
             self::USD => 'US Dollar',
+            self::GBP => 'British Pound',
+            self::EUR => 'Euro',
+            self::NGN => 'Nigerian Naira',
         };
     }
 
@@ -50,7 +59,7 @@ enum Currency: string
     public function decimalPlaces(): int
     {
         return match ($this) {
-            self::GHS, self::USD => 2,
+            self::GHS, self::USD, self::GBP, self::EUR, self::NGN => 2,
         };
     }
 
@@ -60,7 +69,7 @@ enum Currency: string
     public function subunitMultiplier(): int
     {
         return match ($this) {
-            self::GHS, self::USD => 100,
+            self::GHS, self::USD, self::GBP, self::EUR, self::NGN => 100,
         };
     }
 
@@ -71,7 +80,9 @@ enum Currency: string
     {
         return match ($this) {
             self::GHS => 'pesewas',
-            self::USD => 'cents',
+            self::USD, self::EUR => 'cents',
+            self::GBP => 'pence',
+            self::NGN => 'kobo',
         };
     }
 
@@ -85,6 +96,9 @@ enum Currency: string
         return [
             self::GHS->value => self::GHS->symbol().' - '.self::GHS->name(),
             self::USD->value => self::USD->symbol().' - '.self::USD->name(),
+            self::GBP->value => self::GBP->symbol().' - '.self::GBP->name(),
+            self::EUR->value => self::EUR->symbol().' - '.self::EUR->name(),
+            self::NGN->value => self::NGN->symbol().' - '.self::NGN->name(),
         ];
     }
 
@@ -98,6 +112,9 @@ enum Currency: string
         return [
             self::GHS->value => self::GHS->value,
             self::USD->value => self::USD->value,
+            self::GBP->value => self::GBP->value,
+            self::EUR->value => self::EUR->value,
+            self::NGN->value => self::NGN->value,
         ];
     }
 
