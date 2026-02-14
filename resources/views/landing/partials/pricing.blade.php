@@ -23,30 +23,9 @@
                 $baseCurrency = \App\Enums\Currency::fromString(\App\Models\SystemSetting::get('base_currency', 'GHS'));
             @endphp
 
-            <div x-data="{ annual: true, currency: 'GHS' }">
-            {{-- Currency & Billing toggle --}}
-            <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6">
-                {{-- Currency toggle --}}
-                <div class="flex items-center gap-2 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
-                    <button
-                        type="button"
-                        class="rounded-full px-3 py-1.5 text-sm font-medium transition"
-                        :class="currency === 'GHS' ? 'bg-white text-neutral-900 shadow dark:bg-neutral-700 dark:text-white' : 'text-neutral-600 dark:text-neutral-400'"
-                        @click="currency = 'GHS'"
-                    >
-                        GHS (&#8373;)
-                    </button>
-                    <button
-                        type="button"
-                        class="rounded-full px-3 py-1.5 text-sm font-medium transition"
-                        :class="currency === 'USD' ? 'bg-white text-neutral-900 shadow dark:bg-neutral-700 dark:text-white' : 'text-neutral-600 dark:text-neutral-400'"
-                        @click="currency = 'USD'"
-                    >
-                        USD ($)
-                    </button>
-                </div>
-
-                {{-- Billing cycle toggle --}}
+            <div x-data="{ annual: true }">
+            {{-- Billing cycle toggle --}}
+            <div class="mt-10 flex justify-center">
                 <div class="flex items-center gap-2 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
                     <button
                         type="button"
@@ -69,6 +48,7 @@
                     </button>
                 </div>
             </div>
+
 
             {{-- Pricing cards --}}
             @php
@@ -99,30 +79,11 @@
 
                         <div class="mt-6">
                             @if($plan->price_monthly > 0)
-                                {{-- GHS Price --}}
-                                <template x-if="currency === 'GHS'">
-                                    <span>
-                                        <span
-                                            class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
-                                            x-text="`GHS ${annual ? '{{ number_format($plan->price_annual / 12, 0) }}' : '{{ number_format($plan->price_monthly, 0) }}'}`"
-                                        ></span>
-                                        <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
-                                    </span>
-                                </template>
-                                {{-- USD Price --}}
-                                <template x-if="currency === 'USD'">
-                                    <span>
-                                        @if($plan->price_monthly_usd)
-                                            <span
-                                                class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
-                                                x-text="`$ ${annual ? '{{ number_format(($plan->price_annual_usd ?? 0) / 12, 0) }}' : '{{ number_format($plan->price_monthly_usd, 0) }}'}`"
-                                            ></span>
-                                            <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
-                                        @else
-                                            <span class="text-2xl font-semibold {{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-500 dark:text-neutral-500' }}">{{ __('Contact for pricing') }}</span>
-                                        @endif
-                                    </span>
-                                </template>
+                                <span
+                                    class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
+                                    x-text="`GHS ${annual ? '{{ number_format($plan->price_annual / 12, 0) }}' : '{{ number_format($plan->price_monthly, 0) }}'}`"
+                                >GHS {{ number_format($plan->price_annual / 12, 0) }}</span>
+                                <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
                             @else
                                 <span class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}">Free</span>
                             @endif
