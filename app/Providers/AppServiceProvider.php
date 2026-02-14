@@ -40,6 +40,7 @@ use App\Policies\SmsLogPolicy;
 use App\Policies\SmsTemplatePolicy;
 use App\Policies\UserBranchAccessPolicy;
 use App\Policies\VisitorFollowUpPolicy;
+use App\Services\CurrencyFormatter;
 use App\Services\PlanAccessService;
 use App\Services\SystemSettingService;
 use Illuminate\Support\Facades\Blade;
@@ -56,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SystemSettingService::class);
+        $this->app->singleton(CurrencyFormatter::class);
         $this->app->scoped(PlanAccessService::class);
     }
 
@@ -109,6 +111,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->registerPlanAccessDirectives();
+        $this->registerCurrencyDirectives();
 
         // Register observers
         Tenant::observe(TenantObserver::class);
@@ -197,6 +200,27 @@ class AppServiceProvider extends ServiceProvider
         // @canUploadFile($sizeBytes) ... @endcanUploadFile
         Blade::if('canUploadFile', function (int $sizeBytes = 0) {
             return app(PlanAccessService::class)->canUploadFile($sizeBytes);
+        });
+    }
+
+    /**
+     * Register Blade directives for currency formatting.
+     */
+    private function registerCurrencyDirectives(): void
+    {
+        // @money($amount, $currency) → ₵100.00 or $100.00
+        Blade::directive('money', function (string $expression) {
+            return "<?php echo app(\App\Services\CurrencyFormatter::class)->format({$expression}); ?>";
+        });
+
+        // @moneyCode($amount, $currency) → GHS 100.00 or USD 100.00
+        Blade::directive('moneyCode', function (string $expression) {
+            return "<?php echo app(\App\Services\CurrencyFormatter::class)->formatWithCode({$expression}); ?>";
+        });
+
+        // @currencySymbol($currency) → ₵ or $
+        Blade::directive('currencySymbol', function (string $expression) {
+            return "<?php echo app(\App\Services\CurrencyFormatter::class)->symbol({$expression}); ?>";
         });
     }
 }
