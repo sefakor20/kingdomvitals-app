@@ -241,6 +241,12 @@ return [
             'growth_threshold_percent' => 20,
             'decline_threshold_percent' => -20,
         ],
+
+        'recommendations' => [
+            'enabled' => env('AI_FEATURE_RECOMMENDATIONS', true),
+            'max_per_alert' => 3,
+            'show_priority_badges' => true,
+        ],
     ],
 
     /*

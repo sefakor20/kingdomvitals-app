@@ -64,54 +64,135 @@
             </div>
             <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
                 @foreach($this->recentAlerts as $alert)
-                    <div class="flex items-start gap-4 px-6 py-4 {{ !$alert->is_read ? 'bg-zinc-50 dark:bg-zinc-800/50' : '' }}">
-                        <div class="rounded-full p-2 {{ match($alert->severity->value) {
-                            'critical' => 'bg-red-100 dark:bg-red-900',
-                            'high' => 'bg-orange-100 dark:bg-orange-900',
-                            'medium' => 'bg-amber-100 dark:bg-amber-900',
-                            default => 'bg-zinc-100 dark:bg-zinc-800',
-                        } }}">
-                            <flux:icon :icon="$alert->icon" class="size-4 {{ match($alert->severity->value) {
-                                'critical' => 'text-red-600 dark:text-red-400',
-                                'high' => 'text-orange-600 dark:text-orange-400',
-                                'medium' => 'text-amber-600 dark:text-amber-400',
-                                default => 'text-zinc-600 dark:text-zinc-400',
-                            } }}" />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2">
-                                <flux:text class="font-medium">{{ $alert->title }}</flux:text>
-                                @if(!$alert->is_read)
-                                    <span class="size-2 rounded-full bg-blue-500"></span>
-                                @endif
+                    <div class="px-6 py-4 {{ !$alert->is_read ? 'bg-zinc-50 dark:bg-zinc-800/50' : '' }}">
+                        <div class="flex items-start gap-4">
+                            <div class="rounded-full p-2 {{ match($alert->severity->value) {
+                                'critical' => 'bg-red-100 dark:bg-red-900',
+                                'high' => 'bg-orange-100 dark:bg-orange-900',
+                                'medium' => 'bg-amber-100 dark:bg-amber-900',
+                                default => 'bg-zinc-100 dark:bg-zinc-800',
+                            } }}">
+                                <flux:icon :icon="$alert->icon" class="size-4 {{ match($alert->severity->value) {
+                                    'critical' => 'text-red-600 dark:text-red-400',
+                                    'high' => 'text-orange-600 dark:text-orange-400',
+                                    'medium' => 'text-amber-600 dark:text-amber-400',
+                                    default => 'text-zinc-600 dark:text-zinc-400',
+                                } }}" />
                             </div>
-                            <flux:text class="mt-1 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ $alert->description }}
-                            </flux:text>
-                            <div class="mt-2 flex items-center gap-3">
-                                <flux:badge size="sm" :color="$alert->color">{{ $alert->severity->label() }}</flux:badge>
-                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
-                                    {{ $alert->created_at->diffForHumans() }}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <flux:text class="font-medium">{{ $alert->title }}</flux:text>
+                                    @if(!$alert->is_read)
+                                        <span class="size-2 rounded-full bg-blue-500"></span>
+                                    @endif
+                                </div>
+                                <flux:text class="mt-1 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ $alert->description }}
                                 </flux:text>
-                                @if($alert->relatedEntityName)
+                                <div class="mt-2 flex items-center gap-3">
+                                    <flux:badge size="sm" :color="$alert->color">{{ $alert->severity->label() }}</flux:badge>
                                     <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
-                                        {{ $alert->relatedEntityName }}
+                                        {{ $alert->created_at->diffForHumans() }}
                                     </flux:text>
+                                    @if($alert->relatedEntityName)
+                                        <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
+                                            {{ $alert->relatedEntityName }}
+                                        </flux:text>
+                                    @endif
+                                    @if($alert->hasRecommendations())
+                                        <flux:badge size="sm" color="purple">
+                                            {{ $alert->recommendation_count }} {{ __('recommendations') }}
+                                        </flux:badge>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if(!$alert->is_read)
+                                    <flux:button size="xs" variant="ghost" wire:click="markAlertAsRead('{{ $alert->id }}')">
+                                        <flux:icon icon="check" class="size-4" />
+                                    </flux:button>
+                                @endif
+                                @if(!$alert->is_acknowledged)
+                                    <flux:button size="xs" variant="ghost" wire:click="acknowledgeAlert('{{ $alert->id }}')">
+                                        <flux:icon icon="check-circle" class="size-4" />
+                                    </flux:button>
                                 @endif
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            @if(!$alert->is_read)
-                                <flux:button size="xs" variant="ghost" wire:click="markAlertAsRead('{{ $alert->id }}')">
-                                    <flux:icon icon="check" class="size-4" />
-                                </flux:button>
-                            @endif
-                            @if(!$alert->is_acknowledged)
-                                <flux:button size="xs" variant="ghost" wire:click="acknowledgeAlert('{{ $alert->id }}')">
-                                    <flux:icon icon="check-circle" class="size-4" />
-                                </flux:button>
-                            @endif
-                        </div>
+
+                        {{-- Recommendations Section --}}
+                        @if($alert->hasRecommendations())
+                            <div x-data="{ open: false }" class="mt-3 ml-12">
+                                <button
+                                    type="button"
+                                    @click="open = !open"
+                                    class="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                                >
+                                    <flux:icon icon="clipboard-document-list" class="size-4" />
+                                    <span x-text="open ? '{{ __('Hide Recommendations') }}' : '{{ __('Show Recommended Actions') }}'"></span>
+                                    <flux:icon x-show="!open" icon="chevron-down" class="size-3" />
+                                    <flux:icon x-show="open" icon="chevron-up" class="size-3" x-cloak />
+                                </button>
+
+                                <div x-show="open" x-cloak x-collapse class="mt-3 rounded-lg border border-purple-100 bg-purple-50/50 p-4 dark:border-purple-900 dark:bg-purple-950/30">
+                                    <div class="space-y-3">
+                                        @foreach($alert->recommendationDtos as $recommendation)
+                                            <div class="flex items-start gap-3">
+                                                <div class="rounded-full p-1.5 {{ match($recommendation->priority) {
+                                                    'immediate' => 'bg-red-100 dark:bg-red-900',
+                                                    'soon' => 'bg-amber-100 dark:bg-amber-900',
+                                                    default => 'bg-zinc-100 dark:bg-zinc-800',
+                                                } }}">
+                                                    <flux:icon :icon="$recommendation->effectiveIcon()" class="size-3.5 {{ match($recommendation->priority) {
+                                                        'immediate' => 'text-red-600 dark:text-red-400',
+                                                        'soon' => 'text-amber-600 dark:text-amber-400',
+                                                        default => 'text-zinc-600 dark:text-zinc-400',
+                                                    } }}" />
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2">
+                                                        <flux:text class="font-medium text-sm">{{ $recommendation->action }}</flux:text>
+                                                        @if(config('ai.features.recommendations.show_priority_badges', true))
+                                                            <flux:badge size="sm" :color="$recommendation->priorityColor()">
+                                                                {{ $recommendation->priorityLabel() }}
+                                                            </flux:badge>
+                                                        @endif
+                                                        @if($recommendation->assignTo)
+                                                            <flux:badge size="sm" color="zinc">
+                                                                {{ $recommendation->assignToLabel() }}
+                                                            </flux:badge>
+                                                        @endif
+                                                    </div>
+                                                    <flux:text class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                                        {{ $recommendation->description }}
+                                                    </flux:text>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    @if(!$alert->wasActedOn())
+                                        <div class="mt-4 pt-3 border-t border-purple-100 dark:border-purple-800">
+                                            <flux:button
+                                                size="xs"
+                                                variant="ghost"
+                                                wire:click="markRecommendationActedOn('{{ $alert->id }}')"
+                                            >
+                                                <flux:icon icon="check-badge" class="size-4" />
+                                                {{ __('Mark Action Taken') }}
+                                            </flux:button>
+                                        </div>
+                                    @else
+                                        <div class="mt-4 pt-3 border-t border-purple-100 dark:border-purple-800">
+                                            <flux:text class="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                                                <flux:icon icon="check-badge" class="size-4" />
+                                                {{ __('Action taken') }} {{ $alert->recommendation_acted_at?->diffForHumans() }}
+                                            </flux:text>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>

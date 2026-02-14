@@ -118,6 +118,14 @@ class InsightsDashboard extends Component
         }
     }
 
+    public function markRecommendationActedOn(string $alertId): void
+    {
+        $alert = AiAlert::find($alertId);
+        if ($alert && $alert->branch_id === $this->branch->id) {
+            $alert->markRecommendationActedOn();
+        }
+    }
+
     // ============================================
     // AT-RISK DONORS
     // ============================================

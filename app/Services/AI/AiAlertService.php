@@ -22,6 +22,12 @@ use Illuminate\Support\Collection;
 
 class AiAlertService
 {
+    public function __construct(
+        protected ?AlertRecommendationService $recommendationService = null,
+    ) {
+        $this->recommendationService ??= new AlertRecommendationService;
+    }
+
     /**
      * Run all alert checks for a branch.
      *
@@ -416,7 +422,7 @@ class AiAlertService
         AlertSeverity $severity,
         array $data = []
     ): ?AiAlert {
-        return AiAlert::create([
+        $alert = AiAlert::create([
             'branch_id' => $branch->id,
             'alert_type' => $type,
             'severity' => $severity,
@@ -426,6 +432,18 @@ class AiAlertService
             'alertable_id' => $alertable->getKey(),
             'data' => $data,
         ]);
+
+        // Generate and attach recommendations
+        if ($alert && config('ai.recommendations.enabled', true)) {
+            $recommendations = $this->recommendationService->getRecommendationsForAlert($alert);
+            if (! empty($recommendations)) {
+                $alert->update([
+                    'recommendations' => $this->recommendationService->toStorableFormat($recommendations),
+                ]);
+            }
+        }
+
+        return $alert;
     }
 
     /**

@@ -27,6 +27,9 @@ class AiAlert extends Model
         'alertable_type',
         'alertable_id',
         'data',
+        'recommendations',
+        'recommendation_acted_on',
+        'recommendation_acted_at',
         'is_read',
         'is_acknowledged',
         'acknowledged_by',
@@ -39,6 +42,9 @@ class AiAlert extends Model
             'alert_type' => AiAlertType::class,
             'severity' => AlertSeverity::class,
             'data' => 'array',
+            'recommendations' => 'array',
+            'recommendation_acted_on' => 'boolean',
+            'recommendation_acted_at' => 'datetime',
             'is_read' => 'boolean',
             'is_acknowledged' => 'boolean',
             'acknowledged_at' => 'datetime',
@@ -212,5 +218,57 @@ class AiAlert extends Model
             ->where('alertable_id', $alertableId)
             ->where('created_at', '>=', now()->subHours($cooldownHours))
             ->exists();
+    }
+
+    /**
+     * Get recommendations as AlertRecommendation DTOs.
+     *
+     * @return array<\App\Services\AI\DTOs\AlertRecommendation>
+     */
+    public function getRecommendationDtosAttribute(): array
+    {
+        if (empty($this->recommendations)) {
+            return [];
+        }
+
+        return array_map(
+            fn (array $r) => \App\Services\AI\DTOs\AlertRecommendation::fromArray($r),
+            $this->recommendations
+        );
+    }
+
+    /**
+     * Check if this alert has recommendations.
+     */
+    public function hasRecommendations(): bool
+    {
+        return ! empty($this->recommendations);
+    }
+
+    /**
+     * Get the count of recommendations.
+     */
+    public function getRecommendationCountAttribute(): int
+    {
+        return count($this->recommendations ?? []);
+    }
+
+    /**
+     * Mark that action has been taken on recommendations.
+     */
+    public function markRecommendationActedOn(): bool
+    {
+        return $this->update([
+            'recommendation_acted_on' => true,
+            'recommendation_acted_at' => now(),
+        ]);
+    }
+
+    /**
+     * Check if recommendations have been acted on.
+     */
+    public function wasActedOn(): bool
+    {
+        return $this->recommendation_acted_on === true;
     }
 }
