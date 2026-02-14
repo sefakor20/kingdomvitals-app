@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Giving;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
@@ -38,6 +39,12 @@ class MemberGivingHistory extends Component
     {
         $this->branch = $branch;
         $this->year = (string) now()->year;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]

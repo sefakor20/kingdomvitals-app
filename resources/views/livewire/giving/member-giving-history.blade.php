@@ -24,7 +24,7 @@
                 </flux:select>
             </div>
             <flux:heading size="xl" class="text-green-600 dark:text-green-400">
-                GHS {{ number_format((float) $this->givingStats['thisYear'], 2) }}
+                {{ $this->currency->symbol() }}{{ number_format((float) $this->givingStats['thisYear'], 2) }}
             </flux:heading>
             <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">
                 {{ $this->givingStats['yearCount'] }} {{ __('donations') }}
@@ -35,7 +35,7 @@
         <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:text class="mb-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lifetime Total') }}</flux:text>
             <flux:heading size="xl">
-                GHS {{ number_format((float) $this->givingStats['total'], 2) }}
+                {{ $this->currency->symbol() }}{{ number_format((float) $this->givingStats['total'], 2) }}
             </flux:heading>
             <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">
                 {{ $this->givingStats['count'] }} {{ __('donations') }}
@@ -119,7 +119,7 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <flux:heading size="sm">
-                                        GHS {{ number_format((float) $donation->amount, 2) }}
+                                        {{ $this->currency->symbol() }}{{ number_format((float) $donation->amount, 2) }}
                                     </flux:heading>
                                     @if($donation->is_recurring)
                                         <flux:badge color="purple" size="sm">{{ __('Recurring') }}</flux:badge>
@@ -177,7 +177,7 @@
                         <div class="flex items-center justify-between p-4">
                             <div>
                                 <flux:heading size="sm">
-                                    GHS {{ number_format((float) $recurring->amount, 2) }} / {{ $recurring->recurring_interval }}
+                                    {{ $this->currency->symbol() }}{{ number_format((float) $recurring->amount, 2) }} / {{ $recurring->recurring_interval }}
                                 </flux:heading>
                                 <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
                                     {{ ucwords(str_replace('_', ' ', $recurring->donation_type->value)) }}

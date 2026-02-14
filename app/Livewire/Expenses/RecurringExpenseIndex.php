@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Expenses;
 
+use App\Enums\Currency;
 use App\Enums\ExpenseCategory;
 use App\Enums\PaymentMethod;
 use App\Enums\PledgeFrequency;
@@ -132,6 +133,12 @@ class RecurringExpenseIndex extends Component
     }
 
     #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
+    #[Computed]
     public function stats(): array
     {
         $expenses = $this->recurringExpenses;
@@ -193,7 +200,7 @@ class RecurringExpenseIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['status'] = RecurringExpenseStatus::Active->value;
 
         // Convert empty strings to null for nullable fields

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Budgets;
 
 use App\Enums\BudgetStatus;
+use App\Enums\Currency;
 use App\Enums\ExpenseCategory;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
@@ -132,6 +133,12 @@ class BudgetIndex extends Component
     }
 
     #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
+    #[Computed]
     public function budgetStats(): array
     {
         $budgets = $this->budgets;
@@ -203,7 +210,7 @@ class BudgetIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['created_by'] = null;
 
         if ($validated['notes'] === '') {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Donations;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\PaymentMethod;
 use App\Livewire\Concerns\HasFilterableQuery;
@@ -80,6 +81,12 @@ class DonationIndex extends Component
     {
         $this->authorize('viewAny', [Donation::class, $branch]);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]
@@ -301,7 +308,7 @@ class DonationIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
 
         // Convert empty strings to null for nullable fields
         $nullableFields = ['member_id', 'service_id', 'donor_name', 'reference_number', 'notes'];

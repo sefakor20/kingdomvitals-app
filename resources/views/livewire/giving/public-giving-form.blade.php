@@ -44,7 +44,7 @@
                     </div>
                     <flux:heading size="lg" class="mb-2">Thank You!</flux:heading>
                     <flux:text class="mb-6 text-stone-600 dark:text-stone-400">
-                        Your donation of <strong>GHS {{ number_format((float) $lastDonation?->amount, 2) }}</strong> has been received.
+                        Your donation of <strong>{{ $this->currency->symbol() }}{{ number_format((float) $lastDonation?->amount, 2) }}</strong> has been received.
                         A receipt will be sent to your email.
                     </flux:text>
 
@@ -76,7 +76,7 @@
                     {{-- Amount Selection --}}
                     <div class="mb-6">
                         <flux:field>
-                            <flux:label>Donation Amount (GHS)</flux:label>
+                            <flux:label>Donation Amount ({{ $this->currency->code() }})</flux:label>
 
                             {{-- Preset Amounts --}}
                             <div class="mb-3 grid grid-cols-3 gap-2">
@@ -186,7 +186,7 @@
                     {{-- Submit Button --}}
                     <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled">
                         <span wire:loading.remove wire:target="initializePayment">
-                            Give GHS {{ $amount ?: '0.00' }}
+                            Give {{ $this->currency->symbol() }}{{ $amount ?: '0.00' }}
                         </span>
                         <span wire:loading wire:target="initializePayment">
                             Processing...

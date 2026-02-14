@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Finance;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\ExpenseStatus;
 use App\Enums\MembershipStatus;
@@ -27,6 +28,16 @@ class FinanceDashboard extends Component
     {
         $this->authorize('viewReports', [Donation::class, $branch]);
         $this->branch = $branch;
+    }
+
+    // ============================================
+    // CURRENCY
+    // ============================================
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     // ============================================
