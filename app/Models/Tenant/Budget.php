@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use App\Enums\BudgetStatus;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -62,8 +63,34 @@ class Budget extends Model
         return $this->belongsTo(Member::class, 'created_by');
     }
 
+    /**
+     * Scope to eager-load actual spending via subquery (prevents N+1).
+     *
+     * Usage: Budget::withActualSpending()->where(...)->get()
+     */
+    public function scopeWithActualSpending(Builder $query): Builder
+    {
+        $approvedStatuses = [ExpenseStatus::Approved->value, ExpenseStatus::Paid->value];
+
+        return $query->addSelect([
+            'calculated_actual_spending' => Expense::selectRaw('COALESCE(SUM(amount), 0)')
+                ->whereColumn('expenses.branch_id', 'budgets.branch_id')
+                ->whereColumn('expenses.category', 'budgets.category')
+                ->whereColumn('expenses.currency', 'budgets.currency')
+                ->whereRaw('expenses.expense_date >= budgets.start_date')
+                ->whereRaw('expenses.expense_date <= budgets.end_date')
+                ->whereIn('expenses.status', $approvedStatuses),
+        ]);
+    }
+
     public function getActualSpendingAttribute(): float
     {
+        // Use pre-loaded value if available (from withActualSpending scope)
+        if (array_key_exists('calculated_actual_spending', $this->attributes)) {
+            return (float) ($this->attributes['calculated_actual_spending'] ?? 0);
+        }
+
+        // Fallback to query for single budget access
         return (float) Expense::where('branch_id', $this->branch_id)
             ->where('category', $this->category)
             ->where('currency', $this->currency)

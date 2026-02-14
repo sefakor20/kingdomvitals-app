@@ -226,32 +226,32 @@ class FinanceDashboard extends Component
 
     private function calculateFirstTimeDonors(): int
     {
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
         $startOfMonth = now()->startOfMonth();
+        $currencyCode = tenant()->getCurrencyCode();
 
-        // Get member IDs who donated this month
+        // Get unique member IDs who donated this month (2 queries instead of N+1)
         $donorsThisMonth = Donation::where('branch_id', $this->branch->id)
-            ->whereMonth('donation_date', $currentMonth)
-            ->whereYear('donation_date', $currentYear)
+            ->where('currency', $currencyCode)
+            ->whereMonth('donation_date', now()->month)
+            ->whereYear('donation_date', now()->year)
             ->whereNotNull('member_id')
-            ->pluck('member_id')
-            ->unique();
+            ->distinct()
+            ->pluck('member_id');
 
-        // Count how many of them had no donations before this month
-        $firstTimers = 0;
-        foreach ($donorsThisMonth as $memberId) {
-            $previousDonations = Donation::where('branch_id', $this->branch->id)
-                ->where('member_id', $memberId)
-                ->where('donation_date', '<', $startOfMonth)
-                ->exists();
-
-            if (! $previousDonations) {
-                $firstTimers++;
-            }
+        if ($donorsThisMonth->isEmpty()) {
+            return 0;
         }
 
-        return $firstTimers;
+        // Get member IDs who had donations BEFORE this month
+        $previousDonors = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
+            ->whereIn('member_id', $donorsThisMonth)
+            ->where('donation_date', '<', $startOfMonth)
+            ->distinct()
+            ->pluck('member_id');
+
+        // First-timers = this month donors - previous donors
+        return $donorsThisMonth->diff($previousDonors)->count();
     }
 
     // ============================================

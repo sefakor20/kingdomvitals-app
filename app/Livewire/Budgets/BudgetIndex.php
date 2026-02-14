@@ -77,7 +77,8 @@ class BudgetIndex extends Component
     #[Computed]
     public function budgets(): Collection
     {
-        $query = Budget::where('branch_id', $this->branch->id);
+        $query = Budget::withActualSpending()
+            ->where('branch_id', $this->branch->id);
 
         $this->applySearch($query, ['name', 'notes']);
         $this->applyEnumFilter($query, 'categoryFilter', 'category');
