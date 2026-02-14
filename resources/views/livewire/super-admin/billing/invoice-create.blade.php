@@ -40,11 +40,11 @@
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-zinc-500">{{ __('Monthly Price') }}</dt>
-                                <dd class="text-sm font-medium">GHS {{ number_format((float) ($this->selectedTenant->subscriptionPlan?->price_monthly ?? 0), 2) }}</dd>
+                                <dd class="text-sm font-medium">{{ $this->baseCurrency->symbol() }}{{ number_format((float) ($this->selectedTenant->subscriptionPlan?->price_monthly ?? 0), 2) }}</dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-sm text-zinc-500">{{ __('Annual Price') }}</dt>
-                                <dd class="text-sm font-medium">GHS {{ number_format((float) ($this->selectedTenant->subscriptionPlan?->price_annual ?? 0), 2) }}</dd>
+                                <dd class="text-sm font-medium">{{ $this->baseCurrency->symbol() }}{{ number_format((float) ($this->selectedTenant->subscriptionPlan?->price_annual ?? 0), 2) }}</dd>
                             </div>
                             @if($this->selectedTenant->contact_email)
                                 <div class="flex justify-between">
@@ -111,7 +111,7 @@
                                         </flux:field>
 
                                         <flux:field>
-                                            <flux:label>{{ __('Unit Price (GHS)') }}</flux:label>
+                                            <flux:label>{{ __('Unit Price (:currency)', ['currency' => $this->baseCurrency->code()]) }}</flux:label>
                                             <flux:input type="number" step="0.01" min="0" wire:model.live="customItems.{{ $index }}.unit_price" />
                                             <flux:error name="customItems.{{ $index }}.unit_price" />
                                         </flux:field>
@@ -170,7 +170,7 @@
                 <div class="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
                     <div class="flex justify-between">
                         <dt class="text-lg font-semibold">{{ __('Estimated Total') }}</dt>
-                        <dd class="text-lg font-bold text-indigo-600 dark:text-indigo-400">GHS {{ number_format($this->estimatedAmount, 2) }}</dd>
+                        <dd class="text-lg font-bold text-indigo-600 dark:text-indigo-400">{{ $this->baseCurrency->symbol() }}{{ number_format($this->estimatedAmount, 2) }}</dd>
                     </div>
                 </div>
 

@@ -8,7 +8,7 @@
 <x-mail::panel>
 **{{ __('Donation Details') }}**
 
-- **{{ __('Amount') }}:** GHS {{ number_format((float) $donation->amount, 2) }}
+- **{{ __('Amount') }}:** {{ $donation->currency }} {{ number_format((float) $donation->amount, 2) }}
 - **{{ __('Date') }}:** {{ $donation->donation_date->format('F j, Y') }}
 - **{{ __('Type') }}:** {{ str_replace('_', ' ', ucfirst($donation->donation_type->value)) }}
 - **{{ __('Receipt Number') }}:** {{ $donation->getReceiptNumber() }}

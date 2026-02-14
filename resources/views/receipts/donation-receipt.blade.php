@@ -171,7 +171,7 @@
         @endif
         <tr class="amount-row">
             <td class="label">{{ __('Amount') }}</td>
-            <td class="amount-value">GHS {{ number_format((float) $donation->amount, 2) }}</td>
+            <td class="amount-value">{{ $donation->currency }} {{ number_format((float) $donation->amount, 2) }}</td>
         </tr>
     </table>
 

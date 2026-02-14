@@ -526,7 +526,7 @@
 
                 <flux:input wire:model="maintenanceServiceProvider" :label="__('Service Provider')" placeholder="{{ __('Optional') }}" />
 
-                <flux:input type="number" step="0.01" wire:model="maintenanceCost" :label="__('Estimated Cost (GHS)')" placeholder="0.00" />
+                <flux:input type="number" step="0.01" wire:model="maintenanceCost" :label="__('Estimated Cost (:currency)', ['currency' => $this->currency->code()])" placeholder="0.00" />
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button variant="ghost" wire:click="closeMaintenanceModal" type="button">

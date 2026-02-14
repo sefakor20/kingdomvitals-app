@@ -20,6 +20,7 @@
         @if($plans->isNotEmpty())
             @php
                 $maxSavings = $plans->max(fn($p) => $p->getAnnualSavingsPercent());
+                $baseCurrency = \App\Enums\Currency::fromString(\App\Models\SystemSetting::get('base_currency', 'GHS'));
             @endphp
 
             <div x-data="{ annual: true }">
@@ -79,8 +80,8 @@
                             @if($plan->price_monthly > 0)
                                 <span
                                     class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
-                                    x-text="`GHS ${annual ? {{ number_format($plan->price_annual / 12, 0) }} : {{ number_format($plan->price_monthly, 0) }}}`"
-                                >GHS {{ number_format($plan->price_annual / 12, 0) }}</span>
+                                    x-text="`{{ $baseCurrency->code() }} ${annual ? {{ number_format($plan->price_annual / 12, 0) }} : {{ number_format($plan->price_monthly, 0) }}}`"
+                                >{{ $baseCurrency->code() }} {{ number_format($plan->price_annual / 12, 0) }}</span>
                                 <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
                             @else
                                 <span class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}">Free</span>

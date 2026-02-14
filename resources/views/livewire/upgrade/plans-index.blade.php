@@ -51,12 +51,12 @@
                     <div class="mb-6">
                         @if($billingCycle === 'monthly')
                             <span class="text-3xl font-bold text-zinc-900 dark:text-white">
-                                {{ Number::currency($plan->price_monthly, in: 'GHS') }}
+                                {{ Number::currency($plan->price_monthly, in: $this->currency->code()) }}
                             </span>
                             <span class="text-zinc-500">/{{ __('month') }}</span>
                         @else
                             <span class="text-3xl font-bold text-zinc-900 dark:text-white">
-                                {{ Number::currency($plan->price_annual, in: 'GHS') }}
+                                {{ Number::currency($plan->price_annual, in: $this->currency->code()) }}
                             </span>
                             <span class="text-zinc-500">/{{ __('year') }}</span>
                             @if($plan->getAnnualSavingsPercent() > 0)

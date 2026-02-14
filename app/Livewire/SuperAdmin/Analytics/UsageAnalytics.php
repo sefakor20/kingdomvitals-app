@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin\Analytics;
 
+use App\Enums\Currency;
 use App\Enums\TenantStatus;
 use App\Livewire\Concerns\HasReportExport;
 use App\Livewire\Concerns\HasReportFilters;
 use App\Models\SuperAdminActivityLog;
+use App\Models\SystemSetting;
 use App\Models\Tenant;
 use App\Models\TenantUsageSnapshot;
 use Illuminate\Support\Collection;
@@ -24,6 +26,11 @@ class UsageAnalytics extends Component
 {
     use HasReportExport;
     use HasReportFilters; // 5 minutes
+
+    private function baseCurrencyCode(): string
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'))->code();
+    }
 
     #[Url]
     public string $sortBy = 'active_members';
@@ -68,7 +75,7 @@ class UsageAnalytics extends Component
             'trialTenants' => $trialTenants,
             'totalMembers' => (int) $snapshots->sum('active_members'),
             'totalSmsSent' => (int) $snapshots->sum('sms_sent_this_month'),
-            'totalDonations' => Number::currency((float) $snapshots->sum('donations_this_month'), in: 'GHS'),
+            'totalDonations' => Number::currency((float) $snapshots->sum('donations_this_month'), in: $this->baseCurrencyCode()),
             'totalDonationsRaw' => (float) $snapshots->sum('donations_this_month'),
             'avgMembersPerTenant' => $snapshots->count() > 0
                 ? round($snapshots->avg('active_members'), 1)
@@ -179,7 +186,7 @@ class UsageAnalytics extends Component
                 'plan' => $snapshot->tenant?->subscriptionPlan,
                 'active_members' => $snapshot->active_members,
                 'sms_sent' => $snapshot->sms_sent_this_month,
-                'donations' => Number::currency((float) $snapshot->donations_this_month, in: 'GHS'),
+                'donations' => Number::currency((float) $snapshot->donations_this_month, in: $this->baseCurrencyCode()),
                 'donationsRaw' => (float) $snapshot->donations_this_month,
                 'attendance' => $snapshot->attendance_this_month,
             ];

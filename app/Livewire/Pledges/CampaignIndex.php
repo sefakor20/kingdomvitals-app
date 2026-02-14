@@ -173,7 +173,7 @@ class CampaignIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['status'] = CampaignStatus::Active;
 
         // Convert empty strings to null for nullable fields

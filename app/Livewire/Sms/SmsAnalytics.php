@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Sms;
 
+use App\Enums\Currency;
 use App\Enums\SmsStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
@@ -23,6 +24,12 @@ class SmsAnalytics extends Component
     {
         $this->authorize('viewAny', [SmsLog::class, $branch]);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     public function setPeriod(int $days): void

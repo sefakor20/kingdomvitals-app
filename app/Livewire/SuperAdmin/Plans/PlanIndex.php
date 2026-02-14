@@ -77,6 +77,11 @@ class PlanIndex extends Component
         $this->pricingStrategy = (string) SystemSetting::get('pricing_strategy', 'manual');
     }
 
+    public function getBaseCurrencyProperty(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
+    }
+
     public function updatedName(): void
     {
         if (! $this->editPlanId) {
