@@ -283,6 +283,8 @@ Route::middleware(['web'])->group(function (): void {
         Route::middleware(['module:ai_insights'])->group(function (): void {
             Route::get('/branches/{branch}/ai-insights', \App\Livewire\AI\InsightsDashboard::class)
                 ->name('ai-insights.dashboard');
+            Route::get('/branches/{branch}/ai-insights/settings', \App\Livewire\Branches\AlertSettings::class)
+                ->name('branches.alert-settings');
         });
 
         // Report Center (requires reports module)

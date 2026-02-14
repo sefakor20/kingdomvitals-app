@@ -12,7 +12,13 @@
                 </flux:text>
             </div>
         </div>
-        <flux:badge color="purple">{{ __('Beta') }}</flux:badge>
+        <div class="flex items-center gap-2">
+            <flux:button variant="ghost" size="sm" :href="route('branches.alert-settings', $branch)" wire:navigate>
+                <flux:icon icon="cog-6-tooth" class="size-4" />
+                {{ __('Alert Settings') }}
+            </flux:button>
+            <flux:badge color="purple">{{ __('Beta') }}</flux:badge>
+        </div>
     </div>
 
     {{-- Summary Stats Row --}}
