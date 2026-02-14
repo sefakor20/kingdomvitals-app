@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Billing;
 
 use App\Enums\BillingCycle;
+use App\Enums\Currency;
 use App\Enums\TenantStatus;
 use App\Models\PlatformInvoice;
 use App\Models\SuperAdminActivityLog;
+use App\Models\SystemSetting;
 use App\Models\Tenant;
 use App\Services\PlatformBillingService;
 use Illuminate\Support\Collection;
@@ -48,6 +50,12 @@ class InvoiceCreate extends Component
     public function mount(): void
     {
         $this->dueDate = now()->addDays(14)->format('Y-m-d');
+    }
+
+    #[Computed]
+    public function baseCurrency(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
     }
 
     #[Computed]

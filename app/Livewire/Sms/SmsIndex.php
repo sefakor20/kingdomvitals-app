@@ -157,7 +157,7 @@ class SmsIndex extends Component
             'failed' => $failedCount,
             'pending' => $pendingCount,
             'cost' => $totalCost,
-            'currency' => 'GHS',
+            'currency' => tenant()->getCurrencyCode(),
         ];
     }
 

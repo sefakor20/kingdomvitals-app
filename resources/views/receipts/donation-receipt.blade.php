@@ -99,30 +99,9 @@
     </style>
 </head>
 <body>
-    @php
-        $receiptLogoUrl = $branch->logo_url;
-
-        // Fall back to tenant logo if no branch logo
-        if (!$receiptLogoUrl && function_exists('tenant') && tenant() && tenant()->hasLogo()) {
-            $receiptLogoUrl = tenant()->getLogoUrl('medium');
-        }
-
-        // Fall back to platform logo
-        if (!$receiptLogoUrl) {
-            $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
-            if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
-                $path = $platformLogoPaths['medium'];
-                $fullPath = base_path('storage/app/public/'.$path);
-                if (file_exists($fullPath)) {
-                    $receiptLogoUrl = url('storage/'.$path);
-                }
-            }
-        }
-    @endphp
-
     <div class="header">
-        @if($receiptLogoUrl)
-            <img src="{{ $receiptLogoUrl }}" class="logo" alt="{{ $branch->name }}">
+        @if($logoUrl = \App\Services\LogoService::getLogoUrl($branch, 'medium'))
+            <img src="{{ $logoUrl }}" class="logo" alt="{{ $branch->name }}">
         @endif
         <div class="church-name">{{ $branch->name }}</div>
         <div class="church-contact">
@@ -171,7 +150,7 @@
         @endif
         <tr class="amount-row">
             <td class="label">{{ __('Amount') }}</td>
-            <td class="amount-value">GHS {{ number_format((float) $donation->amount, 2) }}</td>
+            <td class="amount-value">{{ \App\Services\CurrencyFormatter::formatWithCode($donation->amount, $donation->currency) }}</td>
         </tr>
     </table>
 

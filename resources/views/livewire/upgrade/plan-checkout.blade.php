@@ -53,7 +53,7 @@
                             />
                             <div class="flex-1">
                                 <div class="font-medium text-zinc-900 dark:text-white">{{ __('Monthly') }}</div>
-                                <div class="text-sm text-zinc-500">{{ Number::currency($plan->price_monthly, in: 'GHS') }}/{{ __('month') }}</div>
+                                <div class="text-sm text-zinc-500">{{ Number::currency($plan->price_monthly, in: $this->currency->code()) }}/{{ __('month') }}</div>
                             </div>
                         </label>
 
@@ -71,7 +71,7 @@
                                         <flux:badge color="green" size="sm">{{ __('Save') }} {{ number_format($this->annualSavings, 0) }}%</flux:badge>
                                     @endif
                                 </div>
-                                <div class="text-sm text-zinc-500">{{ Number::currency($plan->price_annual, in: 'GHS') }}/{{ __('year') }}</div>
+                                <div class="text-sm text-zinc-500">{{ Number::currency($plan->price_annual, in: $this->currency->code()) }}/{{ __('year') }}</div>
                             </div>
                         </label>
                     </div>
@@ -82,7 +82,7 @@
                     <div class="flex items-center justify-between">
                         <span class="text-zinc-600 dark:text-zinc-400">{{ __('Total due today') }}</span>
                         <span class="text-2xl font-bold text-zinc-900 dark:text-white">
-                            {{ Number::currency($this->selectedPrice, in: 'GHS') }}
+                            {{ Number::currency($this->selectedPrice, in: $this->currency->code()) }}
                         </span>
                     </div>
                     <div class="mt-1 text-sm text-zinc-500">

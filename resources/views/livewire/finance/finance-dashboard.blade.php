@@ -24,7 +24,7 @@
                     </div>
                 </div>
                 <flux:heading size="xl" class="mt-2 text-green-600 dark:text-green-400">
-                    GHS {{ number_format($this->monthlyStats['income'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->monthlyStats['income'], 2) }}
                 </flux:heading>
                 <flux:text class="text-xs text-zinc-500">{{ $this->monthlyStats['income_count'] }} {{ __('donations') }}</flux:text>
             </div>
@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 <flux:heading size="xl" class="mt-2 text-red-600 dark:text-red-400">
-                    GHS {{ number_format($this->monthlyStats['expenses'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->monthlyStats['expenses'], 2) }}
                 </flux:heading>
                 <flux:text class="text-xs text-zinc-500">{{ $this->monthlyStats['expenses_count'] }} {{ __('expenses') }}</flux:text>
             </div>
@@ -52,7 +52,7 @@
                     </div>
                 </div>
                 <flux:heading size="xl" class="mt-2 {{ $this->monthlyStats['net_position'] >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}">
-                    GHS {{ number_format($this->monthlyStats['net_position'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->monthlyStats['net_position'], 2) }}
                 </flux:heading>
                 <flux:text class="text-xs text-zinc-500">{{ __('Income - Expenses') }}</flux:text>
             </div>
@@ -66,7 +66,7 @@
                     </div>
                 </div>
                 <flux:heading size="xl" class="mt-2 text-purple-600 dark:text-purple-400">
-                    GHS {{ number_format($this->yearToDateStats['income'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->yearToDateStats['income'], 2) }}
                 </flux:heading>
                 <flux:text class="text-xs">
                     @if($this->yearToDateStats['income_growth_percent'] >= 0)
@@ -87,7 +87,7 @@
                     </div>
                 </div>
                 <flux:heading size="xl" class="mt-2 text-amber-600 dark:text-amber-400">
-                    GHS {{ number_format($this->outstandingPledgesTotal, 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->outstandingPledgesTotal, 2) }}
                 </flux:heading>
                 <flux:text class="text-xs text-zinc-500">{{ __('Unfulfilled amount') }}</flux:text>
             </div>
@@ -106,7 +106,7 @@
                         {{ $this->yearToDateStats['income_growth_percent'] >= 0 ? '+' : '' }}{{ $this->yearToDateStats['income_growth_percent'] }}%
                     </flux:heading>
                     <flux:text class="text-sm text-zinc-500">
-                        (GHS {{ number_format($this->yearToDateStats['income_last_year'], 2) }} {{ __('last year') }})
+                        ({{ $this->currency->symbol() }}{{ number_format($this->yearToDateStats['income_last_year'], 2) }} {{ __('last year') }})
                     </flux:text>
                 </div>
             </div>
@@ -119,7 +119,7 @@
                         {{ $this->yearToDateStats['expenses_growth_percent'] >= 0 ? '+' : '' }}{{ $this->yearToDateStats['expenses_growth_percent'] }}%
                     </flux:heading>
                     <flux:text class="text-sm text-zinc-500">
-                        (GHS {{ number_format($this->yearToDateStats['expenses_last_year'], 2) }} {{ __('last year') }})
+                        ({{ $this->currency->symbol() }}{{ number_format($this->yearToDateStats['expenses_last_year'], 2) }} {{ __('last year') }})
                     </flux:text>
                 </div>
             </div>
@@ -146,7 +146,7 @@
             {{-- Average Donation --}}
             <div class="text-center">
                 <flux:heading size="xl" class="text-blue-600 dark:text-blue-400">
-                    GHS {{ number_format($this->memberGivingStats['average_donation'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->memberGivingStats['average_donation'], 2) }}
                 </flux:heading>
                 <flux:text class="text-sm text-zinc-500">{{ __('Average Donation') }}</flux:text>
             </div>
@@ -191,7 +191,7 @@
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg" class="mb-4">{{ __('Monthly Income Trend') }}</flux:heading>
             <div
-                x-data="monthlyIncomeChart(@js($this->monthlyIncomeChartData))"
+                x-data="monthlyIncomeChart(@js($this->monthlyIncomeChartData), @js($this->currency->symbol()))"
                 x-init="initChart()"
                 class="h-64"
                 wire:ignore
@@ -223,7 +223,7 @@
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg" class="mb-4">{{ __('Income vs Expenses') }}</flux:heading>
             <div
-                x-data="incomeVsExpensesChart(@js($this->incomeVsExpensesChartData))"
+                x-data="incomeVsExpensesChart(@js($this->incomeVsExpensesChartData), @js($this->currency->symbol()))"
                 x-init="initChart()"
                 class="h-64"
                 wire:ignore
@@ -236,7 +236,7 @@
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg" class="mb-4">{{ __('Cumulative Donation Growth') }}</flux:heading>
             <div
-                x-data="donationGrowthChart(@js($this->donationGrowthChartData))"
+                x-data="donationGrowthChart(@js($this->donationGrowthChartData), @js($this->currency->symbol()))"
                 x-init="initChart()"
                 class="h-64"
                 wire:ignore
@@ -255,7 +255,7 @@
                     <div class="rounded-lg border border-zinc-100 p-4 dark:border-zinc-800">
                         <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ $tier }}</flux:text>
                         <flux:heading size="lg" class="mt-1 text-blue-600 dark:text-blue-400">
-                            GHS {{ number_format($this->topDonorsTierData['amounts'][$index], 2) }}
+                            {{ $this->currency->symbol() }}{{ number_format($this->topDonorsTierData['amounts'][$index], 2) }}
                         </flux:heading>
                         <flux:text class="text-xs text-zinc-500">
                             {{ $this->topDonorsTierData['counts'][$index] }} {{ __('donors') }}
@@ -303,13 +303,15 @@
 @script
 <script>
     // Monthly Income Trend Line Chart (with YoY comparison)
-    Alpine.data('monthlyIncomeChart', (initialData) => ({
+    Alpine.data('monthlyIncomeChart', (initialData, currencySymbol) => ({
         chart: null,
         data: initialData,
+        currencySymbol: currencySymbol,
 
         initChart() {
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
+            const symbol = this.currencySymbol;
 
             this.chart = new Chart(ctx, {
                 type: 'line',
@@ -341,7 +343,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => 'GHS ' + value.toLocaleString(),
+                                callback: (value) => symbol + ' ' + value.toLocaleString(),
                                 color: isDark ? '#a1a1aa' : '#71717a',
                             },
                             grid: { color: isDark ? '#27272a' : '#e4e4e7' }
@@ -395,13 +397,15 @@
     }));
 
     // Income vs Expenses Bar Chart
-    Alpine.data('incomeVsExpensesChart', (initialData) => ({
+    Alpine.data('incomeVsExpensesChart', (initialData, currencySymbol) => ({
         chart: null,
         data: initialData,
+        currencySymbol: currencySymbol,
 
         initChart() {
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
+            const symbol = this.currencySymbol;
 
             this.chart = new Chart(ctx, {
                 type: 'bar',
@@ -429,7 +433,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => 'GHS ' + value.toLocaleString(),
+                                callback: (value) => symbol + ' ' + value.toLocaleString(),
                                 color: isDark ? '#a1a1aa' : '#71717a',
                             },
                             grid: { color: isDark ? '#27272a' : '#e4e4e7' }
@@ -451,13 +455,15 @@
     }));
 
     // Donation Growth Area Chart
-    Alpine.data('donationGrowthChart', (initialData) => ({
+    Alpine.data('donationGrowthChart', (initialData, currencySymbol) => ({
         chart: null,
         data: initialData,
+        currencySymbol: currencySymbol,
 
         initChart() {
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
+            const symbol = this.currencySymbol;
 
             this.chart = new Chart(ctx, {
                 type: 'line',
@@ -479,7 +485,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => 'GHS ' + value.toLocaleString(),
+                                callback: (value) => symbol + ' ' + value.toLocaleString(),
                                 color: isDark ? '#a1a1aa' : '#71717a',
                             },
                             grid: { color: isDark ? '#27272a' : '#e4e4e7' }

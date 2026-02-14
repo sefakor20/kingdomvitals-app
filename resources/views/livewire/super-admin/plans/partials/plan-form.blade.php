@@ -21,7 +21,7 @@
     <flux:error name="description" />
 </flux:field>
 
-<!-- Pricing -->
+<!-- Pricing (GHS) -->
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <flux:field>
         <flux:label>{{ __('Monthly Price (GHS)') }}</flux:label>
@@ -33,6 +33,21 @@
         <flux:label>{{ __('Annual Price (GHS)') }}</flux:label>
         <flux:input wire:model="priceAnnual" type="number" step="0.01" min="0" />
         <flux:error name="priceAnnual" />
+    </flux:field>
+</div>
+
+<!-- Pricing (USD) -->
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <flux:field>
+        <flux:label>{{ __('Monthly Price (USD)') }}</flux:label>
+        <flux:input wire:model="priceMonthlyUsd" type="number" step="0.01" min="0" placeholder="{{ __('Optional') }}" />
+        <flux:error name="priceMonthlyUsd" />
+    </flux:field>
+
+    <flux:field>
+        <flux:label>{{ __('Annual Price (USD)') }}</flux:label>
+        <flux:input wire:model="priceAnnualUsd" type="number" step="0.01" min="0" placeholder="{{ __('Optional') }}" />
+        <flux:error name="priceAnnualUsd" />
     </flux:field>
 </div>
 

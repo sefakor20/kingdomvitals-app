@@ -108,11 +108,11 @@
 
             <div class="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800">
                 <div>
-                    <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">GHS {{ number_format($this->financialStats['this_month'], 0) }}</div>
+                    <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ $this->currency->symbol() }}{{ number_format($this->financialStats['this_month'], 0) }}</div>
                     <div class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('This Month') }}</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">GHS {{ number_format($this->financialStats['ytd'], 0) }}</div>
+                    <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ $this->currency->symbol() }}{{ number_format($this->financialStats['ytd'], 0) }}</div>
                     <div class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Year to Date') }}</div>
                 </div>
             </div>

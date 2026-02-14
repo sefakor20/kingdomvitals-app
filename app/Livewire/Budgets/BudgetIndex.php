@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Budgets;
 
 use App\Enums\BudgetStatus;
+use App\Enums\Currency;
 use App\Enums\ExpenseCategory;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
@@ -76,7 +77,8 @@ class BudgetIndex extends Component
     #[Computed]
     public function budgets(): Collection
     {
-        $query = Budget::where('branch_id', $this->branch->id);
+        $query = Budget::withActualSpending()
+            ->where('branch_id', $this->branch->id);
 
         $this->applySearch($query, ['name', 'notes']);
         $this->applyEnumFilter($query, 'categoryFilter', 'category');
@@ -129,6 +131,12 @@ class BudgetIndex extends Component
     public function canDelete(): bool
     {
         return auth()->user()->can('deleteAny', [Budget::class, $this->branch]);
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]
@@ -203,7 +211,7 @@ class BudgetIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['created_by'] = null;
 
         if ($validated['notes'] === '') {

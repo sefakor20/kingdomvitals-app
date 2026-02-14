@@ -1,23 +1,6 @@
 @php
-    $logoUrl = null;
-    $appName = config('app.name'); // Default to platform name
-
-    // Check for tenant logo and name first
-    if (function_exists('tenant') && tenant()) {
-        $logoUrl = tenant()->getLogoUrl('small');
-        $appName = tenant()->name ?? $appName;
-    }
-
-    // Fall back to platform logo if no tenant logo
-    if (!$logoUrl) {
-        $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
-        if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['small'])) {
-            $path = $platformLogoPaths['small'];
-            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-                $logoUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
-            }
-        }
-    }
+    $logoUrl = \App\Services\LogoService::getTenantLogoUrl('small');
+    $appName = (function_exists('tenant') && tenant() ? tenant()->name : null) ?? config('app.name');
 @endphp
 
 @if($logoUrl)

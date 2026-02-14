@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Finance;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\ExpenseStatus;
 use App\Enums\MembershipStatus;
@@ -30,6 +31,16 @@ class FinanceDashboard extends Component
     }
 
     // ============================================
+    // CURRENCY
+    // ============================================
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
+    // ============================================
     // EXECUTIVE SUMMARY STATS
     // ============================================
 
@@ -38,24 +49,29 @@ class FinanceDashboard extends Component
     {
         $currentMonth = now()->month;
         $currentYear = now()->year;
+        $currencyCode = tenant()->getCurrencyCode();
 
         $income = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->sum('amount');
 
         $incomeCount = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->count();
 
         $expenses = Expense::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->where('status', ExpenseStatus::Paid)
             ->whereMonth('expense_date', $currentMonth)
             ->whereYear('expense_date', $currentYear)
             ->sum('amount');
 
         $expensesCount = Expense::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereMonth('expense_date', $currentMonth)
             ->whereYear('expense_date', $currentYear)
             ->count();
@@ -75,20 +91,24 @@ class FinanceDashboard extends Component
         $currentYear = now()->year;
         $previousYear = $currentYear - 1;
         $currentDayOfYear = now()->dayOfYear;
+        $currencyCode = tenant()->getCurrencyCode();
 
         // Current year YTD
         $incomeYtd = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereYear('donation_date', $currentYear)
             ->where('donation_date', '<=', now())
             ->sum('amount');
 
         $expensesYtd = Expense::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->where('status', ExpenseStatus::Paid)
             ->whereYear('expense_date', $currentYear)
             ->where('expense_date', '<=', now())
             ->sum('amount');
 
         $donationCountYtd = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereYear('donation_date', $currentYear)
             ->where('donation_date', '<=', now())
             ->count();
@@ -97,17 +117,20 @@ class FinanceDashboard extends Component
         $samePeriodLastYear = Carbon::create($previousYear, 1, 1)->addDays($currentDayOfYear - 1);
 
         $incomeLastYear = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereYear('donation_date', $previousYear)
             ->where('donation_date', '<=', $samePeriodLastYear)
             ->sum('amount');
 
         $expensesLastYear = Expense::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->where('status', ExpenseStatus::Paid)
             ->whereYear('expense_date', $previousYear)
             ->where('expense_date', '<=', $samePeriodLastYear)
             ->sum('amount');
 
         $donationCountLastYear = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereYear('donation_date', $previousYear)
             ->where('donation_date', '<=', $samePeriodLastYear)
             ->count();
@@ -141,7 +164,10 @@ class FinanceDashboard extends Component
     #[Computed]
     public function outstandingPledgesTotal(): float
     {
+        $currencyCode = tenant()->getCurrencyCode();
+
         $pledges = Pledge::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->where('status', PledgeStatus::Active)
             ->selectRaw('COALESCE(SUM(amount), 0) as total, COALESCE(SUM(amount_fulfilled), 0) as fulfilled')
             ->first();
@@ -158,15 +184,18 @@ class FinanceDashboard extends Component
     {
         $currentMonth = now()->month;
         $currentYear = now()->year;
+        $currencyCode = tenant()->getCurrencyCode();
 
         // Average donation this month
         $averageDonation = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->avg('amount');
 
         // Unique donors this month (member-based)
         $uniqueDonors = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->whereNotNull('member_id')
@@ -197,32 +226,32 @@ class FinanceDashboard extends Component
 
     private function calculateFirstTimeDonors(): int
     {
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
         $startOfMonth = now()->startOfMonth();
+        $currencyCode = tenant()->getCurrencyCode();
 
-        // Get member IDs who donated this month
+        // Get unique member IDs who donated this month (2 queries instead of N+1)
         $donorsThisMonth = Donation::where('branch_id', $this->branch->id)
-            ->whereMonth('donation_date', $currentMonth)
-            ->whereYear('donation_date', $currentYear)
+            ->where('currency', $currencyCode)
+            ->whereMonth('donation_date', now()->month)
+            ->whereYear('donation_date', now()->year)
             ->whereNotNull('member_id')
-            ->pluck('member_id')
-            ->unique();
+            ->distinct()
+            ->pluck('member_id');
 
-        // Count how many of them had no donations before this month
-        $firstTimers = 0;
-        foreach ($donorsThisMonth as $memberId) {
-            $previousDonations = Donation::where('branch_id', $this->branch->id)
-                ->where('member_id', $memberId)
-                ->where('donation_date', '<', $startOfMonth)
-                ->exists();
-
-            if (! $previousDonations) {
-                $firstTimers++;
-            }
+        if ($donorsThisMonth->isEmpty()) {
+            return 0;
         }
 
-        return $firstTimers;
+        // Get member IDs who had donations BEFORE this month
+        $previousDonors = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
+            ->whereIn('member_id', $donorsThisMonth)
+            ->where('donation_date', '<', $startOfMonth)
+            ->distinct()
+            ->pluck('member_id');
+
+        // First-timers = this month donors - previous donors
+        return $donorsThisMonth->diff($previousDonors)->count();
     }
 
     // ============================================
@@ -235,6 +264,7 @@ class FinanceDashboard extends Component
         $labels = [];
         $currentYearData = [];
         $previousYearData = [];
+        $currencyCode = tenant()->getCurrencyCode();
 
         // Last 12 months
         for ($i = 11; $i >= 0; $i--) {
@@ -242,6 +272,7 @@ class FinanceDashboard extends Component
             $labels[] = $date->format('M');
 
             $income = Donation::where('branch_id', $this->branch->id)
+                ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $date->year)
                 ->whereMonth('donation_date', $date->month)
                 ->sum('amount');
@@ -251,6 +282,7 @@ class FinanceDashboard extends Component
             // Same month previous year
             $prevDate = $date->copy()->subYear();
             $prevIncome = Donation::where('branch_id', $this->branch->id)
+                ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $prevDate->year)
                 ->whereMonth('donation_date', $prevDate->month)
                 ->sum('amount');
@@ -280,8 +312,10 @@ class FinanceDashboard extends Component
 
         $currentMonth = now()->month;
         $currentYear = now()->year;
+        $currencyCode = tenant()->getCurrencyCode();
 
         $results = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->selectRaw('donation_type, COALESCE(SUM(amount), 0) as total')
@@ -317,6 +351,7 @@ class FinanceDashboard extends Component
         $labels = [];
         $incomeData = [];
         $expenseData = [];
+        $currencyCode = tenant()->getCurrencyCode();
 
         // Last 6 months
         for ($i = 5; $i >= 0; $i--) {
@@ -324,11 +359,13 @@ class FinanceDashboard extends Component
             $labels[] = $date->format('M Y');
 
             $income = Donation::where('branch_id', $this->branch->id)
+                ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $date->year)
                 ->whereMonth('donation_date', $date->month)
                 ->sum('amount');
 
             $expenses = Expense::where('branch_id', $this->branch->id)
+                ->where('currency', $currencyCode)
                 ->where('status', ExpenseStatus::Paid)
                 ->whereYear('expense_date', $date->year)
                 ->whereMonth('expense_date', $date->month)
@@ -351,6 +388,7 @@ class FinanceDashboard extends Component
         $labels = [];
         $data = [];
         $cumulative = 0;
+        $currencyCode = tenant()->getCurrencyCode();
 
         // Last 12 months cumulative
         for ($i = 11; $i >= 0; $i--) {
@@ -358,6 +396,7 @@ class FinanceDashboard extends Component
             $labels[] = $date->format('M');
 
             $income = Donation::where('branch_id', $this->branch->id)
+                ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $date->year)
                 ->whereMonth('donation_date', $date->month)
                 ->sum('amount');
@@ -376,9 +415,11 @@ class FinanceDashboard extends Component
     public function topDonorsTierData(): array
     {
         $currentYear = now()->year;
+        $currencyCode = tenant()->getCurrencyCode();
 
         // Get all donors with their total donations this year
         $donors = Donation::where('branch_id', $this->branch->id)
+            ->where('currency', $currencyCode)
             ->whereYear('donation_date', $currentYear)
             ->whereNotNull('member_id')
             ->where('is_anonymous', false)

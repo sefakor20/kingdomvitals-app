@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Offerings;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\PaymentMethod;
 use App\Livewire\Concerns\HasFilterableQuery;
@@ -226,6 +227,12 @@ class OfferingIndex extends Component
     }
 
     #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
+    #[Computed]
     public function canSendReceipts(): bool
     {
         $firstOffering = Donation::where('branch_id', $this->branch->id)
@@ -309,7 +316,7 @@ class OfferingIndex extends Component
 
         $validated['branch_id'] = $this->branch->id;
         $validated['donation_type'] = DonationType::Offering;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
 
         // Convert empty strings to null for nullable fields
         $nullableFields = ['member_id', 'service_id', 'donor_name', 'reference_number', 'notes'];

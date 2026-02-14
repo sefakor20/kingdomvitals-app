@@ -74,7 +74,7 @@
                         <flux:icon icon="banknotes" class="size-5 text-purple-600 dark:text-purple-400" />
                     </div>
                 </div>
-                <flux:heading size="2xl" class="mt-2">GHS {{ number_format($this->donationsThisMonth, 2) }}</flux:heading>
+                <flux:heading size="2xl" class="mt-2">{{ $this->currency->symbol() }}{{ number_format($this->donationsThisMonth, 2) }}</flux:heading>
                 <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                     {{ now()->format('F Y') }}
                 </flux:text>

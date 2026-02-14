@@ -76,7 +76,7 @@
                     <flux:icon icon="banknotes" class="size-4 text-purple-600 dark:text-purple-400" />
                 </div>
             </div>
-            <flux:heading size="xl" class="mt-2">GHS {{ number_format($this->summaryStats['total_cost'], 2) }}</flux:heading>
+            <flux:heading size="xl" class="mt-2">{{ $this->currency->symbol() }}{{ number_format($this->summaryStats['total_cost'], 2) }}</flux:heading>
         </div>
     </div>
 
@@ -323,7 +323,7 @@
                 data: {
                     labels: this.data.labels,
                     datasets: [{
-                        label: 'Cost (GHS)',
+                        label: 'Cost ({{ $this->currency->code() }})',
                         data: this.data.data,
                         backgroundColor: '#8b5cf6',
                         borderRadius: 4,
@@ -336,7 +336,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => 'GHS ' + value.toFixed(2),
+                                callback: (value) => '{{ $this->currency->symbol() }}' + value.toFixed(2),
                                 color: isDark ? '#a1a1aa' : '#71717a',
                             },
                             grid: {

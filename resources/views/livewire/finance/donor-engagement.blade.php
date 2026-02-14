@@ -104,7 +104,7 @@
                     {{ $this->givingTrends['increasing_count'] }}
                 </flux:heading>
                 <div class="mt-1 flex items-center justify-between">
-                    <flux:text class="text-xs text-zinc-500">GHS {{ number_format($this->givingTrends['increasing_total'], 2) }}</flux:text>
+                    <flux:text class="text-xs text-zinc-500">{{ $this->currency->symbol() }}{{ number_format($this->givingTrends['increasing_total'], 2) }}</flux:text>
                     @if($this->givingTrends['increasing_change'] > 0)
                         <flux:badge size="sm" color="green">+{{ $this->givingTrends['increasing_change'] }}%</flux:badge>
                     @endif
@@ -123,7 +123,7 @@
                     {{ $this->givingTrends['declining_count'] }}
                 </flux:heading>
                 <div class="mt-1 flex items-center justify-between">
-                    <flux:text class="text-xs text-zinc-500">GHS {{ number_format($this->givingTrends['declining_total'], 2) }}</flux:text>
+                    <flux:text class="text-xs text-zinc-500">{{ $this->currency->symbol() }}{{ number_format($this->givingTrends['declining_total'], 2) }}</flux:text>
                     @if($this->givingTrends['declining_change'] < 0)
                         <flux:badge size="sm" color="red">{{ $this->givingTrends['declining_change'] }}%</flux:badge>
                     @endif
@@ -142,7 +142,7 @@
                     {{ $this->givingTrends['consistent_count'] }}
                 </flux:heading>
                 <div class="mt-1">
-                    <flux:text class="text-xs text-zinc-500">GHS {{ number_format($this->givingTrends['consistent_total'], 2) }}</flux:text>
+                    <flux:text class="text-xs text-zinc-500">{{ $this->currency->symbol() }}{{ number_format($this->givingTrends['consistent_total'], 2) }}</flux:text>
                 </div>
             </div>
         </div>
@@ -198,10 +198,10 @@
                 </flux:heading>
                 <div class="mt-1 space-y-1">
                     <flux:text class="text-xs text-purple-600 dark:text-purple-400">
-                        {{ __('Total') }}: GHS {{ number_format($this->donorSegments['major']['total'], 2) }}
+                        {{ __('Total') }}: {{ $this->currency->symbol() }}{{ number_format($this->donorSegments['major']['total'], 2) }}
                     </flux:text>
                     <flux:text class="text-xs text-purple-600 dark:text-purple-400">
-                        {{ __('Avg') }}: GHS {{ number_format($this->donorSegments['major']['avg'], 2) }}
+                        {{ __('Avg') }}: {{ $this->currency->symbol() }}{{ number_format($this->donorSegments['major']['avg'], 2) }}
                     </flux:text>
                 </div>
             </div>
@@ -217,10 +217,10 @@
                 </flux:heading>
                 <div class="mt-1 space-y-1">
                     <flux:text class="text-xs text-blue-600 dark:text-blue-400">
-                        {{ __('Total') }}: GHS {{ number_format($this->donorSegments['regular']['total'], 2) }}
+                        {{ __('Total') }}: {{ $this->currency->symbol() }}{{ number_format($this->donorSegments['regular']['total'], 2) }}
                     </flux:text>
                     <flux:text class="text-xs text-blue-600 dark:text-blue-400">
-                        {{ __('Avg') }}: GHS {{ number_format($this->donorSegments['regular']['avg'], 2) }}
+                        {{ __('Avg') }}: {{ $this->currency->symbol() }}{{ number_format($this->donorSegments['regular']['avg'], 2) }}
                     </flux:text>
                 </div>
             </div>
@@ -236,10 +236,10 @@
                 </flux:heading>
                 <div class="mt-1 space-y-1">
                     <flux:text class="text-xs text-zinc-600 dark:text-zinc-400">
-                        {{ __('Total') }}: GHS {{ number_format($this->donorSegments['occasional']['total'], 2) }}
+                        {{ __('Total') }}: {{ $this->currency->symbol() }}{{ number_format($this->donorSegments['occasional']['total'], 2) }}
                     </flux:text>
                     <flux:text class="text-xs text-zinc-600 dark:text-zinc-400">
-                        {{ __('Avg') }}: GHS {{ number_format($this->donorSegments['occasional']['avg'], 2) }}
+                        {{ __('Avg') }}: {{ $this->currency->symbol() }}{{ number_format($this->donorSegments['occasional']['avg'], 2) }}
                     </flux:text>
                 </div>
             </div>
@@ -340,9 +340,9 @@
                                         <div>
                                             <flux:text class="font-medium">{{ $donor->member?->first_name }} {{ $donor->member?->last_name }}</flux:text>
                                             <div class="flex items-center gap-2 text-xs">
-                                                <span class="text-zinc-500">GHS {{ number_format($donor->previous_total, 2) }}</span>
+                                                <span class="text-zinc-500">{{ $this->currency->symbol() }}{{ number_format($donor->previous_total, 2) }}</span>
                                                 <flux:icon icon="arrow-right" class="size-3 text-zinc-400" />
-                                                <span class="text-red-600 dark:text-red-400">GHS {{ number_format($donor->current_total, 2) }}</span>
+                                                <span class="text-red-600 dark:text-red-400">{{ $this->currency->symbol() }}{{ number_format($donor->current_total, 2) }}</span>
                                                 <flux:badge size="sm" color="red">{{ $donor->change_percent }}%</flux:badge>
                                             </div>
                                         </div>
@@ -376,9 +376,9 @@
                                                 <flux:badge size="sm" color="purple">{{ __('Major') }}</flux:badge>
                                             </div>
                                             <div class="flex items-center gap-2 text-xs">
-                                                <span class="text-zinc-500">GHS {{ number_format($donor->previous_total, 2) }}</span>
+                                                <span class="text-zinc-500">{{ $this->currency->symbol() }}{{ number_format($donor->previous_total, 2) }}</span>
                                                 <flux:icon icon="arrow-right" class="size-3 text-zinc-400" />
-                                                <span class="text-orange-600 dark:text-orange-400">GHS {{ number_format($donor->current_total, 2) }}</span>
+                                                <span class="text-orange-600 dark:text-orange-400">{{ $this->currency->symbol() }}{{ number_format($donor->current_total, 2) }}</span>
                                                 <flux:badge size="sm" color="orange">{{ $donor->change_percent }}%</flux:badge>
                                             </div>
                                         </div>
@@ -409,7 +409,7 @@
                                         <div>
                                             <flux:text class="font-medium">{{ $donor->member?->first_name }} {{ $donor->member?->last_name }}</flux:text>
                                             <div class="flex items-center gap-2 text-xs">
-                                                <span class="text-green-600 dark:text-green-400">GHS {{ number_format($donor->period_total, 2) }}</span>
+                                                <span class="text-green-600 dark:text-green-400">{{ $this->currency->symbol() }}{{ number_format($donor->period_total, 2) }}</span>
                                                 <span class="text-zinc-500">({{ $donor->donation_count }} {{ __('donations') }})</span>
                                             </div>
                                         </div>
@@ -546,9 +546,9 @@
                                         <flux:badge color="zinc" size="sm">{{ __('Inactive') }}</flux:badge>
                                 @endswitch
                             </td>
-                            <td class="px-4 py-3 font-medium">GHS {{ number_format($donor->lifetime_total, 2) }}</td>
-                            <td class="px-4 py-3">GHS {{ number_format($donor->period_total, 2) }}</td>
-                            <td class="px-4 py-3">GHS {{ number_format($donor->average_donation, 2) }}</td>
+                            <td class="px-4 py-3 font-medium">{{ $this->currency->symbol() }}{{ number_format($donor->lifetime_total, 2) }}</td>
+                            <td class="px-4 py-3">{{ $this->currency->symbol() }}{{ number_format($donor->period_total, 2) }}</td>
+                            <td class="px-4 py-3">{{ $this->currency->symbol() }}{{ number_format($donor->average_donation, 2) }}</td>
                             <td class="px-4 py-3">
                                 <div>
                                     <flux:text class="text-sm">{{ \Carbon\Carbon::parse($donor->last_donation_date)->format('M d, Y') }}</flux:text>
@@ -631,13 +631,15 @@
     }));
 
     // Donor Segments Doughnut Chart
-    Alpine.data('donorSegmentsChart', (initialData) => ({
+    Alpine.data('donorSegmentsChart', (initialData, currencySymbol = '{{ $this->currency->symbol() }}') => ({
         chart: null,
         data: initialData,
+        symbol: currencySymbol,
 
         initChart() {
             const ctx = this.$refs.canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
+            const symbol = this.symbol;
 
             this.chart = new Chart(ctx, {
                 type: 'doughnut',
@@ -659,7 +661,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.label + ': GHS ' + context.raw.toLocaleString();
+                                    return context.label + ': ' + symbol + ' ' + context.raw.toLocaleString();
                                 }
                             }
                         }

@@ -3,6 +3,7 @@
 namespace App\Livewire\Equipment;
 
 use App\Enums\CheckoutStatus;
+use App\Enums\Currency;
 use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentCondition;
 use App\Enums\MaintenanceStatus;
@@ -45,7 +46,7 @@ class EquipmentShow extends Component
 
     public string $source_of_equipment = '';
 
-    public string $currency = 'GHS';
+    public string $currency = '';
 
     public string $condition = '';
 
@@ -100,6 +101,12 @@ class EquipmentShow extends Component
         $this->authorize('view', $equipment);
         $this->branch = $branch;
         $this->equipment = $equipment;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]
@@ -214,7 +221,7 @@ class EquipmentShow extends Component
             'purchase_date' => $this->equipment->purchase_date?->format('Y-m-d'),
             'purchase_price' => $this->equipment->purchase_price,
             'source_of_equipment' => $this->equipment->source_of_equipment ?? '',
-            'currency' => $this->equipment->currency ?? 'GHS',
+            'currency' => $this->equipment->currency ?? tenant()->getCurrencyCode(),
             'condition' => $this->equipment->condition->value,
             'location' => $this->equipment->location ?? '',
             'assigned_to' => $this->equipment->assigned_to,
@@ -421,7 +428,7 @@ class EquipmentShow extends Component
             'description' => $this->maintenanceDescription,
             'service_provider' => $this->maintenanceServiceProvider ?: null,
             'cost' => $this->maintenanceCost ?: null,
-            'currency' => 'GHS',
+            'currency' => tenant()->getCurrencyCode(),
         ]);
 
         // Update next maintenance date on equipment

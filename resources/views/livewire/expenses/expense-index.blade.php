@@ -31,7 +31,7 @@
                     <flux:icon icon="receipt-percent" class="size-4 text-red-600 dark:text-red-400" />
                 </div>
             </div>
-            <flux:heading size="xl" class="mt-2">GHS {{ number_format($this->expenseStats['total'], 2) }}</flux:heading>
+            <flux:heading size="xl" class="mt-2">{{ $this->currency->symbol() }}{{ number_format($this->expenseStats['total'], 2) }}</flux:heading>
             <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ number_format($this->expenseStats['count']) }} {{ __('expenses') }}</flux:text>
         </div>
 
@@ -52,7 +52,7 @@
                     <flux:icon icon="calendar" class="size-4 text-blue-600 dark:text-blue-400" />
                 </div>
             </div>
-            <flux:heading size="xl" class="mt-2">GHS {{ number_format($this->expenseStats['thisMonth'], 2) }}</flux:heading>
+            <flux:heading size="xl" class="mt-2">{{ $this->currency->symbol() }}{{ number_format($this->expenseStats['thisMonth'], 2) }}</flux:heading>
         </div>
 
         <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
@@ -193,7 +193,7 @@
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right">
                                 <span class="font-medium text-zinc-900 dark:text-zinc-100">
-                                    GHS {{ number_format((float) $expense->amount, 2) }}
+                                    {{ $this->currency->symbol() }}{{ number_format((float) $expense->amount, 2) }}
                                 </span>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
@@ -269,7 +269,7 @@
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" required />
 
                 <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (GHS)')" required />
+                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (:currency)', ['currency' => $this->currency->code()])" required />
                     <flux:input wire:model="expense_date" type="date" :label="__('Expense Date')" required />
                 </div>
 
@@ -321,7 +321,7 @@
                 <flux:textarea wire:model="description" :label="__('Description')" rows="2" required />
 
                 <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (GHS)')" required />
+                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (:currency)', ['currency' => $this->currency->code()])" required />
                     <flux:input wire:model="expense_date" type="date" :label="__('Expense Date')" required />
                 </div>
 
@@ -370,7 +370,7 @@
             <flux:heading size="lg">{{ __('Delete Expense') }}</flux:heading>
 
             <flux:text>
-                {{ __('Are you sure you want to delete this expense of GHS :amount? This action cannot be undone.', ['amount' => number_format((float) ($deletingExpense?->amount ?? 0), 2)]) }}
+                {{ __('Are you sure you want to delete this expense of :currency:amount? This action cannot be undone.', ['currency' => $this->currency->symbol(), 'amount' => number_format((float) ($deletingExpense?->amount ?? 0), 2)]) }}
             </flux:text>
 
             <div class="flex justify-end gap-3">
@@ -390,7 +390,7 @@
             <flux:heading size="lg">{{ __('Approve Expense') }}</flux:heading>
 
             <flux:text>
-                {{ __('Are you sure you want to approve this expense of GHS :amount?', ['amount' => number_format((float) ($approvingExpense?->amount ?? 0), 2)]) }}
+                {{ __('Are you sure you want to approve this expense of :currency:amount?', ['currency' => $this->currency->symbol(), 'amount' => number_format((float) ($approvingExpense?->amount ?? 0), 2)]) }}
             </flux:text>
 
             @if($approvingExpense)
@@ -417,7 +417,7 @@
             <flux:heading size="lg">{{ __('Reject Expense') }}</flux:heading>
 
             <flux:text>
-                {{ __('Are you sure you want to reject this expense of GHS :amount?', ['amount' => number_format((float) ($rejectingExpense?->amount ?? 0), 2)]) }}
+                {{ __('Are you sure you want to reject this expense of :currency:amount?', ['currency' => $this->currency->symbol(), 'amount' => number_format((float) ($rejectingExpense?->amount ?? 0), 2)]) }}
             </flux:text>
 
             @if($rejectingExpense)

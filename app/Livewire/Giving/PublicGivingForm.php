@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Giving;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentTransactionStatus;
@@ -89,6 +90,12 @@ class PublicGivingForm extends Component
         return $this->branch->hasPaystackConfigured();
     }
 
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
     protected function rules(): array
     {
         $donationTypes = collect(DonationType::cases())->pluck('value')->implode(',');
@@ -113,7 +120,7 @@ class PublicGivingForm extends Component
             'donorEmail.required' => 'We need your email to send you a receipt.',
             'donorEmail.email' => 'Please enter a valid email address.',
             'amount.required' => 'Please enter a donation amount.',
-            'amount.min' => 'The minimum donation amount is GHS 1.00.',
+            'amount.min' => 'The minimum donation amount is '.tenant()->getCurrencySymbol().'1.00.',
         ];
     }
 
@@ -135,12 +142,14 @@ class PublicGivingForm extends Component
 
         $paystack = PaystackService::forBranch($this->branch);
 
+        $currencyCode = tenant()->getCurrencyCode();
+
         // Create a payment transaction record first
         $transaction = PaymentTransaction::create([
             'branch_id' => $this->branch->id,
             'paystack_reference' => $paystack->generateReference(),
             'amount' => (float) $this->amount,
-            'currency' => 'GHS',
+            'currency' => $currencyCode,
             'status' => PaymentTransactionStatus::Pending,
             'metadata' => [
                 'donor_name' => $this->isAnonymous ? 'Anonymous' : $this->donorName,
@@ -159,7 +168,7 @@ class PublicGivingForm extends Component
             'key' => $paystack->getPublicKey(),
             'email' => $this->donorEmail,
             'amount' => PaystackService::toKobo((float) $this->amount),
-            'currency' => 'GHS',
+            'currency' => $currencyCode,
             'reference' => $transaction->paystack_reference,
             'metadata' => [
                 'transaction_id' => $transaction->id,

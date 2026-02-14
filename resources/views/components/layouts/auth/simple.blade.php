@@ -7,26 +7,8 @@
         <div class="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div class="flex w-full max-w-sm flex-col gap-2">
                 @php
-                    $authLogoUrl = null;
-                    $authAppName = config('app.name');
-
-                    // Check for tenant logo and name first
-                    if (function_exists('tenant') && tenant()) {
-                        $authLogoUrl = tenant()->getLogoUrl('medium');
-                        $authAppName = tenant()->name ?? $authAppName;
-                    }
-
-                    // Fall back to platform logo
-                    if (!$authLogoUrl) {
-                        $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
-                        if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
-                            $path = $platformLogoPaths['medium'];
-                            $fullPath = base_path('storage/app/public/'.$path);
-                            if (file_exists($fullPath)) {
-                                $authLogoUrl = url('storage/'.$path);
-                            }
-                        }
-                    }
+                    $authLogoUrl = \App\Services\LogoService::getTenantLogoUrl('medium');
+                    $authAppName = (function_exists('tenant') && tenant() ? tenant()->name : null) ?? config('app.name');
                 @endphp
 
                 <a href="{{ route('home') }}" class="flex flex-col items-center gap-2 font-medium" wire:navigate>

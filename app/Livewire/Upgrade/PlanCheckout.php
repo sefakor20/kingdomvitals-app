@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Upgrade;
 
 use App\Enums\BillingCycle;
+use App\Enums\Currency;
 use App\Models\SubscriptionPlan;
+use App\Models\SystemSetting;
 use App\Services\PlatformPaystackService;
 use App\Services\TenantUpgradeService;
 use Livewire\Attributes\Computed;
@@ -45,6 +47,15 @@ class PlanCheckout extends Component
             session()->flash('info', 'You are already on this plan.');
             $this->redirectRoute('plans.index', navigate: true);
         }
+    }
+
+    /**
+     * Get the platform's base currency for billing.
+     */
+    #[Computed]
+    public function currency(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
     }
 
     /**
@@ -134,7 +145,7 @@ class PlanCheckout extends Component
             'key' => $this->paystackPublicKey,
             'email' => $user->email ?? $tenant->contact_email ?? '',
             'amount' => PlatformPaystackService::toKobo($this->selectedPrice),
-            'currency' => 'GHS',
+            'currency' => $this->currency->code(),
             'reference' => $result['reference'],
             'metadata' => [
                 'invoice_id' => $result['invoice']->id,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Reports;
 
+use App\Enums\Currency;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
@@ -22,6 +23,12 @@ class ReportCenter extends Component
     {
         $this->authorize('viewReports', $branch);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin\Revenue;
 
+use App\Enums\Currency;
 use App\Enums\TenantStatus;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdminActivityLog;
+use App\Models\SystemSetting;
 use App\Models\Tenant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -20,14 +22,26 @@ class RevenueDashboard extends Component
 {
     use HasReportExport;
 
+    public function getBaseCurrencyProperty(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
+    }
+
+    private function baseCurrencyCode(): string
+    {
+        return $this->baseCurrency->code();
+    }
+
     public function exportCsv(): StreamedResponse
     {
         $planDistribution = $this->getPlanDistribution();
         $metrics = $this->getRevenueMetrics();
 
+        $currencyCode = $this->baseCurrencyCode();
+
         $data = $planDistribution->map(fn (array $item): array => [
             'plan_name' => $item['plan']->name,
-            'monthly_price' => Number::currency((float) $item['plan']->price_monthly, in: 'GHS'),
+            'monthly_price' => Number::currency((float) $item['plan']->price_monthly, in: $currencyCode),
             'active_subscribers' => $item['tenantCount'],
             'monthly_revenue' => $item['revenueFormatted'],
             'percentage_of_total' => $item['percentage'].'%',
@@ -35,9 +49,9 @@ class RevenueDashboard extends Component
 
         $headers = [
             'Plan Name',
-            'Monthly Price (GHS)',
+            "Monthly Price ({$currencyCode})",
             'Active Subscribers',
-            'Monthly Revenue (GHS)',
+            "Monthly Revenue ({$currencyCode})",
             '% of Total',
         ];
 
@@ -95,10 +109,12 @@ class RevenueDashboard extends Component
             ? round(($activeCount / $totalRelevant) * 100, 1)
             : 0;
 
+        $currencyCode = $this->baseCurrencyCode();
+
         return [
-            'mrr' => Number::currency($mrr, in: 'GHS'),
+            'mrr' => Number::currency($mrr, in: $currencyCode),
             'mrrRaw' => $mrr,
-            'arr' => Number::currency($arr, in: 'GHS'),
+            'arr' => Number::currency($arr, in: $currencyCode),
             'arrRaw' => $arr,
             'activeCount' => $activeCount,
             'trialCount' => $trialCount,
@@ -134,7 +150,7 @@ class RevenueDashboard extends Component
                 'plan' => $plan,
                 'tenantCount' => $tenantCount,
                 'revenue' => $revenue,
-                'revenueFormatted' => Number::currency($revenue, in: 'GHS'),
+                'revenueFormatted' => Number::currency($revenue, in: $this->baseCurrencyCode()),
                 'percentage' => $percentage,
             ];
         });

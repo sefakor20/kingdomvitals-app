@@ -102,7 +102,7 @@
                         data: {
                             labels: @js($this->monthlyRevenueData['labels']),
                             datasets: [{
-                                label: 'Revenue (GHS)',
+                                label: 'Revenue ({{ $this->baseCurrency->code() }})',
                                 data: @js($this->monthlyRevenueData['amounts']),
                                 backgroundColor: 'rgba(79, 70, 229, 0.8)',
                                 borderRadius: 4,
@@ -119,7 +119,7 @@
                                     beginAtZero: true,
                                     ticks: {
                                         callback: function(value) {
-                                            return 'GHS ' + value.toLocaleString();
+                                            return '{{ $this->baseCurrency->symbol() }}' + value.toLocaleString();
                                         }
                                     }
                                 }

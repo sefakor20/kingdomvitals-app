@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Finance;
 
+use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
@@ -37,6 +38,12 @@ class FinanceReports extends Component
     {
         $this->authorize('viewReports', [Donation::class, $branch]);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     public function setPeriod(int $days): void
@@ -501,9 +508,10 @@ class FinanceReports extends Component
                 // Summary export
                 fputcsv($handle, ['Metric', 'Value']);
                 $stats = $this->summaryStats;
-                fputcsv($handle, ['Total Income', 'GHS '.number_format($stats['total_income'], 2)]);
-                fputcsv($handle, ['Total Expenses', 'GHS '.number_format($stats['total_expenses'], 2)]);
-                fputcsv($handle, ['Net Position', 'GHS '.number_format($stats['net_position'], 2)]);
+                $currencySymbol = tenant()->getCurrencySymbol();
+                fputcsv($handle, ['Total Income', $currencySymbol.number_format($stats['total_income'], 2)]);
+                fputcsv($handle, ['Total Expenses', $currencySymbol.number_format($stats['total_expenses'], 2)]);
+                fputcsv($handle, ['Net Position', $currencySymbol.number_format($stats['net_position'], 2)]);
                 fputcsv($handle, ['Pledge Fulfillment Rate', $stats['pledge_fulfillment'].'%']);
                 fputcsv($handle, ['Donation Count', $stats['donation_count']]);
                 fputcsv($handle, ['Expense Count', $stats['expense_count']]);

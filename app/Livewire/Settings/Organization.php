@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Enums\Currency;
 use App\Services\ImageProcessingService;
 use Intervention\Image\Encoders\PngEncoder;
 use Intervention\Image\Laravel\Facades\Image;
@@ -22,6 +23,9 @@ class Organization extends Component
 
     public ?string $existingLogoUrl = null;
 
+    // Organization Currency
+    public string $currency = 'GHS';
+
     public function mount(): void
     {
         $tenant = tenant();
@@ -34,6 +38,9 @@ class Organization extends Component
         if ($tenant->hasLogo()) {
             $this->existingLogoUrl = $tenant->getLogoUrl('medium');
         }
+
+        // Load existing currency
+        $this->currency = $tenant->getCurrencyCode();
     }
 
     public function saveLogo(): void
@@ -142,8 +149,24 @@ class Organization extends Component
         $this->dispatch('logo-removed');
     }
 
+    public function saveCurrency(): void
+    {
+        $tenant = tenant();
+
+        if (! $tenant) {
+            abort(403);
+        }
+
+        $currency = Currency::fromString($this->currency);
+        $tenant->setCurrency($currency);
+
+        $this->dispatch('currency-saved');
+    }
+
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        return view('livewire.settings.organization');
+        return view('livewire.settings.organization', [
+            'currencies' => Currency::options(),
+        ]);
     }
 }
