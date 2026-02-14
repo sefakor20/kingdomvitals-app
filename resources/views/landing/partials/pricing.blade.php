@@ -20,12 +20,13 @@
         @if($plans->isNotEmpty())
             @php
                 $maxSavings = $plans->max(fn($p) => $p->getAnnualSavingsPercent());
+                $baseCurrency = \App\Enums\Currency::fromString(\App\Models\SystemSetting::get('base_currency', 'GHS'));
             @endphp
 
             <div x-data="{ annual: true }">
-            {{-- Pricing toggle --}}
+            {{-- Billing cycle toggle --}}
             <div class="mt-10 flex justify-center">
-                <div class="flex items-center gap-4 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
+                <div class="flex items-center gap-2 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
                     <button
                         type="button"
                         class="rounded-full px-4 py-2 text-sm font-medium transition"
@@ -47,6 +48,7 @@
                     </button>
                 </div>
             </div>
+
 
             {{-- Pricing cards --}}
             @php
@@ -79,7 +81,7 @@
                             @if($plan->price_monthly > 0)
                                 <span
                                     class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
-                                    x-text="`GHS ${annual ? {{ number_format($plan->price_annual / 12, 0) }} : {{ number_format($plan->price_monthly, 0) }}}`"
+                                    x-text="`GHS ${annual ? '{{ number_format($plan->price_annual / 12, 0) }}' : '{{ number_format($plan->price_monthly, 0) }}'}`"
                                 >GHS {{ number_format($plan->price_annual / 12, 0) }}</span>
                                 <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
                             @else

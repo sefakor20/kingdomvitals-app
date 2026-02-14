@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Upgrade;
 
+use App\Enums\Currency;
 use App\Models\SubscriptionPlan;
+use App\Models\SystemSetting;
 use App\Services\PlanAccessService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -15,6 +17,15 @@ use Livewire\Component;
 class PlansIndex extends Component
 {
     public string $billingCycle = 'monthly';
+
+    /**
+     * Get the platform's base currency for billing.
+     */
+    #[Computed]
+    public function currency(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
+    }
 
     /**
      * Get all active subscription plans.

@@ -268,6 +268,8 @@ class SmsCompose extends Component
                 $recipients[] = [
                     'id' => $member->id,
                     'name' => $member->fullName(),
+                    'first_name' => $member->first_name,
+                    'last_name' => $member->last_name,
                     'phone' => $member->phone,
                     'sms_opt_out' => $member->sms_opt_out,
                 ];
@@ -284,6 +286,8 @@ class SmsCompose extends Component
                     $recipients[] = [
                         'id' => $member->id,
                         'name' => $member->fullName(),
+                        'first_name' => $member->first_name,
+                        'last_name' => $member->last_name,
                         'phone' => $member->phone,
                         'sms_opt_out' => $member->sms_opt_out,
                     ];
@@ -299,6 +303,8 @@ class SmsCompose extends Component
                 $recipients[] = [
                     'id' => $member->id,
                     'name' => $member->fullName(),
+                    'first_name' => $member->first_name,
+                    'last_name' => $member->last_name,
                     'phone' => $member->phone,
                     'sms_opt_out' => $member->sms_opt_out,
                 ];
@@ -306,6 +312,38 @@ class SmsCompose extends Component
         }
 
         return $recipients;
+    }
+
+    /**
+     * Personalize a message by replacing placeholders with recipient data.
+     *
+     * @param  array{id: string, name: string, first_name: string, last_name: string, phone: string, sms_opt_out: bool}  $recipient
+     */
+    protected function personalizeMessage(string $message, array $recipient): string
+    {
+        $replacements = [
+            '{first_name}' => $recipient['first_name'] ?? '',
+            '{last_name}' => $recipient['last_name'] ?? '',
+            '{full_name}' => $recipient['name'] ?? '',
+            '{branch_name}' => $this->branch->name,
+        ];
+
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $message
+        );
+    }
+
+    /**
+     * Check if the message contains any placeholders that need personalization.
+     */
+    protected function messageHasPlaceholders(string $message): bool
+    {
+        return str_contains($message, '{first_name}')
+            || str_contains($message, '{last_name}')
+            || str_contains($message, '{full_name}')
+            || str_contains($message, '{branch_name}');
     }
 
     public function preview(): void
@@ -399,16 +437,24 @@ class SmsCompose extends Component
             return;
         }
 
-        // Create SmsLog entries and dispatch job
+        // Check if message has placeholders that need personalization
+        $hasPlaceholders = $this->messageHasPlaceholders($this->message);
+
+        // Create SmsLog entries and dispatch job(s)
         $phoneNumbers = [];
         $smsLogIds = [];
 
         foreach ($recipients as $recipient) {
+            // Personalize the message for this recipient
+            $personalizedMessage = $hasPlaceholders
+                ? $this->personalizeMessage($this->message, $recipient)
+                : $this->message;
+
             $smsLog = SmsLog::create([
                 'branch_id' => $this->branch->id,
                 'member_id' => $recipient['id'],
                 'phone_number' => $recipient['phone'],
-                'message' => $this->message,
+                'message' => $personalizedMessage,
                 'message_type' => $this->messageType,
                 'status' => SmsStatus::Pending,
                 'provider' => 'texttango',
@@ -417,15 +463,27 @@ class SmsCompose extends Component
 
             $phoneNumbers[] = $recipient['phone'];
             $smsLogIds[] = $smsLog->id;
+
+            // If message has placeholders, dispatch individual SMS jobs
+            if ($hasPlaceholders) {
+                SendBulkSmsJob::dispatch(
+                    [$smsLog->id],
+                    [$recipient['phone']],
+                    $personalizedMessage,
+                    $this->isScheduled ? $this->scheduledAt : null
+                );
+            }
         }
 
-        // Dispatch bulk SMS job
-        SendBulkSmsJob::dispatch(
-            $smsLogIds,
-            $phoneNumbers,
-            $this->message,
-            $this->isScheduled ? $this->scheduledAt : null
-        );
+        // If no placeholders, dispatch single bulk SMS job with original message
+        if (! $hasPlaceholders) {
+            SendBulkSmsJob::dispatch(
+                $smsLogIds,
+                $phoneNumbers,
+                $this->message,
+                $this->isScheduled ? $this->scheduledAt : null
+            );
+        }
 
         // Invalidate SMS count cache for quota tracking
         app(PlanAccessService::class)->invalidateCountCache('sms');

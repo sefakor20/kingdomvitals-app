@@ -210,7 +210,7 @@
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
-                                <flux:text>{{ Number::currency($data['plan']->price_monthly, in: 'GHS') }}</flux:text>
+                                <flux:text>{{ Number::currency($data['plan']->price_monthly, in: $this->baseCurrency->code()) }}</flux:text>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
                                 <flux:text>{{ $data['tenantCount'] }}</flux:text>

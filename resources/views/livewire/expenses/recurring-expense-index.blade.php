@@ -58,7 +58,7 @@
                     <flux:icon icon="calculator" class="size-4 text-purple-600 dark:text-purple-400" />
                 </div>
             </div>
-            <flux:heading size="xl" class="mt-2">GHS {{ number_format($this->stats['monthly_projection'], 2) }}</flux:heading>
+            <flux:heading size="xl" class="mt-2">{{ $this->currency->symbol() }}{{ number_format($this->stats['monthly_projection'], 2) }}</flux:heading>
         </div>
     </div>
 
@@ -174,7 +174,7 @@
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right">
                                 <span class="font-medium text-zinc-900 dark:text-zinc-100">
-                                    GHS {{ number_format((float) $recurringExpense->amount, 2) }}
+                                    {{ $this->currency->symbol() }}{{ number_format((float) $recurringExpense->amount, 2) }}
                                 </span>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
@@ -266,7 +266,7 @@
                 <flux:input wire:model="description" :label="__('Description')" required />
 
                 <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (GHS)')" required />
+                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (:currency)', ['currency' => $this->currency->code()])" required />
                     <flux:select wire:model="category" :label="__('Category')" required>
                         <flux:select.option value="">{{ __('Select category...') }}</flux:select.option>
                         @foreach($this->categories as $cat)
@@ -344,7 +344,7 @@
                 <flux:input wire:model="description" :label="__('Description')" required />
 
                 <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (GHS)')" required />
+                    <flux:input wire:model="amount" type="number" step="0.01" min="0.01" :label="__('Amount (:currency)', ['currency' => $this->currency->code()])" required />
                     <flux:select wire:model="category" :label="__('Category')" required>
                         <flux:select.option value="">{{ __('Select category...') }}</flux:select.option>
                         @foreach($this->categories as $cat)
@@ -426,7 +426,7 @@
                 <div class="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                     <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $deletingRecurringExpense->description }}</div>
                     <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        GHS {{ number_format((float) $deletingRecurringExpense->amount, 2) }} / {{ ucfirst($deletingRecurringExpense->frequency->value) }}
+                        {{ $this->currency->symbol() }}{{ number_format((float) $deletingRecurringExpense->amount, 2) }} / {{ ucfirst($deletingRecurringExpense->frequency->value) }}
                     </div>
                 </div>
             @endif
@@ -455,7 +455,7 @@
                 <div class="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                     <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $generatingRecurringExpense->description }}</div>
                     <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        GHS {{ number_format((float) $generatingRecurringExpense->amount, 2) }}
+                        {{ $this->currency->symbol() }}{{ number_format((float) $generatingRecurringExpense->amount, 2) }}
                     </div>
                 </div>
             @endif

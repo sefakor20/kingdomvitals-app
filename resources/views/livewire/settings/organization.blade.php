@@ -75,6 +75,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Organization Currency -->
+            <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                <div class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                    <flux:heading size="lg">{{ __('Default Currency') }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500">{{ __('Set the default currency for your organization\'s financial records.') }}</flux:text>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-md space-y-4">
+                        <flux:field>
+                            <flux:label>{{ __('Currency') }}</flux:label>
+                            <flux:select wire:model="currency">
+                                @foreach($currencies as $code => $label)
+                                    <flux:select.option value="{{ $code }}">{{ $label }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:description>{{ __('This currency will be used for donations, expenses, and financial reports.') }}</flux:description>
+                        </flux:field>
+
+                        <div>
+                            <flux:button wire:click="saveCurrency" variant="primary" size="sm">
+                                {{ __('Save Currency') }}
+                            </flux:button>
+                        </div>
+
+                        <flux:text class="text-sm text-amber-600 dark:text-amber-400">
+                            {{ __('Note: Changing the currency only affects new records. Existing financial records will retain their original currency.') }}
+                        </flux:text>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Toast Notifications -->
@@ -83,6 +114,9 @@
         </x-toast>
         <x-toast on="logo-removed" type="success">
             {{ __('Logo removed successfully.') }}
+        </x-toast>
+        <x-toast on="currency-saved" type="success">
+            {{ __('Currency updated successfully.') }}
         </x-toast>
     </x-settings.layout>
 </section>

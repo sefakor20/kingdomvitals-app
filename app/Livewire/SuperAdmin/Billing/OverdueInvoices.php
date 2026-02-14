@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin\Billing;
 
+use App\Enums\Currency;
 use App\Models\PlatformInvoice;
 use App\Models\PlatformPaymentReminder;
 use App\Models\SuperAdminActivityLog;
+use App\Models\SystemSetting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -20,6 +22,12 @@ class OverdueInvoices extends Component
     public array $selectedInvoices = [];
 
     public bool $selectAll = false;
+
+    #[Computed]
+    public function baseCurrency(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
+    }
 
     #[Computed]
     public function overdueInvoices(): Collection
@@ -53,7 +61,7 @@ class OverdueInvoices extends Component
 
         return [
             'total_count' => $invoices->count(),
-            'total_amount' => Number::currency($invoices->sum('amountRaw'), in: 'GHS'),
+            'total_amount' => Number::currency($invoices->sum('amountRaw'), in: $this->baseCurrency->code()),
             'over_30_days' => $invoices->filter(fn ($i): bool => $i['days_overdue'] >= 30)->count(),
             'over_14_days' => $invoices->filter(fn ($i): bool => $i['days_overdue'] >= 14 && $i['days_overdue'] < 30)->count(),
             'under_14_days' => $invoices->filter(fn ($i): bool => $i['days_overdue'] < 14)->count(),

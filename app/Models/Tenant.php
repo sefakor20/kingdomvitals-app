@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BillingCycle;
+use App\Enums\Currency;
 use App\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'current_period_start',
         'current_period_end',
         'account_credit',
+        'currency',
     ];
 
     protected function casts(): array
@@ -49,6 +51,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'account_credit' => 'decimal:2',
             'status' => TenantStatus::class,
             'logo' => 'array',
+            'currency' => Currency::class,
         ];
     }
 
@@ -73,7 +76,49 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'current_period_start',
             'current_period_end',
             'account_credit',
+            'currency',
         ];
+    }
+
+    // ============================================
+    // CURRENCY METHODS
+    // ============================================
+
+    /**
+     * Get the tenant's currency.
+     * Returns the default GHS if not set.
+     */
+    public function getCurrency(): Currency
+    {
+        return $this->currency ?? Currency::GHS;
+    }
+
+    /**
+     * Get the tenant's currency code (e.g., 'GHS', 'USD').
+     */
+    public function getCurrencyCode(): string
+    {
+        return $this->getCurrency()->code();
+    }
+
+    /**
+     * Get the tenant's currency symbol (e.g., '₵', '$').
+     */
+    public function getCurrencySymbol(): string
+    {
+        return $this->getCurrency()->symbol();
+    }
+
+    /**
+     * Set the tenant's currency.
+     */
+    public function setCurrency(Currency|string $currency): void
+    {
+        if (is_string($currency)) {
+            $currency = Currency::fromString($currency);
+        }
+
+        $this->update(['currency' => $currency]);
     }
 
     /**

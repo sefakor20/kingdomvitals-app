@@ -6,6 +6,7 @@ namespace App\Livewire\Expenses;
 
 use App\Enums\BranchRole;
 use App\Enums\BudgetStatus;
+use App\Enums\Currency;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
 use App\Enums\PaymentMethod;
@@ -171,6 +172,12 @@ class ExpenseIndex extends Component
     }
 
     #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
+    #[Computed]
     public function expenseStats(): array
     {
         // Query database directly for stats (not from paginated collection)
@@ -248,7 +255,7 @@ class ExpenseIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['status'] = ExpenseStatus::Pending;
 
         // Convert empty strings to null for nullable fields

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin\Billing;
 
+use App\Enums\Currency;
 use App\Enums\InvoiceStatus;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\PlatformInvoice;
 use App\Models\PlatformPayment;
 use App\Models\SuperAdminActivityLog;
+use App\Models\SystemSetting;
 use App\Services\PlatformBillingService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -23,19 +25,27 @@ class BillingDashboard extends Component
     use HasReportExport;
 
     #[Computed]
+    public function baseCurrency(): Currency
+    {
+        return Currency::fromString(SystemSetting::get('base_currency', 'GHS'));
+    }
+
+    #[Computed]
     public function billingStats(): array
     {
         $billingService = app(PlatformBillingService::class);
         $stats = $billingService->getBillingStats();
 
+        $currencyCode = $this->baseCurrency->code();
+
         return [
-            'totalRevenueYtd' => Number::currency($stats['total_revenue_ytd'], in: 'GHS'),
+            'totalRevenueYtd' => Number::currency($stats['total_revenue_ytd'], in: $currencyCode),
             'totalRevenueYtdRaw' => $stats['total_revenue_ytd'],
-            'outstandingBalance' => Number::currency($stats['outstanding_balance'], in: 'GHS'),
+            'outstandingBalance' => Number::currency($stats['outstanding_balance'], in: $currencyCode),
             'outstandingBalanceRaw' => $stats['outstanding_balance'],
-            'overdueAmount' => Number::currency($stats['overdue_amount'], in: 'GHS'),
+            'overdueAmount' => Number::currency($stats['overdue_amount'], in: $currencyCode),
             'overdueAmountRaw' => $stats['overdue_amount'],
-            'paidThisMonth' => Number::currency($stats['paid_this_month'], in: 'GHS'),
+            'paidThisMonth' => Number::currency($stats['paid_this_month'], in: $currencyCode),
             'paidThisMonthRaw' => $stats['paid_this_month'],
         ];
     }

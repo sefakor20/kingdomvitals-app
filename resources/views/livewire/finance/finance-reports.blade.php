@@ -63,7 +63,7 @@
                 </div>
             </div>
             <flux:heading size="xl" class="mt-2 text-green-600 dark:text-green-400">
-                GHS {{ number_format($this->summaryStats['total_income'], 2) }}
+                {{ $this->currency->symbol() }}{{ number_format($this->summaryStats['total_income'], 2) }}
             </flux:heading>
             <flux:text class="text-xs text-zinc-500">{{ $this->summaryStats['donation_count'] }} {{ __('donations') }}</flux:text>
         </div>
@@ -76,7 +76,7 @@
                 </div>
             </div>
             <flux:heading size="xl" class="mt-2 text-red-600 dark:text-red-400">
-                GHS {{ number_format($this->summaryStats['total_expenses'], 2) }}
+                {{ $this->currency->symbol() }}{{ number_format($this->summaryStats['total_expenses'], 2) }}
             </flux:heading>
             <flux:text class="text-xs text-zinc-500">{{ $this->summaryStats['expense_count'] }} {{ __('expenses') }}</flux:text>
         </div>
@@ -89,7 +89,7 @@
                 </div>
             </div>
             <flux:heading size="xl" class="mt-2 {{ $this->summaryStats['net_position'] >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}">
-                GHS {{ number_format($this->summaryStats['net_position'], 2) }}
+                {{ $this->currency->symbol() }}{{ number_format($this->summaryStats['net_position'], 2) }}
             </flux:heading>
             <flux:text class="text-xs text-zinc-500">{{ __('Income - Expenses') }}</flux:text>
         </div>
@@ -249,7 +249,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <flux:text class="font-medium text-green-600 dark:text-green-400">
-                                            GHS {{ number_format($donor->total_amount, 2) }}
+                                            {{ $this->currency->symbol() }}{{ number_format($donor->total_amount, 2) }}
                                         </flux:text>
                                     </td>
                                     <td class="px-4 py-3 text-right text-sm text-zinc-500">
@@ -318,19 +318,19 @@
             <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:text class="text-sm text-zinc-500">{{ __('Total Pledged') }}</flux:text>
                 <flux:heading size="xl" class="mt-1 text-purple-600 dark:text-purple-400">
-                    GHS {{ number_format($this->pledgeFulfillmentData['total_pledged'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->pledgeFulfillmentData['total_pledged'], 2) }}
                 </flux:heading>
             </div>
             <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:text class="text-sm text-zinc-500">{{ __('Total Fulfilled') }}</flux:text>
                 <flux:heading size="xl" class="mt-1 text-green-600 dark:text-green-400">
-                    GHS {{ number_format($this->pledgeFulfillmentData['total_fulfilled'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->pledgeFulfillmentData['total_fulfilled'], 2) }}
                 </flux:heading>
             </div>
             <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:text class="text-sm text-zinc-500">{{ __('Outstanding') }}</flux:text>
                 <flux:heading size="xl" class="mt-1 text-orange-600 dark:text-orange-400">
-                    GHS {{ number_format($this->pledgeFulfillmentData['outstanding'], 2) }}
+                    {{ $this->currency->symbol() }}{{ number_format($this->pledgeFulfillmentData['outstanding'], 2) }}
                 </flux:heading>
             </div>
         </div>
@@ -393,7 +393,7 @@
                                 </div>
                                 <div class="text-right">
                                     <flux:text class="font-medium text-orange-600 dark:text-orange-400">
-                                        GHS {{ number_format($pledge->remainingAmount(), 2) }}
+                                        {{ $this->currency->symbol() }}{{ number_format($pledge->remainingAmount(), 2) }}
                                     </flux:text>
                                     <flux:text class="text-xs text-zinc-500">
                                         {{ $pledge->completionPercentage() }}% {{ __('fulfilled') }}
@@ -458,7 +458,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => 'GHS ' + value.toLocaleString(),
+                                callback: (value) => '{{ $this->currency->symbol() }}' + value.toLocaleString(),
                                 color: isDark ? '#a1a1aa' : '#71717a',
                             },
                             grid: { color: isDark ? '#27272a' : '#e4e4e7' }
@@ -520,7 +520,7 @@
                     scales: {
                         y: {
                             ticks: {
-                                callback: (value) => 'GHS ' + value.toLocaleString(),
+                                callback: (value) => '{{ $this->currency->symbol() }}' + value.toLocaleString(),
                                 color: isDark ? '#a1a1aa' : '#71717a',
                             },
                             grid: { color: isDark ? '#27272a' : '#e4e4e7' }

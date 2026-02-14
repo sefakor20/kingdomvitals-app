@@ -16,6 +16,7 @@ use App\Models\PlatformInvoiceItem;
 use App\Models\PlatformPayment;
 use App\Models\PlatformPaymentReminder;
 use App\Models\SubscriptionPlan;
+use App\Models\SystemSetting;
 use App\Models\Tenant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -110,7 +111,7 @@ class PlatformBillingService
                 'amount_paid' => 0,
                 'balance_due' => $price,
                 'status' => InvoiceStatus::Draft,
-                'currency' => 'GHS',
+                'currency' => SystemSetting::get('base_currency', 'GHS'),
             ]);
 
             PlatformInvoiceItem::create([
@@ -175,7 +176,7 @@ class PlatformBillingService
                 'amount_paid' => 0,
                 'balance_due' => $totalAmount,
                 'status' => InvoiceStatus::Sent,
-                'currency' => 'GHS',
+                'currency' => SystemSetting::get('base_currency', 'GHS'),
                 'notes' => $upgradeReason,
                 'change_type' => $changeType,
                 'metadata' => [

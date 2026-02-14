@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Enums\ClusterHealthLevel;
+use App\Enums\Currency;
 use App\Enums\FollowUpOutcome;
 use App\Enums\HouseholdEngagementLevel;
 use App\Enums\LifecycleStage;
@@ -47,6 +48,12 @@ class Dashboard extends Component
         if ($this->currentBranchId) {
             $branchContext->setCurrentBranch($this->currentBranchId);
         }
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[On('branch-switched')]

@@ -5,26 +5,8 @@
     </head>
     <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
         @php
-            $authLogoUrl = null;
-            $authAppName = config('app.name');
-
-            // Check for tenant logo and name first
-            if (function_exists('tenant') && tenant()) {
-                $authLogoUrl = tenant()->getLogoUrl('medium');
-                $authAppName = tenant()->name ?? $authAppName;
-            }
-
-            // Fall back to platform logo
-            if (!$authLogoUrl) {
-                $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
-                if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
-                    $path = $platformLogoPaths['medium'];
-                    $fullPath = base_path('storage/app/public/'.$path);
-                    if (file_exists($fullPath)) {
-                        $authLogoUrl = url('storage/'.$path);
-                    }
-                }
-            }
+            $authLogoUrl = \App\Services\LogoService::getTenantLogoUrl('medium');
+            $authAppName = (function_exists('tenant') && tenant() ? tenant()->name : null) ?? config('app.name');
         @endphp
 
         <div class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">

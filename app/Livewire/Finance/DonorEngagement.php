@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Finance;
 
+use App\Enums\Currency;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
@@ -48,6 +49,12 @@ class DonorEngagement extends Component
     {
         $this->authorize('viewReports', [Donation::class, $branch]);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     public function setPeriod(int $days): void

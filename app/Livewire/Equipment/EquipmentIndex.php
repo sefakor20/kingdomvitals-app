@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Equipment;
 
 use App\Enums\CheckoutStatus;
+use App\Enums\Currency;
 use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentCondition;
 use App\Enums\QuotaType;
@@ -110,6 +111,12 @@ class EquipmentIndex extends Component
     {
         $this->authorize('viewAny', [Equipment::class, $branch]);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]
@@ -308,7 +315,7 @@ class EquipmentIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
 
         // Convert empty strings to null
         foreach (['description', 'serial_number', 'model_number', 'manufacturer', 'purchase_date', 'purchase_price', 'source_of_equipment', 'location', 'assigned_to', 'warranty_expiry', 'next_maintenance_date', 'notes'] as $field) {

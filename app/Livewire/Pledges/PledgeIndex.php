@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pledges;
 
+use App\Enums\Currency;
 use App\Enums\PledgeFrequency;
 use App\Enums\PledgeStatus;
 use App\Livewire\Concerns\HasFilterableQuery;
@@ -176,6 +177,12 @@ class PledgeIndex extends Component
     }
 
     #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
+    }
+
+    #[Computed]
     public function canRecordPayment(): bool
     {
         return auth()->user()->branchAccess()
@@ -265,7 +272,7 @@ class PledgeIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['status'] = PledgeStatus::Active;
         $validated['amount_fulfilled'] = 0;
 

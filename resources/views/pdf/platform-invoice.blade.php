@@ -238,18 +238,8 @@
 </head>
 <body>
     @php
-        $platformLogoUrl = null;
+        $platformLogoUrl = \App\Services\LogoService::getPlatformLogoUrl('medium');
         $platformName = config('app.name');
-
-        // Get platform logo from SystemSetting
-        $platformLogoPaths = \App\Models\SystemSetting::get('platform_logo');
-        if ($platformLogoPaths && is_array($platformLogoPaths) && isset($platformLogoPaths['medium'])) {
-            $path = $platformLogoPaths['medium'];
-            $fullPath = base_path('storage/app/public/'.$path);
-            if (file_exists($fullPath)) {
-                $platformLogoUrl = url('storage/'.$path);
-            }
-        }
     @endphp
 
     <div class="header">

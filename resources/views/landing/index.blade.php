@@ -26,6 +26,8 @@
 
         {{-- JSON-LD Structured Data --}}
         @php
+            $baseCurrencyCode = \App\Models\SystemSetting::get('base_currency', 'GHS');
+
             // SoftwareApplication schema
             $softwareApp = [
                 '@type' => 'SoftwareApplication',
@@ -35,7 +37,7 @@
                 'description' => 'Church management software for membership, giving, attendance, and ministry operations.',
                 'offers' => [
                     '@type' => 'AggregateOffer',
-                    'priceCurrency' => 'GHS',
+                    'priceCurrency' => $baseCurrencyCode,
                     'lowPrice' => '0',
                     'offerCount' => (string) count($plans),
                 ],

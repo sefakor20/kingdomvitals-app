@@ -6,6 +6,7 @@ namespace App\Livewire\Pledges;
 
 use App\Enums\CampaignCategory;
 use App\Enums\CampaignStatus;
+use App\Enums\Currency;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\PledgeCampaign;
@@ -63,6 +64,12 @@ class CampaignIndex extends Component
     {
         $this->authorize('viewAny', [PledgeCampaign::class, $branch]);
         $this->branch = $branch;
+    }
+
+    #[Computed]
+    public function currency(): Currency
+    {
+        return tenant()->getCurrency();
     }
 
     #[Computed]
@@ -166,7 +173,7 @@ class CampaignIndex extends Component
         $validated = $this->validate();
 
         $validated['branch_id'] = $this->branch->id;
-        $validated['currency'] = 'GHS';
+        $validated['currency'] = tenant()->getCurrencyCode();
         $validated['status'] = CampaignStatus::Active;
 
         // Convert empty strings to null for nullable fields

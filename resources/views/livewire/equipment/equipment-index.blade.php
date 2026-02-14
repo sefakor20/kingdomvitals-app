@@ -108,7 +108,7 @@
                     <flux:icon icon="banknotes" class="size-4 text-purple-600 dark:text-purple-400" />
                 </div>
             </div>
-            <flux:heading size="xl" class="mt-2">GHS {{ number_format($this->equipmentStats['totalValue'], 2) }}</flux:heading>
+            <flux:heading size="xl" class="mt-2">{{ $this->currency->symbol() }}{{ number_format($this->equipmentStats['totalValue'], 2) }}</flux:heading>
         </div>
     </div>
 
@@ -332,7 +332,7 @@
 
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input wire:model="purchase_date" type="date" :label="__('Purchase Date')" />
-                    <flux:input wire:model="purchase_price" type="number" step="0.01" min="0" :label="__('Purchase Price (GHS)')" />
+                    <flux:input wire:model="purchase_price" type="number" step="0.01" min="0" :label="__('Purchase Price (:currency)', ['currency' => $this->currency->code()])" />
                     <flux:select wire:model="condition" :label="__('Condition')" required>
                         @foreach($this->conditions as $cond)
                             <flux:select.option value="{{ $cond->value }}">{{ ucfirst(str_replace('_', ' ', $cond->value)) }}</flux:select.option>
@@ -389,7 +389,7 @@
 
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input wire:model="purchase_date" type="date" :label="__('Purchase Date')" />
-                    <flux:input wire:model="purchase_price" type="number" step="0.01" min="0" :label="__('Purchase Price (GHS)')" />
+                    <flux:input wire:model="purchase_price" type="number" step="0.01" min="0" :label="__('Purchase Price (:currency)', ['currency' => $this->currency->code()])" />
                     <flux:select wire:model="condition" :label="__('Condition')" required>
                         @foreach($this->conditions as $cond)
                             <flux:select.option value="{{ $cond->value }}">{{ ucfirst(str_replace('_', ' ', $cond->value)) }}</flux:select.option>
