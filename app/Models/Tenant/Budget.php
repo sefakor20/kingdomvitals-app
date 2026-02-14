@@ -66,6 +66,7 @@ class Budget extends Model
     {
         return (float) Expense::where('branch_id', $this->branch_id)
             ->where('category', $this->category)
+            ->where('currency', $this->currency)
             ->whereDate('expense_date', '>=', $this->start_date)
             ->whereDate('expense_date', '<=', $this->end_date)
             ->whereIn('status', [ExpenseStatus::Approved, ExpenseStatus::Paid])
