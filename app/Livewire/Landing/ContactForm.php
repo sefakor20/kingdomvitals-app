@@ -46,7 +46,7 @@ class ContactForm extends Component
         $this->reset(['name', 'email', 'church', 'size', 'message']);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.landing.contact-form');
     }

@@ -232,7 +232,7 @@ class AiAlert extends Model
         }
 
         return array_map(
-            fn (array $r) => \App\Services\AI\DTOs\AlertRecommendation::fromArray($r),
+            fn (array $r): \App\Services\AI\DTOs\AlertRecommendation => \App\Services\AI\DTOs\AlertRecommendation::fromArray($r),
             $this->recommendations
         );
     }

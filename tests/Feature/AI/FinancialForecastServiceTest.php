@@ -158,7 +158,6 @@ it('returns null for on track when no budget target', function (): void {
         confidence: 75.0,
         factors: [],
         cohortBreakdown: [],
-        budgetTarget: null,
     );
 
     expect($dto->isOnTrack())->toBeNull();

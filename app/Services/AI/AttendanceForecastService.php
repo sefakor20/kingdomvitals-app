@@ -350,7 +350,7 @@ class AttendanceForecastService
         $minDataWeeks = $config['min_data_weeks'] ?? 4;
 
         // Filter out zero values
-        $nonZeroValues = array_filter($totals, fn ($v) => $v > 0);
+        $nonZeroValues = array_filter($totals, fn ($v): bool => $v > 0);
         $dataPoints = count($nonZeroValues);
 
         // Not enough data
@@ -387,7 +387,7 @@ class AttendanceForecastService
             return 0;
         }
 
-        $variance = array_reduce($values, function ($carry, $value) use ($mean) {
+        $variance = array_reduce($values, function (int|float $carry, $value) use ($mean) {
             return $carry + pow($value - $mean, 2);
         }, 0) / count($values);
 

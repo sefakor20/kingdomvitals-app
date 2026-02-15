@@ -368,7 +368,7 @@ class AttendanceAnalytics extends Component
         }
 
         // Sort by total attendance desc
-        usort($utilization, fn ($a, $b): int => $b['total_attendance'] <=> $a['total_attendance']);
+        usort($utilization, fn (array $a, array $b): int => $b['total_attendance'] <=> $a['total_attendance']);
 
         return $utilization;
     }
@@ -462,7 +462,7 @@ class AttendanceAnalytics extends Component
             }])
             ->limit(10)
             ->get()
-            ->map(function ($member) {
+            ->map(function ($member): array {
                 $lastAttendance = $member->attendance->first();
 
                 return [
@@ -538,7 +538,7 @@ class AttendanceAnalytics extends Component
         })
             ->whereNull('converted_member_id')
             ->get()
-            ->filter(function ($visitor) {
+            ->filter(function ($visitor): bool {
                 $visitCount = Attendance::where('branch_id', $this->branch->id)
                     ->where('visitor_id', $visitor->id)
                     ->distinct('date')
@@ -684,10 +684,10 @@ class AttendanceAnalytics extends Component
             ->with('service')
             ->get()
             ->groupBy(fn ($forecast) => $forecast->forecast_date->format('Y-m-d'))
-            ->map(function ($forecasts, $date) {
+            ->map(function ($forecasts, \DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $date): array {
                 return [
                     'date' => Carbon::parse($date),
-                    'forecasts' => $forecasts->map(fn ($f) => [
+                    'forecasts' => $forecasts->map(fn ($f): array => [
                         'service_name' => $f->service->name,
                         'predicted_attendance' => $f->predicted_attendance,
                         'predicted_members' => $f->predicted_members,
@@ -726,7 +726,7 @@ class AttendanceAnalytics extends Component
             ->with('service')
             ->limit(10)
             ->get()
-            ->map(fn ($f) => [
+            ->map(fn ($f): array => [
                 'date' => $f->forecast_date->format('M d'),
                 'service_name' => $f->service->name,
                 'predicted' => $f->predicted_attendance,

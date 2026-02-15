@@ -75,7 +75,7 @@ final readonly class AttendanceAnomaly
      */
     public function daysSinceLastAttendance(): ?int
     {
-        if (! $this->lastAttendanceDate) {
+        if (!$this->lastAttendanceDate instanceof \Carbon\Carbon) {
             return null;
         }
 

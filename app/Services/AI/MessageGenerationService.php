@@ -210,9 +210,7 @@ class MessageGenerationService
             $prompt .= "- Previous successful follow-ups: {$context['successful_followups']}\n";
         }
 
-        $prompt .= "\nIMPORTANT: Keep the message under {$charLimit} characters.";
-
-        return $prompt;
+        return $prompt . "\nIMPORTANT: Keep the message under {$charLimit} characters.";
     }
 
     /**
@@ -245,9 +243,7 @@ class MessageGenerationService
             $prompt .= "- Note: This member is at high risk of disengaging\n";
         }
 
-        $prompt .= "\nIMPORTANT: Keep the message under {$charLimit} characters.";
-
-        return $prompt;
+        return $prompt . "\nIMPORTANT: Keep the message under {$charLimit} characters.";
     }
 
     /**
@@ -279,7 +275,6 @@ class MessageGenerationService
             context: $context,
             provider: 'template',
             model: 'v1',
-            tokensUsed: null,
         );
     }
 
@@ -313,7 +308,6 @@ class MessageGenerationService
             context: $context,
             provider: 'template',
             model: 'v1',
-            tokensUsed: null,
         );
     }
 }

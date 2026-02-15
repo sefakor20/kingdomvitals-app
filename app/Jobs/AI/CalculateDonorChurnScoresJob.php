@@ -49,7 +49,7 @@ class CalculateDonorChurnScoresJob implements ShouldQueue
         Member::query()
             ->where('primary_branch_id', $this->branchId)
             ->whereHas('donations')
-            ->chunkById($this->chunkSize, function ($members) use ($service, &$processed, &$errors) {
+            ->chunkById($this->chunkSize, function ($members) use ($service, &$processed, &$errors): void {
                 foreach ($members as $member) {
                     try {
                         $assessment = $service->calculateScore($member);

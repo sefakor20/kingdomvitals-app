@@ -159,9 +159,13 @@ class RecurringExpenseIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->categoryFilter)
-            || $this->isFilterActive($this->statusFilter);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->categoryFilter)) {
+            return true;
+        }
+        return $this->isFilterActive($this->statusFilter);
     }
 
     protected function rules(): array

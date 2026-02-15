@@ -216,11 +216,19 @@ class ExpenseIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->categoryFilter)
-            || $this->isFilterActive($this->statusFilter)
-            || $this->isFilterActive($this->dateFrom)
-            || $this->isFilterActive($this->dateTo);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->categoryFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->statusFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateFrom)) {
+            return true;
+        }
+        return $this->isFilterActive($this->dateTo);
     }
 
     protected function rules(): array

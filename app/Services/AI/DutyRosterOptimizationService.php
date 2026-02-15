@@ -107,10 +107,8 @@ class DutyRosterOptimizationService
         }
 
         // 6. Preference match - if member prefers this service
-        if (! empty($poolMember->preferred_service_ids) && isset($context['service_id'])) {
-            if (in_array($context['service_id'], $poolMember->preferred_service_ids)) {
-                $factors['preference'] = 5;
-            }
+        if (! empty($poolMember->preferred_service_ids) && isset($context['service_id']) && in_array($context['service_id'], $poolMember->preferred_service_ids)) {
+            $factors['preference'] = 5;
         }
 
         // Calculate total score
@@ -166,7 +164,7 @@ class DutyRosterOptimizationService
             $maxAssignmentCount = $poolMembers->max('assignment_count') ?: 1;
 
             // Score all members
-            $scores = $poolMembers->map(function ($pm) use ($date, $assignedMemberIds, $maxAssignmentCount, $serviceId) {
+            $scores = $poolMembers->map(function (\App\Models\Tenant\DutyRosterPoolMember $pm) use ($date, $assignedMemberIds, $maxAssignmentCount, $serviceId): \App\Services\AI\DTOs\MemberSuitabilityScore {
                 return $this->calculateMemberSuitability($pm, $date, [
                     'assigned_member_ids' => $assignedMemberIds,
                     'max_assignment_count' => $maxAssignmentCount,
@@ -176,8 +174,8 @@ class DutyRosterOptimizationService
 
             // Sort by total score descending, filter to available members
             $availableScores = $scores
-                ->filter(fn (MemberSuitabilityScore $s) => $s->isAvailable)
-                ->sortByDesc(fn (MemberSuitabilityScore $s) => $s->totalScore)
+                ->filter(fn (MemberSuitabilityScore $s): bool => $s->isAvailable)
+                ->sortByDesc(fn (MemberSuitabilityScore $s): float => $s->totalScore)
                 ->values();
 
             if ($availableScores->isEmpty()) {

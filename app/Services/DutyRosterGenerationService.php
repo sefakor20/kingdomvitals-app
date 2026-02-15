@@ -85,7 +85,7 @@ class DutyRosterGenerationService
         ?Collection $unavailableMemberIds = null
     ): ?Member {
         // Get unavailable member IDs for this date if not provided
-        if ($unavailableMemberIds === null) {
+        if (!$unavailableMemberIds instanceof \Illuminate\Support\Collection) {
             $unavailableMemberIds = MemberUnavailability::query()
                 ->where('branch_id', $pool->branch_id)
                 ->whereDate('unavailable_date', $date)
@@ -147,15 +147,15 @@ class DutyRosterGenerationService
         }
 
         // Load pools
-        $preacherPool = ! empty($config['preacher_pool_id'])
-            ? DutyRosterPool::find($config['preacher_pool_id'])
-            : null;
-        $liturgistPool = ! empty($config['liturgist_pool_id'])
-            ? DutyRosterPool::find($config['liturgist_pool_id'])
-            : null;
-        $readerPool = ! empty($config['reader_pool_id'])
-            ? DutyRosterPool::find($config['reader_pool_id'])
-            : null;
+        $preacherPool = empty($config['preacher_pool_id'])
+            ? null
+            : DutyRosterPool::find($config['preacher_pool_id']);
+        $liturgistPool = empty($config['liturgist_pool_id'])
+            ? null
+            : DutyRosterPool::find($config['liturgist_pool_id']);
+        $readerPool = empty($config['reader_pool_id'])
+            ? null
+            : DutyRosterPool::find($config['reader_pool_id']);
 
         // Get all unavailabilities in the date range
         $unavailabilities = MemberUnavailability::query()
@@ -200,7 +200,6 @@ class DutyRosterGenerationService
             if ($preacherPool) {
                 $preacher = $this->simulateNextMember(
                     $preacherPool,
-                    $date,
                     $unavailableMemberIds,
                     $simulatedAssignments['preacher']
                 );
@@ -209,7 +208,6 @@ class DutyRosterGenerationService
             if ($liturgistPool) {
                 $liturgist = $this->simulateNextMember(
                     $liturgistPool,
-                    $date,
                     $unavailableMemberIds,
                     $simulatedAssignments['liturgist']
                 );
@@ -218,7 +216,6 @@ class DutyRosterGenerationService
             if ($readerPool) {
                 $reader = $this->simulateNextMember(
                     $readerPool,
-                    $date,
                     $unavailableMemberIds,
                     $simulatedAssignments['reader']
                 );
@@ -276,15 +273,15 @@ class DutyRosterGenerationService
         }
 
         // Load pools
-        $preacherPool = ! empty($config['preacher_pool_id'])
-            ? DutyRosterPool::find($config['preacher_pool_id'])
-            : null;
-        $liturgistPool = ! empty($config['liturgist_pool_id'])
-            ? DutyRosterPool::find($config['liturgist_pool_id'])
-            : null;
-        $readerPool = ! empty($config['reader_pool_id'])
-            ? DutyRosterPool::find($config['reader_pool_id'])
-            : null;
+        $preacherPool = empty($config['preacher_pool_id'])
+            ? null
+            : DutyRosterPool::find($config['preacher_pool_id']);
+        $liturgistPool = empty($config['liturgist_pool_id'])
+            ? null
+            : DutyRosterPool::find($config['liturgist_pool_id']);
+        $readerPool = empty($config['reader_pool_id'])
+            ? null
+            : DutyRosterPool::find($config['reader_pool_id']);
 
         // Get all unavailabilities in the date range
         $unavailabilities = MemberUnavailability::query()
@@ -334,7 +331,7 @@ class DutyRosterGenerationService
 
                 if ($preacherPool) {
                     $preacher = $this->getNextAvailableMember($preacherPool, $date, $unavailableMemberIds);
-                    if ($preacher) {
+                    if ($preacher instanceof \App\Models\Tenant\Member) {
                         $preacherId = $preacher->id;
                         $this->recordAssignment($preacherPool, $preacher->id, $date);
                     }
@@ -342,7 +339,7 @@ class DutyRosterGenerationService
 
                 if ($liturgistPool) {
                     $liturgist = $this->getNextAvailableMember($liturgistPool, $date, $unavailableMemberIds);
-                    if ($liturgist) {
+                    if ($liturgist instanceof \App\Models\Tenant\Member) {
                         $liturgistId = $liturgist->id;
                         $this->recordAssignment($liturgistPool, $liturgist->id, $date);
                     }
@@ -362,7 +359,7 @@ class DutyRosterGenerationService
                 // If we have a reader pool, add a scripture reading with the reader assigned
                 if ($readerPool) {
                     $reader = $this->getNextAvailableMember($readerPool, $date, $unavailableMemberIds);
-                    if ($reader) {
+                    if ($reader instanceof \App\Models\Tenant\Member) {
                         $this->recordAssignment($readerPool, $reader->id, $date);
                         // Note: Scripture readings would need to be added separately
                         // as they require reference and reading_type
@@ -397,7 +394,6 @@ class DutyRosterGenerationService
      */
     private function simulateNextMember(
         DutyRosterPool $pool,
-        Carbon $date,
         Collection $unavailableMemberIds,
         array &$simulatedAssignments
     ): ?Member {
@@ -414,7 +410,7 @@ class DutyRosterGenerationService
         }
 
         // Sort by combined real + simulated assignment count
-        $sorted = $poolMembers->sortBy(function ($pm) use ($simulatedAssignments) {
+        $sorted = $poolMembers->sortBy(function ($pm) use ($simulatedAssignments): float|int|array {
             $realCount = $pm->assignment_count;
             $simulatedCount = $simulatedAssignments[$pm->member_id] ?? 0;
 

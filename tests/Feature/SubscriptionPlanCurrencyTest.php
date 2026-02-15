@@ -9,18 +9,18 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Clear any cached system settings
     SystemSetting::clearCache();
 });
 
-describe('SubscriptionPlan Multi-Currency', function () {
-    describe('manual pricing strategy', function () {
-        beforeEach(function () {
+describe('SubscriptionPlan Multi-Currency', function (): void {
+    describe('manual pricing strategy', function (): void {
+        beforeEach(function (): void {
             SystemSetting::set('pricing_strategy', 'manual', 'currency');
         });
 
-        it('returns GHS price for monthly', function () {
+        it('returns GHS price for monthly', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00,
@@ -32,7 +32,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceMonthly('GHS'))->toBe(100.0);
         });
 
-        it('returns USD price for monthly', function () {
+        it('returns USD price for monthly', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00,
@@ -44,7 +44,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceMonthly('USD'))->toBe(10.0);
         });
 
-        it('returns GHS price for annual', function () {
+        it('returns GHS price for annual', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00,
@@ -55,7 +55,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceAnnual(Currency::GHS))->toBe(1000.0);
         });
 
-        it('returns USD price for annual', function () {
+        it('returns USD price for annual', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00,
@@ -66,7 +66,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceAnnual(Currency::USD))->toBe(100.0);
         });
 
-        it('returns zero for null USD prices', function () {
+        it('returns zero for null USD prices', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00,
@@ -78,7 +78,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceAnnual(Currency::USD))->toBe(0.0);
         });
 
-        it('defaults to GHS when no currency specified', function () {
+        it('defaults to GHS when no currency specified', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00,
@@ -89,14 +89,14 @@ describe('SubscriptionPlan Multi-Currency', function () {
         });
     });
 
-    describe('exchange rate pricing strategy', function () {
-        beforeEach(function () {
+    describe('exchange rate pricing strategy', function (): void {
+        beforeEach(function (): void {
             SystemSetting::set('pricing_strategy', 'exchange_rate', 'currency');
             SystemSetting::set('base_currency', 'USD', 'currency');
             SystemSetting::set('exchange_rate_usd_to_ghs', '15.00', 'currency');
         });
 
-        it('converts USD to GHS using exchange rate', function () {
+        it('converts USD to GHS using exchange rate', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 0,
                 'price_annual' => 0,
@@ -108,7 +108,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceAnnual(Currency::GHS))->toBe(1500.0);
         });
 
-        it('returns base price for same currency', function () {
+        it('returns base price for same currency', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly_usd' => 10.00,
                 'price_annual_usd' => 100.00,
@@ -118,7 +118,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getPriceAnnual(Currency::USD))->toBe(100.0);
         });
 
-        it('converts GHS base to USD', function () {
+        it('converts GHS base to USD', function (): void {
             SystemSetting::set('base_currency', 'GHS', 'currency');
 
             $plan = new SubscriptionPlan([
@@ -131,12 +131,12 @@ describe('SubscriptionPlan Multi-Currency', function () {
         });
     });
 
-    describe('formatted prices', function () {
-        beforeEach(function () {
+    describe('formatted prices', function (): void {
+        beforeEach(function (): void {
             SystemSetting::set('pricing_strategy', 'manual', 'currency');
         });
 
-        it('formats GHS prices with symbol', function () {
+        it('formats GHS prices with symbol', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 1234.56,
                 'price_annual' => 12345.67,
@@ -146,7 +146,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getFormattedPriceAnnual(Currency::GHS))->toBe('₵12,345.67');
         });
 
-        it('formats USD prices with symbol', function () {
+        it('formats USD prices with symbol', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly_usd' => 99.99,
                 'price_annual_usd' => 999.99,
@@ -157,8 +157,8 @@ describe('SubscriptionPlan Multi-Currency', function () {
         });
     });
 
-    describe('hasPricing', function () {
-        it('returns true when GHS prices are set', function () {
+    describe('hasPricing', function (): void {
+        it('returns true when GHS prices are set', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 0,
@@ -167,7 +167,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->hasPricing(Currency::GHS))->toBeTrue();
         });
 
-        it('returns true when USD prices are set', function () {
+        it('returns true when USD prices are set', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 0,
                 'price_monthly_usd' => 10.00,
@@ -176,7 +176,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->hasPricing(Currency::USD))->toBeTrue();
         });
 
-        it('returns false when no GHS prices set', function () {
+        it('returns false when no GHS prices set', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 0,
                 'price_annual' => 0,
@@ -185,7 +185,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->hasPricing(Currency::GHS))->toBeFalse();
         });
 
-        it('returns false when no USD prices set', function () {
+        it('returns false when no USD prices set', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly_usd' => 0,
                 'price_annual_usd' => 0,
@@ -195,12 +195,12 @@ describe('SubscriptionPlan Multi-Currency', function () {
         });
     });
 
-    describe('annual savings', function () {
-        beforeEach(function () {
+    describe('annual savings', function (): void {
+        beforeEach(function (): void {
             SystemSetting::set('pricing_strategy', 'manual', 'currency');
         });
 
-        it('calculates savings for GHS', function () {
+        it('calculates savings for GHS', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 100.00,
                 'price_annual' => 1000.00, // 2 months free
@@ -210,7 +210,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getAnnualSavingsPercent(Currency::GHS))->toBe(16.7);
         });
 
-        it('calculates savings for USD', function () {
+        it('calculates savings for USD', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly_usd' => 10.00,
                 'price_annual_usd' => 100.00, // 2 months free
@@ -219,7 +219,7 @@ describe('SubscriptionPlan Multi-Currency', function () {
             expect($plan->getAnnualSavingsPercent(Currency::USD))->toBe(16.7);
         });
 
-        it('returns zero when monthly price is zero', function () {
+        it('returns zero when monthly price is zero', function (): void {
             $plan = new SubscriptionPlan([
                 'price_monthly' => 0,
                 'price_annual' => 0,

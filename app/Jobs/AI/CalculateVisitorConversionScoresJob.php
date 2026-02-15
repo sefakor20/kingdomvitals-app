@@ -48,7 +48,7 @@ class CalculateVisitorConversionScoresJob implements ShouldQueue
         Visitor::query()
             ->where('branch_id', $this->branchId)
             ->where('is_converted', false)
-            ->chunkById($this->chunkSize, function ($visitors) use ($service, &$processed, &$errors) {
+            ->chunkById($this->chunkSize, function ($visitors) use ($service, &$processed, &$errors): void {
                 foreach ($visitors as $visitor) {
                     try {
                         $prediction = $service->calculateScore($visitor);

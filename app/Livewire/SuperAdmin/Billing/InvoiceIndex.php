@@ -87,8 +87,10 @@ class InvoiceIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->status);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        return $this->isFilterActive($this->status);
     }
 
     #[Computed]

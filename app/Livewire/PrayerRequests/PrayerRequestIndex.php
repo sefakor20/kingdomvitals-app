@@ -235,12 +235,22 @@ class PrayerRequestIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->categoryFilter)
-            || $this->isFilterActive($this->statusFilter)
-            || $this->isFilterActive($this->privacyFilter)
-            || $this->isFilterActive($this->clusterFilter)
-            || $this->isFilterActive($this->urgencyFilter);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->categoryFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->statusFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->privacyFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->clusterFilter)) {
+            return true;
+        }
+        return $this->isFilterActive($this->urgencyFilter);
     }
 
     protected function rules(): array

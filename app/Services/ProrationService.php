@@ -193,11 +193,7 @@ class ProrationService
 
         // No proration if on last day of period
         $daysRemaining = $this->getDaysRemaining($tenant);
-        if ($daysRemaining <= 0) {
-            return false;
-        }
-
-        return true;
+        return $daysRemaining > 0;
     }
 
     /**

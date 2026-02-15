@@ -42,7 +42,7 @@ readonly class HouseholdEngagementAssessment
      */
     public function getDisengagedMembers(): array
     {
-        if (empty($this->memberScores)) {
+        if ($this->memberScores === []) {
             return [];
         }
 
@@ -63,7 +63,7 @@ readonly class HouseholdEngagementAssessment
      */
     public function getMostEngagedMember(): ?string
     {
-        if (empty($this->memberScores)) {
+        if ($this->memberScores === []) {
             return null;
         }
 

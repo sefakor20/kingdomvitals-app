@@ -151,7 +151,7 @@ class VisitorConversionService
      */
     public function calculateScoresForMany($visitors): \Illuminate\Support\Collection
     {
-        return $visitors->map(fn (Visitor $visitor) => [
+        return $visitors->map(fn (Visitor $visitor): array => [
             'visitor_id' => $visitor->id,
             'prediction' => $this->calculateScore($visitor),
         ]);

@@ -104,7 +104,7 @@ readonly class ClusterRecommendation
             $this->meetingTime,
         ]);
 
-        return empty($parts) ? null : implode(' at ', $parts);
+        return $parts === [] ? null : implode(' at ', $parts);
     }
 
     /**

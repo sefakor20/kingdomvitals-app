@@ -39,7 +39,7 @@ trait TenantTestCase
         if (! $this->tenant) {
             // Create new tenant with fixed ID, without triggering tenancy events
             // This prevents TenantDatabaseAlreadyExistsException when reusing database
-            Tenant::withoutEvents(function () use ($plan) {
+            Tenant::withoutEvents(function () use ($plan): void {
                 $this->tenant = new Tenant;
                 $this->tenant->id = self::TEST_TENANT_ID;
                 $this->tenant->name = 'Test Church';
@@ -128,7 +128,7 @@ trait TenantTestCase
 
         foreach ($statements as $statement) {
             $statement = trim($statement);
-            if (! empty($statement)) {
+            if ($statement !== '' && $statement !== '0') {
                 try {
                     DB::unprepared($statement);
                 } catch (\Exception $e) {

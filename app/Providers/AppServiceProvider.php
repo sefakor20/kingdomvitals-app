@@ -209,17 +209,17 @@ class AppServiceProvider extends ServiceProvider
     private function registerCurrencyDirectives(): void
     {
         // @money($amount, $currency) → ₵100.00 or $100.00
-        Blade::directive('money', function (string $expression) {
+        Blade::directive('money', function (string $expression): string {
             return "<?php echo app(\App\Services\CurrencyFormatter::class)->format({$expression}); ?>";
         });
 
         // @moneyCode($amount, $currency) → GHS 100.00 or USD 100.00
-        Blade::directive('moneyCode', function (string $expression) {
+        Blade::directive('moneyCode', function (string $expression): string {
             return "<?php echo app(\App\Services\CurrencyFormatter::class)->formatWithCode({$expression}); ?>";
         });
 
         // @currencySymbol($currency) → ₵ or $
-        Blade::directive('currencySymbol', function (string $expression) {
+        Blade::directive('currencySymbol', function (string $expression): string {
             return "<?php echo app(\App\Services\CurrencyFormatter::class)->symbol({$expression}); ?>";
         });
     }

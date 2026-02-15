@@ -36,7 +36,7 @@ class MemberCardsBulkPrint extends Component
     #[Computed]
     public function members(): Collection
     {
-        if (empty($this->memberIds)) {
+        if ($this->memberIds === []) {
             return collect();
         }
 

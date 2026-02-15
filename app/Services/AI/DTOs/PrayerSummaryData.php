@@ -47,7 +47,7 @@ readonly class PrayerSummaryData
      */
     public function topCategory(): ?string
     {
-        if (empty($this->categoryBreakdown)) {
+        if ($this->categoryBreakdown === []) {
             return null;
         }
 
@@ -62,7 +62,7 @@ readonly class PrayerSummaryData
      */
     public function dominantUrgency(): ?string
     {
-        if (empty($this->urgencyBreakdown)) {
+        if ($this->urgencyBreakdown === []) {
             return null;
         }
 

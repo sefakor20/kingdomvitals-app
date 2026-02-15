@@ -166,7 +166,6 @@ class AlertRecommendationService
      */
     public function getLifecycleChangeRecommendations(AiAlert $alert): array
     {
-        $recommendations = [];
         $currentStage = LifecycleStage::tryFrom($alert->data['current_stage'] ?? '');
 
         return match ($currentStage) {
@@ -478,7 +477,7 @@ class AlertRecommendationService
     {
         $recommendations = [];
         $memberCount = $alert->data['member_count'] ?? 0;
-        $engagementScore = $alert->data['engagement_score'] ?? 0;
+        $alert->data['engagement_score'] ?? 0;
 
         $recommendations[] = new AlertRecommendation(
             action: 'Schedule family visit',
@@ -533,7 +532,7 @@ class AlertRecommendationService
      */
     public function toStorableFormat(array $recommendations): array
     {
-        return array_map(fn (AlertRecommendation $r) => $r->toArray(), $recommendations);
+        return array_map(fn (AlertRecommendation $r): array => $r->toArray(), $recommendations);
     }
 
     /**
@@ -543,6 +542,6 @@ class AlertRecommendationService
      */
     public function fromStoredFormat(array $data): array
     {
-        return array_map(fn (array $r) => AlertRecommendation::fromArray($r), $data);
+        return array_map(fn (array $r): \App\Services\AI\DTOs\AlertRecommendation => AlertRecommendation::fromArray($r), $data);
     }
 }

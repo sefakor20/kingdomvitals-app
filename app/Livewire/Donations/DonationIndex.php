@@ -267,12 +267,22 @@ class DonationIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->typeFilter)
-            || $this->isFilterActive($this->paymentMethodFilter)
-            || $this->isFilterActive($this->memberFilter)
-            || $this->isFilterActive($this->dateFrom)
-            || $this->isFilterActive($this->dateTo);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->typeFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->paymentMethodFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->memberFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateFrom)) {
+            return true;
+        }
+        return $this->isFilterActive($this->dateTo);
     }
 
     protected function rules(): array

@@ -58,7 +58,7 @@ class ClusterHealthAlertNotification extends Notification implements ShouldQueue
 
             if (! empty($cluster['top_concerns'])) {
                 $concerns = collect($cluster['top_concerns'])
-                    ->map(fn ($score, $area) => ucfirst($area).": {$score}")
+                    ->map(fn ($score, $area): string => ucfirst($area).": {$score}")
                     ->join(', ');
                 $mail->line("**Areas of Concern:** {$concerns}");
             }

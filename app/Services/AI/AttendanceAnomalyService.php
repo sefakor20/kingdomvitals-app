@@ -94,13 +94,13 @@ class AttendanceAnomalyService
         // Get members who have attended at least once in baseline period
         $members = Member::query()
             ->where('primary_branch_id', $branchId)
-            ->whereHas('attendance', function ($query) use ($baselineWeeks) {
+            ->whereHas('attendance', function ($query) use ($baselineWeeks): void {
                 $query->where('date', '>=', now()->subWeeks($baselineWeeks));
             })
             ->get();
 
         return $members
-            ->map(fn (Member $member) => $this->detectAnomaly($member))
+            ->map(fn (Member $member): ?\App\Services\AI\DTOs\AttendanceAnomaly => $this->detectAnomaly($member))
             ->filter()
             ->sortByDesc('score')
             ->take($limit)

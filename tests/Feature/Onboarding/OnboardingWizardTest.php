@@ -232,14 +232,14 @@ describe('OnboardingWizard', function (): void {
         // Verify notifications were sent
         Notification::assertSentOnDemand(
             BranchUserInvitationNotification::class,
-            function ($notification, $channels, $notifiable) {
+            function ($notification, $channels, $notifiable): bool {
                 return $notifiable->routes['mail'] === 'pastor@church.org';
             }
         );
 
         Notification::assertSentOnDemand(
             BranchUserInvitationNotification::class,
-            function ($notification, $channels, $notifiable) {
+            function ($notification, $channels, $notifiable): bool {
                 return $notifiable->routes['mail'] === 'secretary@church.org';
             }
         );

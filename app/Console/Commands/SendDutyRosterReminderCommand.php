@@ -164,12 +164,17 @@ class SendDutyRosterReminderCommand extends Command
         }
 
         foreach ($roster->scriptures as $scripture) {
-            if ($scripture->reader_id && $scripture->reader) {
-                // Avoid duplicates if someone is both liturgist and reader
-                if (! $assignees->contains(fn ($a) => $a['member']->id === $scripture->reader->id)) {
-                    $assignees->push(['member' => $scripture->reader, 'role' => 'reader']);
-                }
+            if (!$scripture->reader_id) {
+                continue;
             }
+            if (!$scripture->reader) {
+                continue;
+            }
+            // Avoid duplicates if someone is both liturgist and reader
+            if ($assignees->contains(fn ($a): bool => $a['member']->id === $scripture->reader->id)) {
+                continue;
+            }
+            $assignees->push(['member' => $scripture->reader, 'role' => 'reader']);
         }
 
         return $assignees;

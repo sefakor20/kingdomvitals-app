@@ -29,11 +29,7 @@ class BackfillMembershipNumbers extends Command
     {
         $tenantId = $this->option('tenant');
 
-        if ($tenantId) {
-            $tenants = Tenant::where('id', $tenantId)->get();
-        } else {
-            $tenants = Tenant::all();
-        }
+        $tenants = $tenantId ? Tenant::where('id', $tenantId)->get() : Tenant::all();
 
         if ($tenants->isEmpty()) {
             $this->error('No tenants found.');

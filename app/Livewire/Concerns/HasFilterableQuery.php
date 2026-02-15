@@ -44,7 +44,7 @@ trait HasFilterableQuery
 
         $value = $this->{$filterProperty};
 
-        if ($value === '' || $value === '0' || $value === null) {
+        if (in_array($value, ['', '0', null], true)) {
             return $query;
         }
 

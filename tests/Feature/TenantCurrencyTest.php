@@ -8,9 +8,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-describe('Tenant Currency', function () {
-    describe('currency property', function () {
-        it('defaults to GHS when not set', function () {
+describe('Tenant Currency', function (): void {
+    describe('currency property', function (): void {
+        it('defaults to GHS when not set', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
             ]);
@@ -20,7 +20,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrencySymbol())->toBe('₵');
         });
 
-        it('returns GHS when explicitly set', function () {
+        it('returns GHS when explicitly set', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::GHS,
@@ -31,7 +31,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrencySymbol())->toBe('₵');
         });
 
-        it('returns USD when set', function () {
+        it('returns USD when set', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::USD,
@@ -42,7 +42,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrencySymbol())->toBe('$');
         });
 
-        it('casts currency to enum', function () {
+        it('casts currency to enum', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => 'USD',
@@ -53,8 +53,8 @@ describe('Tenant Currency', function () {
         });
     });
 
-    describe('setCurrency method', function () {
-        it('sets currency with enum', function () {
+    describe('setCurrency method', function (): void {
+        it('sets currency with enum', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::GHS,
@@ -66,7 +66,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrency())->toBe(Currency::USD);
         });
 
-        it('sets currency with string', function () {
+        it('sets currency with string', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::GHS,
@@ -78,7 +78,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrency())->toBe(Currency::USD);
         });
 
-        it('handles invalid string by defaulting to GHS', function () {
+        it('handles invalid string by defaulting to GHS', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::USD,
@@ -91,8 +91,8 @@ describe('Tenant Currency', function () {
         });
     });
 
-    describe('helper methods', function () {
-        it('getCurrencyCode returns code string', function () {
+    describe('helper methods', function (): void {
+        it('getCurrencyCode returns code string', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::USD,
@@ -102,7 +102,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrencyCode())->toBeString();
         });
 
-        it('getCurrencySymbol returns symbol', function () {
+        it('getCurrencySymbol returns symbol', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::USD,
@@ -111,7 +111,7 @@ describe('Tenant Currency', function () {
             expect($tenant->getCurrencySymbol())->toBe('$');
         });
 
-        it('getCurrency returns enum', function () {
+        it('getCurrency returns enum', function (): void {
             $tenant = Tenant::create([
                 'name' => 'Test Church',
                 'currency' => Currency::GHS,

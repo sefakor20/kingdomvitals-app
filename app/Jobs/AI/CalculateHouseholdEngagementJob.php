@@ -47,7 +47,7 @@ class CalculateHouseholdEngagementJob implements ShouldQueue
 
         Household::query()
             ->where('branch_id', $this->branchId)
-            ->chunkById($this->chunkSize, function ($households) use ($service, &$processed, &$errors) {
+            ->chunkById($this->chunkSize, function ($households) use ($service, &$processed, &$errors): void {
                 foreach ($households as $household) {
                     try {
                         $assessment = $service->calculateEngagement($household);

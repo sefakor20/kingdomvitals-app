@@ -61,7 +61,10 @@ class PaymentHistory extends Component
     #[Computed]
     public function hasBillingHistory(): bool
     {
-        return $this->invoices->isNotEmpty() || $this->payments->isNotEmpty();
+        if ($this->invoices->isNotEmpty()) {
+            return true;
+        }
+        return (bool) $this->payments->isNotEmpty();
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View

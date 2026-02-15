@@ -33,7 +33,7 @@ afterEach(function (): void {
     $this->tearDownTestTenant();
 });
 
-describe('Organization Currency Settings', function () {
+describe('Organization Currency Settings', function (): void {
     it('loads default currency on mount', function (): void {
         $component = Livewire::actingAs($this->admin)
             ->test(Organization::class);

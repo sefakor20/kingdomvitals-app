@@ -202,13 +202,25 @@ class AttendanceIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->serviceFilter)
-            || $this->isFilterActive($this->dateFrom)
-            || $this->isFilterActive($this->dateTo)
-            || $this->isFilterActive($this->typeFilter)
-            || $this->isFilterActive($this->methodFilter)
-            || $this->isFilterActive($this->quickFilter);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->serviceFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateFrom)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateTo)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->typeFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->methodFilter)) {
+            return true;
+        }
+        return $this->isFilterActive($this->quickFilter);
     }
 
     public function applyQuickFilter(string $filter): void

@@ -66,7 +66,7 @@ describe('invoice email sending', function (): void {
 
         expect($result)->toBeTrue();
 
-        Mail::assertQueued(PlatformInvoiceMail::class, function ($mail) use ($invoice) {
+        Mail::assertQueued(PlatformInvoiceMail::class, function ($mail) use ($invoice): bool {
             return $mail->invoice->id === $invoice->id;
         });
     });

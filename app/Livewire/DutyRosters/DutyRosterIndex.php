@@ -237,7 +237,7 @@ class DutyRosterIndex extends Component
         }
 
         // Filter out empty hymn numbers
-        $validated['hymn_numbers'] = array_values(array_filter($validated['hymn_numbers'] ?? [], fn ($h) => $h !== null && $h !== ''));
+        $validated['hymn_numbers'] = array_values(array_filter($validated['hymn_numbers'] ?? [], fn ($h): bool => $h !== null && $h !== ''));
 
         DutyRoster::create($validated);
 
@@ -282,7 +282,7 @@ class DutyRosterIndex extends Component
         }
 
         // Filter out empty hymn numbers
-        $validated['hymn_numbers'] = array_values(array_filter($validated['hymn_numbers'] ?? [], fn ($h) => $h !== null && $h !== ''));
+        $validated['hymn_numbers'] = array_values(array_filter($validated['hymn_numbers'] ?? [], fn ($h): bool => $h !== null && $h !== ''));
 
         $this->editingRoster->update($validated);
 

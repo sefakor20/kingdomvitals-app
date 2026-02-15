@@ -23,7 +23,7 @@ readonly class LifecycleStageAssessment
      */
     public function isTransition(): bool
     {
-        return $this->previousStage !== null && $this->previousStage !== $this->stage;
+        return $this->previousStage instanceof \App\Enums\LifecycleStage && $this->previousStage !== $this->stage;
     }
 
     /**

@@ -162,7 +162,7 @@ class SmsCampaignOptimizationService
      */
     public function predictOptimalSendTime(Member $member, ?Collection $smsHistory = null): array
     {
-        if ($smsHistory === null) {
+        if (!$smsHistory instanceof \Illuminate\Support\Collection) {
             $smsHistory = SmsLog::query()
                 ->where('member_id', $member->id)
                 ->where('status', SmsStatus::Delivered)
@@ -302,7 +302,7 @@ class SmsCampaignOptimizationService
             $recommendations[] = 'More low-engagement than high-engagement recipients - consider segmented messaging';
         }
 
-        if ($totalRecipients > 100 && empty($optimalSendTimes)) {
+        if ($totalRecipients > 100 && $optimalSendTimes === []) {
             $recommendations[] = 'Large campaign - consider scheduling at optimal times per segment';
         }
 

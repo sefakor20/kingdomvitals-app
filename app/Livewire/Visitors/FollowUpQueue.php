@@ -143,7 +143,7 @@ class FollowUpQueue extends Component
     public function followUpOutcomes(): array
     {
         return collect(FollowUpOutcome::cases())
-            ->filter(fn ($outcome) => $outcome !== FollowUpOutcome::Pending)
+            ->filter(fn ($outcome): bool => $outcome !== FollowUpOutcome::Pending)
             ->all();
     }
 
@@ -160,7 +160,7 @@ class FollowUpQueue extends Component
     #[Computed]
     public function followUpTemplates(): Collection
     {
-        if (! $this->completingFollowUp) {
+        if (!$this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return collect();
         }
 
@@ -191,11 +191,19 @@ class FollowUpQueue extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->typeFilter)
-            || $this->isFilterActive($this->memberFilter)
-            || $this->isFilterActive($this->dateFrom)
-            || $this->isFilterActive($this->dateTo);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->typeFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->memberFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateFrom)) {
+            return true;
+        }
+        return $this->isFilterActive($this->dateTo);
     }
 
     public function clearFilters(): void
@@ -217,7 +225,7 @@ class FollowUpQueue extends Component
 
     public function completeFollowUp(): void
     {
-        if (! $this->completingFollowUp) {
+        if (!$this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return;
         }
 
@@ -285,7 +293,7 @@ class FollowUpQueue extends Component
 
     public function rescheduleFollowUp(): void
     {
-        if (! $this->reschedulingFollowUp) {
+        if (!$this->reschedulingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return;
         }
 
@@ -360,7 +368,7 @@ class FollowUpQueue extends Component
 
     public function rejectAiMessage(): void
     {
-        if (! $this->generatedMessage) {
+        if (!$this->generatedMessage instanceof \App\Models\Tenant\AiGeneratedMessage) {
             return;
         }
 
@@ -384,12 +392,12 @@ class FollowUpQueue extends Component
     private function getBaseQuery()
     {
         $query = VisitorFollowUp::query()
-            ->whereHas('visitor', function ($q) {
+            ->whereHas('visitor', function ($q): void {
                 $q->where('branch_id', $this->branch->id);
 
                 // Apply search filter on visitor
-                if ($this->search) {
-                    $q->where(function ($sq) {
+                if ($this->search !== '' && $this->search !== '0') {
+                    $q->where(function ($sq): void {
                         $sq->where('first_name', 'like', "%{$this->search}%")
                             ->orWhere('last_name', 'like', "%{$this->search}%")
                             ->orWhere('phone', 'like', "%{$this->search}%")

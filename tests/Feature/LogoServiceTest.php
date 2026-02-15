@@ -7,9 +7,9 @@ use App\Models\Tenant\Branch;
 use App\Services\LogoService;
 use Illuminate\Support\Facades\Storage;
 
-describe('LogoService', function () {
-    describe('getLogoUrl', function () {
-        it('returns branch logo when branch has logo_url', function () {
+describe('LogoService', function (): void {
+    describe('getLogoUrl', function (): void {
+        it('returns branch logo when branch has logo_url', function (): void {
             $branch = new Branch;
             $branch->logo_url = 'https://example.com/branch-logo.png';
 
@@ -18,7 +18,7 @@ describe('LogoService', function () {
             expect($result)->toBe('https://example.com/branch-logo.png');
         });
 
-        it('returns null when branch has no logo and no platform logo', function () {
+        it('returns null when branch has no logo and no platform logo', function (): void {
             $branch = new Branch;
             $branch->logo_url = null;
 
@@ -30,7 +30,7 @@ describe('LogoService', function () {
             expect($result)->toBeNull();
         });
 
-        it('falls back to platform logo when branch has no logo', function () {
+        it('falls back to platform logo when branch has no logo', function (): void {
             Storage::fake('public');
             Storage::disk('public')->put('logos/platform-medium.png', 'fake-image');
 
@@ -50,8 +50,8 @@ describe('LogoService', function () {
         });
     });
 
-    describe('getTenantLogoUrl', function () {
-        it('returns platform logo when no tenant context', function () {
+    describe('getTenantLogoUrl', function (): void {
+        it('returns platform logo when no tenant context', function (): void {
             Storage::fake('public');
             Storage::disk('public')->put('logos/platform-medium.png', 'fake-image');
 
@@ -64,7 +64,7 @@ describe('LogoService', function () {
             expect($result)->toBeString()->and($result)->toContain('logos/platform-medium.png');
         });
 
-        it('returns null when no tenant and no platform logo', function () {
+        it('returns null when no tenant and no platform logo', function (): void {
             SystemSetting::query()->where('key', 'platform_logo')->delete();
 
             $result = LogoService::getTenantLogoUrl('medium');
@@ -73,8 +73,8 @@ describe('LogoService', function () {
         });
     });
 
-    describe('getPlatformLogoUrl', function () {
-        it('returns platform logo URL when logo exists', function () {
+    describe('getPlatformLogoUrl', function (): void {
+        it('returns platform logo URL when logo exists', function (): void {
             Storage::fake('public');
             Storage::disk('public')->put('logos/platform-small.png', 'fake-image');
 
@@ -88,7 +88,7 @@ describe('LogoService', function () {
             expect($result)->toBeString()->and($result)->toContain('logos/platform-small.png');
         });
 
-        it('returns null when platform logo setting is not set', function () {
+        it('returns null when platform logo setting is not set', function (): void {
             SystemSetting::query()->where('key', 'platform_logo')->delete();
 
             $result = LogoService::getPlatformLogoUrl('medium');
@@ -96,7 +96,7 @@ describe('LogoService', function () {
             expect($result)->toBeNull();
         });
 
-        it('returns null when requested size is not in platform logo paths', function () {
+        it('returns null when requested size is not in platform logo paths', function (): void {
             SystemSetting::set('platform_logo', [
                 'small' => 'logos/platform-small.png',
             ]);
@@ -106,7 +106,7 @@ describe('LogoService', function () {
             expect($result)->toBeNull();
         });
 
-        it('returns null when logo file does not exist', function () {
+        it('returns null when logo file does not exist', function (): void {
             Storage::fake('public');
             // Note: We don't create the file here
 

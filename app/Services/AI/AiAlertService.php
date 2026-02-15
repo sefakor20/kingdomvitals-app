@@ -42,9 +42,8 @@ class AiAlertService
         $alerts = $alerts->merge($this->checkLifecycleTransitionAlerts($branch));
         $alerts = $alerts->merge($this->checkCriticalPrayerAlerts($branch));
         $alerts = $alerts->merge($this->checkClusterHealthAlerts($branch));
-        $alerts = $alerts->merge($this->checkHouseholdDisengagementAlerts($branch));
 
-        return $alerts;
+        return $alerts->merge($this->checkHouseholdDisengagementAlerts($branch));
     }
 
     /**
@@ -90,7 +89,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert) {
+                if ($alert instanceof \App\Models\Tenant\AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -145,7 +144,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert) {
+                if ($alert instanceof \App\Models\Tenant\AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -208,7 +207,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert) {
+                if ($alert instanceof \App\Models\Tenant\AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -274,7 +273,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert) {
+                if ($alert instanceof \App\Models\Tenant\AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -342,7 +341,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert) {
+                if ($alert instanceof \App\Models\Tenant\AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -397,7 +396,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert) {
+                if ($alert instanceof \App\Models\Tenant\AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -436,7 +435,7 @@ class AiAlertService
         // Generate and attach recommendations
         if ($alert && config('ai.recommendations.enabled', true)) {
             $recommendations = $this->recommendationService->getRecommendationsForAlert($alert);
-            if (! empty($recommendations)) {
+            if ($recommendations !== []) {
                 $alert->update([
                     'recommendations' => $this->recommendationService->toStorableFormat($recommendations),
                 ]);

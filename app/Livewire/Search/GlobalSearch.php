@@ -178,7 +178,7 @@ class GlobalSearch extends Component
         // Remove if already exists, then prepend
         $this->recentSearches = array_values(array_filter(
             $this->recentSearches,
-            fn (string $s) => $s !== $term
+            fn (string $s): bool => $s !== $term
         ));
         array_unshift($this->recentSearches, $term);
 
@@ -385,7 +385,7 @@ class GlobalSearch extends Component
     {
         $searchTerm = '%'.$term.'%';
 
-        return $query->where(function ($q) use ($columns, $searchTerm, $term) {
+        return $query->where(function ($q) use ($columns, $searchTerm, $term): void {
             foreach ($columns as $column) {
                 // Standard LIKE match
                 $q->orWhere($column, 'like', $searchTerm);
@@ -433,7 +433,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'first_name', 'last_name', 'membership_number', 'email', 'primary_branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (Member $m) => [
+                    ->map(fn (Member $m): array => [
                         'id' => $m->id,
                         'title' => $m->fullName(),
                         'subtitle' => $m->membership_number ?? $m->email,
@@ -460,7 +460,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'first_name', 'last_name', 'email', 'visit_date', 'branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (Visitor $v) => [
+                    ->map(fn (Visitor $v): array => [
                         'id' => $v->id,
                         'title' => $v->fullName(),
                         'subtitle' => $v->visit_date?->format('M j, Y'),
@@ -487,7 +487,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'name', 'day_of_week', 'time', 'branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (Service $s) => [
+                    ->map(fn (Service $s): array => [
                         'id' => $s->id,
                         'title' => $s->name,
                         'subtitle' => $s->day_of_week !== null ? now()->startOfWeek()->addDays($s->day_of_week)->format('l') : null,
@@ -514,7 +514,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'name', 'address', 'branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (Household $h) => [
+                    ->map(fn (Household $h): array => [
                         'id' => $h->id,
                         'title' => $h->name,
                         'subtitle' => $h->address,
@@ -541,7 +541,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'name', 'description', 'branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (Cluster $c) => [
+                    ->map(fn (Cluster $c): array => [
                         'id' => $c->id,
                         'title' => $c->name,
                         'subtitle' => $c->description ? Str::limit($c->description, 50) : null,
@@ -558,7 +558,7 @@ class GlobalSearch extends Component
         if ($planAccess->hasModule(PlanModule::Equipment)) {
             $baseQuery = Equipment::query();
             $this->applyBranchFilter($baseQuery, 'branch_id');
-            $baseQuery->where(function ($query) use ($searchTerm) {
+            $baseQuery->where(function ($query) use ($searchTerm): void {
                 $query->where('name', 'like', $searchTerm)
                     ->orWhere('serial_number', 'like', $searchTerm);
             });
@@ -571,7 +571,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'name', 'serial_number', 'condition', 'branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (Equipment $e) => [
+                    ->map(fn (Equipment $e): array => [
                         'id' => $e->id,
                         'title' => $e->name,
                         'subtitle' => $e->serial_number,
@@ -588,7 +588,7 @@ class GlobalSearch extends Component
         if ($planAccess->hasModule(PlanModule::PrayerRequests)) {
             $baseQuery = PrayerRequest::query();
             $this->applyBranchFilter($baseQuery, 'branch_id');
-            $baseQuery->where(function ($query) use ($searchTerm) {
+            $baseQuery->where(function ($query) use ($searchTerm): void {
                 $query->where('title', 'like', $searchTerm)
                     ->orWhere('description', 'like', $searchTerm);
             });
@@ -601,7 +601,7 @@ class GlobalSearch extends Component
                     ->select(['id', 'title', 'status', 'created_at', 'branch_id'])
                     ->limit(self::MAX_RESULTS_PER_TYPE)
                     ->get()
-                    ->map(fn (PrayerRequest $p) => [
+                    ->map(fn (PrayerRequest $p): array => [
                         'id' => $p->id,
                         'title' => $p->title,
                         'subtitle' => $p->created_at?->format('M j, Y'),

@@ -103,7 +103,7 @@ class ImageProcessingService
      */
     public function getLogoUrl(?array $paths, string $size = 'small', string $disk = 'public'): ?string
     {
-        if (empty($paths) || ! isset($paths[$size])) {
+        if ($paths === null || $paths === [] || ! isset($paths[$size])) {
             return null;
         }
 

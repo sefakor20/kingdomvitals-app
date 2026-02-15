@@ -75,7 +75,7 @@ it('returns immediate priority for very high churn scores', function (): void {
 
     $immediateRecommendations = array_filter(
         $recommendations,
-        fn (AlertRecommendation $r) => $r->priority === 'immediate'
+        fn (AlertRecommendation $r): bool => $r->priority === 'immediate'
     );
 
     expect($immediateRecommendations)->not->toBeEmpty();
@@ -98,7 +98,7 @@ it('includes giving-related recommendations when giving factors present', functi
     ]);
 
     $recommendations = $this->service->getRecommendationsForAlert($alert);
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
 
     expect($actions)->toContain('Review giving history');
 });
@@ -126,7 +126,7 @@ it('returns recommendations for attendance anomaly alerts', function (): void {
     $recommendations = $this->service->getRecommendationsForAlert($alert);
 
     expect($recommendations)->not->toBeEmpty();
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
     expect($actions)->toContain('Check on wellbeing');
 });
 
@@ -153,7 +153,7 @@ it('returns at-risk recommendations for at-risk lifecycle stage', function (): v
     $recommendations = $this->service->getRecommendationsForAlert($alert);
 
     expect($recommendations)->not->toBeEmpty();
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
     expect($actions)->toContain('Immediate pastoral contact');
 });
 
@@ -176,7 +176,7 @@ it('returns dormant recommendations for dormant lifecycle stage', function (): v
     $recommendations = $this->service->getRecommendationsForAlert($alert);
 
     expect($recommendations)->not->toBeEmpty();
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
     expect($actions)->toContain('Send re-engagement message');
 });
 
@@ -211,7 +211,7 @@ it('returns immediate recommendations for critical prayer requests', function ()
     expect($recommendations)->not->toBeEmpty();
     $immediateRecommendations = array_filter(
         $recommendations,
-        fn (AlertRecommendation $r) => $r->priority === 'immediate'
+        fn (AlertRecommendation $r): bool => $r->priority === 'immediate'
     );
     expect($immediateRecommendations)->not->toBeEmpty();
 });
@@ -240,7 +240,7 @@ it('returns recommendations for cluster health alerts', function (): void {
     $recommendations = $this->service->getRecommendationsForAlert($alert);
 
     expect($recommendations)->not->toBeEmpty();
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
     expect(in_array('Meet with cluster leader', $actions, true) || in_array('Connect with cluster leader', $actions, true))->toBeTrue();
 });
 
@@ -262,7 +262,7 @@ it('suggests cluster division for large clusters', function (): void {
     ]);
 
     $recommendations = $this->service->getRecommendationsForAlert($alert);
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
 
     expect($actions)->toContain('Consider cluster division');
 });
@@ -291,7 +291,7 @@ it('returns recommendations for household disengagement alerts', function (): vo
     $recommendations = $this->service->getRecommendationsForAlert($alert);
 
     expect($recommendations)->not->toBeEmpty();
-    $actions = array_map(fn (AlertRecommendation $r) => $r->action, $recommendations);
+    $actions = array_map(fn (AlertRecommendation $r): string => $r->action, $recommendations);
     expect($actions)->toContain('Schedule family visit');
 });
 

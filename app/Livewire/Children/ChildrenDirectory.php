@@ -200,11 +200,19 @@ class ChildrenDirectory extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->ageGroupFilter)
-            || $this->isFilterActive($this->householdFilter)
-            || $this->minAge !== null
-            || $this->maxAge !== null;
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->ageGroupFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->householdFilter)) {
+            return true;
+        }
+        if ($this->minAge !== null) {
+            return true;
+        }
+        return $this->maxAge !== null;
     }
 
     #[Computed]

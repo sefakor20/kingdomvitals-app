@@ -264,10 +264,16 @@ class EquipmentIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->categoryFilter)
-            || $this->isFilterActive($this->conditionFilter)
-            || $this->isFilterActive($this->availabilityFilter);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->categoryFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->conditionFilter)) {
+            return true;
+        }
+        return $this->isFilterActive($this->availabilityFilter);
     }
 
     protected function rules(): array

@@ -542,8 +542,8 @@ class InsightsDashboard extends Component
         $totalBudget = $forecasts->sum('budget_target');
         $totalGap = $totalPredicted - $totalBudget;
 
-        $periodsOnTrack = $forecasts->filter(fn ($f) => $f->isOnTrack() === true)->count();
-        $periodsAtRisk = $forecasts->filter(fn ($f) => $f->isOnTrack() === false)->count();
+        $periodsOnTrack = $forecasts->filter(fn ($f): bool => $f->isOnTrack() === true)->count();
+        $periodsAtRisk = $forecasts->filter(fn ($f): bool => $f->isOnTrack() === false)->count();
 
         $avgConfidence = $forecasts->avg('confidence_score');
 

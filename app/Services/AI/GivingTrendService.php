@@ -112,7 +112,7 @@ class GivingTrendService
             ->get();
 
         // Analyze each member
-        $trends = $members->map(fn (Member $member) => $this->analyzeForMember($member, $historyMonths));
+        $trends = $members->map(fn (Member $member): \App\Services\AI\DTOs\GivingTrend => $this->analyzeForMember($member, $historyMonths));
 
         // Calculate donor tiers based on branch totals
         return $this->assignDonorTiers($trends);
@@ -201,7 +201,6 @@ class GivingTrendService
     public function getLapsedDonors(Branch $branch, int $daysSinceLastDonation = 90): Collection
     {
         $config = config('ai.features.giving_trends', []);
-        $threshold = $config['lapsed_threshold_days'] ?? $daysSinceLastDonation;
 
         return Member::where('primary_branch_id', $branch->id)
             ->where('status', MembershipStatus::Active)
@@ -373,7 +372,7 @@ class GivingTrendService
             $key = $monthStart->format('Y-m');
 
             $total = $donations
-                ->filter(function ($donation) use ($monthStart, $monthEnd) {
+                ->filter(function ($donation) use ($monthStart, $monthEnd): bool {
                     $date = Carbon::parse($donation->donation_date);
 
                     return $date->gte($monthStart) && $date->lte($monthEnd);
@@ -422,19 +421,19 @@ class GivingTrendService
         }
 
         // Factor 1: Regularity (how many months had donations)
-        $monthsWithDonations = count(array_filter($monthlyHistory, fn ($amount) => $amount > 0));
+        $monthsWithDonations = count(array_filter($monthlyHistory, fn ($amount): bool => $amount > 0));
         $regularity = $monthsWithDonations / max(1, $months);
 
         // Factor 2: Gap penalty (large gaps reduce score)
         $gapPenalty = $this->calculateGapPenalty($donations);
 
         // Factor 3: Amount consistency (low variance is good)
-        $amounts = array_filter($monthlyHistory, fn ($amount) => $amount > 0);
+        $amounts = array_filter($monthlyHistory, fn ($amount): bool => $amount > 0);
         $amountConsistency = 1;
         if (count($amounts) > 1) {
             $avg = array_sum($amounts) / count($amounts);
             if ($avg > 0) {
-                $variance = array_sum(array_map(fn ($a) => pow($a - $avg, 2), $amounts)) / count($amounts);
+                $variance = array_sum(array_map(fn ($a): float|int => pow($a - $avg, 2), $amounts)) / count($amounts);
                 $stdDev = sqrt($variance);
                 $cv = $stdDev / $avg; // Coefficient of variation
                 $amountConsistency = max(0, 1 - min(1, $cv));
@@ -457,8 +456,8 @@ class GivingTrendService
         }
 
         $dates = $donations->pluck('donation_date')
-            ->map(fn ($d) => Carbon::parse($d))
-            ->sortByDesc(fn ($d) => $d)
+            ->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): \Carbon\Carbon => Carbon::parse($d))
+            ->sortByDesc(fn ($d): \Carbon\Carbon => $d)
             ->values();
 
         $gaps = [];
@@ -466,7 +465,7 @@ class GivingTrendService
             $gaps[] = $dates[$i]->diffInDays($dates[$i + 1]);
         }
 
-        if (empty($gaps)) {
+        if ($gaps === []) {
             return 0;
         }
 
@@ -498,7 +497,7 @@ class GivingTrendService
         $typeCounts = $donations
             ->whereNotNull('donation_type')
             ->groupBy('donation_type')
-            ->map(fn ($group) => $group->count())
+            ->map(fn ($group): int => $group->count())
             ->sortDesc();
 
         $topType = $typeCounts->keys()->first();
@@ -518,7 +517,7 @@ class GivingTrendService
         $methodCounts = $donations
             ->whereNotNull('payment_method')
             ->groupBy('payment_method')
-            ->map(fn ($group) => $group->count())
+            ->map(fn ($group): int => $group->count())
             ->sortDesc();
 
         $topMethod = $methodCounts->keys()->first();
@@ -591,10 +590,10 @@ class GivingTrendService
         }
 
         // Sort by total given descending
-        $sorted = $trends->sortByDesc(fn (GivingTrend $t) => $t->totalGiven)->values();
+        $sorted = $trends->sortByDesc(fn (GivingTrend $t): float => $t->totalGiven)->values();
         $count = $sorted->count();
 
-        return $sorted->map(function (GivingTrend $trend, int $index) use ($count) {
+        return $sorted->map(function (GivingTrend $trend, int $index) use ($count): \App\Services\AI\DTOs\GivingTrend {
             $percentile = (($count - $index) / $count) * 100;
 
             $tier = match (true) {
