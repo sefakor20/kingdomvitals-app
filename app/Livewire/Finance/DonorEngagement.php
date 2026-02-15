@@ -161,22 +161,22 @@ class DonorEngagement extends Component
         $lapsed = $previousDonors->diff($currentDonors);
         $newThisPeriod = $currentDonors->diff($previousDonors);
 
-        // Determine first-time ever donors vs reactivated
-        $firstTimeEver = collect();
-        $reactivated = collect();
-
-        foreach ($newThisPeriod as $memberId) {
-            $hasEarlierDonation = Donation::where('branch_id', $this->branch->id)
-                ->where('member_id', $memberId)
+        // Determine first-time ever donors vs reactivated (N+1 fix: batch query)
+        $membersWithEarlierDonations = $newThisPeriod->isNotEmpty()
+            ? Donation::where('branch_id', $this->branch->id)
+                ->whereIn('member_id', $newThisPeriod)
                 ->where('donation_date', '<', $previousStart)
-                ->exists();
+                ->distinct()
+                ->pluck('member_id')
+                ->toArray()
+            : [];
 
-            if ($hasEarlierDonation) {
-                $reactivated->push($memberId);
-            } else {
-                $firstTimeEver->push($memberId);
-            }
-        }
+        $reactivated = $newThisPeriod->filter(
+            fn ($memberId): bool => in_array($memberId, $membersWithEarlierDonations, true)
+        );
+        $firstTimeEver = $newThisPeriod->reject(
+            fn ($memberId): bool => in_array($memberId, $membersWithEarlierDonations, true)
+        );
 
         // Calculate rates
         $totalPreviousDonors = $returning->count() + $lapsed->count();
@@ -530,7 +530,7 @@ class DonorEngagement extends Component
             ->get();
 
         // Significantly declining donors (>50% drop)
-        $decliningDonors = Donation::where('branch_id', $this->branch->id)
+        $decliningDonorsRaw = Donation::where('branch_id', $this->branch->id)
             ->whereNotNull('member_id')
             ->where('is_anonymous', false)
             ->whereBetween('donation_date', [$previousStart, $currentEnd])
@@ -542,16 +542,10 @@ class DonorEngagement extends Component
             ->groupBy('member_id')
             ->havingRaw('previous_total > 0 AND current_total < previous_total * 0.5')
             ->limit(10)
-            ->get()
-            ->map(function ($item) {
-                $item->member = Member::find($item->member_id);
-                $item->change_percent = round((($item->current_total - $item->previous_total) / $item->previous_total) * 100, 1);
-
-                return $item;
-            });
+            ->get();
 
         // At-risk major donors (major donor with declining trend)
-        $atRiskMajorDonors = Donation::where('branch_id', $this->branch->id)
+        $atRiskMajorDonorsRaw = Donation::where('branch_id', $this->branch->id)
             ->whereIn('member_id', $majorDonorIds)
             ->whereBetween('donation_date', [$previousStart, $currentEnd])
             ->selectRaw('
@@ -562,13 +556,7 @@ class DonorEngagement extends Component
             ->groupBy('member_id')
             ->havingRaw('previous_total > 0 AND current_total < previous_total * 0.75')
             ->limit(10)
-            ->get()
-            ->map(function ($item) {
-                $item->member = Member::find($item->member_id);
-                $item->change_percent = round((($item->current_total - $item->previous_total) / $item->previous_total) * 100, 1);
-
-                return $item;
-            });
+            ->get();
 
         // New potential major donors (new donor with high initial giving)
         $avgDonation = Donation::where('branch_id', $this->branch->id)
@@ -577,7 +565,7 @@ class DonorEngagement extends Component
 
         $highThreshold = $avgDonation * 3; // 3x average = potential major
 
-        $potentialMajorDonors = Donation::where('branch_id', $this->branch->id)
+        $potentialMajorDonorsRaw = Donation::where('branch_id', $this->branch->id)
             ->whereNotNull('member_id')
             ->where('is_anonymous', false)
             ->whereBetween('donation_date', [$currentStart, $currentEnd])
@@ -592,12 +580,39 @@ class DonorEngagement extends Component
                     ->where('d2.donation_date', '<', $currentStart);
             })
             ->limit(10)
-            ->get()
-            ->map(function ($item) {
-                $item->member = Member::find($item->member_id);
+            ->get();
 
-                return $item;
-            });
+        // Batch load all required members in a single query (N+1 fix)
+        $allMemberIds = collect()
+            ->merge($decliningDonorsRaw->pluck('member_id'))
+            ->merge($atRiskMajorDonorsRaw->pluck('member_id'))
+            ->merge($potentialMajorDonorsRaw->pluck('member_id'))
+            ->unique()
+            ->filter()
+            ->toArray();
+
+        $membersMap = Member::whereIn('id', $allMemberIds)->get()->keyBy('id');
+
+        // Map members to results
+        $decliningDonors = $decliningDonorsRaw->map(function ($item) use ($membersMap) {
+            $item->member = $membersMap->get($item->member_id);
+            $item->change_percent = round((($item->current_total - $item->previous_total) / $item->previous_total) * 100, 1);
+
+            return $item;
+        });
+
+        $atRiskMajorDonors = $atRiskMajorDonorsRaw->map(function ($item) use ($membersMap) {
+            $item->member = $membersMap->get($item->member_id);
+            $item->change_percent = round((($item->current_total - $item->previous_total) / $item->previous_total) * 100, 1);
+
+            return $item;
+        });
+
+        $potentialMajorDonors = $potentialMajorDonorsRaw->map(function ($item) use ($membersMap) {
+            $item->member = $membersMap->get($item->member_id);
+
+            return $item;
+        });
 
         return [
             'lapsing' => $lapsingDonors,

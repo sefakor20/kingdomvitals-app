@@ -14,6 +14,7 @@ use App\Enums\PlanModule;
 use App\Enums\PrayerRequestStatus;
 use App\Enums\PrayerUrgencyLevel;
 use App\Enums\SmsEngagementLevel;
+use App\Livewire\Concerns\ClearsComputedProperties;
 use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
@@ -36,6 +37,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class Dashboard extends Component
 {
+    use ClearsComputedProperties;
     use HasQuotaComputed;
 
     public ?string $currentBranchId = null;
@@ -60,44 +62,7 @@ class Dashboard extends Component
     public function handleBranchSwitch(string $branchId): void
     {
         $this->currentBranchId = $branchId;
-
-        // Clear all computed property caches
-        unset($this->currentBranch);
-        unset($this->totalActiveMembers);
-        unset($this->newMembersThisMonth);
-        unset($this->newVisitorsThisMonth);
-        unset($this->totalVisitors);
-        unset($this->conversionRate);
-        unset($this->overdueFollowUps);
-        unset($this->pendingFollowUps);
-        unset($this->donationsThisMonth);
-        unset($this->lastServiceAttendance);
-        unset($this->recentActivity);
-
-        // Clear quota caches
-        unset($this->memberQuota);
-        unset($this->smsQuota);
-        unset($this->storageQuota);
-        unset($this->branchQuota);
-        unset($this->hasAnyQuotaLimits);
-        unset($this->planName);
-
-        // Clear AI insights caches
-        unset($this->aiInsightsEnabled);
-        unset($this->atRiskDonorsCount);
-        unset($this->attendanceAnomaliesCount);
-        unset($this->highPotentialVisitors);
-        unset($this->lifecycleDistribution);
-        unset($this->membersNeedingAttentionCount);
-        unset($this->clusterHealthDistribution);
-        unset($this->clustersNeedingAttention);
-        unset($this->householdEngagementDistribution);
-        unset($this->householdsNeedingOutreachCount);
-        unset($this->urgentPrayerRequestsCount);
-        unset($this->criticalPrayerRequests);
-        unset($this->openPrayerRequestsCount);
-        unset($this->smsEngagementDistribution);
-        unset($this->lowSmsEngagementCount);
+        $this->clearAllComputedProperties();
     }
 
     #[Computed]

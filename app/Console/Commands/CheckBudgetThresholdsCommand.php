@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ProcessesTenants;
 use App\Enums\BranchRole;
 use App\Enums\BudgetStatus;
 use App\Models\Tenant;
@@ -12,32 +15,35 @@ use Illuminate\Console\Command;
 
 class CheckBudgetThresholdsCommand extends Command
 {
-    protected $signature = 'budgets:check-thresholds';
+    use ProcessesTenants;
+
+    protected $signature = 'budgets:check-thresholds {--tenant= : Specific tenant ID to process}';
 
     protected $description = 'Check budget thresholds and send alerts to admins and managers';
+
+    private int $totalAlerts = 0;
 
     public function handle(): int
     {
         $this->info('Checking budget thresholds...');
 
-        $totalAlerts = 0;
+        $this->totalAlerts = 0;
 
-        Tenant::all()->each(function (Tenant $tenant) use (&$totalAlerts): void {
-            tenancy()->initialize($tenant);
-
+        $result = $this->processTenants(function (Tenant $tenant): void {
             Budget::where('alerts_enabled', true)
                 ->where('status', BudgetStatus::Active)
-                ->each(function (Budget $budget) use (&$totalAlerts): void {
-                    $alertSent = $this->checkAndSendAlerts($budget);
-                    if ($alertSent) {
-                        $totalAlerts++;
+                ->each(function (Budget $budget): void {
+                    if ($this->checkAndSendAlerts($budget)) {
+                        $this->totalAlerts++;
                     }
                 });
-
-            tenancy()->end();
         });
 
-        $this->info("Done! Sent {$totalAlerts} alert(s).");
+        $this->info("Done! Sent {$this->totalAlerts} alert(s) across {$result->successCount} tenant(s).");
+
+        if ($result->hasErrors()) {
+            $this->warn("{$result->errorCount} tenant(s) had errors.");
+        }
 
         return Command::SUCCESS;
     }

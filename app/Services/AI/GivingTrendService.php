@@ -200,7 +200,7 @@ class GivingTrendService
      */
     public function getLapsedDonors(Branch $branch, int $daysSinceLastDonation = 90): Collection
     {
-        $config = config('ai.features.giving_trends', []);
+        config('ai.features.giving_trends', []);
 
         return Member::where('primary_branch_id', $branch->id)
             ->where('status', MembershipStatus::Active)

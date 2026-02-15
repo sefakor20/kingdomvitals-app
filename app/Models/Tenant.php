@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -184,10 +185,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function clearLogo(): void
     {
         if ($this->hasLogo()) {
-            foreach ($this->logo as $relativePath) {
+            foreach ($this->logo as $sizeName => $relativePath) {
                 $fullPath = base_path('storage/app/public/'.$relativePath);
-                if (file_exists($fullPath)) {
-                    @unlink($fullPath);
+                if (file_exists($fullPath) && ! unlink($fullPath)) {
+                    Log::warning('Tenant::clearLogo: Failed to delete logo file', [
+                        'tenant_id' => $this->id,
+                        'size' => $sizeName,
+                        'path' => $relativePath,
+                    ]);
                 }
             }
         }
