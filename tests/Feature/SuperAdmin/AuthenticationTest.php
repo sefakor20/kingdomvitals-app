@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Models\SuperAdmin;
 use App\Models\SuperAdminActivityLog;
 
-beforeEach(function (): void {
-    // Super admin tests use the landlord database
-});
-
 it('creates a super admin with valid factory', function (): void {
     $admin = SuperAdmin::factory()->create();
 

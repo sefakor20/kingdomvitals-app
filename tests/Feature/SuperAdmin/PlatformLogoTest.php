@@ -6,6 +6,7 @@ use App\Models\SuperAdmin;
 use App\Models\SystemSetting;
 use App\Services\ImageProcessingService;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 
 beforeEach(function (): void {
     // Clean up any existing platform logo
@@ -13,8 +14,8 @@ beforeEach(function (): void {
     if ($existingPaths && is_array($existingPaths)) {
         foreach ($existingPaths as $path) {
             $fullPath = base_path('storage/app/public/'.$path);
-            if (file_exists($fullPath)) {
-                @unlink($fullPath);
+            if (file_exists($fullPath) && ! unlink($fullPath)) {
+                Log::warning('PlatformLogoTest: Failed to delete existing logo', ['path' => $fullPath]);
             }
         }
     }

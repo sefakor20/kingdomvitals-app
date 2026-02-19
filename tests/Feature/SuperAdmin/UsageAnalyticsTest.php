@@ -11,11 +11,6 @@ use App\Models\TenantUsageSnapshot;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
-beforeEach(function (): void {
-    // Clean up any existing test data
-    TenantUsageSnapshot::query()->delete();
-});
-
 describe('page access', function (): void {
     it('allows owner to view usage analytics page', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();

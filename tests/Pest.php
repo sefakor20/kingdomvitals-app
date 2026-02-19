@@ -15,6 +15,12 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
 
+// RefreshDatabase IS applied globally because:
+// - TenantTestCase needs the central database (tenants table) cleaned between tests
+// - RefreshDatabase uses transaction rollback on the CENTRAL database
+// - TenantTestCase::truncateTenantTables() handles the TENANT database cleanup
+// - These are complementary, not redundant
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
