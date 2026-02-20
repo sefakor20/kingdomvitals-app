@@ -31,6 +31,9 @@
         @endif
         <flux:heading size="xl">{{ $branch->name }}</flux:heading>
         <flux:text class="text-stone-500 dark:text-stone-400">Online Giving</flux:text>
+        <flux:text class="mx-auto mt-2 max-w-sm text-stone-600 dark:text-stone-400">
+            {{ $branch->getSetting('giving_tagline', 'Your generosity makes a difference in our community') }}
+        </flux:text>
     </div>
 
     {{-- Main Card --}}

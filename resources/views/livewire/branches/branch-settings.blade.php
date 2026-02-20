@@ -169,6 +169,47 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Giving Page Customization -->
+            <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="border-b border-zinc-200 p-6 dark:border-zinc-700">
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-full bg-pink-100 p-2 dark:bg-pink-900">
+                            <flux:icon icon="heart" class="size-5 text-pink-600 dark:text-pink-400" />
+                        </div>
+                        <div>
+                            <flux:heading size="lg">{{ __('Giving Page') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Customize the message displayed on your online giving page.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-lg space-y-4">
+                        <flux:field>
+                            <flux:label>{{ __('Inspirational Tagline') }}</flux:label>
+                            <flux:textarea
+                                wire:model="givingTagline"
+                                rows="2"
+                                placeholder="{{ __('Your generosity makes a difference in our community') }}"
+                            />
+                            <flux:description>{{ __('A short message to inspire generosity. Maximum 200 characters.') }}</flux:description>
+                            <flux:error name="givingTagline" />
+                        </flux:field>
+
+                        <div>
+                            <flux:button wire:click="saveGivingTagline" variant="primary" size="sm">
+                                {{ __('Save Tagline') }}
+                            </flux:button>
+                        </div>
+
+                        <flux:text class="text-sm text-zinc-500">
+                            {{ __('This message will appear below "Online Giving" on your public giving page.') }}
+                        </flux:text>
+                    </div>
+                </div>
+            </div>
         </div>
     @endif
 
@@ -750,5 +791,9 @@
 
     <x-toast on="currency-saved" type="success">
         {{ __('Currency updated successfully.') }}
+    </x-toast>
+
+    <x-toast on="giving-tagline-saved" type="success">
+        {{ __('Giving page tagline saved successfully.') }}
     </x-toast>
 </section>
