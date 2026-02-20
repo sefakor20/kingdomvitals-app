@@ -14,6 +14,13 @@
     <div class="mb-6 border-b border-zinc-200 dark:border-zinc-700">
         <nav class="-mb-px flex gap-4 overflow-x-auto">
             <button
+                wire:click="setActiveTab('organization')"
+                class="flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {{ $activeTab === 'organization' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' }}"
+            >
+                <flux:icon icon="building-office" class="size-4" />
+                {{ __('Organization') }}
+            </button>
+            <button
                 wire:click="setActiveTab('sms')"
                 class="flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors {{ $activeTab === 'sms' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300' }}"
             >
@@ -38,6 +45,133 @@
     </div>
 
     <!-- Tab Content -->
+    @if($activeTab === 'organization')
+        <!-- Organization Settings Section -->
+        <div class="space-y-6">
+            <!-- Organization Logo -->
+            <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="border-b border-zinc-200 p-6 dark:border-zinc-700">
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-full bg-indigo-100 p-2 dark:bg-indigo-900">
+                            <flux:icon icon="photo" class="size-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                            <flux:heading size="lg">{{ __('Organization Logo') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Upload a custom logo for your organization. This will appear in the sidebar and other areas.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+                        <!-- Current Logo Preview -->
+                        <div class="shrink-0">
+                            <div class="relative h-32 w-32 overflow-hidden rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
+                                @if($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                    <img
+                                        src="{{ $logo->temporaryUrl() }}"
+                                        alt="{{ __('New logo preview') }}"
+                                        class="h-full w-full object-contain p-2"
+                                    />
+                                @elseif($existingLogoUrl)
+                                    <img
+                                        src="{{ $existingLogoUrl }}"
+                                        alt="{{ __('Current organization logo') }}"
+                                        class="h-full w-full object-contain p-2"
+                                    />
+                                @else
+                                    <div class="flex h-full w-full flex-col items-center justify-center text-zinc-400">
+                                        <flux:icon icon="photo" class="size-8" />
+                                        <span class="mt-1 text-xs">{{ __('No logo') }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Upload Controls -->
+                        <div class="flex-1 space-y-4">
+                            <div>
+                                <flux:field>
+                                    <flux:label>{{ __('Upload New Logo') }}</flux:label>
+                                    <input
+                                        type="file"
+                                        wire:model="logo"
+                                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                                        class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100 dark:text-zinc-400 dark:file:bg-indigo-900/50 dark:file:text-indigo-300 dark:hover:file:bg-indigo-900"
+                                    />
+                                    <flux:description>{{ __('PNG, JPG, or WebP. Minimum 256x256 pixels. Maximum 2MB.') }}</flux:description>
+                                    <flux:error name="logo" />
+                                </flux:field>
+                            </div>
+
+                            <div class="flex gap-2">
+                                @if($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                    <flux:button wire:click="saveLogo" variant="primary" size="sm">
+                                        {{ __('Save Logo') }}
+                                    </flux:button>
+                                    <flux:button wire:click="$set('logo', null)" variant="ghost" size="sm">
+                                        {{ __('Cancel') }}
+                                    </flux:button>
+                                @endif
+
+                                @if($existingLogoUrl && !$logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                    <flux:button wire:click="removeLogo" variant="ghost" size="sm" class="text-red-600 hover:text-red-700">
+                                        {{ __('Remove Logo') }}
+                                    </flux:button>
+                                @endif
+                            </div>
+
+                            <flux:text class="text-sm text-zinc-500">
+                                {{ __('If no logo is set, the platform default logo will be used.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organization Currency -->
+            <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="border-b border-zinc-200 p-6 dark:border-zinc-700">
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-full bg-emerald-100 p-2 dark:bg-emerald-900">
+                            <flux:icon icon="currency-dollar" class="size-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                            <flux:heading size="lg">{{ __('Default Currency') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Set the default currency for your organization\'s financial records.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-md space-y-4">
+                        <flux:field>
+                            <flux:label>{{ __('Currency') }}</flux:label>
+                            <flux:select wire:model="currency">
+                                @foreach($currencies as $code => $label)
+                                    <flux:select.option value="{{ $code }}">{{ $label }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:description>{{ __('This currency will be used for donations, expenses, and financial reports.') }}</flux:description>
+                        </flux:field>
+
+                        <div>
+                            <flux:button wire:click="saveCurrency" variant="primary" size="sm">
+                                {{ __('Save Currency') }}
+                            </flux:button>
+                        </div>
+
+                        <flux:text class="text-sm text-amber-600 dark:text-amber-400">
+                            {{ __('Note: Changing the currency only affects new records. Existing financial records will retain their original currency.') }}
+                        </flux:text>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if($activeTab === 'sms')
         <!-- SMS Configuration Section -->
         <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -603,5 +737,18 @@
 
     <x-toast on="paystack-keys-cleared" type="success">
         {{ __('Paystack keys cleared.') }}
+    </x-toast>
+
+    <!-- Organization Toasts -->
+    <x-toast on="logo-saved" type="success">
+        {{ __('Logo uploaded successfully.') }}
+    </x-toast>
+
+    <x-toast on="logo-removed" type="success">
+        {{ __('Logo removed successfully.') }}
+    </x-toast>
+
+    <x-toast on="currency-saved" type="success">
+        {{ __('Currency updated successfully.') }}
     </x-toast>
 </section>
