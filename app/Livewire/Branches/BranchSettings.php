@@ -4,24 +4,40 @@ declare(strict_types=1);
 
 namespace App\Livewire\Branches;
 
+use App\Enums\Currency;
 use App\Enums\SmsType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsTemplate;
+use App\Services\ImageProcessingService;
 use App\Services\PaystackService;
 use App\Services\TextTangoService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.app')]
 class BranchSettings extends Component
 {
+    use WithFileUploads;
+
     public Branch $branch;
 
     // Tab State
-    public string $activeTab = 'sms';
+    public string $activeTab = 'organization';
+
+    // Organization Settings (tenant-level)
+    public TemporaryUploadedFile|string|null $logo = null;
+
+    public ?string $existingLogoUrl = null;
+
+    public string $currency = 'GHS';
 
     // SMS Credentials
     public string $smsApiKey = '';
@@ -142,6 +158,20 @@ class BranchSettings extends Component
 
         // Load Paystack settings
         $this->loadPaystackSettings();
+
+        // Load organization settings from tenant
+        $this->loadOrganizationSettings();
+    }
+
+    protected function loadOrganizationSettings(): void
+    {
+        $tenant = tenant();
+
+        if ($tenant?->hasLogo()) {
+            $this->existingLogoUrl = $tenant->getLogoUrl('medium');
+        }
+
+        $this->currency = $tenant?->getCurrencyCode() ?? 'GHS';
     }
 
     public function setActiveTab(string $tab): void
@@ -492,8 +522,136 @@ class BranchSettings extends Component
         return route('giving.form', $this->branch->id);
     }
 
+    // Organization Methods
+
+    public function saveLogo(): void
+    {
+        $tenant = tenant();
+
+        if (! $tenant) {
+            abort(403);
+        }
+
+        if (! $this->logo instanceof TemporaryUploadedFile) {
+            return;
+        }
+
+        $imageService = app(ImageProcessingService::class);
+
+        // Validate the logo
+        $errors = $imageService->validateLogo($this->logo);
+        if (! empty($errors)) {
+            foreach ($errors as $message) {
+                $this->addError('logo', $message);
+            }
+
+            return;
+        }
+
+        // Delete existing logo if present (from central storage)
+        if ($tenant->hasLogo()) {
+            $this->deleteLogoFromCentralStorage($tenant->logo);
+        }
+
+        // Process and store the new logo in central storage (bypasses tenant storage isolation)
+        $paths = $this->processLogoToCentralStorage($this->logo, $tenant->id);
+
+        // Save paths to tenant
+        $tenant->setLogoPaths($paths);
+
+        // Update URL for display
+        $this->existingLogoUrl = $tenant->getLogoUrl('medium');
+        $this->logo = null;
+
+        $this->dispatch('logo-saved');
+    }
+
+    /**
+     * Process logo and store in central storage (bypasses tenant storage isolation).
+     *
+     * @return array<string, string>
+     */
+    private function processLogoToCentralStorage(TemporaryUploadedFile $file, string $tenantId): array
+    {
+        $paths = [];
+        $sizes = ImageProcessingService::LOGO_SIZES;
+
+        // Use base_path to store in central storage, bypassing tenant storage prefix
+        $directory = base_path("storage/app/public/logos/tenants/{$tenantId}");
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        foreach ($sizes as $sizeName => $targetSize) {
+            $resized = Image::read($file->getRealPath());
+            $resized->cover($targetSize, $targetSize);
+
+            $filename = "logo-{$sizeName}.png";
+            $fullPath = $directory.'/'.$filename;
+
+            $encoded = $resized->encode(new PngEncoder);
+            file_put_contents($fullPath, (string) $encoded);
+
+            // Store relative path for URL generation
+            $paths[$sizeName] = "logos/tenants/{$tenantId}/{$filename}";
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Delete logo files from central storage.
+     *
+     * @param  array<string, string>  $paths
+     */
+    private function deleteLogoFromCentralStorage(array $paths): void
+    {
+        foreach ($paths as $sizeName => $relativePath) {
+            $fullPath = base_path('storage/app/public/'.$relativePath);
+            if (file_exists($fullPath) && ! unlink($fullPath)) {
+                Log::warning('BranchSettings: Failed to delete logo file', [
+                    'tenant_id' => tenant()?->id,
+                    'size' => $sizeName,
+                    'path' => $relativePath,
+                ]);
+            }
+        }
+    }
+
+    public function removeLogo(): void
+    {
+        $tenant = tenant();
+
+        if (! $tenant) {
+            abort(403);
+        }
+
+        $tenant->clearLogo();
+        $this->existingLogoUrl = null;
+        $this->logo = null;
+
+        $this->dispatch('logo-removed');
+    }
+
+    public function saveCurrency(): void
+    {
+        $tenant = tenant();
+
+        if (! $tenant) {
+            abort(403);
+        }
+
+        $currency = Currency::fromString($this->currency);
+        $tenant->setCurrency($currency);
+
+        $this->dispatch('currency-saved');
+    }
+
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        return view('livewire.branches.branch-settings');
+        return view('livewire.branches.branch-settings', [
+            'currencies' => Currency::options(),
+        ]);
     }
 }
