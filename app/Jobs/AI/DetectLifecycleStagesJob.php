@@ -52,7 +52,7 @@ class DetectLifecycleStagesJob implements ShouldQueue
 
         Member::query()
             ->where('primary_branch_id', $this->branchId)
-            ->chunkById($this->chunkSize, function ($members) use ($service, &$processed, &$transitions, &$concerningTransitions, &$errors) {
+            ->chunkById($this->chunkSize, function ($members) use ($service, &$processed, &$transitions, &$concerningTransitions, &$errors): void {
                 foreach ($members as $member) {
                     try {
                         $assessment = $service->detectStage($member);
@@ -92,7 +92,7 @@ class DetectLifecycleStagesJob implements ShouldQueue
             });
 
         // Send notifications for concerning transitions
-        if ($this->notifyOnTransition && ! empty($concerningTransitions)) {
+        if ($this->notifyOnTransition && $concerningTransitions !== []) {
             $this->sendTransitionNotifications($concerningTransitions);
         }
 

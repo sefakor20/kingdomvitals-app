@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\PngEncoder;
@@ -103,7 +104,7 @@ class ImageProcessingService
      */
     public function getLogoUrl(?array $paths, string $size = 'small', string $disk = 'public'): ?string
     {
-        if (empty($paths) || ! isset($paths[$size])) {
+        if ($paths === null || $paths === [] || ! isset($paths[$size])) {
             return null;
         }
 
@@ -147,7 +148,11 @@ class ImageProcessingService
             if ($image->width() < $minDimension || $image->height() < $minDimension) {
                 $errors['dimensions'] = __('Logo must be at least :size x :size pixels.', ['size' => $minDimension]);
             }
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            Log::warning('ImageProcessingService::validateLogo: Failed to read image', [
+                'error' => $e->getMessage(),
+                'file_path' => $file->getRealPath(),
+            ]);
             $errors['read'] = __('Unable to read image file.');
         }
 

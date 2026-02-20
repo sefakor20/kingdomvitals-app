@@ -34,7 +34,7 @@ class ProcessAiAlertsCommand extends Command
         if ($typeValue) {
             $alertType = AiAlertType::tryFrom($typeValue);
             if ($alertType === null) {
-                $validTypes = implode(', ', array_map(fn ($t) => $t->value, AiAlertType::cases()));
+                $validTypes = implode(', ', array_map(fn (\App\Enums\AiAlertType $t) => $t->value, AiAlertType::cases()));
                 $this->error("Invalid alert type: {$typeValue}. Valid types: {$validTypes}");
 
                 return Command::FAILURE;

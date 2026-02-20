@@ -349,7 +349,7 @@ class VisitorAnalytics extends Component
             ->orderByDesc('updated_at')
             ->limit(5)
             ->get()
-            ->map(fn ($visitor) => [
+            ->map(fn ($visitor): array => [
                 'id' => $visitor->id,
                 'name' => $visitor->fullName(),
                 'visit_date' => $visitor->visit_date?->format('M d, Y'),

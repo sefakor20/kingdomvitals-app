@@ -81,13 +81,13 @@ Route::middleware(['web'])->group(function (): void {
 
     // Upgrade required page (auth required but no onboarding check)
     Route::middleware(['auth'])->group(function (): void {
-        Route::get('/upgrade', function () {
+        Route::get('/upgrade', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View {
             $module = request('module');
             $moduleName = $module
                 ? \App\Enums\PlanModule::tryFrom($module)?->label() ?? __('This feature')
                 : __('This feature');
 
-            return view('upgrade-required', compact('moduleName'));
+            return view('upgrade-required', ['moduleName' => $moduleName]);
         })->name('upgrade.required');
 
         // Plan upgrade routes

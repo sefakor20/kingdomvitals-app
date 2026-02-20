@@ -37,7 +37,7 @@ class PlanAccessService
     private function getTenant(): ?Tenant
     {
         // If a tenant was explicitly provided via constructor, use it
-        if ($this->tenant !== null) {
+        if ($this->tenant instanceof \App\Models\Tenant) {
             return $this->tenant;
         }
 
@@ -61,7 +61,7 @@ class PlanAccessService
     {
         $tenant = $this->getTenant();
 
-        if (! $tenant) {
+        if (!$tenant instanceof \App\Models\Tenant) {
             return null;
         }
 
@@ -79,7 +79,7 @@ class PlanAccessService
     {
         $plan = $this->getPlan();
 
-        if (! $plan) {
+        if (!$plan instanceof \App\Models\SubscriptionPlan) {
             return false;
         }
 
@@ -173,7 +173,7 @@ class PlanAccessService
      */
     private function getCount(QuotaType $type): int|float
     {
-        if (! $this->getTenant()) {
+        if (!$this->getTenant() instanceof \App\Models\Tenant) {
             return 0;
         }
 
@@ -437,7 +437,7 @@ class PlanAccessService
      */
     public function clearCache(): void
     {
-        if ($this->getTenant()) {
+        if ($this->getTenant() instanceof \App\Models\Tenant) {
             $this->cache()->forget("tenant:{$this->getTenant()->id}:subscription_plan");
 
             foreach (QuotaType::cases() as $type) {
@@ -451,7 +451,7 @@ class PlanAccessService
      */
     public function invalidateCountCache(QuotaType|string $type): void
     {
-        if (! $this->getTenant()) {
+        if (!$this->getTenant() instanceof \App\Models\Tenant) {
             return;
         }
 

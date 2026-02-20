@@ -7,6 +7,7 @@ use App\Models\Tenant\Member;
 use App\Services\ImageProcessingService;
 use Illuminate\Console\Command;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ReprocessMemberPhotos extends Command
@@ -73,7 +74,12 @@ class ReprocessMemberPhotos extends Command
                         $member->update(['photo_url' => $newUrl]);
 
                         // Delete old file
-                        @unlink($fullPath);
+                        if (! unlink($fullPath)) {
+                            Log::warning('ReprocessMemberPhotos: Failed to delete old photo', [
+                                'member_id' => $member->id,
+                                'path' => $fullPath,
+                            ]);
+                        }
 
                         $totalProcessed++;
                     } catch (\Exception $e) {

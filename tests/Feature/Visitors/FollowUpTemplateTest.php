@@ -92,8 +92,8 @@ test('follow-up template forTypeOrGeneric scope returns matching and generic tem
     $templates = FollowUpTemplate::forTypeOrGeneric(FollowUpType::Call)->get();
 
     expect($templates)->toHaveCount(2);
-    expect($templates->contains(fn ($t) => $t->type === FollowUpType::Call))->toBeTrue();
-    expect($templates->contains(fn ($t) => $t->type === null))->toBeTrue();
+    expect($templates->contains(fn ($t): bool => $t->type === FollowUpType::Call))->toBeTrue();
+    expect($templates->contains(fn ($t): bool => $t->type === null))->toBeTrue();
 });
 
 test('follow-up template belongs to branch', function (): void {

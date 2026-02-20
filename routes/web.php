@@ -18,7 +18,7 @@ $centralDomainsForLanding = [
 ];
 
 foreach ($centralDomainsForLanding as $domain) {
-    Route::domain($domain)->group(function () use ($domain) {
+    Route::domain($domain)->group(function () use ($domain): void {
         Route::get('/', function () use ($domain) {
             // Redirect admin domains to admin login
             if (str_starts_with($domain, 'admin.')) {
@@ -31,14 +31,14 @@ foreach ($centralDomainsForLanding as $domain) {
                 ->orderBy('price_monthly')
                 ->get();
 
-            return view('landing.index', compact('plans'));
+            return view('landing.index', ['plans' => $plans]);
         })->name($domain === 'kingdomvitals-app.test' ? 'home' : null);
     });
 }
 
 // Admin domain redirects
 foreach (['admin.kingdomvitals-app.test', 'admin.kingdomvitals.app', 'admin.localhost'] as $adminDomain) {
-    Route::domain($adminDomain)->group(function () {
+    Route::domain($adminDomain)->group(function (): void {
         Route::get('/', function () {
             return redirect()->route('superadmin.login');
         });

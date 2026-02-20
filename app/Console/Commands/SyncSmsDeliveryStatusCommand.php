@@ -35,9 +35,9 @@ class SyncSmsDeliveryStatusCommand extends Command
 
         $this->info("Checking SMS sent more than {$hours} hour(s) ago...");
 
-        $tenants = ! empty($tenantIds)
-            ? Tenant::whereIn('id', $tenantIds)->get()
-            : Tenant::all();
+        $tenants = empty($tenantIds)
+            ? Tenant::all()
+            : Tenant::whereIn('id', $tenantIds)->get();
 
         if ($tenants->isEmpty()) {
             $this->warn('No tenants found to process.');

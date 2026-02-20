@@ -56,9 +56,9 @@ class SeedSmsTemplatesCommand extends Command
     {
         $tenantIds = $this->option('tenant');
 
-        $tenants = ! empty($tenantIds)
-            ? Tenant::whereIn('id', $tenantIds)->get()
-            : Tenant::all();
+        $tenants = empty($tenantIds)
+            ? Tenant::all()
+            : Tenant::whereIn('id', $tenantIds)->get();
 
         if ($tenants->isEmpty()) {
             $this->warn('No tenants found to process.');

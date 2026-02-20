@@ -124,7 +124,7 @@ class VisitorImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, Wit
 
         if ($phone) {
             if ($email) {
-                $query->orWhere(function ($q) use ($phone) {
+                $query->orWhere(function ($q) use ($phone): void {
                     $q->where('branch_id', $this->branchId)
                         ->where('phone', $phone);
                 });

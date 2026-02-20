@@ -155,13 +155,13 @@ class DonorChurnService
         }
 
         $intervals = [];
-        $dates = $donations->pluck('donation_date')->map(fn ($d) => Carbon::parse($d))->values();
+        $dates = $donations->pluck('donation_date')->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): \Illuminate\Support\Carbon => Carbon::parse($d))->values();
 
         for ($i = 0; $i < min($dates->count() - 1, 10); $i++) {
             $intervals[] = $dates[$i]->diffInDays($dates[$i + 1]);
         }
 
-        if (empty($intervals)) {
+        if ($intervals === []) {
             return 30;
         }
 
@@ -177,11 +177,11 @@ class DonorChurnService
         $sixMonthsAgo = now()->subMonths(6);
 
         $recentGiving = $donations
-            ->filter(fn ($d) => Carbon::parse($d->donation_date)->gte($threeMonthsAgo))
+            ->filter(fn ($d): bool => Carbon::parse($d->donation_date)->gte($threeMonthsAgo))
             ->sum('amount');
 
         $previousGiving = $donations
-            ->filter(fn ($d) => Carbon::parse($d->donation_date)->gte($sixMonthsAgo) && Carbon::parse($d->donation_date)->lt($threeMonthsAgo))
+            ->filter(fn ($d): bool => Carbon::parse($d->donation_date)->gte($sixMonthsAgo) && Carbon::parse($d->donation_date)->lt($threeMonthsAgo))
             ->sum('amount');
 
         if ($previousGiving == 0) {

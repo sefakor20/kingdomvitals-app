@@ -233,7 +233,7 @@ class ClusterHealthService
         }
 
         // Count members who are at-risk or worse
-        $atRiskCount = $members->filter(function ($member) {
+        $atRiskCount = $members->filter(function ($member): bool {
             return in_array($member->lifecycle_stage, [
                 LifecycleStage::AtRisk,
                 LifecycleStage::Dormant,
@@ -241,9 +241,7 @@ class ClusterHealthService
             ]);
         })->count();
 
-        $retentionRate = (($members->count() - $atRiskCount) / $members->count()) * 100;
-
-        return $retentionRate;
+        return (($members->count() - $atRiskCount) / $members->count()) * 100;
     }
 
     /**
@@ -463,7 +461,7 @@ class ClusterHealthService
             'average_health' => round($clusters->avg('health_score'), 2),
             'distribution' => $this->getHealthDistribution($branchId),
             'top_cluster' => $clusters->sortByDesc('health_score')->first()?->name,
-            'needs_attention' => $clusters->filter(fn ($c) => $c->health_score < 40)->count(),
+            'needs_attention' => $clusters->filter(fn ($c): bool => $c->health_score < 40)->count(),
         ];
     }
 }

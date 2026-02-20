@@ -179,7 +179,6 @@ describe('AttendanceAnomaly DTO', function (): void {
             recentAttendance: 0.5,
             percentageChange: -75.0,
             factors: [],
-            lastAttendanceDate: null,
         );
 
         expect($anomaly->daysSinceLastAttendance())->toBeNull();

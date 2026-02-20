@@ -176,12 +176,22 @@ class SmsIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->statusFilter)
-            || $this->isFilterActive($this->typeFilter)
-            || $this->isFilterActive($this->dateFrom)
-            || $this->isFilterActive($this->dateTo)
-            || $this->isFilterActive($this->quickFilter);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->statusFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->typeFilter)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateFrom)) {
+            return true;
+        }
+        if ($this->isFilterActive($this->dateTo)) {
+            return true;
+        }
+        return $this->isFilterActive($this->quickFilter);
     }
 
     #[Computed]

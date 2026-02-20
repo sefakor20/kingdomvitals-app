@@ -15,6 +15,7 @@ use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
 use App\Services\QrCodeService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -416,7 +417,15 @@ class MemberShow extends Component
         $processed = app(ImageProcessingService::class)->processMemberPhoto($photo);
 
         file_put_contents($directory.'/'.$filename, $processed);
-        @unlink($photo->getRealPath());
+
+        // Clean up temporary file
+        $tempPath = $photo->getRealPath();
+        if ($tempPath && file_exists($tempPath) && ! unlink($tempPath)) {
+            Log::warning('MemberShow: Failed to delete temporary upload file', [
+                'path' => $tempPath,
+                'member_id' => $this->member->id ?? null,
+            ]);
+        }
 
         return "/storage/members/{$tenantId}/{$filename}";
     }

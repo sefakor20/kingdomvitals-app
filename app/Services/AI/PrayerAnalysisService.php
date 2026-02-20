@@ -191,7 +191,7 @@ class PrayerAnalysisService
             }
         }
 
-        if (empty($scores)) {
+        if ($scores === []) {
             return [
                 'category' => PrayerRequestCategory::Other,
                 'confidence' => 0,
@@ -313,7 +313,7 @@ class PrayerAnalysisService
      */
     public function batchAnalyze(Collection $prayers): Collection
     {
-        return $prayers->map(fn (PrayerRequest $prayer) => [
+        return $prayers->map(fn (PrayerRequest $prayer): array => [
             'prayer' => $prayer,
             'analysis' => $this->analyze($prayer),
         ]);
@@ -485,7 +485,7 @@ class PrayerAnalysisService
             : $periodStart->format('F Y');
 
         // Get anonymized excerpts (remove names, limit content)
-        $excerpts = $prayers->take(10)->map(function (PrayerRequest $prayer) {
+        $excerpts = $prayers->take(10)->map(function (PrayerRequest $prayer): array {
             return [
                 'category' => $prayer->category?->value ?? 'other',
                 'urgency' => $prayer->urgency_level?->value ?? 'normal',
@@ -575,15 +575,15 @@ PROMPT;
         int $totalCount
     ): string {
         $categoryList = collect($categoryBreakdown)
-            ->map(fn ($count, $cat) => "- {$cat}: {$count}")
+            ->map(fn ($count, $cat): string => "- {$cat}: {$count}")
             ->join("\n");
 
         $urgencyList = collect($urgencyBreakdown)
-            ->map(fn ($count, $level) => "- {$level}: {$count}")
+            ->map(fn ($count, $level): string => "- {$level}: {$count}")
             ->join("\n");
 
         $excerptList = collect($excerpts)
-            ->map(fn ($e) => "- [{$e['category']}/{$e['urgency']}] {$e['excerpt']}")
+            ->map(fn ($e): string => "- [{$e['category']}/{$e['urgency']}] {$e['excerpt']}")
             ->join("\n");
 
         return <<<PROMPT
@@ -635,7 +635,7 @@ PROMPT;
         }
 
         // Fallback if parsing failed
-        if (empty($summaryText)) {
+        if ($summaryText === '' || $summaryText === '0') {
             $summaryText = $response;
         }
 
@@ -663,8 +663,8 @@ PROMPT;
         $summaryParts = [];
         $summaryParts[] = "During {$periodLabel}, the congregation submitted {$totalCount} prayer request".($totalCount !== 1 ? 's' : '').'.';
 
-        if (! empty($topCategories)) {
-            $categoryLabels = array_map(fn ($c) => ucfirst($c), $topCategories);
+        if ($topCategories !== []) {
+            $categoryLabels = array_map(fn ($c): string => ucfirst($c), $topCategories);
             $summaryParts[] = 'The most common themes were '.$this->formatList($categoryLabels).'.';
         }
 
@@ -673,7 +673,7 @@ PROMPT;
             $summaryParts[] = 'There '.($urgentCount === 1 ? 'was' : 'were')." {$urgentCount} urgent request".($urgentCount !== 1 ? 's' : '').' requiring pastoral attention.';
         }
 
-        $keyThemes = array_map(fn ($c) => 'Prayer needs related to '.strtolower($c), $topCategories);
+        $keyThemes = array_map(fn (int|string $c): string => 'Prayer needs related to '.strtolower($c), $topCategories);
 
         $recommendations = [];
         if ($hasUrgent) {
@@ -685,7 +685,7 @@ PROMPT;
         if (in_array('family', $topCategories)) {
             $recommendations[] = 'Plan family-focused ministry activities.';
         }
-        if (empty($recommendations)) {
+        if ($recommendations === []) {
             $recommendations[] = 'Continue regular prayer ministry activities.';
         }
 

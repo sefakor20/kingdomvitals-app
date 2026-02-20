@@ -201,7 +201,7 @@ class DutyRosterShow extends Component
         }
 
         // Filter out empty hymn numbers
-        $validated['hymn_numbers'] = array_values(array_filter($validated['hymn_numbers'] ?? [], fn ($h) => $h !== null && $h !== ''));
+        $validated['hymn_numbers'] = array_values(array_filter($validated['hymn_numbers'] ?? [], fn ($h): bool => $h !== null && $h !== ''));
 
         $this->dutyRoster->update($validated);
         $this->dutyRoster->refresh();

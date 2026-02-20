@@ -309,8 +309,8 @@ it('assigns donor tiers correctly', function (): void {
 
     $trends = $this->service->analyzeForBranch($this->branch, 12);
 
-    $topTier = $trends->filter(fn ($t) => $t->donorTier === 'top_10')->count();
-    $top25 = $trends->filter(fn ($t) => $t->donorTier === 'top_25')->count();
+    $topTier = $trends->filter(fn ($t): bool => $t->donorTier === 'top_10')->count();
+    $top25 = $trends->filter(fn ($t): bool => $t->donorTier === 'top_25')->count();
 
     expect($topTier)->toBe(1); // Top 10% of 10 = 1
     expect($top25)->toBeGreaterThanOrEqual(1);

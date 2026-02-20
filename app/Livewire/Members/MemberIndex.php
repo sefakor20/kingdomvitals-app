@@ -16,6 +16,7 @@ use App\Models\Tenant\Member;
 use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -707,7 +708,14 @@ class MemberIndex extends Component
         $processed = app(ImageProcessingService::class)->processMemberPhoto($photo);
 
         file_put_contents($directory.'/'.$filename, $processed);
-        @unlink($photo->getRealPath());
+
+        // Clean up temporary file
+        $tempPath = $photo->getRealPath();
+        if ($tempPath && file_exists($tempPath) && ! unlink($tempPath)) {
+            Log::warning('MemberIndex: Failed to delete temporary upload file', [
+                'path' => $tempPath,
+            ]);
+        }
 
         return "/storage/members/{$tenantId}/{$filename}";
     }

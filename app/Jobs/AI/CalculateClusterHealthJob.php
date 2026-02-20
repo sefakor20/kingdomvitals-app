@@ -53,7 +53,7 @@ class CalculateClusterHealthJob implements ShouldQueue
         Cluster::query()
             ->where('branch_id', $this->branchId)
             ->where('is_active', true)
-            ->chunkById($this->chunkSize, function ($clusters) use ($service, &$processed, &$errors, &$strugglingClusters) {
+            ->chunkById($this->chunkSize, function ($clusters) use ($service, &$processed, &$errors, &$strugglingClusters): void {
                 foreach ($clusters as $cluster) {
                     try {
                         $assessment = $service->calculateHealth($cluster);
@@ -98,7 +98,7 @@ class CalculateClusterHealthJob implements ShouldQueue
             });
 
         // Send notifications for struggling clusters
-        if ($this->notifyOnStruggling && ! empty($strugglingClusters)) {
+        if ($this->notifyOnStruggling && $strugglingClusters !== []) {
             $this->sendHealthAlerts($strugglingClusters);
         }
 

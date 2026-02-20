@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\Currency;
 
-describe('Currency Enum', function () {
-    it('has all supported currency cases', function () {
+describe('Currency Enum', function (): void {
+    it('has all supported currency cases', function (): void {
         expect(Currency::cases())->toHaveCount(5);
         expect(Currency::GHS)->toBeInstanceOf(Currency::class);
         expect(Currency::USD)->toBeInstanceOf(Currency::class);
@@ -14,7 +14,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN)->toBeInstanceOf(Currency::class);
     });
 
-    it('returns correct symbols', function () {
+    it('returns correct symbols', function (): void {
         expect(Currency::GHS->symbol())->toBe('₵');
         expect(Currency::USD->symbol())->toBe('$');
         expect(Currency::GBP->symbol())->toBe('£');
@@ -22,7 +22,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN->symbol())->toBe('₦');
     });
 
-    it('returns correct names', function () {
+    it('returns correct names', function (): void {
         expect(Currency::GHS->name())->toBe('Ghanaian Cedi');
         expect(Currency::USD->name())->toBe('US Dollar');
         expect(Currency::GBP->name())->toBe('British Pound');
@@ -30,7 +30,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN->name())->toBe('Nigerian Naira');
     });
 
-    it('returns correct codes', function () {
+    it('returns correct codes', function (): void {
         expect(Currency::GHS->code())->toBe('GHS');
         expect(Currency::USD->code())->toBe('USD');
         expect(Currency::GBP->code())->toBe('GBP');
@@ -38,7 +38,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN->code())->toBe('NGN');
     });
 
-    it('returns correct decimal places', function () {
+    it('returns correct decimal places', function (): void {
         expect(Currency::GHS->decimalPlaces())->toBe(2);
         expect(Currency::USD->decimalPlaces())->toBe(2);
         expect(Currency::GBP->decimalPlaces())->toBe(2);
@@ -46,7 +46,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN->decimalPlaces())->toBe(2);
     });
 
-    it('returns correct subunit multiplier', function () {
+    it('returns correct subunit multiplier', function (): void {
         expect(Currency::GHS->subunitMultiplier())->toBe(100);
         expect(Currency::USD->subunitMultiplier())->toBe(100);
         expect(Currency::GBP->subunitMultiplier())->toBe(100);
@@ -54,7 +54,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN->subunitMultiplier())->toBe(100);
     });
 
-    it('returns correct subunit names', function () {
+    it('returns correct subunit names', function (): void {
         expect(Currency::GHS->subunitName())->toBe('pesewas');
         expect(Currency::USD->subunitName())->toBe('cents');
         expect(Currency::GBP->subunitName())->toBe('pence');
@@ -62,7 +62,7 @@ describe('Currency Enum', function () {
         expect(Currency::NGN->subunitName())->toBe('kobo');
     });
 
-    it('provides options for select inputs', function () {
+    it('provides options for select inputs', function (): void {
         $options = Currency::options();
 
         expect($options)->toBeArray();
@@ -79,7 +79,7 @@ describe('Currency Enum', function () {
         expect($options['NGN'])->toContain('Nigerian Naira');
     });
 
-    it('provides currency codes as key-value pairs', function () {
+    it('provides currency codes as key-value pairs', function (): void {
         $codes = Currency::codes();
 
         expect($codes)->toBe([
@@ -91,7 +91,7 @@ describe('Currency Enum', function () {
         ]);
     });
 
-    it('creates from string value', function () {
+    it('creates from string value', function (): void {
         expect(Currency::fromString('GHS'))->toBe(Currency::GHS);
         expect(Currency::fromString('USD'))->toBe(Currency::USD);
         expect(Currency::fromString('GBP'))->toBe(Currency::GBP);
@@ -104,18 +104,18 @@ describe('Currency Enum', function () {
         expect(Currency::fromString('ngn'))->toBe(Currency::NGN);
     });
 
-    it('returns default for invalid string', function () {
+    it('returns default for invalid string', function (): void {
         expect(Currency::fromString('XYZ'))->toBe(Currency::GHS);
         expect(Currency::fromString('invalid'))->toBe(Currency::GHS);
         expect(Currency::fromString(null))->toBe(Currency::GHS);
     });
 
-    it('allows custom default for invalid string', function () {
+    it('allows custom default for invalid string', function (): void {
         expect(Currency::fromString('XYZ', Currency::USD))->toBe(Currency::USD);
         expect(Currency::fromString(null, Currency::USD))->toBe(Currency::USD);
     });
 
-    it('has correct string values', function () {
+    it('has correct string values', function (): void {
         expect(Currency::GHS->value)->toBe('GHS');
         expect(Currency::USD->value)->toBe('USD');
         expect(Currency::GBP->value)->toBe('GBP');

@@ -59,6 +59,13 @@ class SendBirthdaySmsCommand extends Command
                 $todayMonth = now()->format('m');
                 $todayDay = now()->format('d');
 
+                // Pre-fetch member IDs that already received birthday SMS today (N+1 fix)
+                $alreadySentMemberIds = SmsLog::where('branch_id', $branch->id)
+                    ->where('message_type', SmsType::Birthday)
+                    ->whereDate('created_at', now()->toDateString())
+                    ->pluck('member_id')
+                    ->toArray();
+
                 $members = Member::where('primary_branch_id', $branch->id)
                     ->whereNotNull('date_of_birth')
                     ->whereNotNull('phone')
@@ -83,13 +90,8 @@ class SendBirthdaySmsCommand extends Command
                 $service = TextTangoService::forBranch($branch);
 
                 foreach ($members as $member) {
-                    // Check if SMS already sent today to prevent duplicates
-                    $alreadySent = SmsLog::where('member_id', $member->id)
-                        ->where('message_type', SmsType::Birthday)
-                        ->whereDate('created_at', now()->toDateString())
-                        ->exists();
-
-                    if ($alreadySent) {
+                    // Check if SMS already sent today using pre-fetched list
+                    if (in_array($member->id, $alreadySentMemberIds, true)) {
                         $this->line("    - {$member->fullName()}: Already sent today, skipping");
                         $totalSkipped++;
 

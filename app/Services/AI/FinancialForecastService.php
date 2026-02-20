@@ -99,8 +99,7 @@ class FinancialForecastService
             confidenceUpper: round($confidenceInterval['upper'], 2),
             confidence: $confidence,
             factors: $factors,
-            cohortBreakdown: $cohortBreakdown,
-            budgetTarget: null, // Can be set from external source
+            cohortBreakdown: $cohortBreakdown, // Can be set from external source
         );
     }
 
@@ -175,8 +174,7 @@ class FinancialForecastService
             confidenceUpper: round($confidenceUpper, 2),
             confidence: round($confidence, 1),
             factors: $factors,
-            cohortBreakdown: $month1->cohortBreakdown, // Use first month's cohort data
-            budgetTarget: null,
+            cohortBreakdown: $month1->cohortBreakdown,
         );
     }
 
@@ -564,7 +562,7 @@ class FinancialForecastService
      */
     protected function calculateConfidenceInterval(array $totals, float $prediction): array
     {
-        $nonZeroValues = array_filter($totals, fn ($v) => $v > 0);
+        $nonZeroValues = array_filter($totals, fn ($v): bool => $v > 0);
 
         if (count($nonZeroValues) < 3) {
             // Wide interval for limited data
@@ -593,11 +591,9 @@ class FinancialForecastService
     {
         $baseConfidence = $config['base_confidence'] ?? 70;
         $minDataMonths = $config['min_data_months'] ?? 6;
-        $seasonalWeight = $config['seasonal_weight'] ?? 0.20;
-        $trendWeight = $config['trend_weight'] ?? 0.25;
 
         // Filter out zero values
-        $nonZeroValues = array_filter($totals, fn ($v) => $v > 0);
+        $nonZeroValues = array_filter($totals, fn ($v): bool => $v > 0);
         $dataPoints = count($nonZeroValues);
 
         // Not enough data
@@ -634,7 +630,7 @@ class FinancialForecastService
             return 0;
         }
 
-        $variance = array_reduce($values, function ($carry, $value) use ($mean) {
+        $variance = array_reduce($values, function (int|float $carry, $value) use ($mean) {
             return $carry + pow($value - $mean, 2);
         }, 0) / count($values);
 

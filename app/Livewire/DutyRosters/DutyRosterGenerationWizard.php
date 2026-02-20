@@ -135,7 +135,7 @@ class DutyRosterGenerationWizard extends Component
     {
         $this->validate($this->rulesForStep($this->step));
 
-        if ($this->step === 1 && empty($this->service_id) && empty($this->days_of_week)) {
+        if ($this->step === 1 && in_array($this->service_id, [null, '', '0'], true) && $this->days_of_week === []) {
             $this->addError('service_id', 'Please select a service or at least one day of the week.');
 
             return;

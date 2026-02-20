@@ -6,6 +6,7 @@ namespace App\Livewire\Settings;
 
 use App\Enums\Currency;
 use App\Services\ImageProcessingService;
+use Illuminate\Support\Facades\Log;
 use Intervention\Image\Encoders\PngEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Attributes\Layout;
@@ -126,10 +127,14 @@ class Organization extends Component
      */
     private function deleteLogoFromCentralStorage(array $paths): void
     {
-        foreach ($paths as $relativePath) {
+        foreach ($paths as $sizeName => $relativePath) {
             $fullPath = base_path('storage/app/public/'.$relativePath);
-            if (file_exists($fullPath)) {
-                @unlink($fullPath);
+            if (file_exists($fullPath) && ! unlink($fullPath)) {
+                Log::warning('Organization: Failed to delete logo file', [
+                    'tenant_id' => tenant()?->id,
+                    'size' => $sizeName,
+                    'path' => $relativePath,
+                ]);
             }
         }
     }

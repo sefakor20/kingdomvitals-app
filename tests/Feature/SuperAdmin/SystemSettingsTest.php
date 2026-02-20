@@ -8,11 +8,6 @@ use App\Models\SuperAdmin;
 use App\Models\SystemSetting;
 use Livewire\Livewire;
 
-beforeEach(function (): void {
-    // Clear settings before each test
-    SystemSetting::query()->delete();
-});
-
 describe('access control', function (): void {
     it('allows owner to view settings page', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();

@@ -413,8 +413,10 @@ class AnnouncementIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->isFilterActive($this->search)
-            || $this->isFilterActive($this->statusFilter);
+        if ($this->isFilterActive($this->search)) {
+            return true;
+        }
+        return $this->isFilterActive($this->statusFilter);
     }
 
     public function render(): View

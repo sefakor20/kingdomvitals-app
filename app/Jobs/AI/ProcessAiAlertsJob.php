@@ -88,7 +88,7 @@ class ProcessAiAlertsJob implements ShouldQueue
      */
     protected function processAlerts(AiAlertService $service, Branch $branch): Collection
     {
-        if ($this->alertType !== null) {
+        if ($this->alertType instanceof \App\Enums\AiAlertType) {
             return match ($this->alertType) {
                 AiAlertType::ChurnRisk => $service->checkChurnRiskAlerts($branch),
                 AiAlertType::AttendanceAnomaly => $service->checkAttendanceAnomalyAlerts($branch),
@@ -123,7 +123,7 @@ class ProcessAiAlertsJob implements ShouldQueue
         }
 
         // Send individual notifications for high priority alerts
-        $highPriorityAlerts = $alerts->filter(fn (AiAlert $alert) => $alert->requiresImmediateAttention());
+        $highPriorityAlerts = $alerts->filter(fn (AiAlert $alert): bool => $alert->requiresImmediateAttention());
 
         foreach ($highPriorityAlerts as $alert) {
             try {

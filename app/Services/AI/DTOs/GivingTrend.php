@@ -214,7 +214,10 @@ readonly class GivingTrend
      */
     public function requiresAttention(): bool
     {
-        return $this->isDeclining() || $this->isLapsed();
+        if ($this->isDeclining()) {
+            return true;
+        }
+        return $this->isLapsed();
     }
 
     /**

@@ -61,7 +61,7 @@ class AlertSettings extends Component
     {
         $this->authorize('update', $this->branch);
 
-        foreach ($this->settings as $alertType => $data) {
+        foreach ($this->settings as $data) {
             AiAlertSetting::where('id', $data['id'])->update([
                 'is_enabled' => $data['is_enabled'],
                 'threshold_value' => $data['threshold_value'],
@@ -94,7 +94,7 @@ class AlertSettings extends Component
 
         if (in_array($channel, $channels, true)) {
             $this->settings[$alertType]['notification_channels'] = array_values(
-                array_filter($channels, fn ($c) => $c !== $channel)
+                array_filter($channels, fn ($c): bool => $c !== $channel)
             );
         } else {
             $this->settings[$alertType]['notification_channels'] = [...$channels, $channel];
@@ -107,7 +107,7 @@ class AlertSettings extends Component
 
         if (in_array($role, $roles, true)) {
             $this->settings[$alertType]['recipient_roles'] = array_values(
-                array_filter($roles, fn ($r) => $r !== $role)
+                array_filter($roles, fn ($r): bool => $r !== $role)
             );
         } else {
             $this->settings[$alertType]['recipient_roles'] = [...$roles, $role];

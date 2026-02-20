@@ -92,7 +92,7 @@ test('sends invitation email when creating pending invitation', function (): voi
 
     Notification::assertSentOnDemand(
         BranchUserInvitationNotification::class,
-        function ($notification, $channels, $notifiable) {
+        function ($notification, $channels, $notifiable): bool {
             return $notifiable->routes['mail'] === 'newuser@example.com';
         }
     );

@@ -49,7 +49,7 @@ class MemberRecommendationService
         }
 
         // Sort by overall score descending
-        usort($recommendations, fn ($a, $b) => $b->overallScore <=> $a->overallScore);
+        usort($recommendations, fn ($a, $b): int => $b->overallScore <=> $a->overallScore);
 
         return array_slice($recommendations, 0, $limit);
     }
@@ -68,7 +68,7 @@ class MemberRecommendationService
             ->whereNotIn('id', $existingClusterIds)
             ->withCount('members')
             ->get()
-            ->filter(function (Cluster $cluster) {
+            ->filter(function (Cluster $cluster): bool {
                 // Filter out full clusters
                 if ($cluster->capacity === null) {
                     return true; // No capacity limit
@@ -149,21 +149,21 @@ class MemberRecommendationService
         $clusterLocation = strtolower(trim($cluster->meeting_location ?? ''));
 
         // If no location data available
-        if (empty($memberCity) && empty($memberState)) {
+        if (($memberCity === '' || $memberCity === '0') && ($memberState === '' || $memberState === '0')) {
             return 50; // Neutral score
         }
 
-        if (empty($clusterLocation)) {
+        if ($clusterLocation === '' || $clusterLocation === '0') {
             return 50; // Neutral score
         }
 
         // Check for city match in meeting location
-        if (! empty($memberCity) && str_contains($clusterLocation, $memberCity)) {
+        if ($memberCity !== '' && $memberCity !== '0' && str_contains($clusterLocation, $memberCity)) {
             return $sameCityScore;
         }
 
         // Check for state match in meeting location
-        if (! empty($memberState) && str_contains($clusterLocation, $memberState)) {
+        if ($memberState !== '' && $memberState !== '0' && str_contains($clusterLocation, $memberState)) {
             return $sameStateScore;
         }
 
@@ -173,11 +173,11 @@ class MemberRecommendationService
             $leaderCity = strtolower(trim($leader->city ?? ''));
             $leaderState = strtolower(trim($leader->state ?? ''));
 
-            if (! empty($memberCity) && $memberCity === $leaderCity) {
+            if ($memberCity !== '' && $memberCity !== '0' && $memberCity === $leaderCity) {
                 return $sameCityScore;
             }
 
-            if (! empty($memberState) && $memberState === $leaderState) {
+            if ($memberState !== '' && $memberState !== '0' && $memberState === $leaderState) {
                 return $sameStateScore;
             }
         }
@@ -191,9 +191,9 @@ class MemberRecommendationService
             $cmCity = strtolower(trim($clusterMember->city ?? ''));
             $cmState = strtolower(trim($clusterMember->state ?? ''));
 
-            if (! empty($memberCity) && $memberCity === $cmCity) {
+            if ($memberCity !== '' && $memberCity !== '0' && $memberCity === $cmCity) {
                 $sameCityMembers++;
-            } elseif (! empty($memberState) && $memberState === $cmState) {
+            } elseif ($memberState !== '' && $memberState !== '0' && $memberState === $cmState) {
                 $sameStateMembers++;
             }
         }

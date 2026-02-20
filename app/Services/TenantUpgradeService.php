@@ -129,7 +129,7 @@ class TenantUpgradeService
         $newPlan = $invoice->subscriptionPlan;
 
         try {
-            return DB::transaction(function () use ($invoice, $tenant, $newPlan, $paystackReference) {
+            return DB::transaction(function () use ($invoice, $tenant, $newPlan, $paystackReference): array {
                 $previousPlanId = $tenant->subscription_id;
 
                 $this->billingService->recordPayment($invoice, [

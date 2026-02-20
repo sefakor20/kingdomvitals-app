@@ -38,12 +38,6 @@ function createTestPlan(array $attributes = []): SubscriptionPlan
     ], $attributes));
 }
 
-beforeEach(function (): void {
-    // Clean up test data
-    PlatformInvoice::query()->delete();
-    PlatformPayment::query()->delete();
-});
-
 describe('page access', function (): void {
     it('allows owner to view billing dashboard', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();

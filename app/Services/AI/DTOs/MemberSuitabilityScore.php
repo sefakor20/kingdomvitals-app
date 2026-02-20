@@ -67,7 +67,7 @@ readonly class MemberSuitabilityScore
      */
     public function primaryFactor(): ?string
     {
-        if (empty($this->factors)) {
+        if ($this->factors === []) {
             return null;
         }
 
