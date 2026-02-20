@@ -39,6 +39,9 @@ class BranchSettings extends Component
 
     public string $currency = 'GHS';
 
+    // Giving Page Settings (branch-level)
+    public string $givingTagline = '';
+
     // SMS Credentials
     public string $smsApiKey = '';
 
@@ -172,6 +175,9 @@ class BranchSettings extends Component
         }
 
         $this->currency = $tenant?->getCurrencyCode() ?? 'GHS';
+
+        // Load branch-level giving settings
+        $this->givingTagline = $this->branch->getSetting('giving_tagline', '');
     }
 
     public function setActiveTab(string $tab): void
@@ -646,6 +652,20 @@ class BranchSettings extends Component
         $tenant->setCurrency($currency);
 
         $this->dispatch('currency-saved');
+    }
+
+    public function saveGivingTagline(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->validate([
+            'givingTagline' => ['required', 'string', 'max:200'],
+        ]);
+
+        $this->branch->setSetting('giving_tagline', $this->givingTagline);
+        $this->branch->save();
+
+        $this->dispatch('giving-tagline-saved');
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
