@@ -55,6 +55,7 @@ class Event extends Model
         'is_public',
         'visibility',
         'notes',
+        'reminder_sent_at',
     ];
 
     protected function casts(): array
@@ -73,6 +74,7 @@ class Event extends Model
             'price' => 'decimal:2',
             'requires_ticket' => 'boolean',
             'is_public' => 'boolean',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 

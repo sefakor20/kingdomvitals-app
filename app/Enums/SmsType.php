@@ -11,5 +11,6 @@ enum SmsType: string
     case FollowUp = 'follow_up';
     case PrayerChain = 'prayer_chain';
     case DutyRosterReminder = 'duty_roster_reminder';
+    case EventReminder = 'event_reminder';
     case Custom = 'custom';
 }
