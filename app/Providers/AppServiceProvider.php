@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogUserLogin;
+use App\Listeners\LogUserLogout;
 use App\Models\Tenant;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\ChildrenCheckinSecurity;
@@ -43,7 +45,10 @@ use App\Policies\VisitorFollowUpPolicy;
 use App\Services\CurrencyFormatter;
 use App\Services\PlanAccessService;
 use App\Services\SystemSettingService;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -116,6 +121,10 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         Tenant::observe(TenantObserver::class);
         SmsLog::observe(SmsLogObserver::class);
+
+        // Register auth event listeners for activity logging
+        Event::listen(Login::class, LogUserLogin::class);
+        Event::listen(Logout::class, LogUserLogout::class);
     }
 
     /**

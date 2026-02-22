@@ -241,6 +241,13 @@ class BranchNavigation extends Component
             auth()->user()?->can('viewAny', [UserBranchAccess::class, $this->currentBranch]);
     }
 
+    #[Computed]
+    public function canViewActivityLogs(): bool
+    {
+        return $this->currentBranch &&
+            auth()->user()?->can('viewActivityLogs', $this->currentBranch);
+    }
+
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         return view('livewire.navigation.branch-navigation');

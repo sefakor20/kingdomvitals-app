@@ -3,17 +3,22 @@
 namespace App\Models\Tenant;
 
 use App\Enums\ServiceType;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\ServiceObserver;
 use Database\Factories\Tenant\ServiceFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([ServiceObserver::class])]
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected static function newFactory(): ServiceFactory
     {
@@ -61,5 +66,20 @@ class Service extends Model
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Service;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        return $this->name;
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }

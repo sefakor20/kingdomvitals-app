@@ -5,14 +5,19 @@ namespace App\Models\Tenant;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\ExpenseObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[ObservedBy([ExpenseObserver::class])]
 class Expense extends Model
 {
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected $fillable = [
         'branch_id',
@@ -68,5 +73,22 @@ class Expense extends Model
     public function isFromRecurringExpense(): bool
     {
         return $this->recurring_expense_id !== null;
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Expense;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        $amount = number_format($this->amount, 2);
+
+        return "{$this->description} - {$this->currency} {$amount}";
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }

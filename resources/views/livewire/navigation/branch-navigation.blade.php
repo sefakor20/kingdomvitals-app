@@ -323,8 +323,8 @@
         @endif
 
         {{-- Configuration Group --}}
-        @if($this->canUpdateBranch || $this->canViewUsers)
-            <flux:sidebar.group icon="cog-6-tooth" :heading="__('Configuration')" expandable :expanded="request()->routeIs('branches.users.*', 'branches.settings')" class="grid">
+        @if($this->canUpdateBranch || $this->canViewUsers || $this->canViewActivityLogs)
+            <flux:sidebar.group icon="cog-6-tooth" :heading="__('Configuration')" expandable :expanded="request()->routeIs('branches.users.*', 'branches.settings', 'activity-logs.*')" class="grid">
                 @if($this->canViewUsers)
                     <flux:sidebar.item
                         icon="users"
@@ -333,6 +333,16 @@
                         wire:navigate
                     >
                         {{ __('Users') }}
+                    </flux:sidebar.item>
+                @endif
+                @if($this->canViewActivityLogs)
+                    <flux:sidebar.item
+                        icon="clipboard-document-list"
+                        :href="route('activity-logs.index', $this->currentBranch)"
+                        :current="request()->routeIs('activity-logs.*')"
+                        wire:navigate
+                    >
+                        {{ __('Activity Logs') }}
                     </flux:sidebar.item>
                 @endif
                 @if($this->canUpdateBranch)

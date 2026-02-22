@@ -4,7 +4,11 @@ namespace App\Models\Tenant;
 
 use App\Enums\ClusterHealthLevel;
 use App\Enums\ClusterType;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\ClusterObserver;
 use Database\Factories\Tenant\ClusterFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,10 +17,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([ClusterObserver::class])]
 class Cluster extends Model
 {
     /** @use HasFactory<ClusterFactory> */
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected static function newFactory(): ClusterFactory
     {
@@ -151,5 +156,20 @@ class Cluster extends Model
     public function checkInFrequencyDays(): int
     {
         return $this->health_level?->checkInFrequencyDays() ?? 30;
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Cluster;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        return $this->name;
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }
