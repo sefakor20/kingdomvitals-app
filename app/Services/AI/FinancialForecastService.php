@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Services\AI;
 
 use App\Enums\DonationType;
+use App\Enums\PaymentTransactionStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\FinancialForecast as FinancialForecastModel;
 use App\Models\Tenant\Member;
+use App\Models\Tenant\PaymentTransaction;
 use App\Services\AI\DTOs\FinancialForecast;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -279,28 +281,50 @@ class FinancialForecastService
     }
 
     /**
-     * Detect seasonal giving patterns for a branch.
+     * Detect seasonal income patterns for a branch (donations + event revenue).
      */
     public function detectSeasonalPatterns(string $branchId): array
     {
         $patterns = [];
 
-        // Get monthly totals for the past 2 years
-        $monthlyTotals = Donation::where('branch_id', $branchId)
+        // Get monthly donation totals for the past 2 years
+        $monthlyDonations = Donation::where('branch_id', $branchId)
             ->where('donation_date', '>=', now()->subYears(2))
             ->selectRaw('YEAR(donation_date) as year, MONTH(donation_date) as month, SUM(amount) as total')
             ->groupByRaw('YEAR(donation_date), MONTH(donation_date)')
             ->orderByRaw('YEAR(donation_date), MONTH(donation_date)')
-            ->get();
+            ->get()
+            ->keyBy(fn ($item) => $item->year.'-'.$item->month);
 
-        // Calculate average by month
+        // Get monthly event revenue totals for the past 2 years
+        $monthlyEventRevenue = PaymentTransaction::query()
+            ->where('branch_id', $branchId)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('paid_at', '>=', now()->subYears(2))
+            ->selectRaw('YEAR(paid_at) as year, MONTH(paid_at) as month, SUM(amount) as total')
+            ->groupByRaw('YEAR(paid_at), MONTH(paid_at)')
+            ->orderByRaw('YEAR(paid_at), MONTH(paid_at)')
+            ->get()
+            ->keyBy(fn ($item) => $item->year.'-'.$item->month);
+
+        // Calculate combined average by month
         $monthAverages = [];
-        foreach ($monthlyTotals as $record) {
-            $month = $record->month;
+        $twoYearsAgo = now()->subYears(2);
+
+        for ($i = 0; $i < 24; $i++) {
+            $date = $twoYearsAgo->copy()->addMonths($i);
+            $key = $date->year.'-'.$date->month;
+            $month = $date->month;
+
+            $donationTotal = $monthlyDonations->get($key)?->total ?? 0;
+            $eventTotal = $monthlyEventRevenue->get($key)?->total ?? 0;
+            $combinedTotal = (float) $donationTotal + (float) $eventTotal;
+
             if (! isset($monthAverages[$month])) {
                 $monthAverages[$month] = ['total' => 0, 'count' => 0];
             }
-            $monthAverages[$month]['total'] += $record->total;
+            $monthAverages[$month]['total'] += $combinedTotal;
             $monthAverages[$month]['count']++;
         }
 
@@ -423,7 +447,7 @@ class FinancialForecastService
     }
 
     /**
-     * Get historical giving data for a branch.
+     * Get historical giving data for a branch (donations + event revenue).
      */
     protected function getHistoricalGiving(string $branchId, int $monthsBack): array
     {
@@ -432,16 +456,18 @@ class FinancialForecastService
         $offerings = [];
         $special = [];
         $other = [];
+        $eventRevenue = [];
 
         for ($month = 0; $month < $monthsBack; $month++) {
             $monthStart = now()->subMonths($month + 1)->startOfMonth();
             $monthEnd = $monthStart->copy()->endOfMonth();
 
+            // Get donation data
             $donations = Donation::where('branch_id', $branchId)
                 ->whereBetween('donation_date', [$monthStart, $monthEnd])
                 ->get();
 
-            $totals[$month] = (float) $donations->sum('amount');
+            $donationTotal = (float) $donations->sum('amount');
             $tithes[$month] = (float) $donations->where('donation_type', DonationType::Tithe)->sum('amount');
             $offerings[$month] = (float) $donations->where('donation_type', DonationType::Offering)->sum('amount');
             $special[$month] = (float) $donations
@@ -450,6 +476,19 @@ class FinancialForecastService
             $other[$month] = (float) $donations
                 ->whereIn('donation_type', [DonationType::Welfare, DonationType::Other])
                 ->sum('amount');
+
+            // Get event revenue
+            $eventRevenueAmount = (float) PaymentTransaction::query()
+                ->where('branch_id', $branchId)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->whereBetween('paid_at', [$monthStart, $monthEnd])
+                ->sum('amount');
+
+            $eventRevenue[$month] = $eventRevenueAmount;
+
+            // Total income = donations + event revenue
+            $totals[$month] = $donationTotal + $eventRevenueAmount;
         }
 
         return [
@@ -458,6 +497,7 @@ class FinancialForecastService
             'offerings' => $offerings,
             'special' => $special,
             'other' => $other,
+            'event_revenue' => $eventRevenue,
             'months_with_data' => count(array_filter($totals)),
         ];
     }
