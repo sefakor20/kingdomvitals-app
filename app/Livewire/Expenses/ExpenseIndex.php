@@ -228,6 +228,7 @@ class ExpenseIndex extends Component
         if ($this->isFilterActive($this->dateFrom)) {
             return true;
         }
+
         return $this->isFilterActive($this->dateTo);
     }
 

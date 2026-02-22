@@ -217,6 +217,7 @@ readonly class GivingTrend
         if ($this->isDeclining()) {
             return true;
         }
+
         return $this->isLapsed();
     }
 

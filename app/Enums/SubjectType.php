@@ -13,6 +13,8 @@ enum SubjectType: string
     case Cluster = 'cluster';
     case Service = 'service';
     case User = 'user';
+    case Event = 'event';
+    case EventRegistration = 'event_registration';
 
     public function label(): string
     {
@@ -26,6 +28,8 @@ enum SubjectType: string
             self::Cluster => 'Cluster',
             self::Service => 'Service',
             self::User => 'User',
+            self::Event => 'Event',
+            self::EventRegistration => 'Event Registration',
         };
     }
 
@@ -41,6 +45,8 @@ enum SubjectType: string
             self::Cluster => 'Clusters',
             self::Service => 'Services',
             self::User => 'Users',
+            self::Event => 'Events',
+            self::EventRegistration => 'Event Registrations',
         };
     }
 
@@ -56,6 +62,8 @@ enum SubjectType: string
             self::Cluster => \App\Models\Tenant\Cluster::class,
             self::Service => \App\Models\Tenant\Service::class,
             self::User => \App\Models\User::class,
+            self::Event => \App\Models\Tenant\Event::class,
+            self::EventRegistration => \App\Models\Tenant\EventRegistration::class,
         };
     }
 }

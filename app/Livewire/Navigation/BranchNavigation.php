@@ -10,6 +10,7 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\Equipment;
+use App\Models\Tenant\Event;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Household;
@@ -225,6 +226,14 @@ class BranchNavigation extends Component
         return $this->currentBranch &&
             $this->planAccess->hasModule(PlanModule::AiInsights) &&
             auth()->user()?->can('view', $this->currentBranch);
+    }
+
+    #[Computed]
+    public function canViewEvents(): bool
+    {
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Events) &&
+            auth()->user()?->can('viewAny', [Event::class, $this->currentBranch]);
     }
 
     #[Computed]

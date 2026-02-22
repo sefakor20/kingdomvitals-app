@@ -309,6 +309,7 @@ class VisitorIndex extends Component
         if ($this->isFilterActive($this->assignedMemberFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->sourceFilter);
     }
 

@@ -291,6 +291,18 @@ Route::middleware(['web'])->group(function (): void {
                 ->name('branches.alert-settings');
         });
 
+        // Event Management (requires events module)
+        Route::middleware(['module:events'])->group(function (): void {
+            Route::get('/branches/{branch}/events', \App\Livewire\Events\EventIndex::class)
+                ->name('events.index');
+            Route::get('/branches/{branch}/events/{event}', \App\Livewire\Events\EventShow::class)
+                ->name('events.show');
+            Route::get('/branches/{branch}/events/{event}/registrations', \App\Livewire\Events\EventShow::class)
+                ->name('events.registrations');
+            Route::get('/branches/{branch}/events/{event}/check-in', \App\Livewire\Events\EventCheckIn::class)
+                ->name('events.check-in');
+        });
+
         // Report Center (requires reports module)
         Route::middleware(['module:reports'])->group(function (): void {
             Route::get('/branches/{branch}/reports', \App\Livewire\Reports\ReportCenter::class)

@@ -85,7 +85,7 @@ class DutyRosterGenerationService
         ?Collection $unavailableMemberIds = null
     ): ?Member {
         // Get unavailable member IDs for this date if not provided
-        if (!$unavailableMemberIds instanceof \Illuminate\Support\Collection) {
+        if (! $unavailableMemberIds instanceof \Illuminate\Support\Collection) {
             $unavailableMemberIds = MemberUnavailability::query()
                 ->where('branch_id', $pool->branch_id)
                 ->whereDate('unavailable_date', $date)

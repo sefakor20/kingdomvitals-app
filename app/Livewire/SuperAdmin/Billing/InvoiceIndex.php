@@ -90,6 +90,7 @@ class InvoiceIndex extends Component
         if ($this->isFilterActive($this->search)) {
             return true;
         }
+
         return $this->isFilterActive($this->status);
     }
 

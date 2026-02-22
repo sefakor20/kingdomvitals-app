@@ -212,6 +212,7 @@ class ChildrenDirectory extends Component
         if ($this->minAge !== null) {
             return true;
         }
+
         return $this->maxAge !== null;
     }
 

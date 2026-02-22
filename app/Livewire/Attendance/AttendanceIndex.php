@@ -220,6 +220,7 @@ class AttendanceIndex extends Component
         if ($this->isFilterActive($this->methodFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->quickFilter);
     }
 
