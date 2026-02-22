@@ -9,10 +9,13 @@ use App\Enums\DonationType;
 use App\Enums\ExpenseCategory;
 use App\Enums\ExpenseStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentTransactionStatus;
 use App\Enums\PledgeStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\Expense;
+use App\Models\Tenant\PaymentTransaction;
 use App\Models\Tenant\Pledge;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -83,6 +86,10 @@ class FinanceReports extends Component
         unset($this->topDonorsData);
         unset($this->monthlyTrendData);
         unset($this->outstandingPledgesData);
+        unset($this->eventRevenueStats);
+        unset($this->eventRevenueByEventData);
+        unset($this->eventRevenueByPaymentMethodData);
+        unset($this->eventRevenueMonthlyTrendData);
     }
 
     #[Computed]
@@ -443,6 +450,147 @@ class FinanceReports extends Component
         ];
     }
 
+    // ============================================
+    // EVENT REVENUE REPORTS
+    // ============================================
+
+    #[Computed]
+    public function eventRevenueStats(): array
+    {
+        // Total collected from event payments
+        $totalCollected = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+            ->sum('amount');
+
+        $totalCount = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+            ->count();
+
+        // Pending payments (registrations requiring payment but not paid)
+        $pendingPayments = EventRegistration::query()
+            ->where('branch_id', $this->branch->id)
+            ->where('requires_payment', true)
+            ->where('is_paid', false)
+            ->whereBetween('registered_at', [$this->startDate, $this->endDate])
+            ->sum('price_paid');
+
+        $pendingCount = EventRegistration::query()
+            ->where('branch_id', $this->branch->id)
+            ->where('requires_payment', true)
+            ->where('is_paid', false)
+            ->whereBetween('registered_at', [$this->startDate, $this->endDate])
+            ->count();
+
+        // Average ticket price
+        $avgTicketPrice = $totalCount > 0 ? (float) $totalCollected / $totalCount : 0;
+
+        return [
+            'total_collected' => (float) $totalCollected,
+            'total_registrations' => $totalCount,
+            'pending_payments' => (float) $pendingPayments,
+            'pending_count' => $pendingCount,
+            'average_ticket_price' => $avgTicketPrice,
+        ];
+    }
+
+    #[Computed]
+    public function eventRevenueByEventData(): Collection
+    {
+        return PaymentTransaction::query()
+            ->where('payment_transactions.branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('payment_transactions.status', PaymentTransactionStatus::Success)
+            ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+            ->join('event_registrations', 'payment_transactions.event_registration_id', '=', 'event_registrations.id')
+            ->join('events', 'event_registrations.event_id', '=', 'events.id')
+            ->selectRaw('events.id, events.name as event_name, events.starts_at, COUNT(payment_transactions.id) as registration_count, COALESCE(SUM(payment_transactions.amount), 0) as total_revenue')
+            ->groupBy('events.id', 'events.name', 'events.starts_at')
+            ->orderByDesc('total_revenue')
+            ->limit(10)
+            ->get();
+    }
+
+    #[Computed]
+    public function eventRevenueByPaymentMethodData(): array
+    {
+        $methodColors = [
+            'card' => '#8b5cf6',
+            'mobile_money' => '#f59e0b',
+            'bank' => '#14b8a6',
+            'ussd' => '#3b82f6',
+        ];
+
+        $results = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+            ->selectRaw('channel, COALESCE(SUM(amount), 0) as total, COUNT(*) as count')
+            ->groupBy('channel')
+            ->orderByDesc('total')
+            ->get();
+
+        $labels = [];
+        $data = [];
+        $colors = [];
+
+        foreach ($results as $row) {
+            if ($row->total > 0 && $row->channel) {
+                $channel = $row->channel;
+                $labels[] = ucfirst(str_replace('_', ' ', $channel));
+                $data[] = (float) $row->total;
+                $colors[] = $methodColors[$channel] ?? '#71717a';
+            }
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+            'colors' => $colors,
+        ];
+    }
+
+    #[Computed]
+    public function eventRevenueMonthlyTrendData(): array
+    {
+        $months = collect();
+        $current = $this->startDate->copy()->startOfMonth();
+        $end = $this->endDate->copy()->endOfMonth();
+
+        while ($current <= $end) {
+            $months->push($current->copy());
+            $current->addMonth();
+        }
+
+        $labels = [];
+        $data = [];
+
+        foreach ($months as $month) {
+            $labels[] = $month->format('M Y');
+
+            $revenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->whereYear('paid_at', $month->year)
+                ->whereMonth('paid_at', $month->month)
+                ->sum('amount');
+
+            $data[] = (float) $revenue;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+        ];
+    }
+
     public function exportToCsv(): StreamedResponse
     {
         $this->authorize('viewReports', [Donation::class, $this->branch]);
@@ -502,6 +650,27 @@ class FinanceReports extends Component
                         number_format($pledge->amount_fulfilled, 2),
                         number_format($pledge->remainingAmount(), 2),
                         ucfirst($pledge->status->value),
+                    ]);
+                }
+            } elseif ($this->reportType === 'events') {
+                fputcsv($handle, ['Date', 'Event', 'Attendee', 'Amount', 'Payment Channel', 'Reference']);
+                $transactions = PaymentTransaction::query()
+                    ->where('branch_id', $this->branch->id)
+                    ->whereNotNull('event_registration_id')
+                    ->where('status', PaymentTransactionStatus::Success)
+                    ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+                    ->with(['eventRegistration.event'])
+                    ->orderBy('paid_at', 'desc')
+                    ->get();
+
+                foreach ($transactions as $transaction) {
+                    fputcsv($handle, [
+                        $transaction->paid_at?->format('Y-m-d') ?? 'N/A',
+                        $transaction->eventRegistration?->event?->name ?? 'N/A',
+                        $transaction->eventRegistration?->attendee_name ?? 'N/A',
+                        number_format($transaction->amount, 2),
+                        ucfirst(str_replace('_', ' ', $transaction->channel ?? 'N/A')),
+                        $transaction->paystack_reference ?? '',
                     ]);
                 }
             } else {

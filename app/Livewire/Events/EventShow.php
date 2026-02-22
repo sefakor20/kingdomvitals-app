@@ -120,6 +120,12 @@ class EventShow extends Component
         return auth()->user()->can('checkIn', $this->event);
     }
 
+    #[Computed]
+    public function publicRegistrationUrl(): string
+    {
+        return route('events.public.register', [$this->branch, $this->event]);
+    }
+
     public function openAddRegistration(): void
     {
         $this->authorize('manageRegistrations', $this->event);

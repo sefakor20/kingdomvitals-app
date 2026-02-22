@@ -94,6 +94,58 @@
         </div>
     </div>
 
+    {{-- Event Revenue Section --}}
+    @if($this->eventRevenueStats['monthly_revenue'] > 0 || $this->eventRevenueStats['ytd_revenue'] > 0 || $this->eventRevenueStats['pending_payments'] > 0)
+    <div class="mb-6">
+        <flux:heading size="lg" class="mb-4">{{ __('Event Revenue') }}</flux:heading>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {{-- Monthly Event Revenue --}}
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between">
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Event Revenue') }}</flux:text>
+                    <div class="rounded-full bg-pink-100 p-2 dark:bg-pink-900">
+                        <flux:icon icon="ticket" class="size-4 text-pink-600 dark:text-pink-400" />
+                    </div>
+                </div>
+                <flux:heading size="xl" class="mt-2 text-pink-600 dark:text-pink-400">
+                    {{ $this->currency->symbol() }}{{ number_format($this->eventRevenueStats['monthly_revenue'], 2) }}
+                </flux:heading>
+                <flux:text class="text-xs text-zinc-500">{{ $this->eventRevenueStats['monthly_count'] }} {{ __('registrations') }}</flux:text>
+            </div>
+
+            {{-- YTD Event Revenue --}}
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between">
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('YTD Event Revenue') }}</flux:text>
+                    <div class="rounded-full bg-indigo-100 p-2 dark:bg-indigo-900">
+                        <flux:icon icon="calendar" class="size-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                </div>
+                <flux:heading size="xl" class="mt-2 text-indigo-600 dark:text-indigo-400">
+                    {{ $this->currency->symbol() }}{{ number_format($this->eventRevenueStats['ytd_revenue'], 2) }}
+                </flux:heading>
+                <flux:text class="text-xs text-zinc-500">{{ __('Year to date') }}</flux:text>
+            </div>
+
+            {{-- Pending Event Payments --}}
+            @if($this->eventRevenueStats['pending_payments'] > 0)
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-900/20">
+                <div class="flex items-center justify-between">
+                    <flux:text class="text-sm text-amber-700 dark:text-amber-400">{{ __('Pending Payments') }}</flux:text>
+                    <div class="rounded-full bg-amber-200 p-2 dark:bg-amber-800">
+                        <flux:icon icon="clock" class="size-4 text-amber-700 dark:text-amber-400" />
+                    </div>
+                </div>
+                <flux:heading size="xl" class="mt-2 text-amber-700 dark:text-amber-400">
+                    {{ $this->currency->symbol() }}{{ number_format($this->eventRevenueStats['pending_payments'], 2) }}
+                </flux:heading>
+                <flux:text class="text-xs text-amber-600 dark:text-amber-500">{{ __('Awaiting payment') }}</flux:text>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     {{-- Year-over-Year Comparison --}}
     <div class="mb-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg" class="mb-4">{{ __('Year-over-Year Comparison') }}</flux:heading>

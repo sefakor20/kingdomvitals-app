@@ -260,13 +260,18 @@ class EventRegistration extends Model
         ]);
     }
 
-    public function markAsPaid(string $paymentReference, ?string $transactionId = null): void
+    public function markAsPaid(PaymentTransaction $transaction): void
     {
         $this->update([
             'is_paid' => true,
-            'payment_reference' => $paymentReference,
-            'payment_transaction_id' => $transactionId,
+            'payment_reference' => $transaction->paystack_reference,
+            'payment_transaction_id' => $transaction->id,
+            'requires_payment' => false,
         ]);
+
+        if (! $this->ticket_number) {
+            $this->generateTicketNumber();
+        }
     }
 
     // ==========================================

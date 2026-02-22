@@ -31,6 +31,27 @@
                             {{ __('Check-In') }}
                         </flux:button>
                     </a>
+                    @if($event->is_public && $event->allow_registration)
+                        <flux:dropdown position="bottom" align="end">
+                            <flux:button variant="ghost" icon="share">
+                                {{ __('Share') }}
+                            </flux:button>
+                            <flux:menu>
+                                <div class="p-3 min-w-[300px]">
+                                    <flux:text class="text-sm font-medium mb-2">{{ __('Public Registration Link') }}</flux:text>
+                                    <div class="flex items-center gap-2">
+                                        <code class="flex-1 rounded bg-zinc-100 px-2 py-1 text-xs truncate dark:bg-zinc-700">{{ $this->publicRegistrationUrl }}</code>
+                                        <flux:button variant="ghost" size="sm" icon="clipboard" onclick="navigator.clipboard.writeText('{{ $this->publicRegistrationUrl }}')">
+                                            {{ __('Copy') }}
+                                        </flux:button>
+                                    </div>
+                                    <flux:text class="text-xs text-zinc-500 mt-2">
+                                        {{ __('Share this link to allow people to register for this event.') }}
+                                    </flux:text>
+                                </div>
+                            </flux:menu>
+                        </flux:dropdown>
+                    @endif
                 </div>
             @endif
         </div>
@@ -171,6 +192,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Attendee') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Type') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Status') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Payment') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Ticket') }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Registered') }}</th>
                             <th class="relative px-6 py-3"><span class="sr-only">{{ __('Actions') }}</span></th>
@@ -190,6 +212,15 @@
                                     <flux:badge size="sm" :color="$registration->status->color()">
                                         {{ $registration->status->label() }}
                                     </flux:badge>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    @if($registration->requires_payment && !$registration->is_paid)
+                                        <flux:badge size="sm" color="amber">{{ __('Pending') }}</flux:badge>
+                                    @elseif($registration->is_paid)
+                                        <flux:badge size="sm" color="green">{{ __('Paid') }}</flux:badge>
+                                    @else
+                                        <flux:badge size="sm" color="zinc">{{ __('Free') }}</flux:badge>
+                                    @endif
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500">
                                     {{ $registration->ticket_number ?? '-' }}

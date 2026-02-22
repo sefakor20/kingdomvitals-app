@@ -74,6 +74,12 @@ Route::middleware(['web'])->group(function (): void {
         return redirect()->route('dashboard');
     })->name('giving.public');
 
+    // Public event pages (no auth required)
+    Route::get('/events/{branch}/{event}', \App\Livewire\Events\Public\PublicEventDetails::class)
+        ->name('events.public.details');
+    Route::get('/events/{branch}/{event}/register', \App\Livewire\Events\Public\PublicEventRegistration::class)
+        ->name('events.public.register');
+
     // Paystack webhook (no auth, no CSRF)
     Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
         ->name('webhooks.paystack')

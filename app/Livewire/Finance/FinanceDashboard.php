@@ -8,11 +8,14 @@ use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\ExpenseStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\PaymentTransactionStatus;
 use App\Enums\PledgeStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
+use App\Models\Tenant\PaymentTransaction;
 use App\Models\Tenant\Pledge;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
@@ -173,6 +176,94 @@ class FinanceDashboard extends Component
             ->first();
 
         return (float) $pledges->total - (float) $pledges->fulfilled;
+    }
+
+    // ============================================
+    // EVENT REVENUE STATISTICS
+    // ============================================
+
+    #[Computed]
+    public function eventRevenueStats(): array
+    {
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        $currencyCode = tenant()->getCurrencyCode();
+
+        // Event revenue this month
+        $eventRevenue = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->sum('amount');
+
+        $eventRevenueCount = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->count();
+
+        // Event revenue YTD
+        $eventRevenueYtd = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereYear('paid_at', $currentYear)
+            ->where('paid_at', '<=', now())
+            ->sum('amount');
+
+        // Pending event payments
+        $pendingEventPayments = EventRegistration::query()
+            ->where('branch_id', $this->branch->id)
+            ->where('requires_payment', true)
+            ->where('is_paid', false)
+            ->whereHas('event', function ($query) use ($currencyCode): void {
+                $query->where('currency', $currencyCode);
+            })
+            ->sum('price_paid');
+
+        return [
+            'monthly_revenue' => (float) $eventRevenue,
+            'monthly_count' => $eventRevenueCount,
+            'ytd_revenue' => (float) $eventRevenueYtd,
+            'pending_payments' => (float) $pendingEventPayments,
+        ];
+    }
+
+    #[Computed]
+    public function eventRevenueChartData(): array
+    {
+        $labels = [];
+        $data = [];
+        $currencyCode = tenant()->getCurrencyCode();
+
+        // Last 12 months
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $labels[] = $date->format('M');
+
+            $revenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->where('currency', $currencyCode)
+                ->whereYear('paid_at', $date->year)
+                ->whereMonth('paid_at', $date->month)
+                ->sum('amount');
+
+            $data[] = (float) $revenue;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+        ];
     }
 
     // ============================================
