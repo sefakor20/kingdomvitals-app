@@ -16,6 +16,7 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -146,18 +147,24 @@ class PublicEventRegistration extends Component
             ->first();
 
         // Create registration
-        $this->registration = EventRegistration::create([
-            'event_id' => $this->event->id,
-            'branch_id' => $this->branch->id,
-            'member_id' => $member?->id,
-            'guest_name' => $this->name,
-            'guest_email' => $this->email,
-            'guest_phone' => $this->phone ?: null,
-            'status' => RegistrationStatus::Registered,
-            'registered_at' => now(),
-            'requires_payment' => false,
-            'is_paid' => true, // Free events are considered "paid"
-        ]);
+        try {
+            $this->registration = EventRegistration::create([
+                'event_id' => $this->event->id,
+                'branch_id' => $this->branch->id,
+                'member_id' => $member?->id,
+                'guest_name' => $this->name,
+                'guest_email' => $this->email,
+                'guest_phone' => $this->phone ?: null,
+                'status' => RegistrationStatus::Registered,
+                'registered_at' => now(),
+                'requires_payment' => false,
+                'is_paid' => true, // Free events are considered "paid"
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            $this->errorMessage = __('You are already registered for this event.');
+
+            return;
+        }
 
         $this->registration->generateTicketNumber();
 
@@ -215,19 +222,25 @@ class PublicEventRegistration extends Component
             ->first();
 
         // Create pending registration
-        $this->registration = EventRegistration::create([
-            'event_id' => $this->event->id,
-            'branch_id' => $this->branch->id,
-            'member_id' => $member?->id,
-            'guest_name' => $this->name,
-            'guest_email' => $this->email,
-            'guest_phone' => $this->phone ?: null,
-            'status' => RegistrationStatus::Registered,
-            'registered_at' => now(),
-            'requires_payment' => true,
-            'price_paid' => $this->event->price,
-            'is_paid' => false,
-        ]);
+        try {
+            $this->registration = EventRegistration::create([
+                'event_id' => $this->event->id,
+                'branch_id' => $this->branch->id,
+                'member_id' => $member?->id,
+                'guest_name' => $this->name,
+                'guest_email' => $this->email,
+                'guest_phone' => $this->phone ?: null,
+                'status' => RegistrationStatus::Registered,
+                'registered_at' => now(),
+                'requires_payment' => true,
+                'price_paid' => $this->event->price,
+                'is_paid' => false,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            $this->errorMessage = __('You are already registered for this event.');
+
+            return;
+        }
 
         // Create payment transaction
         $paystack = PaystackService::forBranch($this->branch);
