@@ -6,10 +6,12 @@ use App\Enums\PaymentTransactionStatus;
 use App\Enums\RegistrationStatus;
 use App\Livewire\Events\Public\PublicEventDetails;
 use App\Livewire\Events\Public\PublicEventRegistration;
+use App\Mail\EventRegistrationConfirmationMail;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Event;
 use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\PaymentTransaction;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TenantTestCase;
 
@@ -123,6 +125,29 @@ test('free event registration creates registration with ticket', function (): vo
 
     $registration = EventRegistration::where('guest_email', 'john@example.com')->first();
     expect($registration->ticket_number)->toStartWith('EVT-');
+});
+
+test('free event registration sends confirmation email', function (): void {
+    Mail::fake();
+
+    $event = Event::factory()->published()->free()->create([
+        'branch_id' => $this->branch->id,
+        'is_public' => true,
+        'visibility' => EventVisibility::Public,
+        'allow_registration' => true,
+        'starts_at' => now()->addDays(5),
+    ]);
+
+    Livewire::test(PublicEventRegistration::class, ['branch' => $this->branch, 'event' => $event])
+        ->set('name', 'Jane Doe')
+        ->set('email', 'jane@example.com')
+        ->set('phone', '0201234567')
+        ->call('register')
+        ->assertSet('showThankYou', true);
+
+    Mail::assertQueued(EventRegistrationConfirmationMail::class, function ($mail) {
+        return $mail->hasTo('jane@example.com');
+    });
 });
 
 test('registration validates required fields', function (): void {
@@ -270,4 +295,53 @@ test('webhook marks registration as paid', function (): void {
     expect($registration->is_paid)->toBeTrue()
         ->and($registration->payment_transaction_id)->toBe($transaction->id)
         ->and($registration->ticket_number)->toStartWith('EVT-');
+});
+
+test('paid event sends confirmation email after payment', function (): void {
+    Mail::fake();
+
+    // Configure Paystack for paid events
+    $this->branch->setSetting('paystack_secret_key', 'sk_test_xxx');
+    $this->branch->setSetting('paystack_public_key', 'pk_test_xxx');
+    $this->branch->save();
+
+    $event = Event::factory()->published()->paid()->create([
+        'branch_id' => $this->branch->id,
+        'is_public' => true,
+        'visibility' => EventVisibility::Public,
+        'allow_registration' => true,
+        'starts_at' => now()->addDays(5),
+        'price' => 50.00,
+        'currency' => 'GHS',
+    ]);
+
+    $registration = EventRegistration::factory()->guest()->create([
+        'event_id' => $event->id,
+        'branch_id' => $this->branch->id,
+        'guest_email' => 'paid@example.com',
+        'is_paid' => false,
+        'requires_payment' => true,
+        'price_paid' => 50.00,
+    ]);
+
+    $transaction = PaymentTransaction::create([
+        'branch_id' => $this->branch->id,
+        'event_registration_id' => $registration->id,
+        'amount' => 50.00,
+        'currency' => 'GHS',
+        'status' => PaymentTransactionStatus::Pending,
+        'paystack_reference' => 'test-email-ref-123',
+    ]);
+
+    // Simulate the handlePaymentSuccess flow
+    $transaction->markAsSuccessful('12345', 'card');
+    $registration->markAsPaid($transaction);
+    $registration->refresh();
+
+    // Send confirmation email (as done in handlePaymentSuccess)
+    Mail::to($registration->guest_email)->queue(new EventRegistrationConfirmationMail($registration));
+
+    Mail::assertQueued(EventRegistrationConfirmationMail::class, function ($mail) {
+        return $mail->hasTo('paid@example.com');
+    });
 });

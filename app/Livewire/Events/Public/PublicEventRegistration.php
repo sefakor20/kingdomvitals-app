@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventVisibility;
 use App\Enums\PaymentTransactionStatus;
 use App\Enums\RegistrationStatus;
+use App\Mail\EventRegistrationConfirmationMail;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Event;
 use App\Models\Tenant\EventRegistration;
@@ -15,6 +16,7 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -159,6 +161,9 @@ class PublicEventRegistration extends Component
 
         $this->registration->generateTicketNumber();
 
+        // Send confirmation email
+        Mail::to($this->email)->queue(new EventRegistrationConfirmationMail($this->registration));
+
         $this->showThankYou = true;
     }
 
@@ -292,6 +297,9 @@ class PublicEventRegistration extends Component
         if ($this->registration) {
             $this->registration->markAsPaid($transaction);
             $this->registration->refresh();
+
+            // Send confirmation email
+            Mail::to($this->registration->guest_email)->queue(new EventRegistrationConfirmationMail($this->registration));
         }
 
         $this->showThankYou = true;

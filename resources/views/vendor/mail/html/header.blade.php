@@ -10,7 +10,7 @@
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
 @if($logoUrl)
-<img src="{{ $logoUrl }}" class="logo" alt="{{ $appName }}" height="50" style="max-width: 100%; height: 50px;">
+<img src="{{ $logoUrl }}" class="logo" alt="{{ $appName }}" style="width: auto; height: 50px; max-height: 50px;">
 @else
 {{ $appName }}
 @endif
