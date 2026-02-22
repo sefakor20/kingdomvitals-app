@@ -9,6 +9,8 @@ use App\Enums\LifecycleStage;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\SmsEngagementLevel;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
 use App\Observers\MemberObserver;
 use Database\Factories\Tenant\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -26,7 +28,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Member extends Model
 {
     /** @use HasFactory<MemberFactory> */
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasActivityLogging, HasFactory, HasUuids, SoftDeletes;
 
     protected static function newFactory(): MemberFactory
     {
@@ -158,6 +160,21 @@ class Member extends Model
     public function fullName(): string
     {
         return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Member;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        return $this->fullName();
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->primary_branch_id;
     }
 
     public function primaryBranch(): BelongsTo

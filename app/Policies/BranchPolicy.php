@@ -61,4 +61,15 @@ class BranchPolicy
             ->where('role', BranchRole::Admin->value)
             ->exists();
     }
+
+    /**
+     * Determine whether the user can view activity logs for the branch.
+     */
+    public function viewActivityLogs(User $user, Branch $branch): bool
+    {
+        return $user->branchAccess()
+            ->where('branch_id', $branch->id)
+            ->whereIn('role', [BranchRole::Admin->value, BranchRole::Manager->value])
+            ->exists();
+    }
 }

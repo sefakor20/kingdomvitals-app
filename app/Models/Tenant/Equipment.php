@@ -5,6 +5,10 @@ namespace App\Models\Tenant;
 use App\Enums\CheckoutStatus;
 use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentCondition;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\EquipmentObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,9 +16,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+#[ObservedBy([EquipmentObserver::class])]
 class Equipment extends Model
 {
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected $table = 'equipment';
 
@@ -106,5 +111,20 @@ class Equipment extends Model
     {
         return $this->warranty_expiry !== null
             && $this->warranty_expiry->isPast();
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Equipment;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        return $this->name;
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }

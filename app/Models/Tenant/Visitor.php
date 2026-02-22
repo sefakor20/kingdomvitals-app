@@ -2,18 +2,23 @@
 
 namespace App\Models\Tenant;
 
+use App\Enums\SubjectType;
 use App\Enums\VisitorStatus;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\VisitorObserver;
 use Database\Factories\Tenant\VisitorFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([VisitorObserver::class])]
 class Visitor extends Model
 {
     /** @use HasFactory<VisitorFactory> */
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected static function newFactory(): VisitorFactory
     {
@@ -99,5 +104,20 @@ class Visitor extends Model
             ->where('outcome', '!=', 'pending')
             ->latest('completed_at')
             ->take(1);
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Visitor;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        return $this->fullName();
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }

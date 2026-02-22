@@ -123,6 +123,10 @@ Route::middleware(['web'])->group(function (): void {
         Route::get('/branches/{branch}/users', \App\Livewire\Users\BranchUserIndex::class)
             ->name('branches.users.index');
 
+        // Activity Logs (no module restriction - core feature)
+        Route::get('/branches/{branch}/activity-logs', \App\Livewire\ActivityLogs\ActivityLogIndex::class)
+            ->name('activity-logs.index');
+
         // Member Management (requires members module)
         Route::middleware(['module:members'])->group(function (): void {
             Route::get('/branches/{branch}/members', \App\Livewire\Members\MemberIndex::class)

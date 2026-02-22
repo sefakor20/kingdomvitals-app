@@ -4,15 +4,20 @@ namespace App\Models\Tenant;
 
 use App\Enums\DonationType;
 use App\Enums\PaymentMethod;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\DonationObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([DonationObserver::class])]
 class Donation extends Model
 {
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected $fillable = [
         'branch_id',
@@ -123,5 +128,23 @@ class Donation extends Model
     public function isOnlinePayment(): bool
     {
         return $this->payment_method === PaymentMethod::Paystack;
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Donation;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        $donor = $this->getDonorDisplayName();
+        $amount = number_format($this->amount, 2);
+
+        return "{$donor} - {$this->currency} {$amount}";
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }

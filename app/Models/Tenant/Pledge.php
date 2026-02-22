@@ -4,14 +4,19 @@ namespace App\Models\Tenant;
 
 use App\Enums\PledgeFrequency;
 use App\Enums\PledgeStatus;
+use App\Enums\SubjectType;
+use App\Models\Concerns\HasActivityLogging;
+use App\Observers\PledgeObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[ObservedBy([PledgeObserver::class])]
 class Pledge extends Model
 {
-    use HasFactory, HasUuids;
+    use HasActivityLogging, HasFactory, HasUuids;
 
     protected $fillable = [
         'branch_id',
@@ -67,5 +72,23 @@ class Pledge extends Model
         }
 
         return round(($this->amount_fulfilled / $this->amount) * 100, 2);
+    }
+
+    public function getActivitySubjectType(): SubjectType
+    {
+        return SubjectType::Pledge;
+    }
+
+    public function getActivitySubjectName(): string
+    {
+        $memberName = $this->member?->fullName() ?? 'Unknown';
+        $campaignName = $this->campaign?->name ?? $this->campaign_name ?? 'General';
+
+        return "{$memberName} - {$campaignName}";
+    }
+
+    public function getActivityBranchId(): string
+    {
+        return $this->branch_id;
     }
 }
