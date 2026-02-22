@@ -14,6 +14,7 @@ class PaymentTransaction extends Model
 
     protected $fillable = [
         'donation_id',
+        'event_registration_id',
         'branch_id',
         'paystack_reference',
         'paystack_transaction_id',
@@ -43,6 +44,11 @@ class PaymentTransaction extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function eventRegistration(): BelongsTo
+    {
+        return $this->belongsTo(EventRegistration::class);
     }
 
     public function isPending(): bool

@@ -74,6 +74,15 @@ Route::middleware(['web'])->group(function (): void {
         return redirect()->route('dashboard');
     })->name('giving.public');
 
+    // Public event pages (no auth required)
+    Route::get('/events/{branch}/{event}', \App\Livewire\Events\Public\PublicEventDetails::class)
+        ->name('events.public.details');
+    Route::get('/events/{branch}/{event}/register', \App\Livewire\Events\Public\PublicEventRegistration::class)
+        ->name('events.public.register');
+    Route::get('/events/{branch}/{event}/ticket/{registration}', [\App\Http\Controllers\EventTicketController::class, 'download'])
+        ->name('events.public.ticket.download')
+        ->middleware('signed');
+
     // Paystack webhook (no auth, no CSRF)
     Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
         ->name('webhooks.paystack')
@@ -289,6 +298,18 @@ Route::middleware(['web'])->group(function (): void {
                 ->name('ai-insights.dashboard');
             Route::get('/branches/{branch}/ai-insights/settings', \App\Livewire\Branches\AlertSettings::class)
                 ->name('branches.alert-settings');
+        });
+
+        // Event Management (requires events module)
+        Route::middleware(['module:events'])->group(function (): void {
+            Route::get('/branches/{branch}/events', \App\Livewire\Events\EventIndex::class)
+                ->name('events.index');
+            Route::get('/branches/{branch}/events/{event}', \App\Livewire\Events\EventShow::class)
+                ->name('events.show');
+            Route::get('/branches/{branch}/events/{event}/registrations', \App\Livewire\Events\EventShow::class)
+                ->name('events.registrations');
+            Route::get('/branches/{branch}/events/{event}/check-in', \App\Livewire\Events\EventCheckIn::class)
+                ->name('events.check-in');
         });
 
         // Report Center (requires reports module)

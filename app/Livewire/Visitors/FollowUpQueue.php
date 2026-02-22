@@ -160,7 +160,7 @@ class FollowUpQueue extends Component
     #[Computed]
     public function followUpTemplates(): Collection
     {
-        if (!$this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return collect();
         }
 
@@ -203,6 +203,7 @@ class FollowUpQueue extends Component
         if ($this->isFilterActive($this->dateFrom)) {
             return true;
         }
+
         return $this->isFilterActive($this->dateTo);
     }
 
@@ -225,7 +226,7 @@ class FollowUpQueue extends Component
 
     public function completeFollowUp(): void
     {
-        if (!$this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return;
         }
 
@@ -293,7 +294,7 @@ class FollowUpQueue extends Component
 
     public function rescheduleFollowUp(): void
     {
-        if (!$this->reschedulingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->reschedulingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
             return;
         }
 
@@ -368,7 +369,7 @@ class FollowUpQueue extends Component
 
     public function rejectAiMessage(): void
     {
-        if (!$this->generatedMessage instanceof \App\Models\Tenant\AiGeneratedMessage) {
+        if (! $this->generatedMessage instanceof \App\Models\Tenant\AiGeneratedMessage) {
             return;
         }
 

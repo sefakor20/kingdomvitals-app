@@ -60,7 +60,7 @@ class FollowUpTemplate extends Model
      */
     public function scopeOfType(Builder $query, ?FollowUpType $type): Builder
     {
-        if (!$type instanceof \App\Enums\FollowUpType) {
+        if (! $type instanceof \App\Enums\FollowUpType) {
             return $query->whereNull('type');
         }
 

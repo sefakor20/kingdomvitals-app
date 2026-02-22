@@ -104,6 +104,7 @@ class PaymentIndex extends Component
         if ($this->isFilterActive($this->status)) {
             return true;
         }
+
         return $this->isFilterActive($this->method);
     }
 

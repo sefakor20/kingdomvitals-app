@@ -85,7 +85,7 @@ class DutyRosterPoolIndex extends Component
     #[Computed]
     public function availableMembers(): Collection
     {
-        if (!$this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
             return collect();
         }
 
@@ -218,7 +218,7 @@ class DutyRosterPoolIndex extends Component
 
     public function removeMember(string $memberId): void
     {
-        if (!$this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
             return;
         }
 
@@ -231,7 +231,7 @@ class DutyRosterPoolIndex extends Component
 
     public function toggleMemberActive(string $memberId): void
     {
-        if (!$this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
             return;
         }
 
@@ -248,7 +248,7 @@ class DutyRosterPoolIndex extends Component
 
     public function resetMemberCounters(string $memberId): void
     {
-        if (!$this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
             return;
         }
 
@@ -264,7 +264,7 @@ class DutyRosterPoolIndex extends Component
 
     public function resetAllCounters(): void
     {
-        if (!$this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
             return;
         }
 

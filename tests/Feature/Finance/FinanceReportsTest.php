@@ -72,7 +72,7 @@ test('summary stats calculates total income correctly', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $stats = $component->viewData('summaryStats');
+    $stats = $component->get('summaryStats');
     expect($stats['total_income'])->toBe(300.00);
     expect($stats['donation_count'])->toBe(3);
 });
@@ -96,7 +96,7 @@ test('summary stats calculates total expenses correctly', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $stats = $component->viewData('summaryStats');
+    $stats = $component->get('summaryStats');
     expect($stats['total_expenses'])->toBe(100.00);
 });
 
@@ -117,7 +117,7 @@ test('summary stats calculates net position correctly', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $stats = $component->viewData('summaryStats');
+    $stats = $component->get('summaryStats');
     expect($stats['net_position'])->toBe(300.00);
 });
 
@@ -139,7 +139,7 @@ test('summary stats calculates pledge fulfillment rate correctly', function (): 
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $stats = $component->viewData('summaryStats');
+    $stats = $component->get('summaryStats');
     // Total pledged: 1500, Total fulfilled: 1000 = 66.7%
     expect($stats['pledge_fulfillment'])->toBe(66.7);
 });
@@ -165,7 +165,7 @@ test('period filtering works correctly', function (): void {
         ->test(FinanceReports::class, ['branch' => $this->branch])
         ->call('setPeriod', 7);
 
-    $stats = $component->viewData('summaryStats');
+    $stats = $component->get('summaryStats');
     expect($stats['total_income'])->toBe(200.00);
 });
 
@@ -203,7 +203,7 @@ test('donations by type data is calculated correctly', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $data = $component->viewData('donationsByTypeData');
+    $data = $component->get('donationsByTypeData');
     expect($data['labels'])->toContain('Tithe');
     expect($data['labels'])->toContain('Offering');
     expect(count($data['data']))->toBe(2);
@@ -232,7 +232,7 @@ test('top donors data returns correct members', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $topDonors = $component->viewData('topDonorsData');
+    $topDonors = $component->get('topDonorsData');
     expect($topDonors->count())->toBe(2);
     expect($topDonors->first()->member_id)->toBe($member1->id);
 });
@@ -257,7 +257,7 @@ test('expenses by category data is calculated correctly', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $data = $component->viewData('expensesByCategoryData');
+    $data = $component->get('expensesByCategoryData');
     expect($data['labels'])->toContain('Utilities');
     expect($data['labels'])->toContain('Salaries');
 });
@@ -275,7 +275,7 @@ test('pledge fulfillment data is calculated correctly', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $data = $component->viewData('pledgeFulfillmentData');
+    $data = $component->get('pledgeFulfillmentData');
     expect($data['total_pledged'])->toBe(1000.00);
     expect($data['total_fulfilled'])->toBe(750.00);
     expect($data['outstanding'])->toBe(250.00);
@@ -305,7 +305,7 @@ test('outstanding pledges data returns correct pledges', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $outstanding = $component->viewData('outstandingPledgesData');
+    $outstanding = $component->get('outstandingPledgesData');
     expect($outstanding->count())->toBe(1);
     expect($outstanding->first()->remainingAmount())->toBe(300.00);
 });
@@ -316,7 +316,7 @@ test('handles empty data gracefully', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceReports::class, ['branch' => $this->branch]);
 
-    $stats = $component->viewData('summaryStats');
+    $stats = $component->get('summaryStats');
     expect($stats['total_income'])->toBe(0.0);
     expect($stats['total_expenses'])->toBe(0.0);
     expect($stats['net_position'])->toBe(0.0);

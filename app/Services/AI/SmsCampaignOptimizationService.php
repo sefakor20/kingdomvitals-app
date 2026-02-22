@@ -162,7 +162,7 @@ class SmsCampaignOptimizationService
      */
     public function predictOptimalSendTime(Member $member, ?Collection $smsHistory = null): array
     {
-        if (!$smsHistory instanceof \Illuminate\Support\Collection) {
+        if (! $smsHistory instanceof \Illuminate\Support\Collection) {
             $smsHistory = SmsLog::query()
                 ->where('member_id', $member->id)
                 ->where('status', SmsStatus::Delivered)

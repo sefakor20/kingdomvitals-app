@@ -191,6 +191,7 @@ class SmsIndex extends Component
         if ($this->isFilterActive($this->dateTo)) {
             return true;
         }
+
         return $this->isFilterActive($this->quickFilter);
     }
 

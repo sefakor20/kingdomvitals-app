@@ -65,7 +65,7 @@
             <flux:heading size="xl" class="mt-2 text-green-600 dark:text-green-400">
                 {{ $this->currency->symbol() }}{{ number_format($this->summaryStats['total_income'], 2) }}
             </flux:heading>
-            <flux:text class="text-xs text-zinc-500">{{ $this->summaryStats['donation_count'] }} {{ __('donations') }}</flux:text>
+            <flux:text class="text-xs text-zinc-500">{{ $this->summaryStats['donation_count'] }} {{ __('donations') }} + {{ $this->summaryStats['event_payment_count'] }} {{ __('events') }}</flux:text>
         </div>
 
         <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
@@ -141,6 +141,14 @@
             icon="hand-raised"
         >
             {{ __('Pledges') }}
+        </flux:button>
+        <flux:button
+            variant="{{ $reportType === 'events' ? 'primary' : 'ghost' }}"
+            size="sm"
+            wire:click="setReportType('events')"
+            icon="ticket"
+        >
+            {{ __('Event Revenue') }}
         </flux:button>
     </div>
 
@@ -408,6 +416,121 @@
                     </div>
                 @endif
             </div>
+        </div>
+
+    @elseif($reportType === 'events')
+        <!-- Event Revenue Report -->
+        <div class="grid gap-6 lg:grid-cols-4">
+            <!-- Event Revenue Stats Cards -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-sm text-zinc-500">{{ __('Total Collected') }}</flux:text>
+                <flux:heading size="xl" class="mt-1 text-pink-600 dark:text-pink-400">
+                    {{ $this->currency->symbol() }}{{ number_format($this->eventRevenueStats['total_collected'], 2) }}
+                </flux:heading>
+            </div>
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-sm text-zinc-500">{{ __('Registrations') }}</flux:text>
+                <flux:heading size="xl" class="mt-1 text-indigo-600 dark:text-indigo-400">
+                    {{ $this->eventRevenueStats['total_registrations'] }}
+                </flux:heading>
+            </div>
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-sm text-zinc-500">{{ __('Pending Payments') }}</flux:text>
+                <flux:heading size="xl" class="mt-1 text-amber-600 dark:text-amber-400">
+                    {{ $this->currency->symbol() }}{{ number_format($this->eventRevenueStats['pending_payments'], 2) }}
+                </flux:heading>
+                <flux:text class="text-xs text-zinc-500">{{ $this->eventRevenueStats['pending_count'] }} {{ __('pending') }}</flux:text>
+            </div>
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-sm text-zinc-500">{{ __('Avg Ticket Price') }}</flux:text>
+                <flux:heading size="xl" class="mt-1 text-green-600 dark:text-green-400">
+                    {{ $this->currency->symbol() }}{{ number_format($this->eventRevenueStats['average_ticket_price'], 2) }}
+                </flux:heading>
+            </div>
+        </div>
+
+        <!-- Event Revenue Charts and Tables -->
+        <div class="mt-6 grid gap-6 lg:grid-cols-2" wire:key="report-events-{{ $period }}-{{ $dateFrom }}-{{ $dateTo }}">
+            <!-- Revenue by Payment Method -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:heading size="lg" class="mb-4">{{ __('Revenue by Payment Method') }}</flux:heading>
+                @if(count($this->eventRevenueByPaymentMethodData['data']) > 0)
+                    <div
+                        x-data="eventRevenueByPaymentMethodChart(@js($this->eventRevenueByPaymentMethodData))"
+                        x-init="initChart()"
+                        @charts-updated.window="updateChart(@js($this->eventRevenueByPaymentMethodData))"
+                        class="h-64"
+                        wire:ignore
+                    >
+                        <canvas x-ref="canvas"></canvas>
+                    </div>
+                @else
+                    <div class="flex h-64 items-center justify-center text-zinc-500">
+                        {{ __('No payment data available') }}
+                    </div>
+                @endif
+            </div>
+
+            <!-- Monthly Revenue Trend -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:heading size="lg" class="mb-4">{{ __('Monthly Event Revenue') }}</flux:heading>
+                @if(array_sum($this->eventRevenueMonthlyTrendData['data']) > 0)
+                    <div
+                        x-data="eventRevenueMonthlyTrendChart(@js($this->eventRevenueMonthlyTrendData))"
+                        x-init="initChart()"
+                        @charts-updated.window="updateChart(@js($this->eventRevenueMonthlyTrendData))"
+                        class="h-64"
+                        wire:ignore
+                    >
+                        <canvas x-ref="canvas"></canvas>
+                    </div>
+                @else
+                    <div class="flex h-64 items-center justify-center text-zinc-500">
+                        {{ __('No revenue data available') }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Revenue by Event Table -->
+        <div class="mt-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:heading size="lg" class="mb-4">{{ __('Revenue by Event') }}</flux:heading>
+            @if($this->eventRevenueByEventData->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Event') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Date') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Registrations') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Revenue') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                            @foreach($this->eventRevenueByEventData as $event)
+                                <tr wire:key="event-revenue-{{ $event->id }}">
+                                    <td class="whitespace-nowrap px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $event->event_name }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-zinc-500">
+                                        {{ \Carbon\Carbon::parse($event->starts_at)->format('M d, Y') }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-right text-zinc-500">
+                                        {{ $event->registration_count }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-right font-medium text-pink-600 dark:text-pink-400">
+                                        {{ $this->currency->symbol() }}{{ number_format($event->total_revenue, 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="py-8 text-center text-zinc-500">
+                    {{ __('No event revenue data available for this period') }}
+                </div>
+            @endif
         </div>
     @endif
 </section>
@@ -721,6 +844,108 @@
             this.chart.data.labels = newData.labels;
             this.chart.data.datasets[0].data = newData.data;
             this.chart.data.datasets[0].backgroundColor = newData.colors;
+            this.chart.update();
+        }
+    }));
+
+    // Event Revenue by Payment Method Doughnut Chart
+    Alpine.data('eventRevenueByPaymentMethodChart', (initialData) => ({
+        chart: null,
+        data: initialData,
+
+        initChart() {
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
+            const ctx = this.$refs.canvas.getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            this.chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: this.data.labels,
+                    datasets: [{
+                        data: this.data.data,
+                        backgroundColor: this.data.colors,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: isDark ? '#a1a1aa' : '#71717a' }
+                        }
+                    }
+                }
+            });
+        },
+
+        updateChart(newData) {
+            this.data = newData;
+            this.chart.data.labels = newData.labels;
+            this.chart.data.datasets[0].data = newData.data;
+            this.chart.data.datasets[0].backgroundColor = newData.colors;
+            this.chart.update();
+        }
+    }));
+
+    // Event Revenue Monthly Trend Line Chart
+    Alpine.data('eventRevenueMonthlyTrendChart', (initialData) => ({
+        chart: null,
+        data: initialData,
+
+        initChart() {
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
+            const ctx = this.$refs.canvas.getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            this.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: this.data.labels,
+                    datasets: [{
+                        label: 'Event Revenue',
+                        data: this.data.data,
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => '{{ $this->currency->symbol() }}' + value.toLocaleString(),
+                                color: isDark ? '#a1a1aa' : '#71717a',
+                            },
+                            grid: { color: isDark ? '#27272a' : '#e4e4e7' }
+                        },
+                        x: {
+                            ticks: { color: isDark ? '#a1a1aa' : '#71717a' },
+                            grid: { color: isDark ? '#27272a' : '#e4e4e7' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        },
+
+        updateChart(newData) {
+            this.data = newData;
+            this.chart.data.labels = newData.labels;
+            this.chart.data.datasets[0].data = newData.data;
             this.chart.update();
         }
     }));

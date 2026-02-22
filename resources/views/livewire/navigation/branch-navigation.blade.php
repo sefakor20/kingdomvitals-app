@@ -89,8 +89,8 @@
         @endif
 
         {{-- Operations Group --}}
-        @if($this->canViewServices || $this->canViewDutyRosters || $this->canViewAttendance || $this->canViewClusters)
-            <flux:sidebar.group icon="clipboard-document-list" :heading="__('Operations')" expandable :expanded="request()->routeIs('services.*', 'duty-rosters.*', 'attendance.*', 'clusters.*')" class="grid">
+        @if($this->canViewServices || $this->canViewEvents || $this->canViewDutyRosters || $this->canViewAttendance || $this->canViewClusters)
+            <flux:sidebar.group icon="clipboard-document-list" :heading="__('Operations')" expandable :expanded="request()->routeIs('services.*', 'events.*', 'duty-rosters.*', 'attendance.*', 'clusters.*')" class="grid">
                 @if($this->canViewServices)
                     <flux:sidebar.item
                         icon="calendar"
@@ -99,6 +99,17 @@
                         wire:navigate
                     >
                         {{ __('Services') }}
+                    </flux:sidebar.item>
+                @endif
+
+                @if($this->canViewEvents)
+                    <flux:sidebar.item
+                        icon="calendar-days"
+                        :href="route('events.index', $this->currentBranch)"
+                        :current="request()->routeIs('events.*')"
+                        wire:navigate
+                    >
+                        {{ __('Events') }}
                     </flux:sidebar.item>
                 @endif
 

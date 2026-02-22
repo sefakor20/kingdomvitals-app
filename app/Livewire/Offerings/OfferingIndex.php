@@ -286,6 +286,7 @@ class OfferingIndex extends Component
         if ($this->isFilterActive($this->dateFrom)) {
             return true;
         }
+
         return $this->isFilterActive($this->dateTo);
     }
 

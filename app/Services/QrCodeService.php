@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\Member;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -12,6 +14,38 @@ use BaconQrCode\Writer;
 
 class QrCodeService
 {
+    /**
+     * Generate an SVG QR code for an event ticket.
+     */
+    public function generateEventTicketQrCode(EventRegistration $registration, int $size = 200): string
+    {
+        return $this->generateQrCodeSvg($registration->ticket_number, $size);
+    }
+
+    /**
+     * Generate a PNG QR code as base64 data URI for an event ticket (for PDF rendering).
+     */
+    public function generateEventTicketQrCodeBase64(EventRegistration $registration, int $size = 200): string
+    {
+        return $this->generateQrCodeBase64($registration->ticket_number, $size);
+    }
+
+    /**
+     * Generate a PNG QR code as base64 data URI (for PDF rendering).
+     */
+    public function generateQrCodeBase64(string $data, int $size = 300): string
+    {
+        $renderer = new ImageRenderer(
+            new RendererStyle($size),
+            new ImagickImageBackEnd
+        );
+
+        $writer = new Writer($renderer);
+        $pngData = $writer->writeString($data);
+
+        return 'data:image/png;base64,'.base64_encode($pngData);
+    }
+
     /**
      * Generate an SVG QR code for a member's check-in URL.
      */

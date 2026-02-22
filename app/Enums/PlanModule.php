@@ -23,6 +23,7 @@ enum PlanModule: string
     case Reports = 'reports';
     case DutyRoster = 'duty_roster';
     case AiInsights = 'ai_insights';
+    case Events = 'events';
 
     public function label(): string
     {
@@ -44,6 +45,7 @@ enum PlanModule: string
             self::Reports => 'Reports',
             self::DutyRoster => 'Duty Roster',
             self::AiInsights => 'AI Insights',
+            self::Events => 'Events',
         };
     }
 
@@ -72,6 +74,7 @@ enum PlanModule: string
             'reports' => self::Reports,
             'duty-rosters' => self::DutyRoster,
             'ai', 'ai-insights' => self::AiInsights,
+            'events' => self::Events,
             default => null,
         };
     }

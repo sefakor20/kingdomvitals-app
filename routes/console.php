@@ -46,6 +46,11 @@ Schedule::command('sms:send-duty-roster-reminder')
     ->dailyAt('08:00')
     ->withoutOverlapping();
 
+// Send event reminders hourly (for events starting within 24 hours)
+Schedule::command('events:send-reminders')
+    ->hourly()
+    ->withoutOverlapping();
+
 // Check budget thresholds hourly and send alerts
 Schedule::command('budgets:check-thresholds')
     ->hourly()

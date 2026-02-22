@@ -64,6 +64,7 @@ class PaymentHistory extends Component
         if ($this->invoices->isNotEmpty()) {
             return true;
         }
+
         return (bool) $this->payments->isNotEmpty();
     }
 

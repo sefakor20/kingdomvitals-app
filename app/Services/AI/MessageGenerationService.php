@@ -210,7 +210,7 @@ class MessageGenerationService
             $prompt .= "- Previous successful follow-ups: {$context['successful_followups']}\n";
         }
 
-        return $prompt . "\nIMPORTANT: Keep the message under {$charLimit} characters.";
+        return $prompt."\nIMPORTANT: Keep the message under {$charLimit} characters.";
     }
 
     /**
@@ -243,7 +243,7 @@ class MessageGenerationService
             $prompt .= "- Note: This member is at high risk of disengaging\n";
         }
 
-        return $prompt . "\nIMPORTANT: Keep the message under {$charLimit} characters.";
+        return $prompt."\nIMPORTANT: Keep the message under {$charLimit} characters.";
     }
 
     /**

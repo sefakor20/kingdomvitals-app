@@ -273,6 +273,7 @@ class EquipmentIndex extends Component
         if ($this->isFilterActive($this->conditionFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->availabilityFilter);
     }
 

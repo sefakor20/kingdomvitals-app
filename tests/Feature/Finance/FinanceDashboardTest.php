@@ -384,11 +384,11 @@ test('income vs expenses chart data returns correct structure', function (): voi
     expect(count($chartData['expenses']))->toBe(6);
 });
 
-test('donation growth chart data returns correct structure', function (): void {
+test('income growth chart data returns correct structure', function (): void {
     $component = Livewire::actingAs($this->adminUser)
         ->test(FinanceDashboard::class, ['branch' => $this->branch]);
 
-    $chartData = $component->get('donationGrowthChartData');
+    $chartData = $component->get('incomeGrowthChartData');
     expect($chartData)->toHaveKeys(['labels', 'data']);
     expect(count($chartData['labels']))->toBe(12);
     expect(count($chartData['data']))->toBe(12);

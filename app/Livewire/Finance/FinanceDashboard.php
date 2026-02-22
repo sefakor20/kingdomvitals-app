@@ -8,11 +8,14 @@ use App\Enums\Currency;
 use App\Enums\DonationType;
 use App\Enums\ExpenseStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\PaymentTransactionStatus;
 use App\Enums\PledgeStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Member;
+use App\Models\Tenant\PaymentTransaction;
 use App\Models\Tenant\Pledge;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
@@ -51,17 +54,40 @@ class FinanceDashboard extends Component
         $currentYear = now()->year;
         $currencyCode = tenant()->getCurrencyCode();
 
-        $income = Donation::where('branch_id', $this->branch->id)
+        // Donation income
+        $donationIncome = Donation::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->sum('amount');
 
-        $incomeCount = Donation::where('branch_id', $this->branch->id)
+        $donationCount = Donation::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
             ->whereMonth('donation_date', $currentMonth)
             ->whereYear('donation_date', $currentYear)
             ->count();
+
+        // Event revenue
+        $eventRevenue = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->sum('amount');
+
+        $eventPaymentCount = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->count();
+
+        $totalIncome = (float) $donationIncome + (float) $eventRevenue;
+        $totalIncomeCount = $donationCount + $eventPaymentCount;
 
         $expenses = Expense::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
@@ -77,11 +103,13 @@ class FinanceDashboard extends Component
             ->count();
 
         return [
-            'income' => (float) $income,
-            'income_count' => $incomeCount,
+            'income' => $totalIncome,
+            'income_count' => $totalIncomeCount,
+            'donation_count' => $donationCount,
+            'event_payment_count' => $eventPaymentCount,
             'expenses' => (float) $expenses,
             'expenses_count' => $expensesCount,
-            'net_position' => (float) $income - (float) $expenses,
+            'net_position' => $totalIncome - (float) $expenses,
         ];
     }
 
@@ -93,12 +121,24 @@ class FinanceDashboard extends Component
         $currentDayOfYear = now()->dayOfYear;
         $currencyCode = tenant()->getCurrencyCode();
 
-        // Current year YTD
-        $incomeYtd = Donation::where('branch_id', $this->branch->id)
+        // Current year YTD - Donations
+        $donationIncomeYtd = Donation::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
             ->whereYear('donation_date', $currentYear)
             ->where('donation_date', '<=', now())
             ->sum('amount');
+
+        // Current year YTD - Event Revenue
+        $eventRevenueYtd = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereYear('paid_at', $currentYear)
+            ->where('paid_at', '<=', now())
+            ->sum('amount');
+
+        $incomeYtd = (float) $donationIncomeYtd + (float) $eventRevenueYtd;
 
         $expensesYtd = Expense::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
@@ -113,14 +153,36 @@ class FinanceDashboard extends Component
             ->where('donation_date', '<=', now())
             ->count();
 
+        $eventPaymentCountYtd = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereYear('paid_at', $currentYear)
+            ->where('paid_at', '<=', now())
+            ->count();
+
+        $incomeCountYtd = $donationCountYtd + $eventPaymentCountYtd;
+
         // Previous year same period (for YoY comparison)
         $samePeriodLastYear = Carbon::create($previousYear, 1, 1)->addDays($currentDayOfYear - 1);
 
-        $incomeLastYear = Donation::where('branch_id', $this->branch->id)
+        $donationIncomeLastYear = Donation::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
             ->whereYear('donation_date', $previousYear)
             ->where('donation_date', '<=', $samePeriodLastYear)
             ->sum('amount');
+
+        $eventRevenueLastYear = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereYear('paid_at', $previousYear)
+            ->where('paid_at', '<=', $samePeriodLastYear)
+            ->sum('amount');
+
+        $incomeLastYear = (float) $donationIncomeLastYear + (float) $eventRevenueLastYear;
 
         $expensesLastYear = Expense::where('branch_id', $this->branch->id)
             ->where('currency', $currencyCode)
@@ -135,6 +197,17 @@ class FinanceDashboard extends Component
             ->where('donation_date', '<=', $samePeriodLastYear)
             ->count();
 
+        $eventPaymentCountLastYear = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereYear('paid_at', $previousYear)
+            ->where('paid_at', '<=', $samePeriodLastYear)
+            ->count();
+
+        $incomeCountLastYear = $donationCountLastYear + $eventPaymentCountLastYear;
+
         // Calculate growth percentages
         $incomeGrowth = $incomeLastYear > 0
             ? round((($incomeYtd - $incomeLastYear) / $incomeLastYear) * 100, 1)
@@ -144,20 +217,22 @@ class FinanceDashboard extends Component
             ? round((($expensesYtd - $expensesLastYear) / $expensesLastYear) * 100, 1)
             : ($expensesYtd > 0 ? 100 : 0);
 
-        $donationCountGrowth = $donationCountLastYear > 0
-            ? round((($donationCountYtd - $donationCountLastYear) / $donationCountLastYear) * 100, 1)
-            : ($donationCountYtd > 0 ? 100 : 0);
+        $incomeCountGrowth = $incomeCountLastYear > 0
+            ? round((($incomeCountYtd - $incomeCountLastYear) / $incomeCountLastYear) * 100, 1)
+            : ($incomeCountYtd > 0 ? 100 : 0);
 
         return [
-            'income' => (float) $incomeYtd,
-            'income_last_year' => (float) $incomeLastYear,
+            'income' => $incomeYtd,
+            'income_last_year' => $incomeLastYear,
             'income_growth_percent' => $incomeGrowth,
             'expenses' => (float) $expensesYtd,
             'expenses_last_year' => (float) $expensesLastYear,
             'expenses_growth_percent' => $expensesGrowth,
+            'income_count' => $incomeCountYtd,
+            'income_count_last_year' => $incomeCountLastYear,
+            'income_count_growth_percent' => $incomeCountGrowth,
             'donation_count' => $donationCountYtd,
             'donation_count_last_year' => $donationCountLastYear,
-            'donation_count_growth_percent' => $donationCountGrowth,
         ];
     }
 
@@ -173,6 +248,94 @@ class FinanceDashboard extends Component
             ->first();
 
         return (float) $pledges->total - (float) $pledges->fulfilled;
+    }
+
+    // ============================================
+    // EVENT REVENUE STATISTICS
+    // ============================================
+
+    #[Computed]
+    public function eventRevenueStats(): array
+    {
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        $currencyCode = tenant()->getCurrencyCode();
+
+        // Event revenue this month
+        $eventRevenue = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->sum('amount');
+
+        $eventRevenueCount = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->count();
+
+        // Event revenue YTD
+        $eventRevenueYtd = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->where('currency', $currencyCode)
+            ->whereYear('paid_at', $currentYear)
+            ->where('paid_at', '<=', now())
+            ->sum('amount');
+
+        // Pending event payments
+        $pendingEventPayments = EventRegistration::query()
+            ->where('branch_id', $this->branch->id)
+            ->where('requires_payment', true)
+            ->where('is_paid', false)
+            ->whereHas('event', function ($query) use ($currencyCode): void {
+                $query->where('currency', $currencyCode);
+            })
+            ->sum('price_paid');
+
+        return [
+            'monthly_revenue' => (float) $eventRevenue,
+            'monthly_count' => $eventRevenueCount,
+            'ytd_revenue' => (float) $eventRevenueYtd,
+            'pending_payments' => (float) $pendingEventPayments,
+        ];
+    }
+
+    #[Computed]
+    public function eventRevenueChartData(): array
+    {
+        $labels = [];
+        $data = [];
+        $currencyCode = tenant()->getCurrencyCode();
+
+        // Last 12 months
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $labels[] = $date->format('M');
+
+            $revenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->where('currency', $currencyCode)
+                ->whereYear('paid_at', $date->year)
+                ->whereMonth('paid_at', $date->month)
+                ->sum('amount');
+
+            $data[] = (float) $revenue;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+        ];
     }
 
     // ============================================
@@ -271,23 +434,44 @@ class FinanceDashboard extends Component
             $date = now()->subMonths($i);
             $labels[] = $date->format('M');
 
-            $income = Donation::where('branch_id', $this->branch->id)
+            // Donation income
+            $donationIncome = Donation::where('branch_id', $this->branch->id)
                 ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $date->year)
                 ->whereMonth('donation_date', $date->month)
                 ->sum('amount');
 
-            $currentYearData[] = (float) $income;
+            // Event revenue
+            $eventRevenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->where('currency', $currencyCode)
+                ->whereYear('paid_at', $date->year)
+                ->whereMonth('paid_at', $date->month)
+                ->sum('amount');
+
+            $currentYearData[] = (float) $donationIncome + (float) $eventRevenue;
 
             // Same month previous year
             $prevDate = $date->copy()->subYear();
-            $prevIncome = Donation::where('branch_id', $this->branch->id)
+
+            $prevDonationIncome = Donation::where('branch_id', $this->branch->id)
                 ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $prevDate->year)
                 ->whereMonth('donation_date', $prevDate->month)
                 ->sum('amount');
 
-            $previousYearData[] = (float) $prevIncome;
+            $prevEventRevenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->where('currency', $currencyCode)
+                ->whereYear('paid_at', $prevDate->year)
+                ->whereMonth('paid_at', $prevDate->month)
+                ->sum('amount');
+
+            $previousYearData[] = (float) $prevDonationIncome + (float) $prevEventRevenue;
         }
 
         return [
@@ -358,10 +542,21 @@ class FinanceDashboard extends Component
             $date = now()->subMonths($i);
             $labels[] = $date->format('M Y');
 
-            $income = Donation::where('branch_id', $this->branch->id)
+            // Donation income
+            $donationIncome = Donation::where('branch_id', $this->branch->id)
                 ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $date->year)
                 ->whereMonth('donation_date', $date->month)
+                ->sum('amount');
+
+            // Event revenue
+            $eventRevenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->where('currency', $currencyCode)
+                ->whereYear('paid_at', $date->year)
+                ->whereMonth('paid_at', $date->month)
                 ->sum('amount');
 
             $expenses = Expense::where('branch_id', $this->branch->id)
@@ -371,7 +566,7 @@ class FinanceDashboard extends Component
                 ->whereMonth('expense_date', $date->month)
                 ->sum('amount');
 
-            $incomeData[] = (float) $income;
+            $incomeData[] = (float) $donationIncome + (float) $eventRevenue;
             $expenseData[] = (float) $expenses;
         }
 
@@ -383,7 +578,7 @@ class FinanceDashboard extends Component
     }
 
     #[Computed]
-    public function donationGrowthChartData(): array
+    public function incomeGrowthChartData(): array
     {
         $labels = [];
         $data = [];
@@ -395,13 +590,24 @@ class FinanceDashboard extends Component
             $date = now()->subMonths($i);
             $labels[] = $date->format('M');
 
-            $income = Donation::where('branch_id', $this->branch->id)
+            // Donation income
+            $donationIncome = Donation::where('branch_id', $this->branch->id)
                 ->where('currency', $currencyCode)
                 ->whereYear('donation_date', $date->year)
                 ->whereMonth('donation_date', $date->month)
                 ->sum('amount');
 
-            $cumulative += (float) $income;
+            // Event revenue
+            $eventRevenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->where('currency', $currencyCode)
+                ->whereYear('paid_at', $date->year)
+                ->whereMonth('paid_at', $date->month)
+                ->sum('amount');
+
+            $cumulative += (float) $donationIncome + (float) $eventRevenue;
             $data[] = $cumulative;
         }
 

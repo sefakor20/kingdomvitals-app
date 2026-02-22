@@ -86,6 +86,7 @@ class SmsTemplateIndex extends Component
         if ($this->isFilterActive($this->typeFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->statusFilter);
     }
 

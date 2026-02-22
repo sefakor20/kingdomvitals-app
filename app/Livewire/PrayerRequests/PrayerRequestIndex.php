@@ -250,6 +250,7 @@ class PrayerRequestIndex extends Component
         if ($this->isFilterActive($this->clusterFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->urgencyFilter);
     }
 

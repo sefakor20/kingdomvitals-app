@@ -245,6 +245,7 @@ class PledgeIndex extends Component
         if ($this->isFilterActive($this->memberFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->campaignFilter);
     }
 

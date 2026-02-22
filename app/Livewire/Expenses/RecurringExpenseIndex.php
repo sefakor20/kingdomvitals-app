@@ -165,6 +165,7 @@ class RecurringExpenseIndex extends Component
         if ($this->isFilterActive($this->categoryFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->statusFilter);
     }
 

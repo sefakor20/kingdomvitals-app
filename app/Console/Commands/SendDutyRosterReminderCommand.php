@@ -164,10 +164,10 @@ class SendDutyRosterReminderCommand extends Command
         }
 
         foreach ($roster->scriptures as $scripture) {
-            if (!$scripture->reader_id) {
+            if (! $scripture->reader_id) {
                 continue;
             }
-            if (!$scripture->reader) {
+            if (! $scripture->reader) {
                 continue;
             }
             // Avoid duplicates if someone is both liturgist and reader

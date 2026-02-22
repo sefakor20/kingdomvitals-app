@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
+use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
 use Illuminate\Http\JsonResponse;
@@ -96,6 +97,22 @@ class PaystackWebhookController extends Controller
             (string) ($paystackData['id'] ?? ''),
             $paystackData['channel'] ?? null
         );
+
+        // Handle event registration payment
+        if ($transaction->event_registration_id) {
+            $registration = EventRegistration::find($transaction->event_registration_id);
+            if ($registration && ! $registration->is_paid) {
+                $registration->markAsPaid($transaction);
+
+                Log::info('Paystack webhook: Event registration payment processed', [
+                    'reference' => $transaction->paystack_reference,
+                    'registration_id' => $registration->id,
+                    'event_id' => $registration->event_id,
+                ]);
+            }
+
+            return response()->json(['status' => 'success']);
+        }
 
         // Create donation if not exists
         if (! $transaction->donation_id) {

@@ -145,6 +145,7 @@ class CampaignIndex extends Component
         if ($this->isFilterActive($this->statusFilter)) {
             return true;
         }
+
         return $this->isFilterActive($this->categoryFilter);
     }
 
