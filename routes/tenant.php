@@ -79,6 +79,9 @@ Route::middleware(['web'])->group(function (): void {
         ->name('events.public.details');
     Route::get('/events/{branch}/{event}/register', \App\Livewire\Events\Public\PublicEventRegistration::class)
         ->name('events.public.register');
+    Route::get('/events/{branch}/{event}/ticket/{registration}', [\App\Http\Controllers\EventTicketController::class, 'download'])
+        ->name('events.public.ticket.download')
+        ->middleware('signed');
 
     // Paystack webhook (no auth, no CSRF)
     Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])

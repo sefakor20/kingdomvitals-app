@@ -32,7 +32,13 @@
 </x-mail::panel>
 @endif
 
-<x-mail::button :url="route('events.public.details', [$branch, $event])">
+@if($registration->ticket_number)
+<x-mail::button :url="URL::signedRoute('events.public.ticket.download', [$branch, $event, $registration])">
+{{ __('Download Ticket PDF') }}
+</x-mail::button>
+@endif
+
+<x-mail::button :url="route('events.public.details', [$branch, $event])" color="success">
 {{ __('View Event Details') }}
 </x-mail::button>
 

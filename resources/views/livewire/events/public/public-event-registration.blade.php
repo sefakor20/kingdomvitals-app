@@ -71,6 +71,13 @@
                     </flux:text>
 
                     <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                        @if ($registration?->ticket_number)
+                            <a href="{{ URL::signedRoute('events.public.ticket.download', [$branch, $event, $registration]) }}">
+                                <flux:button variant="primary" icon="arrow-down-tray">
+                                    {{ __('Download Ticket') }}
+                                </flux:button>
+                            </a>
+                        @endif
                         <a href="{{ route('events.public.details', [$branch, $event]) }}" wire:navigate>
                             <flux:button variant="ghost">
                                 {{ __('Back to Event') }}
