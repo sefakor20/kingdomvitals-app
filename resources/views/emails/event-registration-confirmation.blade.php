@@ -22,9 +22,13 @@
 <x-mail::panel>
 **{{ __('Your Ticket') }}**
 
+<div style="text-align: center; margin: 16px 0;">
+{!! app(\App\Services\QrCodeService::class)->generateEventTicketQrCode($registration, 150) !!}
+</div>
+
 **{{ $registration->ticket_number }}**
 
-{{ __('Please present this ticket number at check-in.') }}
+{{ __('Show this QR code at check-in.') }}
 </x-mail::panel>
 @endif
 

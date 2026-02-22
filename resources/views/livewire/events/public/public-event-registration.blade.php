@@ -53,10 +53,16 @@
 
                     @if ($registration?->ticket_number)
                         <div class="mb-6 rounded-lg bg-zinc-100 p-4 dark:bg-zinc-700">
-                            <flux:text class="text-sm text-zinc-500">{{ __('Your Ticket Number') }}</flux:text>
-                            <flux:heading size="md" class="mt-1 font-mono">
+                            <flux:text class="text-sm text-zinc-500">{{ __('Your Ticket') }}</flux:text>
+                            <div class="my-3 flex justify-center">
+                                {!! app(\App\Services\QrCodeService::class)->generateEventTicketQrCode($registration, 150) !!}
+                            </div>
+                            <flux:heading size="md" class="font-mono">
                                 {{ $registration->ticket_number }}
                             </flux:heading>
+                            <flux:text class="mt-2 text-xs text-zinc-400">
+                                {{ __('Show this QR code at check-in') }}
+                            </flux:text>
                         </div>
                     @endif
 
