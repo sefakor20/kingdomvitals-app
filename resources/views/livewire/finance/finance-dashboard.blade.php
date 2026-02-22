@@ -26,7 +26,7 @@
                 <flux:heading size="xl" class="mt-2 text-green-600 dark:text-green-400">
                     {{ $this->currency->symbol() }}{{ number_format($this->monthlyStats['income'], 2) }}
                 </flux:heading>
-                <flux:text class="text-xs text-zinc-500">{{ $this->monthlyStats['income_count'] }} {{ __('donations') }}</flux:text>
+                <flux:text class="text-xs text-zinc-500">{{ $this->monthlyStats['donation_count'] }} {{ __('donations') }} + {{ $this->monthlyStats['event_payment_count'] }} {{ __('events') }}</flux:text>
             </div>
 
             {{-- Monthly Expenses --}}
@@ -176,15 +176,15 @@
                 </div>
             </div>
 
-            {{-- YoY Donation Count --}}
+            {{-- YoY Income Count --}}
             <div>
-                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Donation Count Change') }}</flux:text>
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Income Count Change') }}</flux:text>
                 <div class="mt-2 flex items-baseline gap-2">
-                    <flux:heading size="xl" class="{{ $this->yearToDateStats['donation_count_growth_percent'] >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                        {{ $this->yearToDateStats['donation_count_growth_percent'] >= 0 ? '+' : '' }}{{ $this->yearToDateStats['donation_count_growth_percent'] }}%
+                    <flux:heading size="xl" class="{{ $this->yearToDateStats['income_count_growth_percent'] >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                        {{ $this->yearToDateStats['income_count_growth_percent'] >= 0 ? '+' : '' }}{{ $this->yearToDateStats['income_count_growth_percent'] }}%
                     </flux:heading>
                     <flux:text class="text-sm text-zinc-500">
-                        ({{ $this->yearToDateStats['donation_count_last_year'] }} {{ __('last year') }})
+                        ({{ $this->yearToDateStats['income_count_last_year'] }} {{ __('last year') }})
                     </flux:text>
                 </div>
             </div>
@@ -284,11 +284,11 @@
             </div>
         </div>
 
-        {{-- Donation Growth Chart --}}
+        {{-- Income Growth Chart --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:heading size="lg" class="mb-4">{{ __('Cumulative Donation Growth') }}</flux:heading>
+            <flux:heading size="lg" class="mb-4">{{ __('Cumulative Income Growth') }}</flux:heading>
             <div
-                x-data="donationGrowthChart(@js($this->donationGrowthChartData), @js($this->currency->symbol()))"
+                x-data="donationGrowthChart(@js($this->incomeGrowthChartData), @js($this->currency->symbol()))"
                 x-init="initChart()"
                 class="h-64"
                 wire:ignore

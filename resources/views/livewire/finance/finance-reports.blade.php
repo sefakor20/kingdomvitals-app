@@ -65,7 +65,7 @@
             <flux:heading size="xl" class="mt-2 text-green-600 dark:text-green-400">
                 {{ $this->currency->symbol() }}{{ number_format($this->summaryStats['total_income'], 2) }}
             </flux:heading>
-            <flux:text class="text-xs text-zinc-500">{{ $this->summaryStats['donation_count'] }} {{ __('donations') }}</flux:text>
+            <flux:text class="text-xs text-zinc-500">{{ $this->summaryStats['donation_count'] }} {{ __('donations') }} + {{ $this->summaryStats['event_payment_count'] }} {{ __('events') }}</flux:text>
         </div>
 
         <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">

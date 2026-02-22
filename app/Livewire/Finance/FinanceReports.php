@@ -115,9 +115,20 @@ class FinanceReports extends Component
     #[Computed]
     public function summaryStats(): array
     {
-        $totalIncome = Donation::where('branch_id', $this->branch->id)
+        // Donation income
+        $donationIncome = Donation::where('branch_id', $this->branch->id)
             ->whereBetween('donation_date', [$this->startDate, $this->endDate])
             ->sum('amount');
+
+        // Event revenue
+        $eventRevenue = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+            ->sum('amount');
+
+        $totalIncome = (float) $donationIncome + (float) $eventRevenue;
 
         $totalExpenses = Expense::where('branch_id', $this->branch->id)
             ->where('status', ExpenseStatus::Paid)
@@ -132,16 +143,27 @@ class FinanceReports extends Component
         $totalPledged = (float) $pledgeStats->total;
         $totalFulfilled = (float) $pledgeStats->fulfilled;
 
+        $donationCount = Donation::where('branch_id', $this->branch->id)
+            ->whereBetween('donation_date', [$this->startDate, $this->endDate])
+            ->count();
+
+        $eventPaymentCount = PaymentTransaction::query()
+            ->where('branch_id', $this->branch->id)
+            ->whereNotNull('event_registration_id')
+            ->where('status', PaymentTransactionStatus::Success)
+            ->whereBetween('paid_at', [$this->startDate, $this->endDate])
+            ->count();
+
         return [
-            'total_income' => (float) $totalIncome,
+            'total_income' => $totalIncome,
             'total_expenses' => (float) $totalExpenses,
-            'net_position' => (float) $totalIncome - (float) $totalExpenses,
+            'net_position' => $totalIncome - (float) $totalExpenses,
             'pledge_fulfillment' => $totalPledged > 0
                 ? round(($totalFulfilled / $totalPledged) * 100, 1)
                 : 0,
-            'donation_count' => Donation::where('branch_id', $this->branch->id)
-                ->whereBetween('donation_date', [$this->startDate, $this->endDate])
-                ->count(),
+            'income_count' => $donationCount + $eventPaymentCount,
+            'donation_count' => $donationCount,
+            'event_payment_count' => $eventPaymentCount,
             'expense_count' => Expense::where('branch_id', $this->branch->id)
                 ->whereBetween('expense_date', [$this->startDate, $this->endDate])
                 ->count(),
@@ -167,9 +189,19 @@ class FinanceReports extends Component
         foreach ($months as $month) {
             $labels[] = $month->format('M Y');
 
-            $income = Donation::where('branch_id', $this->branch->id)
+            // Donation income
+            $donationIncome = Donation::where('branch_id', $this->branch->id)
                 ->whereYear('donation_date', $month->year)
                 ->whereMonth('donation_date', $month->month)
+                ->sum('amount');
+
+            // Event revenue
+            $eventRevenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->whereYear('paid_at', $month->year)
+                ->whereMonth('paid_at', $month->month)
                 ->sum('amount');
 
             $expenses = Expense::where('branch_id', $this->branch->id)
@@ -178,7 +210,7 @@ class FinanceReports extends Component
                 ->whereMonth('expense_date', $month->month)
                 ->sum('amount');
 
-            $incomeData[] = (float) $income;
+            $incomeData[] = (float) $donationIncome + (float) $eventRevenue;
             $expenseData[] = (float) $expenses;
         }
 
@@ -430,10 +462,22 @@ class FinanceReports extends Component
         foreach ($months as $month) {
             $labels[] = $month->format('M Y');
 
-            $income = Donation::where('branch_id', $this->branch->id)
+            // Donation income
+            $donationIncome = Donation::where('branch_id', $this->branch->id)
                 ->whereYear('donation_date', $month->year)
                 ->whereMonth('donation_date', $month->month)
                 ->sum('amount');
+
+            // Event revenue
+            $eventRevenue = PaymentTransaction::query()
+                ->where('branch_id', $this->branch->id)
+                ->whereNotNull('event_registration_id')
+                ->where('status', PaymentTransactionStatus::Success)
+                ->whereYear('paid_at', $month->year)
+                ->whereMonth('paid_at', $month->month)
+                ->sum('amount');
+
+            $totalIncome = (float) $donationIncome + (float) $eventRevenue;
 
             $expenses = Expense::where('branch_id', $this->branch->id)
                 ->where('status', ExpenseStatus::Paid)
@@ -441,7 +485,7 @@ class FinanceReports extends Component
                 ->whereMonth('expense_date', $month->month)
                 ->sum('amount');
 
-            $netData[] = (float) $income - (float) $expenses;
+            $netData[] = $totalIncome - (float) $expenses;
         }
 
         return [
