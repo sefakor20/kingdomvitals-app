@@ -203,43 +203,53 @@ class PublicEventRegistration extends Component
             ->first();
 
         if ($existingRegistration) {
-            $this->errorMessage = __('You are already registered for this event.');
+            // If already paid, block registration
+            if ($existingRegistration->is_paid) {
+                $this->errorMessage = __('You are already registered for this event.');
 
-            return;
-        }
+                return;
+            }
 
-        // Check capacity again
-        if ($this->event->is_full) {
-            $this->errorMessage = __('Sorry, this event is now fully booked.');
-
-            return;
-        }
-
-        // Try to link to existing member
-        $member = Member::query()
-            ->where('email', $this->email)
-            ->where('primary_branch_id', $this->branch->id)
-            ->first();
-
-        // Create pending registration
-        try {
-            $this->registration = EventRegistration::create([
-                'event_id' => $this->event->id,
-                'branch_id' => $this->branch->id,
-                'member_id' => $member?->id,
+            // If payment pending, reuse the existing registration for retry
+            $this->registration = $existingRegistration;
+            $this->registration->update([
                 'guest_name' => $this->name,
-                'guest_email' => $this->email,
                 'guest_phone' => $this->phone ?: null,
-                'status' => RegistrationStatus::Registered,
-                'registered_at' => now(),
-                'requires_payment' => true,
-                'price_paid' => $this->event->price,
-                'is_paid' => false,
             ]);
-        } catch (UniqueConstraintViolationException) {
-            $this->errorMessage = __('You are already registered for this event.');
+        } else {
+            // Check capacity for new registrations
+            if ($this->event->is_full) {
+                $this->errorMessage = __('Sorry, this event is now fully booked.');
 
-            return;
+                return;
+            }
+
+            // Try to link to existing member
+            $member = Member::query()
+                ->where('email', $this->email)
+                ->where('primary_branch_id', $this->branch->id)
+                ->first();
+
+            // Create pending registration
+            try {
+                $this->registration = EventRegistration::create([
+                    'event_id' => $this->event->id,
+                    'branch_id' => $this->branch->id,
+                    'member_id' => $member?->id,
+                    'guest_name' => $this->name,
+                    'guest_email' => $this->email,
+                    'guest_phone' => $this->phone ?: null,
+                    'status' => RegistrationStatus::Registered,
+                    'registered_at' => now(),
+                    'requires_payment' => true,
+                    'price_paid' => $this->event->price,
+                    'is_paid' => false,
+                ]);
+            } catch (UniqueConstraintViolationException) {
+                $this->errorMessage = __('You are already registered for this event.');
+
+                return;
+            }
         }
 
         // Create payment transaction

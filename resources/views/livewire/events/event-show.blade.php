@@ -246,7 +246,7 @@
                                                         {{ __('Check Out') }}
                                                     </flux:menu.item>
                                                 @endif
-                                                @if($registration->status !== \App\Enums\RegistrationStatus::Cancelled)
+                                                @if($registration->status === \App\Enums\RegistrationStatus::Registered)
                                                     <flux:menu.separator />
                                                     <flux:menu.item wire:click="confirmCancel('{{ $registration->id }}')" icon="x-mark" variant="danger">
                                                         {{ __('Cancel Registration') }}
