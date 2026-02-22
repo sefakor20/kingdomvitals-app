@@ -7,9 +7,11 @@ namespace App\Livewire\Events;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Enums\EventVisibility;
+use App\Enums\RecurrencePattern;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Event;
+use App\Services\EventRecurrenceService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
@@ -79,6 +81,17 @@ class EventIndex extends Component
     public string $visibility = 'public';
 
     public string $status = 'draft';
+
+    // Recurrence properties
+    public bool $is_recurring = false;
+
+    public string $recurrence_pattern = '';
+
+    public string $recurrence_ends_at = '';
+
+    public ?int $recurrence_count = null;
+
+    public bool $showUpdateFutureModal = false;
 
     public ?Event $editingEvent = null;
 
@@ -159,6 +172,15 @@ class EventIndex extends Component
         return EventVisibility::cases();
     }
 
+    /**
+     * @return array<RecurrencePattern>
+     */
+    #[Computed]
+    public function recurrencePatterns(): array
+    {
+        return RecurrencePattern::cases();
+    }
+
     #[Computed]
     public function canCreate(): bool
     {
@@ -194,6 +216,11 @@ class EventIndex extends Component
             'price' => ['nullable', 'required_if:is_paid,true', 'numeric', 'min:0'],
             'visibility' => ['required', Rule::enum(EventVisibility::class)],
             'status' => ['required', Rule::enum(EventStatus::class)],
+            // Recurrence rules
+            'is_recurring' => ['boolean'],
+            'recurrence_pattern' => ['required_if:is_recurring,true', 'nullable', Rule::enum(RecurrencePattern::class)],
+            'recurrence_ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'recurrence_count' => ['nullable', 'integer', 'min:2', 'max:52'],
         ];
     }
 
@@ -221,13 +248,29 @@ class EventIndex extends Component
         $validated['is_public'] = $validated['visibility'] === EventVisibility::Public->value;
 
         // Convert empty values to null
-        foreach (['capacity', 'ends_at', 'registration_opens_at', 'registration_closes_at', 'price'] as $field) {
+        foreach (['capacity', 'ends_at', 'registration_opens_at', 'registration_closes_at', 'price', 'recurrence_ends_at', 'recurrence_count'] as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {
                 $validated[$field] = null;
             }
         }
 
-        Event::create($validated);
+        // Handle recurrence fields
+        if (! $this->is_recurring) {
+            $validated['recurrence_pattern'] = null;
+            $validated['recurrence_ends_at'] = null;
+            $validated['recurrence_count'] = null;
+        }
+
+        // Remove is_recurring from validated data (not a DB field)
+        unset($validated['is_recurring']);
+
+        $event = Event::create($validated);
+
+        // Generate recurring event occurrences
+        if ($event->isRecurring()) {
+            $recurrenceService = app(EventRecurrenceService::class);
+            $recurrenceService->generateOccurrences($event);
+        }
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -256,6 +299,11 @@ class EventIndex extends Component
             'price' => $event->price ? (float) $event->price : null,
             'visibility' => $event->visibility->value,
             'status' => $event->status->value,
+            // Recurrence fields
+            'is_recurring' => $event->isRecurring(),
+            'recurrence_pattern' => $event->recurrence_pattern?->value ?? '',
+            'recurrence_ends_at' => $event->recurrence_ends_at?->format('Y-m-d') ?? '',
+            'recurrence_count' => $event->recurrence_count,
         ]);
         $this->showEditModal = true;
     }
@@ -268,13 +316,40 @@ class EventIndex extends Component
         $validated['is_public'] = $validated['visibility'] === EventVisibility::Public->value;
 
         // Convert empty values to null
-        foreach (['capacity', 'ends_at', 'registration_opens_at', 'registration_closes_at', 'price'] as $field) {
+        foreach (['capacity', 'ends_at', 'registration_opens_at', 'registration_closes_at', 'price', 'recurrence_ends_at', 'recurrence_count'] as $field) {
             if (isset($validated[$field]) && $validated[$field] === '') {
                 $validated[$field] = null;
             }
         }
 
+        // Handle recurrence fields
+        if (! $this->is_recurring) {
+            $validated['recurrence_pattern'] = null;
+            $validated['recurrence_ends_at'] = null;
+            $validated['recurrence_count'] = null;
+        }
+
+        // Remove is_recurring from validated data (not a DB field)
+        unset($validated['is_recurring']);
+
+        $wasRecurring = $this->editingEvent->isRecurring();
         $this->editingEvent->update($validated);
+
+        // Update future occurrences if this is a recurring event
+        if ($this->editingEvent->isRecurring()) {
+            $recurrenceService = app(EventRecurrenceService::class);
+            $recurrenceService->updateFutureOccurrences($this->editingEvent);
+
+            // Generate any missing occurrences
+            $recurrenceService->generateOccurrences($this->editingEvent);
+
+            // Clean up orphaned occurrences
+            $recurrenceService->deleteOrphanedOccurrences($this->editingEvent);
+        } elseif ($wasRecurring) {
+            // Recurrence was disabled - cancel future occurrences
+            $recurrenceService = app(EventRecurrenceService::class);
+            $recurrenceService->cancelFutureOccurrences($this->editingEvent);
+        }
 
         $this->showEditModal = false;
         $this->editingEvent = null;
@@ -323,10 +398,11 @@ class EventIndex extends Component
             'name', 'description', 'event_type', 'category',
             'starts_at', 'ends_at', 'location', 'address', 'city',
             'capacity', 'registration_opens_at', 'registration_closes_at',
-            'price',
+            'price', 'recurrence_pattern', 'recurrence_ends_at', 'recurrence_count',
         ]);
         $this->allow_registration = true;
         $this->is_paid = false;
+        $this->is_recurring = false;
         $this->visibility = 'public';
         $this->status = 'draft';
         $this->resetValidation();

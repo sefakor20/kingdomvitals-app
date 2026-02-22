@@ -74,9 +74,20 @@
                 <div wire:key="event-{{ $event->id }}" class="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white transition-shadow hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
                     {{-- Event Header with Status --}}
                     <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                        <flux:badge size="sm" :color="$event->event_type->color()">
-                            {{ $event->event_type->label() }}
-                        </flux:badge>
+                        <div class="flex items-center gap-2">
+                            <flux:badge size="sm" :color="$event->event_type->color()">
+                                {{ $event->event_type->label() }}
+                            </flux:badge>
+                            @if($event->isRecurring())
+                                <flux:badge size="sm" color="purple" icon="arrow-path">
+                                    {{ __('Recurring') }}
+                                </flux:badge>
+                            @elseif($event->isOccurrence())
+                                <flux:badge size="sm" color="sky" icon="arrow-path">
+                                    {{ __('Series') }}
+                                </flux:badge>
+                            @endif
+                        </div>
                         <flux:badge size="sm" :color="$event->status->color()">
                             {{ $event->status->label() }}
                         </flux:badge>
@@ -231,6 +242,33 @@
                     @endif
                 </div>
 
+                <div class="space-y-3 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
+                    <flux:heading size="sm">{{ __('Recurrence') }}</flux:heading>
+
+                    <div class="flex items-center gap-2">
+                        <flux:switch wire:model.live="is_recurring" />
+                        <flux:text>{{ __('This is a recurring event') }}</flux:text>
+                    </div>
+
+                    @if($is_recurring)
+                        <flux:select wire:model="recurrence_pattern" :label="__('Repeat')" required>
+                            <option value="">{{ __('Select pattern...') }}</option>
+                            @foreach($this->recurrencePatterns as $pattern)
+                                <option value="{{ $pattern->value }}">{{ $pattern->label() }}</option>
+                            @endforeach
+                        </flux:select>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="recurrence_ends_at" type="date" :label="__('End Date')" :description="__('Leave empty for no end date')" />
+                            <flux:input wire:model="recurrence_count" type="number" min="2" max="52" :label="__('Or after # occurrences')" placeholder="e.g., 12" />
+                        </div>
+
+                        <flux:text size="sm" class="text-zinc-500">
+                            {{ __('Occurrences will be generated for the next 3 months automatically.') }}
+                        </flux:text>
+                    @endif
+                </div>
+
                 <flux:select wire:model="status" :label="__('Status')" required>
                     @foreach($this->eventStatuses as $status)
                         <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
@@ -316,6 +354,41 @@
                         <flux:input wire:model="price" type="number" step="0.01" min="0" :label="__('Price (GHS)')" />
                     @endif
                 </div>
+
+                @if(!$editingEvent?->isOccurrence())
+                <div class="space-y-3 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
+                    <flux:heading size="sm">{{ __('Recurrence') }}</flux:heading>
+
+                    <div class="flex items-center gap-2">
+                        <flux:switch wire:model.live="is_recurring" />
+                        <flux:text>{{ __('This is a recurring event') }}</flux:text>
+                    </div>
+
+                    @if($is_recurring)
+                        <flux:select wire:model="recurrence_pattern" :label="__('Repeat')" required>
+                            <option value="">{{ __('Select pattern...') }}</option>
+                            @foreach($this->recurrencePatterns as $pattern)
+                                <option value="{{ $pattern->value }}">{{ $pattern->label() }}</option>
+                            @endforeach
+                        </flux:select>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="recurrence_ends_at" type="date" :label="__('End Date')" :description="__('Leave empty for no end date')" />
+                            <flux:input wire:model="recurrence_count" type="number" min="2" max="52" :label="__('Or after # occurrences')" placeholder="e.g., 12" />
+                        </div>
+
+                        <flux:text size="sm" class="text-zinc-500">
+                            {{ __('Changes will be applied to all future occurrences.') }}
+                        </flux:text>
+                    @endif
+                </div>
+                @else
+                <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+                    <flux:text size="sm" class="text-blue-700 dark:text-blue-300">
+                        {{ __('This is an occurrence of a recurring event. To change recurrence settings, edit the parent event.') }}
+                    </flux:text>
+                </div>
+                @endif
 
                 <flux:select wire:model="status" :label="__('Status')" required>
                     @foreach($this->eventStatuses as $status)
