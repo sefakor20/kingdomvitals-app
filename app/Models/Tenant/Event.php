@@ -7,6 +7,7 @@ namespace App\Models\Tenant;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Enums\EventVisibility;
+use App\Enums\RecurrencePattern;
 use App\Enums\SubjectType;
 use App\Models\Concerns\HasActivityLogging;
 use App\Observers\EventObserver;
@@ -56,6 +57,12 @@ class Event extends Model
         'visibility',
         'notes',
         'reminder_sent_at',
+        // Recurrence fields
+        'recurrence_pattern',
+        'recurrence_ends_at',
+        'recurrence_count',
+        'parent_event_id',
+        'occurrence_index',
     ];
 
     protected function casts(): array
@@ -64,10 +71,12 @@ class Event extends Model
             'event_type' => EventType::class,
             'status' => EventStatus::class,
             'visibility' => EventVisibility::class,
+            'recurrence_pattern' => RecurrencePattern::class,
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'registration_opens_at' => 'datetime',
             'registration_closes_at' => 'datetime',
+            'recurrence_ends_at' => 'date',
             'capacity' => 'integer',
             'allow_registration' => 'boolean',
             'is_paid' => 'boolean',
@@ -75,6 +84,7 @@ class Event extends Model
             'requires_ticket' => 'boolean',
             'is_public' => 'boolean',
             'reminder_sent_at' => 'datetime',
+            'occurrence_index' => 'integer',
         ];
     }
 
@@ -95,6 +105,22 @@ class Event extends Model
     public function registrations(): HasMany
     {
         return $this->hasMany(EventRegistration::class);
+    }
+
+    /**
+     * Get the parent event (for recurring event occurrences).
+     */
+    public function parentEvent(): BelongsTo
+    {
+        return $this->belongsTo(Event::class, 'parent_event_id');
+    }
+
+    /**
+     * Get all occurrences of this recurring event.
+     */
+    public function occurrences(): HasMany
+    {
+        return $this->hasMany(Event::class, 'parent_event_id')->orderBy('starts_at');
     }
 
     // ==========================================
@@ -161,6 +187,40 @@ class Event extends Model
     {
         return $query->where('is_public', true)
             ->where('visibility', EventVisibility::Public);
+    }
+
+    /**
+     * Only parent/template events (have recurrence pattern, no parent).
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    public function scopeRecurringParents(Builder $query): Builder
+    {
+        return $query->whereNotNull('recurrence_pattern')
+            ->whereNull('parent_event_id');
+    }
+
+    /**
+     * Only occurrence events (have a parent).
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    public function scopeOccurrences(Builder $query): Builder
+    {
+        return $query->whereNotNull('parent_event_id');
+    }
+
+    /**
+     * Exclude occurrence events (only show standalone and parent events).
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    public function scopeExcludeOccurrences(Builder $query): Builder
+    {
+        return $query->whereNull('parent_event_id');
     }
 
     // ==========================================
@@ -276,6 +336,53 @@ class Event extends Model
         }
 
         return true;
+    }
+
+    // ==========================================
+    // RECURRENCE METHODS
+    // ==========================================
+
+    /**
+     * Check if this event is a recurring event (has a pattern defined).
+     */
+    public function isRecurring(): bool
+    {
+        return $this->recurrence_pattern !== null && $this->parent_event_id === null;
+    }
+
+    /**
+     * Check if this event is an occurrence of a recurring event.
+     */
+    public function isOccurrence(): bool
+    {
+        return $this->parent_event_id !== null;
+    }
+
+    /**
+     * Get all events in this series (including parent and all occurrences).
+     *
+     * @return \Illuminate\Support\Collection<int, Event>
+     */
+    public function getSeriesEvents(): \Illuminate\Support\Collection
+    {
+        if ($this->isOccurrence()) {
+            // Get from parent
+            return $this->parentEvent->getSeriesEvents();
+        }
+
+        if ($this->isRecurring()) {
+            return collect([$this])->merge($this->occurrences);
+        }
+
+        return collect([$this]);
+    }
+
+    /**
+     * Get the parent event for this series.
+     */
+    public function getSeriesParent(): Event
+    {
+        return $this->isOccurrence() ? $this->parentEvent : $this;
     }
 
     // ==========================================

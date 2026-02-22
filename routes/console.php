@@ -51,6 +51,11 @@ Schedule::command('events:send-reminders')
     ->hourly()
     ->withoutOverlapping();
 
+// Generate recurring event occurrences daily at 2 AM
+Schedule::command('events:generate-recurring --months=3')
+    ->dailyAt('02:00')
+    ->withoutOverlapping();
+
 // Check budget thresholds hourly and send alerts
 Schedule::command('budgets:check-thresholds')
     ->hourly()
