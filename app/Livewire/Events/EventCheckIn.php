@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
@@ -25,6 +26,12 @@ class EventCheckIn extends Component
     public string $search = '';
 
     public string $statusFilter = '';
+
+    public string $activeTab = 'search';
+
+    public bool $isScanning = false;
+
+    public ?string $qrError = null;
 
     public function mount(Branch $branch, Event $event): void
     {
@@ -115,6 +122,56 @@ class EventCheckIn extends Component
         ]);
 
         $this->dispatch('check-in-undone');
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+        $this->qrError = null;
+
+        if ($tab !== 'qr') {
+            $this->isScanning = false;
+        }
+    }
+
+    public function startScanning(): void
+    {
+        $this->isScanning = true;
+        $this->qrError = null;
+    }
+
+    public function stopScanning(): void
+    {
+        $this->isScanning = false;
+    }
+
+    #[On('qr-scanned')]
+    public function checkInByQr(string $code): void
+    {
+        $this->authorize('checkIn', $this->event);
+        $this->qrError = null;
+
+        $registration = $this->event->registrations()
+            ->where('ticket_number', $code)
+            ->first();
+
+        if (! $registration) {
+            $this->qrError = __('Ticket not found: :code', ['code' => $code]);
+            $this->dispatch('qr-error');
+
+            return;
+        }
+
+        if ($registration->status !== RegistrationStatus::Registered) {
+            $this->qrError = __(':name is already checked in.', ['name' => $registration->attendee_name]);
+            $this->dispatch('already-checked-in');
+
+            return;
+        }
+
+        $registration->markAsAttended(CheckInMethod::Qr);
+        $this->stopScanning();
+        $this->dispatch('checked-in', name: $registration->attendee_name);
     }
 
     public function render(): View
