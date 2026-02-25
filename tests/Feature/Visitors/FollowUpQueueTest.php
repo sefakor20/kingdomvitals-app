@@ -13,7 +13,6 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Models\User;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use Tests\TenantTestCase;
@@ -119,8 +118,9 @@ test('user without branch access cannot view follow-up queue', function (): void
 
     $this->actingAs($otherUser);
 
-    Livewire::test(FollowUpQueue::class, ['branch' => $this->branch]);
-})->throws(AuthorizationException::class);
+    Livewire::test(FollowUpQueue::class, ['branch' => $this->branch])
+        ->assertForbidden();
+});
 
 // ============================================
 // STATS CALCULATION TESTS
@@ -442,8 +442,9 @@ test('volunteer cannot complete follow-up', function (): void {
     $this->actingAs($volunteer);
 
     Livewire::test(FollowUpQueue::class, ['branch' => $this->branch])
-        ->call('openCompleteModal', $followUp);
-})->throws(AuthorizationException::class);
+        ->call('openCompleteModal', $followUp)
+        ->assertForbidden();
+});
 
 // ============================================
 // RESCHEDULE TESTS

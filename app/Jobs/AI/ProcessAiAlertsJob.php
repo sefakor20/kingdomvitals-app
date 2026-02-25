@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\AI;
 
 use App\Enums\AiAlertType;
+use App\Enums\BranchRole;
 use App\Models\Tenant\AiAlert;
 use App\Models\Tenant\Branch;
 use App\Notifications\AI\AiAlertNotification;
@@ -109,10 +110,12 @@ class ProcessAiAlertsJob implements ShouldQueue
      */
     protected function sendAlertNotifications(Branch $branch, Collection $alerts): void
     {
-        // Get branch admins/pastors to notify
-        $notifiables = $branch->users()
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['pastor', 'admin']))
-            ->get();
+        // Get branch admins/managers to notify
+        $notifiables = $branch->userAccess()
+            ->whereIn('role', [BranchRole::Admin, BranchRole::Manager])
+            ->with('user')
+            ->get()
+            ->pluck('user');
 
         if ($notifiables->isEmpty()) {
             Log::info('ProcessAiAlertsJob: No notifiable users found', [

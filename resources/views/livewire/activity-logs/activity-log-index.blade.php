@@ -128,9 +128,9 @@
                                 @foreach($log->changed_fields as $field)
                                     <div class="flex flex-wrap items-center gap-1">
                                         <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $field)) }}:</span>
-                                        <span class="line-through">{{ $log->old_values[$field] ?? '-' }}</span>
+                                        <span class="line-through">{{ is_array($log->old_values[$field] ?? null) ? json_encode($log->old_values[$field]) : ($log->old_values[$field] ?? '-') }}</span>
                                         <flux:icon.arrow-right class="size-3" />
-                                        <span>{{ $log->new_values[$field] ?? '-' }}</span>
+                                        <span>{{ is_array($log->new_values[$field] ?? null) ? json_encode($log->new_values[$field]) : ($log->new_values[$field] ?? '-') }}</span>
                                     </div>
                                 @endforeach
                             </div>

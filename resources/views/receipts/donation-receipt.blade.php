@@ -150,7 +150,7 @@
         @endif
         <tr class="amount-row">
             <td class="label">{{ __('Amount') }}</td>
-            <td class="amount-value">{{ \App\Services\CurrencyFormatter::formatWithCode($donation->amount, $donation->currency) }}</td>
+            <td class="amount-value">{{ app(\App\Services\CurrencyFormatter::class)->formatWithCode($donation->amount, $donation->currency) }}</td>
         </tr>
     </table>
 
