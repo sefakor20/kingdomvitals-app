@@ -151,6 +151,9 @@ class VisitorConversionService
      */
     public function calculateScoresForMany($visitors): \Illuminate\Support\Collection
     {
+        // Eager load relationships to prevent N+1 queries
+        $visitors->load(['attendance', 'followUps']);
+
         return $visitors->map(fn (Visitor $visitor): array => [
             'visitor_id' => $visitor->id,
             'prediction' => $this->calculateScore($visitor),
