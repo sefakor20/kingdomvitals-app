@@ -124,6 +124,7 @@ class AiService
             'ollama' => 'llama3',
             'groq' => 'llama-3.1-70b-versatile',
             'mistral' => 'mistral-large-latest',
+            'deepseek' => 'deepseek-chat',
             default => 'claude-3-5-sonnet-20241022',
         };
     }

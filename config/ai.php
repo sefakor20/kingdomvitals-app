@@ -32,7 +32,7 @@ return [
     |
     */
 
-    'fallback_chain' => ['anthropic', 'openai', 'ollama'],
+    'fallback_chain' => ['anthropic', 'deepseek', 'openai', 'ollama'],
 
     /*
     |--------------------------------------------------------------------------
