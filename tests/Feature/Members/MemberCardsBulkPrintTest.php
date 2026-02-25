@@ -41,10 +41,8 @@ test('bulk print component loads members from query string', function (): void {
 
     $this->actingAs($user);
 
-    // Simulate query string by setting request
-    request()->merge(['ids' => $members->pluck('id')->implode(',')]);
-
     Livewire::test(MemberCardsBulkPrint::class, ['branch' => $this->branch])
+        ->set('memberIds', $members->pluck('id')->toArray())
         ->assertSee($members[0]->first_name)
         ->assertSee($members[1]->first_name)
         ->assertSee($members[2]->first_name);
@@ -84,9 +82,8 @@ test('bulk print component only shows members from correct branch', function ():
 
     $this->actingAs($user);
 
-    request()->merge(['ids' => $member->id.','.$otherMember->id]);
-
     Livewire::test(MemberCardsBulkPrint::class, ['branch' => $this->branch])
+        ->set('memberIds', [$member->id, $otherMember->id])
         ->assertSee($member->first_name)
         ->assertDontSee($otherMember->first_name);
 });

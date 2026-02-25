@@ -159,7 +159,11 @@ class Member extends Model
 
     public function fullName(): string
     {
-        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+        return trim(implode(' ', array_filter([
+            $this->first_name,
+            $this->middle_name,
+            $this->last_name,
+        ])));
     }
 
     public function getActivitySubjectType(): SubjectType

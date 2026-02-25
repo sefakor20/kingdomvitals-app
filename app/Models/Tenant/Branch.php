@@ -3,11 +3,13 @@
 namespace App\Models\Tenant;
 
 use App\Enums\BranchStatus;
+use App\Models\User;
 use Database\Factories\Tenant\BranchFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Branch extends Model
 {
@@ -101,6 +103,18 @@ class Branch extends Model
     public function userAccess(): HasMany
     {
         return $this->hasMany(UserBranchAccess::class);
+    }
+
+    public function users(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            User::class,
+            UserBranchAccess::class,
+            'branch_id',
+            'id',
+            'id',
+            'user_id'
+        );
     }
 
     public function smsTemplates(): HasMany

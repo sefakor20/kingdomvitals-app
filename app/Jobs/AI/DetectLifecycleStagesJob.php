@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\AI;
 
+use App\Enums\BranchRole;
 use App\Models\Tenant\Member;
 use App\Notifications\MemberLifecycleTransitionNotification;
 use App\Services\AI\MemberLifecycleService;
@@ -115,15 +116,17 @@ class DetectLifecycleStagesJob implements ShouldQueue
         }
 
         try {
-            // Get branch admins/pastors to notify
+            // Get branch admins/managers to notify
             $branch = \App\Models\Tenant\Branch::find($this->branchId);
             if (! $branch) {
                 return;
             }
 
-            $notifiables = $branch->users()
-                ->whereHas('roles', fn ($q) => $q->whereIn('name', ['pastor', 'admin']))
-                ->get();
+            $notifiables = $branch->userAccess()
+                ->whereIn('role', [BranchRole::Admin, BranchRole::Manager])
+                ->with('user')
+                ->get()
+                ->pluck('user');
 
             if ($notifiables->isNotEmpty()) {
                 Notification::send(

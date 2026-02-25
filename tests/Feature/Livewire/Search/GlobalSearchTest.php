@@ -1,9 +1,11 @@
 <?php
 
+use App\Enums\BranchRole;
 use App\Livewire\Search\GlobalSearch;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
+use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -24,6 +26,14 @@ beforeEach(function (): void {
 
     $this->user = User::factory()->create();
     $this->actingAs($this->user);
+
+    // Give user access to branch
+    UserBranchAccess::factory()->create([
+        'user_id' => $this->user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+        'is_primary' => true,
+    ]);
 
     // Set branch in session
     session(['current_branch_id' => $this->branch->id]);
@@ -57,6 +67,7 @@ test('modal closes and search resets when closeModal is called', function (): vo
 
 test('search requires at least 2 characters', function (): void {
     Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'a')
         ->assertSee('Type at least 2 characters');
@@ -65,25 +76,28 @@ test('search requires at least 2 characters', function (): void {
 test('search finds members by first name', function (): void {
     Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
-        'first_name' => 'John',
+        'first_name' => 'Robert',
+        'middle_name' => null,
         'last_name' => 'Smith',
     ]);
 
     Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
-        'first_name' => 'Jane',
+        'first_name' => 'Mary',
+        'middle_name' => null,
         'last_name' => 'Doe',
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
-        ->set('search', 'John');
+        ->set('search', 'Robert');
 
     $results = $component->get('results');
 
     expect($results)->toHaveKey('members');
-    expect($results['members'])->toHaveCount(1);
-    expect($results['members'][0]['title'])->toBe('John Smith');
+    expect($results['members']['items'])->toHaveCount(1);
+    expect($results['members']['items'][0]['title'])->toBe('Robert Smith');
 });
 
 test('search finds members by last name', function (): void {
@@ -94,13 +108,14 @@ test('search finds members by last name', function (): void {
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'Johnson');
 
     $results = $component->get('results');
 
     expect($results)->toHaveKey('members');
-    expect($results['members'][0]['title'])->toBe('Alice Johnson');
+    expect($results['members']['items'][0]['title'])->toBe('Alice Johnson');
 });
 
 test('search finds members by email', function (): void {
@@ -112,13 +127,14 @@ test('search finds members by email', function (): void {
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'bob.wilson');
 
     $results = $component->get('results');
 
     expect($results)->toHaveKey('members');
-    expect($results['members'][0]['title'])->toBe('Bob Wilson');
+    expect($results['members']['items'][0]['title'])->toBe('Bob Wilson');
 });
 
 test('search finds visitors', function (): void {
@@ -129,13 +145,14 @@ test('search finds visitors', function (): void {
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'Visiting');
 
     $results = $component->get('results');
 
     expect($results)->toHaveKey('visitors');
-    expect($results['visitors'][0]['title'])->toBe('Visiting Guest');
+    expect($results['visitors']['items'][0]['title'])->toBe('Visiting Guest');
 });
 
 test('search finds services', function (): void {
@@ -145,13 +162,14 @@ test('search finds services', function (): void {
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'Sunday');
 
     $results = $component->get('results');
 
     expect($results)->toHaveKey('services');
-    expect($results['services'][0]['title'])->toBe('Sunday Morning Service');
+    expect($results['services']['items'][0]['title'])->toBe('Sunday Morning Service');
 });
 
 test('search only returns results from current branch', function (): void {
@@ -160,23 +178,26 @@ test('search only returns results from current branch', function (): void {
     Member::factory()->create([
         'primary_branch_id' => $this->branch->id,
         'first_name' => 'Current',
+        'middle_name' => null,
         'last_name' => 'Branch',
     ]);
 
     Member::factory()->create([
         'primary_branch_id' => $otherBranch->id,
         'first_name' => 'Current',
+        'middle_name' => null,
         'last_name' => 'Other',
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'Current');
 
     $results = $component->get('results');
 
-    expect($results['members'])->toHaveCount(1);
-    expect($results['members'][0]['title'])->toBe('Current Branch');
+    expect($results['members']['items'])->toHaveCount(1);
+    expect($results['members']['items'][0]['title'])->toBe('Current Branch');
 });
 
 test('selectResult navigates to member show page', function (): void {
@@ -211,16 +232,18 @@ test('search limits results per type to 5', function (): void {
     ]);
 
     $component = Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'Same');
 
     $results = $component->get('results');
 
-    expect($results['members'])->toHaveCount(5);
+    expect($results['members']['items'])->toHaveCount(5);
 });
 
 test('no results message shown when search yields nothing', function (): void {
     Livewire::test(GlobalSearch::class)
+        ->set('currentBranchId', $this->branch->id)
         ->call('openModal')
         ->set('search', 'NonExistentPerson12345')
         ->assertSee('No results found');

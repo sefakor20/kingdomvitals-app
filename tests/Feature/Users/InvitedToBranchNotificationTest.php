@@ -5,6 +5,7 @@ use App\Livewire\Users\BranchUserIndex;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
+use App\Notifications\BranchUserInvitationNotification;
 use App\Notifications\InvitedToBranchNotification;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -79,7 +80,7 @@ test('invitation email contains correct branch and role info', function (): void
     );
 });
 
-test('invitation email is not sent when user does not exist', function (): void {
+test('pending invitation is created when user does not exist', function (): void {
     Notification::fake();
 
     $admin = User::factory()->create();
@@ -97,9 +98,10 @@ test('invitation email is not sent when user does not exist', function (): void 
         ->set('inviteEmail', 'nonexistent@example.com')
         ->set('inviteRole', 'staff')
         ->call('invite')
-        ->assertHasErrors(['inviteEmail']);
+        ->assertHasNoErrors();
 
-    Notification::assertNothingSent();
+    // A pending invitation notification should be sent to the email
+    Notification::assertSentOnDemand(BranchUserInvitationNotification::class);
 });
 
 test('invitation email is not sent when user already has access', function (): void {

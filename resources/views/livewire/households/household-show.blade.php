@@ -118,10 +118,10 @@
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
                                 <flux:menu>
-                                    <flux:menu.item wire:click="openEditRoleModal({{ $member->id }})" icon="pencil">
+                                    <flux:menu.item wire:click="openEditRoleModal('{{ $member->id }}')" icon="pencil">
                                         {{ __('Change Role') }}
                                     </flux:menu.item>
-                                    <flux:menu.item wire:click="confirmRemoveMember({{ $member->id }})" icon="user-minus" variant="danger">
+                                    <flux:menu.item wire:click="confirmRemoveMember('{{ $member->id }}')" icon="user-minus" variant="danger">
                                         {{ __('Remove from Household') }}
                                     </flux:menu.item>
                                 </flux:menu>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\AI;
 
+use App\Enums\BranchRole;
 use App\Models\Tenant\AiAlert;
 use App\Models\Tenant\Branch;
 use App\Notifications\AI\DailyAiAlertDigestNotification;
@@ -71,10 +72,12 @@ class SendAiAlertDigestJob implements ShouldQueue
             return;
         }
 
-        // Get branch admins/pastors to notify
-        $notifiables = $branch->users()
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['pastor', 'admin']))
-            ->get();
+        // Get branch admins/managers to notify
+        $notifiables = $branch->userAccess()
+            ->whereIn('role', [BranchRole::Admin, BranchRole::Manager])
+            ->with('user')
+            ->get()
+            ->pluck('user');
 
         if ($notifiables->isEmpty()) {
             Log::info('SendAiAlertDigestJob: No notifiable users found', [

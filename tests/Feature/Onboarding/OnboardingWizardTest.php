@@ -16,6 +16,11 @@ uses(TenantTestCase::class);
 
 beforeEach(function (): void {
     $this->setUpTestTenant();
+    app()->forgetInstance(OnboardingService::class);
+
+    // Reset onboarding status since setUpTestTenant marks it complete
+    $this->tenant->initializeOnboarding();
+
     $this->user = User::factory()->create();
 });
 
@@ -422,6 +427,9 @@ describe('Tenant onboarding methods', function (): void {
 
     it('detects when onboarding is complete', function (): void {
         expect($this->tenant->isOnboardingComplete())->toBeFalse();
+
+        $this->tenant->markOnboardingComplete();
+
         expect($this->tenant->isOnboardingComplete())->toBeTrue();
     });
 
