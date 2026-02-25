@@ -92,11 +92,13 @@ class AttendanceAnomalyService
         $baselineWeeks = $config['baseline_weeks'] ?? 8;
 
         // Get members who have attended at least once in baseline period
+        // Eager load relationships to prevent N+1 queries in detectAnomaly()
         $members = Member::query()
             ->where('primary_branch_id', $branchId)
             ->whereHas('attendance', function ($query) use ($baselineWeeks): void {
                 $query->where('date', '>=', now()->subWeeks($baselineWeeks));
             })
+            ->with(['attendance', 'donations'])
             ->get();
 
         return $members

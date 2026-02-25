@@ -21,6 +21,26 @@ class MessageGenerationService
     ) {}
 
     /**
+     * Get the relationships that should be eager loaded for visitor message generation.
+     *
+     * @return array<int, string>
+     */
+    public static function visitorEagerLoads(): array
+    {
+        return ['attendance', 'followUps'];
+    }
+
+    /**
+     * Get the relationships that should be eager loaded for member message generation.
+     *
+     * @return array<int, string>
+     */
+    public static function memberEagerLoads(): array
+    {
+        return ['attendance', 'donations'];
+    }
+
+    /**
      * Generate a follow-up message for a visitor.
      */
     public function generateVisitorFollowUp(

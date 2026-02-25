@@ -330,6 +330,14 @@ class SmsCampaignOptimizationService
             ->whereNotNull('phone_number')
             ->get();
 
+        if ($members->isEmpty()) {
+            return 0;
+        }
+
+        // Pre-load all SMS logs to prevent N+1 queries
+        $memberIds = $members->pluck('id');
+        $smsLogsByMember = SmsLog::whereIn('member_id', $memberIds)->get()->groupBy('member_id');
+
         $updated = 0;
 
         foreach ($members as $member) {
@@ -344,8 +352,8 @@ class SmsCampaignOptimizationService
                 'sms_engagement_calculated_at' => now(),
             ]);
 
-            // Update counters
-            $smsHistory = SmsLog::where('member_id', $member->id)->get();
+            // Update counters using pre-loaded SMS history
+            $smsHistory = $smsLogsByMember->get($member->id, collect());
             $member->update([
                 'sms_total_received' => $smsHistory->count(),
                 'sms_total_delivered' => $smsHistory->where('status', SmsStatus::Delivered)->count(),

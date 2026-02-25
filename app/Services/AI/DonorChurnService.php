@@ -16,6 +16,16 @@ class DonorChurnService
     ) {}
 
     /**
+     * Get the relationships that should be eager loaded for churn scoring.
+     *
+     * @return array<int, string>
+     */
+    public static function memberEagerLoads(): array
+    {
+        return ['donations', 'attendance'];
+    }
+
+    /**
      * Calculate churn risk score for a member.
      */
     public function calculateScore(Member $member): ChurnRiskAssessment

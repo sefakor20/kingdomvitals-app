@@ -35,8 +35,8 @@ class HouseholdEngagementService
         $memberScores = [];
         $recommendations = [];
 
-        // Get household members
-        $members = $household->members()->get();
+        // Get household members with eager loaded relationships to prevent N+1 queries
+        $members = $household->members()->with(['attendance', 'donations'])->get();
 
         if ($members->isEmpty()) {
             return $this->buildEmptyHouseholdAssessment($household);
