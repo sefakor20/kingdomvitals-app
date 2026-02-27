@@ -225,7 +225,7 @@
 
     /* Typography Utilities */
     .heading-giant {
-        font-size: clamp(3rem, 10vw, 7.5rem);
+        font-size: clamp(2.5rem, 6vw, 5rem);
         font-weight: 300;
         letter-spacing: -0.06em;
         line-height: 0.95;
@@ -289,6 +289,30 @@
     .dark .watermark-text {
         color: rgba(255, 255, 255, 0.02);
     }
+
+    /* 3D Perspective for Dashboard */
+    .perspective-container {
+        perspective: 1500px;
+    }
+
+    .dashboard-tilt {
+        transform: rotateY(-8deg) rotateX(4deg);
+        transform-style: preserve-3d;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .dashboard-tilt:hover {
+        transform: rotateY(-4deg) rotateX(2deg);
+    }
+
+    @media (max-width: 1023px) {
+        .dashboard-tilt {
+            transform: none;
+        }
+        .dashboard-tilt:hover {
+            transform: none;
+        }
+    }
 }
 
 /* Landing Page Font Override */
@@ -308,6 +332,18 @@
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
-select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+select:focus[data-flux-control],
+input:focus,
+textarea:focus,
+select:focus {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2;
+}
+
+.dark input:focus[data-flux-control],
+.dark textarea:focus[data-flux-control],
+.dark select:focus[data-flux-control],
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+    @apply ring-offset-obsidian-elevated;
 }
