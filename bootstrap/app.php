@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,6 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust all proxies (for Laravel Forge / nginx reverse proxy)
         // This ensures Laravel correctly detects HTTPS requests behind nginx
         $middleware->trustProxies(at: '*');
+
+        // Configure where authenticated users are redirected when accessing guest routes
+        $middleware->redirectUsersTo(function (Request $request) {
+            // For superadmin guard, redirect to superadmin dashboard
+            if ($request->routeIs('superadmin.*') || str_starts_with($request->getHost(), 'admin.')) {
+                return route('superadmin.dashboard');
+            }
+
+            return '/dashboard';
+        });
 
         $middleware->group('tenant', [
             \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
