@@ -1,6 +1,6 @@
 <section
     id="faq"
-    class="py-24 sm:py-32 transition-all duration-700 ease-out"
+    class="py-24 transition-all duration-700 ease-out sm:py-32"
     x-data="{ shown: false }"
     x-intersect.once.threshold.10="shown = true"
     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
@@ -8,33 +8,33 @@
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         {{-- Section header --}}
         <div class="mx-auto max-w-2xl text-center">
-            <p class="text-sm font-medium uppercase tracking-widest text-purple-600 dark:text-purple-400">FAQ</p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl dark:text-white">
+            <p class="label-mono text-emerald-600 dark:text-emerald-400">FAQ</p>
+            <h2 class="mt-4 text-4xl font-light tracking-tighter text-primary sm:text-5xl">
                 Frequently asked questions
             </h2>
-            <p class="mt-6 text-lg leading-8 text-neutral-600 dark:text-neutral-400">
+            <p class="mt-6 text-lg leading-8 text-secondary">
                 Everything you need to know about Kingdom Vitals.
             </p>
         </div>
 
         {{-- FAQ accordion --}}
-        <div class="mx-auto mt-16 max-w-3xl divide-y divide-neutral-200 dark:divide-neutral-800" x-data="{ openItem: null }">
+        <div class="mx-auto mt-16 max-w-3xl space-y-4" x-data="{ openItem: null }">
             {{-- FAQ Item 1 --}}
-            <div class="py-6">
+            <div class="glass-card overflow-hidden">
                 <button
                     type="button"
-                    class="flex w-full items-start justify-between text-left"
+                    class="flex w-full items-start justify-between px-6 py-5 text-left"
                     @click="openItem = openItem === 1 ? null : 1"
                     :aria-expanded="openItem === 1"
                     aria-controls="faq-answer-1"
                 >
-                    <span class="text-base font-semibold text-neutral-900 dark:text-white">How does online giving work?</span>
+                    <span class="text-base font-medium text-primary">How does online giving work?</span>
                     <svg
-                        class="size-6 shrink-0 text-neutral-400 transition-transform duration-200"
+                        class="size-5 shrink-0 text-emerald-500 transition-transform duration-200"
                         :class="{ 'rotate-180': openItem === 1 }"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5"
+                        stroke-width="2"
                         stroke="currentColor"
                         aria-hidden="true"
                     >
@@ -43,7 +43,7 @@
                 </button>
                 <div
                     id="faq-answer-1"
-                    class="mt-4 text-neutral-600 dark:text-neutral-400"
+                    class="px-6 pb-5 text-secondary"
                     x-show="openItem === 1"
                     x-collapse
                 >
@@ -52,21 +52,21 @@
             </div>
 
             {{-- FAQ Item 2 --}}
-            <div class="py-6">
+            <div class="glass-card overflow-hidden">
                 <button
                     type="button"
-                    class="flex w-full items-start justify-between text-left"
+                    class="flex w-full items-start justify-between px-6 py-5 text-left"
                     @click="openItem = openItem === 2 ? null : 2"
                     :aria-expanded="openItem === 2"
                     aria-controls="faq-answer-2"
                 >
-                    <span class="text-base font-semibold text-neutral-900 dark:text-white">Can I manage multiple branches?</span>
+                    <span class="text-base font-medium text-primary">Can I manage multiple branches?</span>
                     <svg
-                        class="size-6 shrink-0 text-neutral-400 transition-transform duration-200"
+                        class="size-5 shrink-0 text-emerald-500 transition-transform duration-200"
                         :class="{ 'rotate-180': openItem === 2 }"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5"
+                        stroke-width="2"
                         stroke="currentColor"
                         aria-hidden="true"
                     >
@@ -75,7 +75,7 @@
                 </button>
                 <div
                     id="faq-answer-2"
-                    class="mt-4 text-neutral-600 dark:text-neutral-400"
+                    class="px-6 pb-5 text-secondary"
                     x-show="openItem === 2"
                     x-collapse
                 >
@@ -84,21 +84,21 @@
             </div>
 
             {{-- FAQ Item 3 --}}
-            <div class="py-6">
+            <div class="glass-card overflow-hidden">
                 <button
                     type="button"
-                    class="flex w-full items-start justify-between text-left"
+                    class="flex w-full items-start justify-between px-6 py-5 text-left"
                     @click="openItem = openItem === 3 ? null : 3"
                     :aria-expanded="openItem === 3"
                     aria-controls="faq-answer-3"
                 >
-                    <span class="text-base font-semibold text-neutral-900 dark:text-white">Is my data secure?</span>
+                    <span class="text-base font-medium text-primary">Is my data secure?</span>
                     <svg
-                        class="size-6 shrink-0 text-neutral-400 transition-transform duration-200"
+                        class="size-5 shrink-0 text-emerald-500 transition-transform duration-200"
                         :class="{ 'rotate-180': openItem === 3 }"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5"
+                        stroke-width="2"
                         stroke="currentColor"
                         aria-hidden="true"
                     >
@@ -107,7 +107,7 @@
                 </button>
                 <div
                     id="faq-answer-3"
-                    class="mt-4 text-neutral-600 dark:text-neutral-400"
+                    class="px-6 pb-5 text-secondary"
                     x-show="openItem === 3"
                     x-collapse
                 >
@@ -116,21 +116,21 @@
             </div>
 
             {{-- FAQ Item 4 --}}
-            <div class="py-6">
+            <div class="glass-card overflow-hidden">
                 <button
                     type="button"
-                    class="flex w-full items-start justify-between text-left"
+                    class="flex w-full items-start justify-between px-6 py-5 text-left"
                     @click="openItem = openItem === 4 ? null : 4"
                     :aria-expanded="openItem === 4"
                     aria-controls="faq-answer-4"
                 >
-                    <span class="text-base font-semibold text-neutral-900 dark:text-white">Can I import existing member data?</span>
+                    <span class="text-base font-medium text-primary">Can I import existing member data?</span>
                     <svg
-                        class="size-6 shrink-0 text-neutral-400 transition-transform duration-200"
+                        class="size-5 shrink-0 text-emerald-500 transition-transform duration-200"
                         :class="{ 'rotate-180': openItem === 4 }"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5"
+                        stroke-width="2"
                         stroke="currentColor"
                         aria-hidden="true"
                     >
@@ -139,7 +139,7 @@
                 </button>
                 <div
                     id="faq-answer-4"
-                    class="mt-4 text-neutral-600 dark:text-neutral-400"
+                    class="px-6 pb-5 text-secondary"
                     x-show="openItem === 4"
                     x-collapse
                 >
@@ -148,21 +148,21 @@
             </div>
 
             {{-- FAQ Item 5 --}}
-            <div class="py-6">
+            <div class="glass-card overflow-hidden">
                 <button
                     type="button"
-                    class="flex w-full items-start justify-between text-left"
+                    class="flex w-full items-start justify-between px-6 py-5 text-left"
                     @click="openItem = openItem === 5 ? null : 5"
                     :aria-expanded="openItem === 5"
                     aria-controls="faq-answer-5"
                 >
-                    <span class="text-base font-semibold text-neutral-900 dark:text-white">What payment methods are supported?</span>
+                    <span class="text-base font-medium text-primary">What payment methods are supported?</span>
                     <svg
-                        class="size-6 shrink-0 text-neutral-400 transition-transform duration-200"
+                        class="size-5 shrink-0 text-emerald-500 transition-transform duration-200"
                         :class="{ 'rotate-180': openItem === 5 }"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5"
+                        stroke-width="2"
                         stroke="currentColor"
                         aria-hidden="true"
                     >
@@ -171,7 +171,7 @@
                 </button>
                 <div
                     id="faq-answer-5"
-                    class="mt-4 text-neutral-600 dark:text-neutral-400"
+                    class="px-6 pb-5 text-secondary"
                     x-show="openItem === 5"
                     x-collapse
                 >
@@ -180,21 +180,21 @@
             </div>
 
             {{-- FAQ Item 6 --}}
-            <div class="py-6">
+            <div class="glass-card overflow-hidden">
                 <button
                     type="button"
-                    class="flex w-full items-start justify-between text-left"
+                    class="flex w-full items-start justify-between px-6 py-5 text-left"
                     @click="openItem = openItem === 6 ? null : 6"
                     :aria-expanded="openItem === 6"
                     aria-controls="faq-answer-6"
                 >
-                    <span class="text-base font-semibold text-neutral-900 dark:text-white">Do you offer a free trial?</span>
+                    <span class="text-base font-medium text-primary">Do you offer a free trial?</span>
                     <svg
-                        class="size-6 shrink-0 text-neutral-400 transition-transform duration-200"
+                        class="size-5 shrink-0 text-emerald-500 transition-transform duration-200"
                         :class="{ 'rotate-180': openItem === 6 }"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke-width="1.5"
+                        stroke-width="2"
                         stroke="currentColor"
                         aria-hidden="true"
                     >
@@ -203,7 +203,7 @@
                 </button>
                 <div
                     id="faq-answer-6"
-                    class="mt-4 text-neutral-600 dark:text-neutral-400"
+                    class="px-6 pb-5 text-secondary"
                     x-show="openItem === 6"
                     x-collapse
                 >

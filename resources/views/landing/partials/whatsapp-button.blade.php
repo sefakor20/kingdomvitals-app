@@ -3,7 +3,7 @@
     href="https://wa.me/233509228314?text={{ urlencode('Hello! I\'m interested in Kingdom Vitals for my church.') }}"
     target="_blank"
     rel="noopener noreferrer"
-    class="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2"
+    class="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-lime-accent text-obsidian-base shadow-lg shadow-lime-accent/25 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-lime-accent focus:ring-offset-2"
     aria-label="Contact us on WhatsApp"
 >
     <svg class="size-7" fill="currentColor" viewBox="0 0 24 24">

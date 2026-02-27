@@ -1,11 +1,12 @@
 <div x-data="{ mobileMenuOpen: false }">
     {{-- Header --}}
-    <header class="fixed inset-x-0 top-0 z-40 bg-white/80 backdrop-blur-lg dark:bg-neutral-950/80">
-        <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-            {{-- Logo --}}
-            <div class="flex lg:flex-1">
-                <a href="{{ route('home') }}" class="-m-1.5 p-1.5">
-                    <span class="text-xl font-semibold text-neutral-900 dark:text-white">{{ config('app.name') }}</span>
+    <header class="absolute inset-x-0 top-0 z-40">
+        <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+            {{-- Logo with Status Dot --}}
+            <div class="flex items-center gap-3 lg:flex-1">
+                <a href="{{ route('home') }}" class="-m-1.5 flex items-center gap-2 p-1.5">
+                    <span class="text-xl font-semibold tracking-tighter text-primary">{{ config('app.name') }}</span>
+                    <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
                 </a>
             </div>
 
@@ -13,7 +14,7 @@
             <div class="flex lg:hidden">
                 <button
                     type="button"
-                    class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-neutral-700 dark:text-neutral-300"
+                    class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-secondary"
                     @click="mobileMenuOpen = true"
                 >
                     <span class="sr-only">Open main menu</span>
@@ -23,18 +24,20 @@
                 </button>
             </div>
 
-            {{-- Desktop navigation --}}
-            <div class="hidden lg:flex lg:gap-x-10">
-                <a href="#features" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">Features</a>
-                <a href="#how-it-works" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">How It Works</a>
-                <a href="#pricing" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">Pricing</a>
-                <a href="#faq" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">FAQ</a>
-                <a href="#contact" class="rounded text-sm font-medium text-neutral-600 transition hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-neutral-400 dark:hover:text-white">Contact</a>
+            {{-- Pill-shaped Desktop Navigation --}}
+            <div class="hidden lg:flex">
+                <div class="glass-card flex items-center gap-1 px-2 py-1.5">
+                    <a href="#features" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Features</a>
+                    <a href="#how-it-works" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">How It Works</a>
+                    <a href="#pricing" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Pricing</a>
+                    <a href="#faq" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">FAQ</a>
+                    <a href="#contact" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Contact</a>
+                </div>
             </div>
 
             {{-- Desktop CTA --}}
             <div class="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-                <a href="#contact" class="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
+                <a href="#contact" class="btn-neon rounded-full px-6 py-2.5 text-sm font-semibold">
                     Get Started
                 </a>
             </div>
@@ -51,7 +54,7 @@
     >
         {{-- Backdrop --}}
         <div
-            class="fixed inset-0 bg-neutral-900/80"
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm"
             x-show="mobileMenuOpen"
             x-transition:enter="transition-opacity ease-linear duration-300"
             x-transition:enter-start="opacity-0"
@@ -65,7 +68,7 @@
         {{-- Panel --}}
         <div class="fixed inset-0 flex justify-end">
             <div
-                class="relative w-full max-w-xs bg-white dark:bg-neutral-900"
+                class="glass-card relative w-full max-w-xs bg-white/95 dark:bg-obsidian-surface/95"
                 x-show="mobileMenuOpen"
                 x-transition:enter="transition ease-in-out duration-300 transform"
                 x-transition:enter-start="translate-x-full"
@@ -78,12 +81,13 @@
                 <div class="flex h-full flex-col overflow-y-auto px-6 py-6">
                     {{-- Header with logo and close --}}
                     <div class="flex items-center justify-between">
-                        <a href="{{ route('home') }}" class="-m-1.5 p-1.5" @click="mobileMenuOpen = false">
-                            <span class="text-xl font-semibold text-neutral-900 dark:text-white">{{ config('app.name') }}</span>
+                        <a href="{{ route('home') }}" class="-m-1.5 flex items-center gap-2 p-1.5" @click="mobileMenuOpen = false">
+                            <span class="text-xl font-semibold tracking-tighter text-primary">{{ config('app.name') }}</span>
+                            <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
                         </a>
                         <button
                             type="button"
-                            class="-m-2.5 rounded-md p-2.5 text-neutral-700 dark:text-neutral-300"
+                            class="-m-2.5 rounded-md p-2.5 text-secondary"
                             @click="mobileMenuOpen = false"
                         >
                             <span class="sr-only">Close menu</span>
@@ -98,37 +102,37 @@
                         <div class="space-y-1">
                             <a
                                 href="#features"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-neutral-900 hover:bg-neutral-50 dark:text-white dark:hover:bg-neutral-800"
+                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
                                 @click="mobileMenuOpen = false"
                             >Features</a>
                             <a
                                 href="#how-it-works"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-neutral-900 hover:bg-neutral-50 dark:text-white dark:hover:bg-neutral-800"
+                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
                                 @click="mobileMenuOpen = false"
                             >How It Works</a>
                             <a
                                 href="#pricing"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-neutral-900 hover:bg-neutral-50 dark:text-white dark:hover:bg-neutral-800"
+                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
                                 @click="mobileMenuOpen = false"
                             >Pricing</a>
                             <a
                                 href="#faq"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-neutral-900 hover:bg-neutral-50 dark:text-white dark:hover:bg-neutral-800"
+                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
                                 @click="mobileMenuOpen = false"
                             >FAQ</a>
                             <a
                                 href="#contact"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-neutral-900 hover:bg-neutral-50 dark:text-white dark:hover:bg-neutral-800"
+                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
                                 @click="mobileMenuOpen = false"
                             >Contact</a>
                         </div>
                     </div>
 
                     {{-- CTA button --}}
-                    <div class="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-700">
+                    <div class="mt-6 border-t border-black/10 pt-6 dark:border-white/10">
                         <a
                             href="#contact"
-                            class="block rounded-full bg-neutral-900 px-3 py-3 text-center text-base font-medium text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+                            class="btn-neon block rounded-full px-3 py-3 text-center text-base font-semibold"
                             @click="mobileMenuOpen = false"
                         >Get Started</a>
                     </div>
