@@ -54,7 +54,7 @@
             {{-- Right Column (6 cols) - Tilted Dashboard with Floating Elements --}}
             <div class="relative mt-12 lg:col-span-6 lg:mt-0">
                 {{-- Floating Glass Card - Members (top left) --}}
-                <div class="glass-card animate-float absolute -left-4 top-8 z-10 hidden p-4 shadow-lg lg:block">
+                <div class="animate-float absolute -left-4 top-8 z-10 hidden rounded-2xl border border-black/10 bg-white/95 p-4 shadow-xl backdrop-blur-sm lg:block dark:border-white/10 dark:bg-obsidian-surface/95">
                     <div class="label-mono text-emerald-600 dark:text-emerald-400">Members Active</div>
                     <div class="mt-1 text-2xl font-light tracking-tight text-primary">12,847</div>
                     <div class="mt-1 flex items-center gap-1 text-xs text-muted">
@@ -66,7 +66,7 @@
                 </div>
 
                 {{-- Floating Glass Card - AI Insights (bottom right) --}}
-                <div class="glass-card animate-float-delayed absolute -right-4 bottom-12 z-10 hidden p-4 shadow-lg lg:block">
+                <div class="animate-float-delayed absolute -right-4 bottom-12 z-10 hidden rounded-2xl border border-black/10 bg-white/95 p-4 shadow-xl backdrop-blur-sm lg:block dark:border-white/10 dark:bg-obsidian-surface/95">
                     <div class="label-mono text-lime-600 dark:text-lime-accent">AI Insights</div>
                     <div class="mt-1 text-xl font-light tracking-tight text-primary">47 Actions</div>
                     <div class="mt-2 flex gap-1">
@@ -76,7 +76,7 @@
                 </div>
 
                 {{-- Floating Glass Card - Live Status (top right) --}}
-                <div class="glass-card animate-float-slow absolute -right-2 -top-4 z-10 hidden p-3 shadow-lg lg:block">
+                <div class="animate-float-slow absolute -right-2 -top-4 z-10 hidden rounded-2xl border border-black/10 bg-white/95 p-3 shadow-xl backdrop-blur-sm lg:block dark:border-white/10 dark:bg-obsidian-surface/95">
                     <div class="flex items-center gap-2">
                         <div class="flex size-8 items-center justify-center rounded-full bg-emerald-500/10">
                             <svg class="size-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
