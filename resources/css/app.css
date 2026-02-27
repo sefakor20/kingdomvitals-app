@@ -9,8 +9,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+    /* Typography - Instrument Sans for backend (default) */
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
+    /* Letter Spacing */
+    --tracking-tighter: -0.06em;
+    --tracking-wide: 0.1em;
+    --tracking-widest: 0.2em;
+
+    /* Zinc Palette (retained for compatibility) */
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
     --color-zinc-200: #e5e5e5;
@@ -23,21 +31,40 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /* Obsidian Palette */
+    --color-obsidian-base: #000000;
+    --color-obsidian-surface: #0c0c0c;
+    --color-obsidian-elevated: #141414;
+    --color-obsidian-subtle: #1a1a1a;
+
+    /* Emerald Accent (Primary) */
+    --color-emerald-400: #34d399;
+    --color-emerald-500: #009866;
+    --color-emerald-600: #007a52;
+
+    /* Lime Accent (Secondary) */
+    --color-lime-accent: #ccff00;
+    --color-lime-accent-dark: #a3cc00;
+
+    /* Accent Colors */
+    --color-accent: var(--color-emerald-500);
+    --color-accent-content: var(--color-emerald-500);
+    --color-accent-foreground: #ffffff;
+
+    /* Border Radius */
+    --radius-glass: 2rem;
+    --radius-glass-lg: 2.5rem;
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-emerald-500);
+        --color-accent-content: var(--color-emerald-500);
+        --color-accent-foreground: #ffffff;
     }
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
@@ -47,12 +74,236 @@
     }
 }
 
+@layer utilities {
+    /* Glassmorphism Card - Light Mode */
+    .glass-card {
+        background: rgba(0, 0, 0, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius-glass);
+    }
+
+    /* Glassmorphism Card - Dark Mode */
+    .dark .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-card-lg {
+        border-radius: var(--radius-glass-lg);
+    }
+
+    .glass-card:hover {
+        border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .dark .glass-card:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Floating Shell Container */
+    .shell-container {
+        max-width: 1600px;
+        margin-inline: auto;
+        border-radius: var(--radius-glass-lg);
+    }
+
+    /* Neon Pulse Button (Emerald) */
+    .btn-neon {
+        background: var(--color-emerald-500);
+        color: var(--color-obsidian-base);
+        font-weight: 600;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4),
+                    0 0 40px rgba(16, 185, 129, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-neon:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.6),
+                    0 0 60px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Lime Button (Secondary) */
+    .btn-lime {
+        background: var(--color-lime-accent);
+        color: var(--color-obsidian-base);
+        font-weight: 700;
+        box-shadow: 0 0 30px rgba(204, 255, 0, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-lime:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px rgba(204, 255, 0, 0.5);
+    }
+
+    /* System Status Tag */
+    .status-tag {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    /* Float Animation */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animate-float-delayed {
+        animation: float 6s ease-in-out infinite;
+        animation-delay: 2s;
+    }
+
+    .animate-float-slow {
+        animation: float 8s ease-in-out infinite;
+        animation-delay: 1s;
+    }
+
+    /* Pulsing Status Dot */
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .pulse-dot {
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    /* Glow Sphere */
+    .glow-sphere {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+    }
+
+    .glow-emerald {
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%);
+    }
+
+    .glow-lime {
+        background: radial-gradient(circle, rgba(204, 255, 0, 0.3) 0%, transparent 70%);
+    }
+
+    /* Grid Pattern Overlay */
+    .grid-pattern {
+        background-image:
+            linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+    }
+
+    .dark .grid-pattern {
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* Noise Texture Overlay */
+    .noise-overlay {
+        position: relative;
+    }
+
+    .noise-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        opacity: 0.15;
+        pointer-events: none;
+        mix-blend-mode: overlay;
+        border-radius: inherit;
+    }
+
+    /* Typography Utilities */
+    .heading-giant {
+        font-size: clamp(3rem, 10vw, 7.5rem);
+        font-weight: 300;
+        letter-spacing: -0.06em;
+        line-height: 0.95;
+    }
+
+    .text-gradient-emerald {
+        background: linear-gradient(135deg, var(--color-emerald-400), var(--color-lime-accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .label-mono {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    /* Text Colors */
+    .text-primary {
+        color: #171717;
+    }
+
+    .dark .text-primary {
+        color: #ebebeb;
+    }
+
+    .text-secondary {
+        color: rgba(23, 23, 23, 0.6);
+    }
+
+    .dark .text-secondary {
+        color: rgba(235, 235, 235, 0.6);
+    }
+
+    .text-muted {
+        color: rgba(23, 23, 23, 0.3);
+    }
+
+    .dark .text-muted {
+        color: rgba(235, 235, 235, 0.3);
+    }
+
+    /* Contrast Section (Light background in dark theme) */
+    .contrast-section {
+        background: #e5e5e5;
+        color: #171717;
+    }
+
+    /* Watermark Text */
+    .watermark-text {
+        font-size: clamp(6rem, 20vw, 20rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: -0.06em;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.02);
+    }
+
+    .dark .watermark-text {
+        color: rgba(255, 255, 255, 0.02);
+    }
+}
+
+/* Landing Page Font Override */
+.landing-page {
+    --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    font-family: var(--font-sans);
+}
+
+/* Flux UI Field Styling */
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
 }
 
 input:focus[data-flux-control],
@@ -60,7 +311,3 @@ textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
-
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */

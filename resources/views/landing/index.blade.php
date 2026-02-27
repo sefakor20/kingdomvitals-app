@@ -2,6 +2,11 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         @include('partials.head')
+
+        {{-- Landing page specific fonts --}}
+        <link rel="preload" href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700|jetbrains-mono:400,500" as="style">
+        <link href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700|jetbrains-mono:400,500" rel="stylesheet" />
+
         <title>{{ config('app.name') }} - AI-Powered Church Management</title>
         <meta name="description" content="AI-powered church management platform. Predict trends, identify at-risk members, and get actionable insights while managing membership, giving, and attendance.">
 
@@ -134,50 +139,60 @@
 
         <style>[x-cloak] { display: none !important; }</style>
     </head>
-    <body class="min-h-screen bg-white antialiased dark:bg-neutral-950">
+    <body class="landing-page min-h-screen bg-zinc-100 antialiased dark:bg-obsidian-base">
         {{-- Skip to content link for keyboard/screen reader users --}}
-        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-purple-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
             {{ __('Skip to main content') }}
         </a>
 
-        {{-- Navigation --}}
-        @include('landing.partials.navigation')
+        {{-- Floating Shell Container --}}
+        <div class="relative mx-auto my-4 max-w-[1600px] overflow-hidden rounded-[2.5rem] bg-white ring-1 ring-black/10 dark:bg-obsidian-surface dark:ring-white/10 sm:my-6 lg:my-8">
+            {{-- Grid Pattern Background --}}
+            <div class="pointer-events-none absolute inset-0 grid-pattern"></div>
 
-        {{-- Main Content --}}
-        <main id="main-content">
-            {{-- Hero Section --}}
-            @include('landing.partials.hero')
+            {{-- Glow Spheres --}}
+            <div class="glow-sphere glow-emerald absolute -right-40 -top-40 size-96 opacity-50"></div>
+            <div class="glow-sphere glow-lime absolute -bottom-40 -left-40 size-80 opacity-30"></div>
 
-        {{-- Social Proof --}}
-        @include('landing.partials.social-proof')
+            {{-- Navigation --}}
+            @include('landing.partials.navigation')
 
-        {{-- Features Section --}}
-        @include('landing.partials.features')
+            {{-- Main Content --}}
+            <main id="main-content" class="relative">
+                {{-- Hero Section --}}
+                @include('landing.partials.hero')
 
-        {{-- AI Features Section --}}
-        @include('landing.partials.ai-features')
+                {{-- Social Proof --}}
+                @include('landing.partials.social-proof')
 
-        {{-- How It Works --}}
-        @include('landing.partials.how-it-works')
+                {{-- Features Section --}}
+                @include('landing.partials.features')
 
-        {{-- Pricing Section --}}
-        @include('landing.partials.pricing', ['plans' => $plans])
+                {{-- AI Features Section --}}
+                @include('landing.partials.ai-features')
 
-        {{-- Testimonials --}}
-        @include('landing.partials.testimonials')
+                {{-- How It Works --}}
+                @include('landing.partials.how-it-works')
 
-        {{-- FAQ Section --}}
-        @include('landing.partials.faq')
+                {{-- Pricing Section --}}
+                @include('landing.partials.pricing', ['plans' => $plans])
 
-        {{-- Contact Section --}}
-        @include('landing.partials.contact')
+                {{-- Testimonials --}}
+                @include('landing.partials.testimonials')
 
-        {{-- Final CTA --}}
-        @include('landing.partials.cta')
+                {{-- FAQ Section --}}
+                @include('landing.partials.faq')
 
-        {{-- Footer --}}
-        @include('landing.partials.footer')
-        </main>
+                {{-- Contact Section --}}
+                @include('landing.partials.contact')
+
+                {{-- Final CTA --}}
+                @include('landing.partials.cta')
+
+                {{-- Footer --}}
+                @include('landing.partials.footer')
+            </main>
+        </div>
 
         {{-- Floating WhatsApp Button --}}
         @include('landing.partials.whatsapp-button')

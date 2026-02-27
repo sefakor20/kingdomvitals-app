@@ -1,74 +1,114 @@
-<section class="relative isolate overflow-hidden pt-24" x-data="{ videoModalOpen: false }">
-    {{-- Background gradient --}}
-    <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-        <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-purple-200 to-indigo-200 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] dark:from-purple-900 dark:to-indigo-900 dark:opacity-20"></div>
-    </div>
+<section class="relative isolate overflow-hidden pt-32 lg:pt-40" x-data="{ videoModalOpen: false }">
+    {{-- Glow Effects --}}
+    <div class="glow-sphere glow-emerald absolute right-0 top-20 size-[600px] opacity-20"></div>
+    <div class="glow-sphere glow-lime absolute -left-40 bottom-0 size-[400px] opacity-15"></div>
 
-    <div class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
-        <div class="mx-auto max-w-3xl text-center">
-            {{-- Badge --}}
-            <div class="mb-8 flex justify-center">
-                <div class="relative flex items-center gap-2 rounded-full bg-purple-50 px-4 py-1.5 text-sm leading-6 text-purple-700 ring-1 ring-purple-200 hover:ring-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-800 dark:hover:ring-purple-700">
-                    <svg class="size-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                        <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5z" clip-rule="evenodd" />
-                    </svg>
-                    AI-Powered Church Management
+    <div class="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8 lg:py-32">
+        {{-- 12-col Grid: 7/5 Split --}}
+        <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+            {{-- Left Column (7 cols) - Content --}}
+            <div class="lg:col-span-7">
+                {{-- Status Tag --}}
+                <div class="mb-8 inline-flex items-center gap-2">
+                    <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
+                    <span class="label-mono text-emerald-600 dark:text-emerald-400">AI-Powered Platform</span>
+                </div>
+
+                {{-- Giant Headline --}}
+                <h1 class="heading-giant text-primary">
+                    Church<br>
+                    Management<br>
+                    <span class="text-gradient-emerald italic">Powered by AI</span>
+                </h1>
+
+                {{-- Subheadline --}}
+                <p class="mt-8 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
+                    The intelligent platform that helps you understand your congregation better. Manage membership, giving, and attendance while AI predicts trends and surfaces insights.
+                </p>
+
+                {{-- CTAs --}}
+                <div class="mt-10 flex flex-wrap items-center gap-4">
+                    <a href="#pricing" class="btn-neon rounded-full px-8 py-4 text-base font-semibold">
+                        Get Started
+                    </a>
+                    <button
+                        type="button"
+                        @click="videoModalOpen = true"
+                        class="group flex items-center gap-3 text-secondary transition hover:text-primary"
+                    >
+                        <span class="glass-card flex size-12 items-center justify-center rounded-full">
+                            <svg class="size-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <span class="font-medium">Watch Demo</span>
+                    </button>
+                </div>
+
+                {{-- Contact text --}}
+                <p class="mt-6 text-sm text-muted">
+                    Contact us to get started with your church.
+                </p>
+            </div>
+
+            {{-- Right Column (5 cols) - Floating Cards --}}
+            <div class="relative hidden lg:col-span-5 lg:block">
+                {{-- Floating Glass Card 1 --}}
+                <div class="glass-card animate-float p-6">
+                    <div class="label-mono text-emerald-600 dark:text-emerald-400">Members Active</div>
+                    <div class="mt-2 text-4xl font-light tracking-tight text-primary">12,847</div>
+                    <div class="mt-1 flex items-center gap-1 text-sm text-muted">
+                        <svg class="size-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                        </svg>
+                        +23% this month
+                    </div>
+                </div>
+
+                {{-- Floating Glass Card 2 (offset) --}}
+                <div class="glass-card animate-float-delayed absolute -bottom-4 right-0 p-6">
+                    <div class="label-mono text-lime-600 dark:text-lime-accent">AI Insights</div>
+                    <div class="mt-2 text-2xl font-light tracking-tight text-primary">47 Actions</div>
+                    <div class="mt-2 flex gap-1">
+                        <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Engagement</span>
+                        <span class="inline-flex items-center rounded-full bg-lime-500/10 px-2 py-0.5 text-xs font-medium text-lime-600 dark:text-lime-accent">Giving</span>
+                    </div>
+                </div>
+
+                {{-- Floating Glass Card 3 (top right) --}}
+                <div class="glass-card animate-float-slow absolute -right-8 top-20 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 items-center justify-center rounded-full bg-emerald-500/10">
+                            <svg class="size-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted">AI Analysis</div>
+                            <div class="text-sm font-medium text-primary">Live</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            {{-- Headline --}}
-            <h1 class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl dark:text-white">
-                Church Management
-                <span class="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-indigo-400">Powered by AI</span>
-            </h1>
-
-            {{-- Subheadline --}}
-            <p class="mt-6 text-lg leading-8 text-neutral-600 sm:text-xl dark:text-neutral-400">
-                The intelligent platform that helps you understand your congregation better. Manage membership, giving, and attendance while AI predicts trends and surfaces insights.
-            </p>
-
-            {{-- CTAs --}}
-            <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-x-6">
-                <a href="#pricing" class="w-full rounded-full bg-neutral-900 px-8 py-3.5 text-base font-medium text-white shadow-lg transition hover:bg-neutral-800 sm:w-auto dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
-                    Get Started
-                </a>
-                <button
-                    type="button"
-                    @click="videoModalOpen = true"
-                    class="group flex w-full items-center justify-center gap-2 text-base font-medium text-neutral-600 transition hover:text-neutral-900 sm:w-auto dark:text-neutral-400 dark:hover:text-white"
-                >
-                    <span class="flex size-10 items-center justify-center rounded-full bg-purple-100 text-purple-600 transition group-hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:group-hover:bg-purple-900/50">
-                        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                        </svg>
-                    </span>
-                    See How It Works
-                </button>
-            </div>
-
-            {{-- Contact text --}}
-            <p class="mt-6 text-sm text-neutral-500 dark:text-neutral-500">
-                Contact us to get started with your church.
-            </p>
         </div>
 
         {{-- Dashboard Preview --}}
-        <div class="mt-16 sm:mt-24">
+        <div class="mt-20 sm:mt-28">
             <div class="relative mx-auto max-w-5xl">
                 {{-- Glow effect --}}
-                <div class="absolute -inset-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-indigo-500/20 blur-2xl"></div>
+                <div class="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-r from-emerald-500/20 to-lime-500/20 blur-2xl"></div>
 
                 {{-- Browser frame --}}
-                <div class="relative overflow-hidden rounded-2xl bg-neutral-900 shadow-2xl ring-1 ring-neutral-900/10 dark:ring-white/10">
+                <div class="glass-card-lg relative overflow-hidden p-1 shadow-2xl">
                     {{-- Browser header --}}
-                    <div class="flex items-center gap-2 border-b border-neutral-800 bg-neutral-800 px-4 py-3">
+                    <div class="flex items-center gap-2 rounded-t-[2rem] bg-black/5 px-4 py-3 dark:bg-white/5">
                         <div class="flex gap-1.5">
-                            <div class="size-3 rounded-full bg-red-500"></div>
-                            <div class="size-3 rounded-full bg-yellow-500"></div>
-                            <div class="size-3 rounded-full bg-green-500"></div>
+                            <div class="size-3 rounded-full bg-red-500/80"></div>
+                            <div class="size-3 rounded-full bg-yellow-500/80"></div>
+                            <div class="size-3 rounded-full bg-emerald-500/80"></div>
                         </div>
                         <div class="flex-1 text-center">
-                            <div class="mx-auto max-w-md rounded-md bg-neutral-700 px-4 py-1 text-xs text-neutral-400">
+                            <div class="mx-auto max-w-md rounded-full bg-black/5 px-4 py-1 font-mono text-xs text-muted dark:bg-white/5">
                                 {{ config('app.url') }}/dashboard
                             </div>
                         </div>
@@ -79,22 +119,22 @@
                         <img
                             src="{{ asset('images/dashboard-preview.png') }}"
                             alt="Kingdom Vitals Dashboard Preview"
-                            class="aspect-[16/9] w-full object-cover object-top"
+                            class="aspect-[16/9] w-full rounded-b-[2rem] object-cover object-top"
                             loading="lazy"
                         >
                     @else
                         {{-- Placeholder until screenshot is added --}}
-                        <div class="aspect-[16/9] bg-gradient-to-br from-neutral-800 to-neutral-900 p-8">
+                        <div class="aspect-[16/9] rounded-b-[2rem] bg-gradient-to-br from-zinc-100 to-zinc-200 p-8 dark:from-obsidian-elevated dark:to-obsidian-surface">
                             <div class="grid h-full grid-cols-4 gap-4">
-                                <div class="col-span-1 rounded-lg bg-neutral-800/50"></div>
+                                <div class="col-span-1 rounded-xl bg-black/5 dark:bg-white/5"></div>
                                 <div class="col-span-3 space-y-4">
-                                    <div class="h-8 w-48 rounded bg-neutral-700/50"></div>
+                                    <div class="h-8 w-48 rounded-lg bg-black/5 dark:bg-white/5"></div>
                                     <div class="grid grid-cols-3 gap-4">
-                                        <div class="h-24 rounded-lg bg-neutral-700/30"></div>
-                                        <div class="h-24 rounded-lg bg-neutral-700/30"></div>
-                                        <div class="h-24 rounded-lg bg-neutral-700/30"></div>
+                                        <div class="h-24 rounded-xl bg-emerald-500/10"></div>
+                                        <div class="h-24 rounded-xl bg-lime-500/10"></div>
+                                        <div class="h-24 rounded-xl bg-black/5 dark:bg-white/5"></div>
                                     </div>
-                                    <div class="h-48 rounded-lg bg-neutral-700/20"></div>
+                                    <div class="h-48 rounded-xl bg-black/5 dark:bg-white/5"></div>
                                 </div>
                             </div>
                         </div>
@@ -102,11 +142,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    {{-- Bottom gradient --}}
-    <div class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]" aria-hidden="true">
-        <div class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-indigo-200 to-purple-200 opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem] dark:from-indigo-900 dark:to-purple-900 dark:opacity-20"></div>
     </div>
 
     {{-- Video Modal --}}
@@ -152,7 +187,7 @@
             </button>
 
             {{-- Video Container --}}
-            <div class="overflow-hidden rounded-2xl bg-neutral-900 shadow-2xl ring-1 ring-white/10">
+            <div class="glass-card-lg overflow-hidden shadow-2xl">
                 @php
                     $videoUrl = config('app.demo_video_url', '');
 
@@ -187,20 +222,20 @@
                     </div>
                 @else
                     {{-- Placeholder when no video is configured --}}
-                    <div class="flex aspect-video flex-col items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-900 p-8 text-center">
-                        <div class="flex size-20 items-center justify-center rounded-full bg-purple-600/20">
-                            <svg class="size-10 text-purple-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <div class="flex aspect-video flex-col items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 p-8 text-center dark:from-obsidian-elevated dark:to-obsidian-surface">
+                        <div class="flex size-20 items-center justify-center rounded-full bg-emerald-500/10">
+                            <svg class="size-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
                             </svg>
                         </div>
-                        <h3 class="mt-6 text-xl font-semibold text-white">Demo Video Coming Soon</h3>
-                        <p class="mt-2 max-w-md text-neutral-400">
+                        <h3 class="mt-6 text-xl font-semibold text-primary">Demo Video Coming Soon</h3>
+                        <p class="mt-2 max-w-md text-secondary">
                             We're preparing an in-depth walkthrough of Kingdom Vitals. In the meantime, feel free to explore the features below or contact us for a personalized demo.
                         </p>
                         <a
                             href="#contact"
                             @click="videoModalOpen = false"
-                            class="mt-6 rounded-full bg-purple-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-purple-500"
+                            class="btn-neon mt-6 rounded-full px-6 py-2.5 text-sm font-semibold"
                         >
                             Request a Demo
                         </a>

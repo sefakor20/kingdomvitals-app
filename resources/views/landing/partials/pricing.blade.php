@@ -1,6 +1,6 @@
 <section
     id="pricing"
-    class="py-24 sm:py-32 transition-all duration-700 ease-out"
+    class="py-24 transition-all duration-700 ease-out sm:py-32"
     x-data="{ shown: false }"
     x-intersect.once.threshold.10="shown = true"
     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
@@ -8,11 +8,11 @@
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         {{-- Section header --}}
         <div class="mx-auto max-w-2xl text-center">
-            <p class="text-sm font-medium uppercase tracking-widest text-purple-600 dark:text-purple-400">Pricing</p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl dark:text-white">
+            <p class="label-mono text-emerald-600 dark:text-emerald-400">Pricing</p>
+            <h2 class="mt-4 text-4xl font-light tracking-tighter text-primary sm:text-5xl">
                 Plans for every church size
             </h2>
-            <p class="mt-6 text-lg leading-8 text-neutral-600 dark:text-neutral-400">
+            <p class="mt-6 text-lg leading-8 text-secondary">
                 Choose the perfect plan for your ministry. All plans include a 14-day free trial.
             </p>
         </div>
@@ -26,11 +26,11 @@
             <div x-data="{ annual: true }">
             {{-- Billing cycle toggle --}}
             <div class="mt-10 flex justify-center">
-                <div class="flex items-center gap-2 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800">
+                <div class="glass-card flex items-center gap-1 p-1">
                     <button
                         type="button"
                         class="rounded-full px-4 py-2 text-sm font-medium transition"
-                        :class="!annual ? 'bg-white text-neutral-900 shadow dark:bg-neutral-700 dark:text-white' : 'text-neutral-600 dark:text-neutral-400'"
+                        :class="!annual ? 'bg-emerald-500 text-white shadow' : 'text-secondary'"
                         @click="annual = false"
                     >
                         Monthly
@@ -38,12 +38,12 @@
                     <button
                         type="button"
                         class="rounded-full px-4 py-2 text-sm font-medium transition"
-                        :class="annual ? 'bg-white text-neutral-900 shadow dark:bg-neutral-700 dark:text-white' : 'text-neutral-600 dark:text-neutral-400'"
+                        :class="annual ? 'bg-emerald-500 text-white shadow' : 'text-secondary'"
                         @click="annual = true"
                     >
                         Annual
                         @if($maxSavings > 0)
-                            <span class="ml-1 text-xs text-green-600 dark:text-green-400">Save up to {{ number_format($maxSavings, 0) }}%</span>
+                            <span class="ml-1 text-xs text-lime-300">Save up to {{ number_format($maxSavings, 0) }}%</span>
                         @endif
                     </button>
                 </div>
@@ -59,53 +59,53 @@
                     default => 'max-w-5xl lg:grid-cols-3',
                 };
             @endphp
-            <div class="mx-auto mt-12 grid gap-8 {{ $gridCols }}">
+            <div class="mx-auto mt-12 grid gap-6 {{ $gridCols }}">
                 @foreach($plans as $index => $plan)
                     @php
                         $isPopular = $plan->is_default || ($plans->count() >= 3 && $index === $popularIndex);
                     @endphp
-                    <div class="relative rounded-2xl p-8 shadow-sm ring-1 {{ $isPopular ? 'bg-neutral-900 ring-neutral-900 shadow-xl dark:bg-white dark:ring-white' : 'bg-white ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800' }}">
+                    <div class="relative {{ $isPopular ? 'glass-card border-emerald-500/50 bg-emerald-500/5 dark:bg-emerald-500/10' : 'glass-card' }} p-8 transition hover:border-emerald-500/40">
                         @if($isPopular)
                             {{-- Popular badge --}}
                             <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-                                <div class="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1 text-xs font-medium text-white">
+                                <div class="rounded-full bg-emerald-500 px-4 py-1 text-xs font-semibold text-white shadow-lg shadow-emerald-500/25">
                                     Most Popular
                                 </div>
                             </div>
                         @endif
 
-                        <h3 class="text-lg font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}">{{ $plan->name }}</h3>
-                        <p class="mt-2 text-sm {{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">{{ $plan->description }}</p>
+                        <h3 class="text-lg font-semibold text-primary">{{ $plan->name }}</h3>
+                        <p class="mt-2 text-sm text-secondary">{{ $plan->description }}</p>
 
                         <div class="mt-6">
                             @if($plan->price_monthly > 0)
                                 <span
-                                    class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}"
+                                    class="text-4xl font-light tracking-tight text-primary"
                                     x-text="`GHS ${annual ? '{{ number_format($plan->price_annual / 12, 0) }}' : '{{ number_format($plan->price_monthly, 0) }}'}`"
                                 >GHS {{ number_format($plan->price_annual / 12, 0) }}</span>
-                                <span class="{{ $isPopular ? 'text-neutral-400 dark:text-neutral-600' : 'text-neutral-600 dark:text-neutral-400' }}">/month</span>
+                                <span class="text-secondary">/month</span>
                             @else
-                                <span class="text-4xl font-semibold {{ $isPopular ? 'text-white dark:text-neutral-900' : 'text-neutral-900 dark:text-white' }}">Free</span>
+                                <span class="text-4xl font-light tracking-tight text-primary">Free</span>
                             @endif
                         </div>
 
                         <ul class="mt-8 space-y-3">
                             {{-- Member limit --}}
                             <li class="flex items-start gap-3">
-                                <svg class="size-5 shrink-0 {{ $isPopular ? 'text-purple-400' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                 </svg>
-                                <span class="{{ $isPopular ? 'text-neutral-300 dark:text-neutral-700' : 'text-neutral-600 dark:text-neutral-400' }}">
+                                <span class="text-secondary">
                                     {{ $plan->hasUnlimitedMembers() ? 'Unlimited members' : 'Up to ' . number_format($plan->max_members) . ' members' }}
                                 </span>
                             </li>
 
                             {{-- Branch limit --}}
                             <li class="flex items-start gap-3">
-                                <svg class="size-5 shrink-0 {{ $isPopular ? 'text-purple-400' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                 </svg>
-                                <span class="{{ $isPopular ? 'text-neutral-300 dark:text-neutral-700' : 'text-neutral-600 dark:text-neutral-400' }}">
+                                <span class="text-secondary">
                                     {{ $plan->hasUnlimitedBranches() ? 'Unlimited branches' : ($plan->max_branches == 1 ? '1 branch' : $plan->max_branches . ' branches') }}
                                 </span>
                             </li>
@@ -113,10 +113,10 @@
                             {{-- Storage --}}
                             @if($plan->storage_quota_gb)
                                 <li class="flex items-start gap-3">
-                                    <svg class="size-5 shrink-0 {{ $isPopular ? 'text-purple-400' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                     </svg>
-                                    <span class="{{ $isPopular ? 'text-neutral-300 dark:text-neutral-700' : 'text-neutral-600 dark:text-neutral-400' }}">
+                                    <span class="text-secondary">
                                         {{ $plan->hasUnlimitedStorage() ? 'Unlimited storage' : $plan->storage_quota_gb . 'GB storage' }}
                                     </span>
                                 </li>
@@ -125,10 +125,10 @@
                             {{-- SMS Credits --}}
                             @if($plan->sms_credits_monthly)
                                 <li class="flex items-start gap-3">
-                                    <svg class="size-5 shrink-0 {{ $isPopular ? 'text-purple-400' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                     </svg>
-                                    <span class="{{ $isPopular ? 'text-neutral-300 dark:text-neutral-700' : 'text-neutral-600 dark:text-neutral-400' }}">
+                                    <span class="text-secondary">
                                         {{ $plan->hasUnlimitedSms() ? 'Unlimited SMS' : number_format($plan->sms_credits_monthly) . ' SMS credits/month' }}
                                     </span>
                                 </li>
@@ -138,26 +138,26 @@
                             @if($plan->features && is_array($plan->features))
                                 @foreach($plan->features as $feature)
                                     <li class="flex items-start gap-3">
-                                        <svg class="size-5 shrink-0 {{ $isPopular ? 'text-purple-400' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                         </svg>
-                                        <span class="{{ $isPopular ? 'text-neutral-300 dark:text-neutral-700' : 'text-neutral-600 dark:text-neutral-400' }}">{{ $feature }}</span>
+                                        <span class="text-secondary">{{ $feature }}</span>
                                     </li>
                                 @endforeach
                             @endif
 
                             {{-- Support level --}}
                             <li class="flex items-start gap-3">
-                                <svg class="size-5 shrink-0 {{ $isPopular ? 'text-purple-400' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                 </svg>
-                                <span class="{{ $isPopular ? 'text-neutral-300 dark:text-neutral-700' : 'text-neutral-600 dark:text-neutral-400' }}">{{ $plan->support_level->label() }}</span>
+                                <span class="text-secondary">{{ $plan->support_level->label() }}</span>
                             </li>
                         </ul>
 
                         <a
                             href="#contact"
-                            class="mt-8 block w-full rounded-full px-4 py-3 text-center text-sm font-medium transition {{ $isPopular ? 'bg-white text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800' : 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700' }}"
+                            class="{{ $isPopular ? 'btn-neon' : 'glass-card bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10' }} mt-8 block w-full rounded-full px-4 py-3 text-center text-sm font-semibold text-primary transition"
                         >
                             Contact Us
                         </a>
@@ -168,10 +168,10 @@
         @else
             {{-- No plans available --}}
             <div class="mx-auto mt-12 max-w-md text-center">
-                <p class="text-neutral-600 dark:text-neutral-400">
+                <p class="text-secondary">
                     Contact us for custom pricing tailored to your church's needs.
                 </p>
-                <a href="#contact" class="mt-6 inline-block rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100">
+                <a href="#contact" class="btn-neon mt-6 inline-block rounded-full px-6 py-3 text-sm font-semibold">
                     Get in Touch
                 </a>
             </div>
