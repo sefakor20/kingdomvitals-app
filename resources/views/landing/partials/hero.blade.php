@@ -1,13 +1,13 @@
-<section class="relative isolate overflow-hidden pt-32 lg:pt-40" x-data="{ videoModalOpen: false }">
+<section class="relative isolate overflow-hidden pt-24 lg:pt-28" x-data="{ videoModalOpen: false }">
     {{-- Glow Effects --}}
     <div class="glow-sphere glow-emerald absolute right-0 top-20 size-[600px] opacity-20"></div>
     <div class="glow-sphere glow-lime absolute -left-40 bottom-0 size-[400px] opacity-15"></div>
 
-    <div class="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8 lg:py-32">
-        {{-- 12-col Grid: 7/5 Split --}}
-        <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
-            {{-- Left Column (7 cols) - Content --}}
-            <div class="lg:col-span-7">
+    <div class="mx-auto max-w-7xl px-6 py-12 sm:py-16 lg:px-8 lg:py-20">
+        {{-- 12-col Grid: 6/6 Split --}}
+        <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+            {{-- Left Column (6 cols) - Content --}}
+            <div class="overflow-hidden lg:col-span-6">
                 {{-- Status Tag --}}
                 <div class="mb-8 inline-flex items-center gap-2">
                     <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
@@ -51,35 +51,35 @@
                 </p>
             </div>
 
-            {{-- Right Column (5 cols) - Floating Cards --}}
-            <div class="relative hidden lg:col-span-5 lg:block">
-                {{-- Floating Glass Card 1 --}}
-                <div class="glass-card animate-float p-6">
+            {{-- Right Column (6 cols) - Tilted Dashboard with Floating Elements --}}
+            <div class="relative mt-12 lg:col-span-6 lg:mt-0">
+                {{-- Floating Glass Card - Members (top left) --}}
+                <div class="glass-card animate-float absolute -left-4 top-8 z-10 hidden p-4 shadow-lg lg:block">
                     <div class="label-mono text-emerald-600 dark:text-emerald-400">Members Active</div>
-                    <div class="mt-2 text-4xl font-light tracking-tight text-primary">12,847</div>
-                    <div class="mt-1 flex items-center gap-1 text-sm text-muted">
-                        <svg class="size-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <div class="mt-1 text-2xl font-light tracking-tight text-primary">12,847</div>
+                    <div class="mt-1 flex items-center gap-1 text-xs text-muted">
+                        <svg class="size-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                         </svg>
                         +23% this month
                     </div>
                 </div>
 
-                {{-- Floating Glass Card 2 (offset) --}}
-                <div class="glass-card animate-float-delayed absolute -bottom-4 right-0 p-6">
+                {{-- Floating Glass Card - AI Insights (bottom right) --}}
+                <div class="glass-card animate-float-delayed absolute -right-4 bottom-12 z-10 hidden p-4 shadow-lg lg:block">
                     <div class="label-mono text-lime-600 dark:text-lime-accent">AI Insights</div>
-                    <div class="mt-2 text-2xl font-light tracking-tight text-primary">47 Actions</div>
+                    <div class="mt-1 text-xl font-light tracking-tight text-primary">47 Actions</div>
                     <div class="mt-2 flex gap-1">
                         <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Engagement</span>
                         <span class="inline-flex items-center rounded-full bg-lime-500/10 px-2 py-0.5 text-xs font-medium text-lime-600 dark:text-lime-accent">Giving</span>
                     </div>
                 </div>
 
-                {{-- Floating Glass Card 3 (top right) --}}
-                <div class="glass-card animate-float-slow absolute -right-8 top-20 p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-emerald-500/10">
-                            <svg class="size-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                {{-- Floating Glass Card - Live Status (top right) --}}
+                <div class="glass-card animate-float-slow absolute -right-2 -top-4 z-10 hidden p-3 shadow-lg lg:block">
+                    <div class="flex items-center gap-2">
+                        <div class="flex size-8 items-center justify-center rounded-full bg-emerald-500/10">
+                            <svg class="size-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                             </svg>
                         </div>
@@ -89,56 +89,54 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        {{-- Dashboard Preview --}}
-        <div class="mt-20 sm:mt-28">
-            <div class="relative mx-auto max-w-5xl">
-                {{-- Glow effect --}}
-                <div class="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-r from-emerald-500/20 to-lime-500/20 blur-2xl"></div>
+                {{-- Tilted Dashboard Frame --}}
+                <div class="perspective-container relative">
+                    {{-- Glow effect --}}
+                    <div class="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-r from-emerald-500/20 to-lime-500/20 blur-2xl"></div>
 
-                {{-- Browser frame --}}
-                <div class="glass-card-lg relative overflow-hidden p-1 shadow-2xl">
-                    {{-- Browser header --}}
-                    <div class="flex items-center gap-2 rounded-t-[2rem] bg-black/5 px-4 py-3 dark:bg-white/5">
-                        <div class="flex gap-1.5">
-                            <div class="size-3 rounded-full bg-red-500/80"></div>
-                            <div class="size-3 rounded-full bg-yellow-500/80"></div>
-                            <div class="size-3 rounded-full bg-emerald-500/80"></div>
-                        </div>
-                        <div class="flex-1 text-center">
-                            <div class="mx-auto max-w-md rounded-full bg-black/5 px-4 py-1 font-mono text-xs text-muted dark:bg-white/5">
-                                {{ config('app.url') }}/dashboard
+                    {{-- Browser frame with tilt --}}
+                    <div class="dashboard-tilt glass-card-lg relative overflow-hidden p-1 shadow-2xl">
+                        {{-- Browser header --}}
+                        <div class="flex items-center gap-2 rounded-t-[2rem] bg-black/5 px-4 py-3 dark:bg-white/5">
+                            <div class="flex gap-1.5">
+                                <div class="size-3 rounded-full bg-red-500/80"></div>
+                                <div class="size-3 rounded-full bg-yellow-500/80"></div>
+                                <div class="size-3 rounded-full bg-emerald-500/80"></div>
                             </div>
-                        </div>
-                    </div>
-
-                    {{-- Dashboard preview --}}
-                    @if(file_exists(public_path('images/dashboard-preview.png')))
-                        <img
-                            src="{{ asset('images/dashboard-preview.png') }}"
-                            alt="Kingdom Vitals Dashboard Preview"
-                            class="aspect-[16/9] w-full rounded-b-[2rem] object-cover object-top"
-                            loading="lazy"
-                        >
-                    @else
-                        {{-- Placeholder until screenshot is added --}}
-                        <div class="aspect-[16/9] rounded-b-[2rem] bg-gradient-to-br from-zinc-100 to-zinc-200 p-8 dark:from-obsidian-elevated dark:to-obsidian-surface">
-                            <div class="grid h-full grid-cols-4 gap-4">
-                                <div class="col-span-1 rounded-xl bg-black/5 dark:bg-white/5"></div>
-                                <div class="col-span-3 space-y-4">
-                                    <div class="h-8 w-48 rounded-lg bg-black/5 dark:bg-white/5"></div>
-                                    <div class="grid grid-cols-3 gap-4">
-                                        <div class="h-24 rounded-xl bg-emerald-500/10"></div>
-                                        <div class="h-24 rounded-xl bg-lime-500/10"></div>
-                                        <div class="h-24 rounded-xl bg-black/5 dark:bg-white/5"></div>
-                                    </div>
-                                    <div class="h-48 rounded-xl bg-black/5 dark:bg-white/5"></div>
+                            <div class="flex-1 text-center">
+                                <div class="mx-auto max-w-md rounded-full bg-black/5 px-4 py-1 font-mono text-xs text-muted dark:bg-white/5">
+                                    {{ config('app.url') }}/dashboard
                                 </div>
                             </div>
                         </div>
-                    @endif
+
+                        {{-- Dashboard preview --}}
+                        @if(file_exists(public_path('images/dashboard-preview.png')))
+                            <img
+                                src="{{ asset('images/dashboard-preview.png') }}"
+                                alt="Kingdom Vitals Dashboard Preview"
+                                class="aspect-[16/10] w-full rounded-b-[2rem] object-cover object-top"
+                                loading="lazy"
+                            >
+                        @else
+                            {{-- Placeholder until screenshot is added --}}
+                            <div class="aspect-[16/10] rounded-b-[2rem] bg-gradient-to-br from-zinc-100 to-zinc-200 p-6 dark:from-obsidian-elevated dark:to-obsidian-surface">
+                                <div class="grid h-full grid-cols-4 gap-3">
+                                    <div class="col-span-1 rounded-xl bg-black/5 dark:bg-white/5"></div>
+                                    <div class="col-span-3 space-y-3">
+                                        <div class="h-6 w-36 rounded-lg bg-black/5 dark:bg-white/5"></div>
+                                        <div class="grid grid-cols-3 gap-3">
+                                            <div class="h-16 rounded-xl bg-emerald-500/10"></div>
+                                            <div class="h-16 rounded-xl bg-lime-500/10"></div>
+                                            <div class="h-16 rounded-xl bg-black/5 dark:bg-white/5"></div>
+                                        </div>
+                                        <div class="h-32 rounded-xl bg-black/5 dark:bg-white/5"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
