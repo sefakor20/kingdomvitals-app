@@ -15,46 +15,46 @@
     }
 @endphp
 
-<div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 sm:p-8">
+<div class="rounded-2xl border border-black/10 bg-white/95 p-6 shadow-xl backdrop-blur-sm sm:p-8 dark:border-white/10 dark:bg-obsidian-surface/95">
     {{-- Event Header --}}
     <div class="mb-6 text-center">
         @if ($logoUrl)
-            <img src="{{ $logoUrl }}" alt="{{ $branch->name }}" class="mx-auto mb-4 h-16 w-16 rounded-full object-cover" />
+            <img src="{{ $logoUrl }}" alt="{{ $branch->name }}" class="mx-auto mb-4 h-16 w-16 rounded-full object-cover ring-2 ring-emerald-500/20" />
         @else
-            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
-                <flux:icon.calendar class="size-8 text-zinc-500 dark:text-zinc-400" />
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 ring-2 ring-emerald-500/20">
+                <flux:icon.calendar class="size-8 text-emerald-500" />
             </div>
         @endif
-        <flux:badge size="sm" :color="$event->event_type->color()" class="mb-3">
+        <span class="label-mono inline-block rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-600 dark:text-emerald-400">
             {{ $event->event_type->label() }}
-        </flux:badge>
-        <flux:heading size="xl" level="1">{{ $event->name }}</flux:heading>
-        <flux:text class="mt-2 text-zinc-500">
+        </span>
+        <h1 class="mt-3 text-2xl font-semibold tracking-tight text-primary">{{ $event->name }}</h1>
+        <p class="mt-1 text-sm text-muted">
             {{ $branch->name }}
-        </flux:text>
+        </p>
     </div>
 
     {{-- Status Badge --}}
     @if($event->status === \App\Enums\EventStatus::Completed)
-        <div class="mb-6 rounded-lg bg-zinc-100 p-3 text-center dark:bg-zinc-700">
-            <flux:text class="font-medium text-zinc-600 dark:text-zinc-400">
+        <div class="mb-6 rounded-xl bg-zinc-100 p-3 text-center dark:bg-obsidian-elevated">
+            <p class="font-medium text-secondary">
                 {{ __('This event has ended') }}
-            </flux:text>
+            </p>
         </div>
     @elseif($event->status === \App\Enums\EventStatus::Ongoing)
-        <div class="mb-6 rounded-lg bg-green-100 p-3 text-center dark:bg-green-900/30">
-            <flux:text class="font-medium text-green-700 dark:text-green-400">
+        <div class="mb-6 rounded-xl bg-emerald-500/10 p-3 text-center">
+            <p class="font-medium text-emerald-700 dark:text-emerald-400">
                 {{ __('Event is happening now!') }}
-            </flux:text>
+            </p>
         </div>
     @endif
 
     {{-- Event Description --}}
     @if($event->description)
         <div class="mb-6">
-            <flux:text class="text-zinc-600 dark:text-zinc-400">
+            <p class="text-secondary">
                 {{ $event->description }}
-            </flux:text>
+            </p>
         </div>
     @endif
 
@@ -62,56 +62,56 @@
     <div class="mb-6 space-y-4">
         {{-- Date & Time --}}
         <div class="flex items-start gap-3">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <flux:icon icon="calendar" class="size-5 text-blue-600 dark:text-blue-400" />
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10">
+                <flux:icon icon="calendar" class="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-                <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">
+                <p class="font-medium text-primary">
                     {{ $event->starts_at->format('l, F j, Y') }}
-                </flux:text>
-                <flux:text class="text-sm text-zinc-500">
+                </p>
+                <p class="text-sm text-muted">
                     {{ $event->starts_at->format('g:i A') }}
                     @if($event->ends_at)
                         - {{ $event->ends_at->format('g:i A') }}
                     @endif
-                </flux:text>
+                </p>
             </div>
         </div>
 
         {{-- Location --}}
         <div class="flex items-start gap-3">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                <flux:icon icon="map-pin" class="size-5 text-purple-600 dark:text-purple-400" />
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10">
+                <flux:icon icon="map-pin" class="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-                <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">
+                <p class="font-medium text-primary">
                     {{ $event->location }}
-                </flux:text>
+                </p>
                 @if($event->address || $event->city)
-                    <flux:text class="text-sm text-zinc-500">
+                    <p class="text-sm text-muted">
                         {{ collect([$event->address, $event->city])->filter()->join(', ') }}
-                    </flux:text>
+                    </p>
                 @endif
             </div>
         </div>
 
         {{-- Price --}}
         <div class="flex items-start gap-3">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg {{ $event->is_paid ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-green-100 dark:bg-green-900/30' }}">
-                <flux:icon icon="ticket" class="size-5 {{ $event->is_paid ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400' }}" />
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $event->is_paid ? 'bg-lime-500/10' : 'bg-emerald-500/10' }}">
+                <flux:icon icon="ticket" class="size-5 {{ $event->is_paid ? 'text-lime-600 dark:text-lime-accent' : 'text-emerald-600 dark:text-emerald-400' }}" />
             </div>
             <div>
-                <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">
+                <p class="font-medium text-primary">
                     {{ $event->formatted_price }}
-                </flux:text>
+                </p>
                 @if($event->is_paid)
-                    <flux:text class="text-sm text-zinc-500">
+                    <p class="text-sm text-muted">
                         {{ __('Payment required') }}
-                    </flux:text>
+                    </p>
                 @else
-                    <flux:text class="text-sm text-zinc-500">
+                    <p class="text-sm text-muted">
                         {{ __('No payment required') }}
-                    </flux:text>
+                    </p>
                 @endif
             </div>
         </div>
@@ -119,54 +119,54 @@
         {{-- Capacity --}}
         @if($event->capacity)
             <div class="flex items-start gap-3">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700">
-                    <flux:icon icon="users" class="size-5 text-zinc-600 dark:text-zinc-400" />
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-obsidian-elevated">
+                    <flux:icon icon="users" class="size-5 text-secondary" />
                 </div>
                 <div>
                     @if($this->spotsRemaining !== null && $this->spotsRemaining > 0)
-                        <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">
+                        <p class="font-medium text-primary">
                             {{ $this->spotsRemaining }} {{ __('spots remaining') }}
-                        </flux:text>
+                        </p>
                     @elseif($this->spotsRemaining === 0)
-                        <flux:text class="font-medium text-red-600 dark:text-red-400">
+                        <p class="font-medium text-red-600 dark:text-red-400">
                             {{ __('Fully booked') }}
-                        </flux:text>
+                        </p>
                     @endif
-                    <flux:text class="text-sm text-zinc-500">
+                    <p class="text-sm text-muted">
                         {{ __('Capacity: :count', ['count' => $event->capacity]) }}
-                    </flux:text>
+                    </p>
                 </div>
             </div>
         @endif
     </div>
 
     {{-- Registration Section --}}
-    <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700">
+    <div class="border-t border-black/10 pt-6 dark:border-white/10">
         @if($this->canRegister)
             <a href="{{ route('events.public.register', [$branch, $event]) }}" wire:navigate>
-                <flux:button variant="primary" class="w-full">
+                <button class="btn-neon w-full rounded-full py-3.5 text-base font-semibold">
                     @if($event->is_paid)
                         {{ __('Register Now - :price', ['price' => $event->formatted_price]) }}
                     @else
                         {{ __('Register Now - Free') }}
                     @endif
-                </flux:button>
+                </button>
             </a>
         @else
-            <div class="rounded-lg bg-zinc-100 p-4 text-center dark:bg-zinc-700">
-                <flux:text class="text-zinc-600 dark:text-zinc-400">
+            <div class="rounded-xl bg-zinc-100 p-4 text-center dark:bg-obsidian-elevated">
+                <p class="text-secondary">
                     {{ $this->registrationMessage }}
-                </flux:text>
+                </p>
             </div>
         @endif
     </div>
 
     {{-- Organizer --}}
     @if($event->organizer)
-        <div class="mt-6 border-t border-zinc-200 pt-6 dark:border-zinc-700">
-            <flux:text class="text-sm text-zinc-500">
+        <div class="mt-6 border-t border-black/10 pt-6 dark:border-white/10">
+            <p class="text-sm text-muted">
                 {{ __('Organized by :name', ['name' => $event->organizer->fullName()]) }}
-            </flux:text>
+            </p>
         </div>
     @endif
 </div>
