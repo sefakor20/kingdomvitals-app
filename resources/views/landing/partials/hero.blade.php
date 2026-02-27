@@ -120,21 +120,156 @@
                                 loading="lazy"
                             >
                         @else
-                            {{-- Placeholder until screenshot is added --}}
-                            <div class="aspect-[16/10] rounded-b-[2rem] bg-gradient-to-br from-zinc-100 to-zinc-200 p-6 dark:from-obsidian-elevated dark:to-obsidian-surface">
-                                <div class="grid h-full grid-cols-4 gap-3">
-                                    <div class="col-span-1 rounded-xl bg-black/5 dark:bg-white/5"></div>
-                                    <div class="col-span-3 space-y-3">
-                                        <div class="h-6 w-36 rounded-lg bg-black/5 dark:bg-white/5"></div>
-                                        <div class="grid grid-cols-3 gap-3">
-                                            <div class="h-16 rounded-xl bg-emerald-500/10"></div>
-                                            <div class="h-16 rounded-xl bg-lime-500/10"></div>
-                                            <div class="h-16 rounded-xl bg-black/5 dark:bg-white/5"></div>
-                                        </div>
-                                        <div class="h-32 rounded-xl bg-black/5 dark:bg-white/5"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            {{-- SVG Dashboard Illustration --}}
+                            <svg viewBox="0 0 800 500" class="aspect-[16/10] w-full rounded-b-[2rem]" preserveAspectRatio="xMidYMid slice">
+                                <defs>
+                                    {{-- Gradients --}}
+                                    <linearGradient id="bgGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#f4f4f5" />
+                                        <stop offset="100%" style="stop-color:#e4e4e7" />
+                                    </linearGradient>
+                                    <linearGradient id="bgGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#141414" />
+                                        <stop offset="100%" style="stop-color:#0c0c0c" />
+                                    </linearGradient>
+                                    <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#009866" />
+                                        <stop offset="100%" style="stop-color:#34d399" />
+                                    </linearGradient>
+                                    <linearGradient id="limeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#a3cc00" />
+                                        <stop offset="100%" style="stop-color:#ccff00" />
+                                    </linearGradient>
+                                    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#009866;stop-opacity:0.3" />
+                                        <stop offset="100%" style="stop-color:#009866;stop-opacity:0" />
+                                    </linearGradient>
+                                </defs>
+
+                                {{-- Background --}}
+                                <rect width="800" height="500" class="fill-zinc-100 dark:fill-obsidian-elevated" rx="0" />
+
+                                {{-- Sidebar --}}
+                                <rect x="0" y="0" width="180" height="500" class="fill-white dark:fill-obsidian-surface" />
+                                <rect x="179" y="0" width="1" height="500" class="fill-zinc-200 dark:fill-white/10" />
+
+                                {{-- Sidebar Logo --}}
+                                <rect x="24" y="24" width="32" height="32" rx="8" fill="#009866" />
+                                <rect x="64" y="32" width="80" height="16" rx="4" class="fill-zinc-300 dark:fill-white/20" />
+
+                                {{-- Sidebar Nav Items --}}
+                                <rect x="24" y="90" width="132" height="36" rx="8" fill="#009866" fill-opacity="0.1" />
+                                <rect x="40" y="100" width="16" height="16" rx="4" fill="#009866" />
+                                <rect x="64" y="104" width="60" height="8" rx="2" fill="#009866" />
+
+                                <g class="fill-zinc-400 dark:fill-white/30">
+                                    <rect x="40" y="150" width="16" height="16" rx="4" />
+                                    <rect x="64" y="154" width="50" height="8" rx="2" />
+
+                                    <rect x="40" y="190" width="16" height="16" rx="4" />
+                                    <rect x="64" y="194" width="70" height="8" rx="2" />
+
+                                    <rect x="40" y="230" width="16" height="16" rx="4" />
+                                    <rect x="64" y="234" width="55" height="8" rx="2" />
+
+                                    <rect x="40" y="270" width="16" height="16" rx="4" />
+                                    <rect x="64" y="274" width="65" height="8" rx="2" />
+                                </g>
+
+                                {{-- Sidebar Bottom User --}}
+                                <circle cx="48" cy="460" r="16" class="fill-zinc-300 dark:fill-white/20" />
+                                <rect x="72" y="452" width="60" height="8" rx="2" class="fill-zinc-400 dark:fill-white/30" />
+                                <rect x="72" y="464" width="40" height="6" rx="2" class="fill-zinc-300 dark:fill-white/20" />
+
+                                {{-- Main Content Area --}}
+                                {{-- Header --}}
+                                <rect x="204" y="24" width="200" height="36" rx="18" class="fill-zinc-200 dark:fill-white/10" />
+                                <circle cx="222" cy="42" r="8" class="fill-zinc-400 dark:fill-white/30" />
+
+                                {{-- Header Right Icons --}}
+                                <circle cx="720" cy="42" r="12" class="fill-zinc-200 dark:fill-white/10" />
+                                <circle cx="756" cy="42" r="16" class="fill-zinc-300 dark:fill-white/20" />
+
+                                {{-- Page Title --}}
+                                <rect x="204" y="84" width="120" height="20" rx="4" class="fill-zinc-400 dark:fill-white/40" />
+
+                                {{-- Stat Cards --}}
+                                {{-- Card 1 - Members (Emerald) --}}
+                                <rect x="204" y="124" width="176" height="100" rx="12" class="fill-white dark:fill-obsidian-surface" />
+                                <rect x="220" y="140" width="60" height="8" rx="2" fill="#009866" fill-opacity="0.6" />
+                                <rect x="220" y="160" width="80" height="24" rx="4" class="fill-zinc-800 dark:fill-white/80" />
+                                <rect x="220" y="196" width="50" height="12" rx="6" fill="#009866" fill-opacity="0.15" />
+                                <rect x="228" y="200" width="34" height="4" rx="1" fill="#009866" />
+
+                                {{-- Card 2 - Giving (Lime) --}}
+                                <rect x="396" y="124" width="176" height="100" rx="12" class="fill-white dark:fill-obsidian-surface" />
+                                <rect x="412" y="140" width="50" height="8" rx="2" fill="#a3cc00" fill-opacity="0.6" />
+                                <rect x="412" y="160" width="90" height="24" rx="4" class="fill-zinc-800 dark:fill-white/80" />
+                                <rect x="412" y="196" width="50" height="12" rx="6" fill="#ccff00" fill-opacity="0.15" />
+                                <rect x="420" y="200" width="34" height="4" rx="1" fill="#a3cc00" />
+
+                                {{-- Card 3 - Attendance --}}
+                                <rect x="588" y="124" width="176" height="100" rx="12" class="fill-white dark:fill-obsidian-surface" />
+                                <rect x="604" y="140" width="70" height="8" rx="2" class="fill-zinc-400 dark:fill-white/40" />
+                                <rect x="604" y="160" width="70" height="24" rx="4" class="fill-zinc-800 dark:fill-white/80" />
+                                <rect x="604" y="196" width="50" height="12" rx="6" class="fill-zinc-200 dark:fill-white/10" />
+                                <rect x="612" y="200" width="34" height="4" rx="1" class="fill-zinc-400 dark:fill-white/40" />
+
+                                {{-- Chart Area --}}
+                                <rect x="204" y="244" width="368" height="232" rx="12" class="fill-white dark:fill-obsidian-surface" />
+                                <rect x="220" y="260" width="100" height="12" rx="3" class="fill-zinc-400 dark:fill-white/40" />
+                                <rect x="220" y="278" width="60" height="8" rx="2" class="fill-zinc-300 dark:fill-white/20" />
+
+                                {{-- Chart Line --}}
+                                <path d="M240 420 L280 400 L320 410 L360 370 L400 380 L440 340 L480 350 L520 310"
+                                      stroke="#009866" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                {{-- Chart Area Fill --}}
+                                <path d="M240 420 L280 400 L320 410 L360 370 L400 380 L440 340 L480 350 L520 310 L520 440 L240 440 Z"
+                                      fill="url(#chartGradient)" />
+                                {{-- Chart Dots --}}
+                                <circle cx="240" cy="420" r="4" fill="#009866" />
+                                <circle cx="280" cy="400" r="4" fill="#009866" />
+                                <circle cx="320" cy="410" r="4" fill="#009866" />
+                                <circle cx="360" cy="370" r="4" fill="#009866" />
+                                <circle cx="400" cy="380" r="4" fill="#009866" />
+                                <circle cx="440" cy="340" r="4" fill="#009866" />
+                                <circle cx="480" cy="350" r="4" fill="#009866" />
+                                <circle cx="520" cy="310" r="6" fill="#009866" stroke="white" stroke-width="2" />
+
+                                {{-- Chart Grid Lines --}}
+                                <g class="stroke-zinc-200 dark:stroke-white/10" stroke-width="1">
+                                    <line x1="240" y1="440" x2="540" y2="440" />
+                                    <line x1="240" y1="400" x2="540" y2="400" stroke-dasharray="4,4" />
+                                    <line x1="240" y1="360" x2="540" y2="360" stroke-dasharray="4,4" />
+                                    <line x1="240" y1="320" x2="540" y2="320" stroke-dasharray="4,4" />
+                                </g>
+
+                                {{-- Right Panel - Recent Activity --}}
+                                <rect x="588" y="244" width="176" height="232" rx="12" class="fill-white dark:fill-obsidian-surface" />
+                                <rect x="604" y="260" width="80" height="12" rx="3" class="fill-zinc-400 dark:fill-white/40" />
+
+                                {{-- Activity Items --}}
+                                <g>
+                                    <circle cx="620" cy="300" r="12" fill="#009866" fill-opacity="0.1" />
+                                    <rect x="642" y="294" width="80" height="6" rx="2" class="fill-zinc-500 dark:fill-white/50" />
+                                    <rect x="642" y="304" width="50" height="4" rx="1" class="fill-zinc-300 dark:fill-white/20" />
+                                </g>
+                                <g>
+                                    <circle cx="620" cy="344" r="12" fill="#ccff00" fill-opacity="0.15" />
+                                    <rect x="642" y="338" width="90" height="6" rx="2" class="fill-zinc-500 dark:fill-white/50" />
+                                    <rect x="642" y="348" width="40" height="4" rx="1" class="fill-zinc-300 dark:fill-white/20" />
+                                </g>
+                                <g>
+                                    <circle cx="620" cy="388" r="12" fill="#009866" fill-opacity="0.1" />
+                                    <rect x="642" y="382" width="70" height="6" rx="2" class="fill-zinc-500 dark:fill-white/50" />
+                                    <rect x="642" y="392" width="55" height="4" rx="1" class="fill-zinc-300 dark:fill-white/20" />
+                                </g>
+                                <g>
+                                    <circle cx="620" cy="432" r="12" class="fill-zinc-200 dark:fill-white/10" />
+                                    <rect x="642" y="426" width="85" height="6" rx="2" class="fill-zinc-500 dark:fill-white/50" />
+                                    <rect x="642" y="436" width="45" height="4" rx="1" class="fill-zinc-300 dark:fill-white/20" />
+                                </g>
+                            </svg>
                         @endif
                     </div>
                 </div>
