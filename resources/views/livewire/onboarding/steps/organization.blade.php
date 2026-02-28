@@ -1,9 +1,12 @@
 <div class="space-y-6">
     <div class="text-center">
-        <flux:heading size="xl">Set Up Your Organization</flux:heading>
-        <flux:text class="mt-2">
+        <span class="label-mono text-emerald-600 dark:text-emerald-400">Step 1 of 5</span>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            <span class="text-gradient-emerald">Set Up Your Organization</span>
+        </h1>
+        <p class="mt-2 text-secondary">
             Let's start by setting up your main branch. This will be the primary location for your church.
-        </flux:text>
+        </p>
     </div>
 
     <form wire:submit="completeOrganizationStep" class="space-y-6">
@@ -81,9 +84,10 @@
         </div>
 
         <div class="flex justify-end pt-4">
-            <flux:button type="submit" variant="primary" icon:trailing="arrow-right">
+            <button type="submit" class="btn-neon rounded-full px-8 py-3 text-sm font-semibold">
                 Continue
-            </flux:button>
+                <flux:icon name="arrow-right" variant="mini" class="ml-2 inline size-4" />
+            </button>
         </div>
     </form>
 </div>

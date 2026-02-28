@@ -134,28 +134,52 @@ class OnboardingService
         $tenant = tenant();
 
         return DB::transaction(function () use ($data, $user, $tenant) {
-            $branch = Branch::create([
-                'name' => $data['name'],
-                'slug' => Str::slug($data['name']),
-                'is_main' => true,
-                'timezone' => $data['timezone'] ?? 'UTC',
-                'address' => $data['address'] ?? null,
-                'city' => $data['city'] ?? null,
-                'state' => $data['state'] ?? null,
-                'zip' => $data['zip'] ?? null,
-                'country' => $data['country'] ?? null,
-                'phone' => $data['phone'] ?? null,
-                'email' => $data['email'] ?? null,
-                'status' => BranchStatus::Active,
-            ]);
+            $slug = Str::slug($data['name']);
 
-            // Grant the user admin access to the main branch
-            UserBranchAccess::create([
-                'user_id' => $user->id,
-                'branch_id' => $branch->id,
-                'role' => BranchRole::Admin,
-                'is_primary' => true,
-            ]);
+            // Use firstOrCreate to handle re-submission of organization step
+            $branch = Branch::firstOrCreate(
+                ['slug' => $slug],
+                [
+                    'name' => $data['name'],
+                    'is_main' => true,
+                    'timezone' => $data['timezone'] ?? 'UTC',
+                    'address' => $data['address'] ?? null,
+                    'city' => $data['city'] ?? null,
+                    'state' => $data['state'] ?? null,
+                    'zip' => $data['zip'] ?? null,
+                    'country' => $data['country'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'email' => $data['email'] ?? null,
+                    'status' => BranchStatus::Active,
+                ]
+            );
+
+            // Update branch data if it already existed
+            if (! $branch->wasRecentlyCreated) {
+                $branch->update([
+                    'name' => $data['name'],
+                    'timezone' => $data['timezone'] ?? 'UTC',
+                    'address' => $data['address'] ?? null,
+                    'city' => $data['city'] ?? null,
+                    'state' => $data['state'] ?? null,
+                    'zip' => $data['zip'] ?? null,
+                    'country' => $data['country'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'email' => $data['email'] ?? null,
+                ]);
+            }
+
+            // Grant the user admin access to the main branch (if not already granted)
+            UserBranchAccess::firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'branch_id' => $branch->id,
+                ],
+                [
+                    'role' => BranchRole::Admin,
+                    'is_primary' => true,
+                ]
+            );
 
             // Set the branch context
             $this->branchContextService->setCurrentBranch($branch->id);
