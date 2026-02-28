@@ -46,6 +46,10 @@
                 <div class="w-full max-w-md text-center">
                     {{-- Icon with pulse animation --}}
                     <div class="relative mx-auto mb-6" style="width: 5rem; height: 5rem;">
+                        {{-- Background Status Code Watermark --}}
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8rem; font-weight: 700; opacity: 0.05; pointer-events: none; user-select: none; line-height: 1; white-space: nowrap;">
+                            @yield('code')
+                        </div>
                         <div class="absolute inset-0 animate-ping rounded-full" style="background-color: @yield('icon-ping-color', 'rgba(239, 68, 68, 0.2)');"></div>
                         <div class="relative flex items-center justify-center rounded-full shadow-lg" style="width: 5rem; height: 5rem; background: linear-gradient(135deg, @yield('icon-color-from', '#ef4444'), @yield('icon-color-to', '#f97316'));">
                             @yield('icon')
