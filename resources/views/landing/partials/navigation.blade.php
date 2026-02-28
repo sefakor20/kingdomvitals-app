@@ -1,6 +1,6 @@
-<div x-data="{ mobileMenuOpen: false }">
+<div x-data="{ mobileMenuOpen: false }" wire:ignore.self>
     {{-- Header --}}
-    <header class="absolute inset-x-0 top-0 z-40">
+    <header class="fixed inset-x-0 top-4 z-50 sm:top-6 lg:top-8">
         <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
             {{-- Logo with Status Dot --}}
             <div class="flex items-center gap-3 lg:flex-1">
@@ -27,17 +27,17 @@
             {{-- Pill-shaped Desktop Navigation --}}
             <div class="hidden lg:flex">
                 <div class="glass-card flex items-center gap-1 px-2 py-1.5">
-                    <a href="#features" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Features</a>
-                    <a href="#how-it-works" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">How It Works</a>
-                    <a href="#pricing" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Pricing</a>
-                    <a href="#faq" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">FAQ</a>
-                    <a href="#contact" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Contact</a>
+                    <a href="javascript:void(0)" x-on:click="document.querySelector('#features').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Features</a>
+                    <a href="javascript:void(0)" x-on:click="document.querySelector('#how-it-works').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">How It Works</a>
+                    <a href="javascript:void(0)" x-on:click="document.querySelector('#pricing').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Pricing</a>
+                    <a href="javascript:void(0)" x-on:click="document.querySelector('#faq').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">FAQ</a>
+                    <a href="javascript:void(0)" x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Contact</a>
                 </div>
             </div>
 
             {{-- Desktop CTA --}}
             <div class="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-                <a href="#contact" class="btn-neon rounded-full px-6 py-2.5 text-sm font-semibold">
+                <a href="javascript:void(0)" x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' })" class="btn-neon rounded-full px-6 py-2.5 text-sm font-semibold">
                     Get Started
                 </a>
             </div>
@@ -101,29 +101,29 @@
                     <div class="mt-6 flex-1">
                         <div class="space-y-1">
                             <a
-                                href="#features"
+                                href="javascript:void(0)"
                                 class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                @click="mobileMenuOpen = false"
+                                x-on:click="document.querySelector('#features').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
                             >Features</a>
                             <a
-                                href="#how-it-works"
+                                href="javascript:void(0)"
                                 class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                @click="mobileMenuOpen = false"
+                                x-on:click="document.querySelector('#how-it-works').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
                             >How It Works</a>
                             <a
-                                href="#pricing"
+                                href="javascript:void(0)"
                                 class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                @click="mobileMenuOpen = false"
+                                x-on:click="document.querySelector('#pricing').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
                             >Pricing</a>
                             <a
-                                href="#faq"
+                                href="javascript:void(0)"
                                 class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                @click="mobileMenuOpen = false"
+                                x-on:click="document.querySelector('#faq').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
                             >FAQ</a>
                             <a
-                                href="#contact"
+                                href="javascript:void(0)"
                                 class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                @click="mobileMenuOpen = false"
+                                x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
                             >Contact</a>
                         </div>
                     </div>
@@ -131,9 +131,9 @@
                     {{-- CTA button --}}
                     <div class="mt-6 border-t border-black/10 pt-6 dark:border-white/10">
                         <a
-                            href="#contact"
+                            href="javascript:void(0)"
                             class="btn-neon block rounded-full px-3 py-3 text-center text-base font-semibold"
-                            @click="mobileMenuOpen = false"
+                            x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
                         >Get Started</a>
                     </div>
                 </div>
