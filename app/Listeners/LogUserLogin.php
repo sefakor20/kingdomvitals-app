@@ -19,6 +19,11 @@ class LogUserLogin
     {
         $user = $event->user;
 
+        // Only log for users with branch access (not SuperAdmins)
+        if (! method_exists($user, 'branchAccess')) {
+            return;
+        }
+
         // Get the user's primary branch
         $primaryAccess = $user->branchAccess()->with('branch')->first();
 

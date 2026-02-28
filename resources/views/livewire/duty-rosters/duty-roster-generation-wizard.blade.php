@@ -19,9 +19,9 @@
                         type="button"
                         wire:click="goToStep({{ $stepNum }})"
                         @disabled($stepNum > $step)
-                        class="flex items-center gap-2 {{ $step >= $stepNum ? 'text-blue-600' : 'text-zinc-400' }} {{ $stepNum <= $step ? 'cursor-pointer' : 'cursor-default' }}"
+                        class="flex items-center gap-2 {{ $step >= $stepNum ? 'text-emerald-600' : 'text-zinc-400' }} {{ $stepNum <= $step ? 'cursor-pointer' : 'cursor-default' }}"
                     >
-                        <span class="flex size-8 items-center justify-center rounded-full {{ $step >= $stepNum ? 'bg-blue-600 text-white' : 'bg-zinc-200 text-zinc-500' }}">
+                        <span class="flex size-8 items-center justify-center rounded-full {{ $step >= $stepNum ? 'bg-emerald-600 text-white' : 'bg-zinc-200 text-zinc-500' }}">
                             @if($step > $stepNum)
                                 <flux:icon icon="check" class="size-4" />
                             @else
@@ -31,7 +31,7 @@
                         <span class="hidden text-sm font-medium sm:inline">{{ $stepLabel }}</span>
                     </button>
                     @if($stepNum < 4)
-                        <div class="mx-4 h-0.5 flex-1 {{ $step > $stepNum ? 'bg-blue-600' : 'bg-zinc-200' }}"></div>
+                        <div class="mx-4 h-0.5 flex-1 {{ $step > $stepNum ? 'bg-emerald-600' : 'bg-zinc-200' }}"></div>
                     @endif
                 </div>
             @endforeach
@@ -78,7 +78,7 @@
                                         type="checkbox"
                                         wire:model.live="days_of_week"
                                         value="{{ $value }}"
-                                        class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                                        class="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
                                     >
                                     <span class="text-sm">{{ $label }}</span>
                                 </label>
@@ -117,7 +117,7 @@
                         @if($this->preacherPools->isEmpty())
                             <flux:text class="mt-1 text-sm text-zinc-500">
                                 {{ __('No preacher pools available.') }}
-                                <a href="{{ route('duty-rosters.pools.index', $branch) }}" class="text-blue-600 hover:underline" wire:navigate>{{ __('Create one') }}</a>
+                                <a href="{{ route('duty-rosters.pools.index', $branch) }}" class="text-emerald-600 hover:underline" wire:navigate>{{ __('Create one') }}</a>
                             </flux:text>
                         @endif
                     </div>
@@ -134,7 +134,7 @@
                         @if($this->liturgistPools->isEmpty())
                             <flux:text class="mt-1 text-sm text-zinc-500">
                                 {{ __('No liturgist pools available.') }}
-                                <a href="{{ route('duty-rosters.pools.index', $branch) }}" class="text-blue-600 hover:underline" wire:navigate>{{ __('Create one') }}</a>
+                                <a href="{{ route('duty-rosters.pools.index', $branch) }}" class="text-emerald-600 hover:underline" wire:navigate>{{ __('Create one') }}</a>
                             </flux:text>
                         @endif
                     </div>
@@ -151,7 +151,7 @@
                         @if($this->readerPools->isEmpty())
                             <flux:text class="mt-1 text-sm text-zinc-500">
                                 {{ __('No reader pools available.') }}
-                                <a href="{{ route('duty-rosters.pools.index', $branch) }}" class="text-blue-600 hover:underline" wire:navigate>{{ __('Create one') }}</a>
+                                <a href="{{ route('duty-rosters.pools.index', $branch) }}" class="text-emerald-600 hover:underline" wire:navigate>{{ __('Create one') }}</a>
                             </flux:text>
                         @endif
                     </div>

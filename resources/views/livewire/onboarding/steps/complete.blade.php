@@ -1,38 +1,46 @@
 <div class="space-y-8">
     <div class="text-center">
-        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-            <flux:icon name="check-circle" class="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+        {{-- Success icon with pulse animation --}}
+        <div class="relative mx-auto flex size-20 items-center justify-center">
+            <div class="absolute inset-0 animate-ping rounded-full bg-emerald-500/20"></div>
+            <div class="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-lime-accent shadow-lg shadow-emerald-500/30">
+                <flux:icon name="check" class="size-10 text-white" />
+            </div>
         </div>
-        <flux:heading size="xl" class="mt-4">You're All Set!</flux:heading>
-        <flux:text class="mt-2">
+
+        <span class="mt-6 inline-block label-mono text-emerald-600 dark:text-emerald-400">Setup Complete</span>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            <span class="text-gradient-emerald">You're All Set!</span>
+        </h1>
+        <p class="mt-2 text-secondary">
             Your organization has been set up successfully. Here's a summary of what we've configured.
-        </flux:text>
+        </p>
     </div>
 
-    <!-- Summary -->
+    {{-- Summary cards with floating animation --}}
     <div class="grid gap-4 sm:grid-cols-2">
-        <!-- Organization -->
-        <div class="rounded-lg border border-stone-200 dark:border-stone-700 p-4">
+        {{-- Organization --}}
+        <div class="animate-float rounded-xl border border-black/10 bg-white/80 p-4 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/5" style="animation-delay: 0s;">
             <div class="flex items-center gap-3">
-                <div class="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-2">
-                    <flux:icon name="building-office" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div class="flex size-10 items-center justify-center rounded-xl bg-blue-500/10">
+                    <flux:icon name="building-office" class="size-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                    <h3 class="font-medium text-stone-900 dark:text-white">Organization</h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400">{{ $this->onboardingBranch?->name ?? 'Main Branch' }}</p>
+                    <h3 class="font-medium text-primary">Organization</h3>
+                    <p class="text-sm text-muted">{{ $this->onboardingBranch?->name ?? 'Main Branch' }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Team -->
-        <div class="rounded-lg border border-stone-200 dark:border-stone-700 p-4">
+        {{-- Team --}}
+        <div class="animate-float rounded-xl border border-black/10 bg-white/80 p-4 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/5" style="animation-delay: 0.1s;">
             <div class="flex items-center gap-3">
-                <div class="rounded-lg bg-purple-100 dark:bg-purple-900/30 p-2">
-                    <flux:icon name="users" class="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div class="flex size-10 items-center justify-center rounded-xl bg-purple-500/10">
+                    <flux:icon name="users" class="size-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                    <h3 class="font-medium text-stone-900 dark:text-white">Team Members</h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400">
+                    <h3 class="font-medium text-primary">Team Members</h3>
+                    <p class="text-sm text-muted">
                         @if(count($teamMembers) > 0)
                             {{ count($teamMembers) }} invited
                         @else
@@ -43,15 +51,15 @@
             </div>
         </div>
 
-        <!-- Integrations -->
-        <div class="rounded-lg border border-stone-200 dark:border-stone-700 p-4">
+        {{-- Integrations --}}
+        <div class="animate-float rounded-xl border border-black/10 bg-white/80 p-4 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/5" style="animation-delay: 0.2s;">
             <div class="flex items-center gap-3">
-                <div class="rounded-lg bg-orange-100 dark:bg-orange-900/30 p-2">
-                    <flux:icon name="puzzle-piece" class="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <div class="flex size-10 items-center justify-center rounded-xl bg-orange-500/10">
+                    <flux:icon name="puzzle-piece" class="size-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                    <h3 class="font-medium text-stone-900 dark:text-white">Integrations</h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400">
+                    <h3 class="font-medium text-primary">Integrations</h3>
+                    <p class="text-sm text-muted">
                         @php
                             $integrations = [];
                             if ($smsApiKey) $integrations[] = 'SMS';
@@ -67,38 +75,46 @@
             </div>
         </div>
 
-        <!-- Services -->
-        <div class="rounded-lg border border-stone-200 dark:border-stone-700 p-4">
+        {{-- Services --}}
+        <div class="animate-float rounded-xl border border-black/10 bg-white/80 p-4 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/5" style="animation-delay: 0.3s;">
             <div class="flex items-center gap-3">
-                <div class="rounded-lg bg-emerald-100 dark:bg-emerald-900/30 p-2">
-                    <flux:icon name="calendar-days" class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <div class="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10">
+                    <flux:icon name="calendar-days" class="size-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                    <h3 class="font-medium text-stone-900 dark:text-white">Worship Services</h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400">{{ count($services) }} service{{ count($services) !== 1 ? 's' : '' }} added</p>
+                    <h3 class="font-medium text-primary">Worship Services</h3>
+                    <p class="text-sm text-muted">{{ count($services) }} service{{ count($services) !== 1 ? 's' : '' }} added</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- What's next -->
-    <div class="rounded-lg bg-stone-50 dark:bg-stone-900/50 p-6">
-        <h3 class="font-semibold text-stone-900 dark:text-white">What's Next?</h3>
-        <ul class="mt-3 space-y-2 text-sm text-stone-600 dark:text-stone-400">
-            <li class="flex items-center gap-2">
-                <flux:icon name="check" variant="micro" class="text-emerald-600" />
+    {{-- What's next --}}
+    <div class="rounded-xl border border-black/5 bg-gradient-to-br from-emerald-500/5 to-lime-500/5 p-6 dark:border-white/5">
+        <h3 class="font-semibold text-primary">What's Next?</h3>
+        <ul class="mt-4 space-y-3">
+            <li class="flex items-center gap-3 text-sm text-secondary">
+                <span class="flex size-6 items-center justify-center rounded-full bg-emerald-500/10">
+                    <flux:icon name="check" variant="micro" class="size-3 text-emerald-600 dark:text-emerald-400" />
+                </span>
                 Add your church members to start tracking attendance
             </li>
-            <li class="flex items-center gap-2">
-                <flux:icon name="check" variant="micro" class="text-emerald-600" />
+            <li class="flex items-center gap-3 text-sm text-secondary">
+                <span class="flex size-6 items-center justify-center rounded-full bg-emerald-500/10">
+                    <flux:icon name="check" variant="micro" class="size-3 text-emerald-600 dark:text-emerald-400" />
+                </span>
                 Record visitor information when guests arrive
             </li>
-            <li class="flex items-center gap-2">
-                <flux:icon name="check" variant="micro" class="text-emerald-600" />
+            <li class="flex items-center gap-3 text-sm text-secondary">
+                <span class="flex size-6 items-center justify-center rounded-full bg-emerald-500/10">
+                    <flux:icon name="check" variant="micro" class="size-3 text-emerald-600 dark:text-emerald-400" />
+                </span>
                 Set up donation categories and start tracking giving
             </li>
-            <li class="flex items-center gap-2">
-                <flux:icon name="check" variant="micro" class="text-emerald-600" />
+            <li class="flex items-center gap-3 text-sm text-secondary">
+                <span class="flex size-6 items-center justify-center rounded-full bg-emerald-500/10">
+                    <flux:icon name="check" variant="micro" class="size-3 text-emerald-600 dark:text-emerald-400" />
+                </span>
                 Explore reports and analytics on your dashboard
             </li>
         </ul>
@@ -109,8 +125,9 @@
             Back
         </flux:button>
 
-        <flux:button wire:click="completeOnboarding" variant="primary" icon:trailing="arrow-right">
+        <button wire:click="completeOnboarding" class="btn-neon rounded-full px-8 py-3 text-sm font-semibold">
             Go to Dashboard
-        </flux:button>
+            <flux:icon name="arrow-right" variant="mini" class="ml-2 inline size-4" />
+        </button>
     </div>
 </div>

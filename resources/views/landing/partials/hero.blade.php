@@ -7,7 +7,7 @@
         {{-- 12-col Grid: 6/6 Split --}}
         <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
             {{-- Left Column (6 cols) - Content --}}
-            <div class="overflow-hidden lg:col-span-6">
+            <div class="lg:col-span-6">
                 {{-- Status Tag --}}
                 <div class="mb-8 inline-flex items-center gap-2">
                     <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
@@ -18,7 +18,7 @@
                 <h1 class="heading-giant text-primary">
                     Church<br>
                     Management<br>
-                    <span class="text-gradient-emerald italic">Powered by AI</span>
+                    <span class="text-gradient-emerald italic pr-3">Powered by AI</span>
                 </h1>
 
                 {{-- Subheadline --}}
