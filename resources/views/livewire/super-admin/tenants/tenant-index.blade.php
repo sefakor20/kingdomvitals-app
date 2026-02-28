@@ -144,13 +144,15 @@
                     required
                 />
 
-                <flux:input
-                    wire:model="domain"
-                    label="Domain"
-                    placeholder="example.kingdomvitals-app.test"
-                    description="The subdomain or domain for tenant access"
-                    required
-                />
+                <flux:field>
+                    <flux:label>Subdomain</flux:label>
+                    <flux:description>The subdomain for tenant access</flux:description>
+                    <flux:input.group>
+                        <flux:input wire:model="subdomain" placeholder="example" />
+                        <flux:input.group.suffix>.{{ $this->baseDomain }}</flux:input.group.suffix>
+                    </flux:input.group>
+                    <flux:error name="subdomain" />
+                </flux:field>
 
                 <flux:separator />
 
