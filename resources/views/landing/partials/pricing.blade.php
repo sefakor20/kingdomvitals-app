@@ -157,7 +157,7 @@
 
                         <a
                             href="#contact"
-                            class="{{ $isPopular ? 'btn-neon' : 'glass-card bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10' }} mt-8 block w-full rounded-full px-4 py-3 text-center text-sm font-semibold text-primary transition"
+                            class="btn-neon mt-8 block w-full rounded-full px-4 py-3 text-center text-sm font-semibold"
                         >
                             Contact Us
                         </a>
