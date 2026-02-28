@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Services\TenantCreationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -34,9 +35,18 @@ class TenantIndex extends Component
 
     public string $name = '';
 
-    public string $domain = '';
+    public string $subdomain = '';
 
     public string $contact_email = '';
+
+    #[Computed]
+    public function baseDomain(): string
+    {
+        $url = config('app.url');
+        $parsed = parse_url($url);
+
+        return $parsed['host'] ?? 'example.com';
+    }
 
     public string $contact_phone = '';
 
@@ -66,7 +76,7 @@ class TenantIndex extends Component
     public function resetCreateForm(): void
     {
         $this->name = '';
-        $this->domain = '';
+        $this->subdomain = '';
         $this->contact_email = '';
         $this->contact_phone = '';
         $this->address = '';
@@ -78,14 +88,16 @@ class TenantIndex extends Component
 
     public function createTenant(TenantCreationService $tenantCreationService): void
     {
+        // Build the full domain
+        $fullDomain = $this->subdomain.'.'.$this->baseDomain;
+
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'domain' => [
+            'subdomain' => [
                 'required',
                 'string',
-                'max:255',
-                'unique:domains,domain',
-                'regex:/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/',
+                'max:63',
+                'regex:/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i',
             ],
             'contact_email' => ['nullable', 'email', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:50'],
@@ -94,13 +106,20 @@ class TenantIndex extends Component
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255'],
         ], [
-            'domain.regex' => 'The domain must be a valid domain format (e.g., tenant.example.com).',
+            'subdomain.regex' => 'The subdomain must contain only letters, numbers, and hyphens.',
         ]);
+
+        // Validate uniqueness of the full domain
+        if (\App\Models\Domain::where('domain', $fullDomain)->exists()) {
+            $this->addError('subdomain', 'This subdomain is already taken.');
+
+            return;
+        }
 
         $tenant = $tenantCreationService->createTenantWithAdmin(
             tenantData: [
                 'name' => $this->name,
-                'domain' => $this->domain,
+                'domain' => $fullDomain,
                 'contact_email' => $this->contact_email ?: null,
                 'contact_phone' => $this->contact_phone ?: null,
                 'address' => $this->address ?: null,
@@ -118,7 +137,7 @@ class TenantIndex extends Component
             description: "Created new tenant: {$tenant->name}",
             tenant: $tenant,
             metadata: [
-                'domain' => $this->domain,
+                'domain' => $fullDomain,
                 'trial_days' => $this->trial_days,
                 'admin_email' => $this->admin_email,
             ],

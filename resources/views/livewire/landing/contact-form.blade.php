@@ -102,7 +102,7 @@
             <div>
                 <button
                     type="submit"
-                    class="w-full rounded-full bg-neutral-900 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+                    class="btn-neon w-full rounded-full px-4 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-50"
                     wire:loading.attr="disabled"
                 >
                     <span wire:loading.remove>Send Message</span>
