@@ -1,4 +1,4 @@
-<section class="relative isolate overflow-hidden pt-24 lg:pt-28" x-data="{ videoModalOpen: false }">
+<section class="relative isolate overflow-hidden pt-10 lg:pt-14" x-data="{ videoModalOpen: false }">
     {{-- Glow Effects --}}
     <div class="glow-sphere glow-emerald absolute right-0 top-20 size-[600px] opacity-20"></div>
     <div class="glow-sphere glow-lime absolute -left-40 bottom-0 size-[400px] opacity-15"></div>
