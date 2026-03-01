@@ -1,7 +1,17 @@
-<div x-data="{ mobileMenuOpen: false }" wire:ignore.self>
+<div
+    x-data="{ mobileMenuOpen: false, scrolled: false }"
+    x-init="scrolled = window.scrollY > 50"
+    @scroll.window="scrolled = window.scrollY > 50"
+    wire:ignore.self
+>
     {{-- Header --}}
     <header class="fixed inset-x-0 top-4 z-50 sm:top-6 lg:top-8">
-        <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+        <nav
+            class="mx-auto flex max-w-7xl items-center justify-between rounded-2xl px-6 py-3 transition-all duration-300 lg:px-8"
+            :class="scrolled
+                ? 'border border-black/10 bg-white/70 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-obsidian-surface/70'
+                : 'border border-transparent bg-transparent shadow-none'"
+        >
             {{-- Logo with Status Dot --}}
             <div class="flex items-center gap-3 lg:flex-1">
                 <a href="{{ route('home') }}" class="-m-1.5 flex items-center gap-2 p-1.5">
