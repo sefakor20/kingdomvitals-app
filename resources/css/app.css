@@ -125,6 +125,22 @@
                     0 0 60px rgba(16, 185, 129, 0.3);
     }
 
+    .btn-neon:active {
+        transform: scale(0.98);
+    }
+
+    .btn-neon:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px white, 0 0 0 4px var(--color-emerald-500),
+                    0 0 30px rgba(16, 185, 129, 0.6);
+    }
+
+    .dark .btn-neon:focus-visible {
+        box-shadow: 0 0 0 2px var(--color-obsidian-surface),
+                    0 0 0 4px var(--color-emerald-500),
+                    0 0 30px rgba(16, 185, 129, 0.6);
+    }
+
     /* Lime Button (Secondary) */
     .btn-lime {
         background: var(--color-lime-accent);
@@ -137,6 +153,22 @@
     .btn-lime:hover {
         transform: scale(1.02);
         box-shadow: 0 0 40px rgba(204, 255, 0, 0.5);
+    }
+
+    .btn-lime:active {
+        transform: scale(0.98);
+    }
+
+    .btn-lime:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px white, 0 0 0 4px var(--color-lime-accent),
+                    0 0 30px rgba(204, 255, 0, 0.5);
+    }
+
+    .dark .btn-lime:focus-visible {
+        box-shadow: 0 0 0 2px var(--color-obsidian-surface),
+                    0 0 0 4px var(--color-lime-accent),
+                    0 0 30px rgba(204, 255, 0, 0.5);
     }
 
     /* System Status Tag */
@@ -175,6 +207,122 @@
 
     .pulse-dot {
         animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    /* Entrance Animation */
+    @keyframes fade-in-up {
+        from {
+            opacity: 0;
+            transform: translateY(1.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fade-out {
+        to { opacity: 0; }
+    }
+
+    .animate-entrance {
+        animation: fade-in-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .animate-entrance-delay-1 { animation-delay: 100ms; }
+    .animate-entrance-delay-2 { animation-delay: 200ms; }
+    .animate-entrance-delay-3 { animation-delay: 300ms; }
+    .animate-entrance-delay-4 { animation-delay: 400ms; }
+    .animate-entrance-delay-5 { animation-delay: 500ms; }
+
+    /* Hero entrance - pure CSS, no JS dependency */
+    .hero-entrance {
+        animation: fade-in-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    .hero-delay-1 { animation-delay: 0ms; }
+    .hero-delay-2 { animation-delay: 100ms; }
+    .hero-delay-3 { animation-delay: 200ms; }
+    .hero-delay-4 { animation-delay: 300ms; }
+    .hero-delay-5 { animation-delay: 400ms; }
+    .hero-delay-6 { animation-delay: 500ms; }
+
+    /* Scroll reveal - JS IntersectionObserver toggles .is-visible */
+    .scroll-reveal {
+        opacity: 0;
+        transform: translateY(2rem);
+        transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .scroll-reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Stagger delays for scroll reveal */
+    .reveal-delay-1 { transition-delay: 0ms; }
+    .reveal-delay-2 { transition-delay: 100ms; }
+    .reveal-delay-3 { transition-delay: 200ms; }
+    .reveal-delay-4 { transition-delay: 300ms; }
+    .reveal-delay-5 { transition-delay: 400ms; }
+    .reveal-delay-6 { transition-delay: 500ms; }
+    .reveal-delay-7 { transition-delay: 600ms; }
+    .reveal-delay-8 { transition-delay: 700ms; }
+
+    /* Card Lift Effect */
+    .card-lift {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+    }
+
+    .dark .card-lift:hover {
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Skeleton Loader */
+    @keyframes skeleton-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .skeleton {
+        background: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.06) 25%,
+            rgba(0, 0, 0, 0.1) 50%,
+            rgba(0, 0, 0, 0.06) 75%
+        );
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+        border-radius: 0.5rem;
+    }
+
+    .dark .skeleton {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.04) 25%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.04) 75%
+        );
+        background-size: 200% 100%;
+    }
+
+    /* Gradient Animation */
+    @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    .animate-gradient {
+        background-size: 200% 200%;
+        animation: gradient-shift 15s ease infinite;
     }
 
     /* Glow Sphere */
@@ -346,4 +494,84 @@ select:focus {
 .dark textarea:focus,
 .dark select:focus {
     @apply ring-offset-obsidian-elevated;
+}
+
+/* Smooth Scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* View Transitions (for wire:transition) */
+::view-transition-old(match-element) {
+    animation: 200ms ease-out both fade-out;
+}
+
+::view-transition-new(match-element) {
+    animation: 300ms ease-out both fade-in-up;
+}
+
+/* Named View Transitions */
+@keyframes fade-scale-out {
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+@keyframes fade-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+::view-transition-old(card) {
+    animation: 200ms ease-out both fade-scale-out;
+}
+
+::view-transition-new(card) {
+    animation: 300ms ease-out both fade-scale-in;
+}
+
+@keyframes slide-out-left {
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+::view-transition-old(sidebar) {
+    animation: 300ms ease-out both slide-out-left;
+}
+
+::view-transition-new(sidebar) {
+    animation: 300ms ease-in both slide-in-right;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .animate-float,
+    .animate-float-delayed,
+    .animate-float-slow,
+    .pulse-dot,
+    .skeleton,
+    .animate-gradient {
+        animation: none;
+    }
 }
