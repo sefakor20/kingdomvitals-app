@@ -1,13 +1,7 @@
-<section
-    id="pricing"
-    class="py-24 transition-all duration-700 ease-out sm:py-32"
-    x-data="{ shown: false }"
-    x-intersect.once.threshold.10="shown = true"
-    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
->
+<section id="pricing" class="py-24 sm:py-32">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         {{-- Section header --}}
-        <div class="mx-auto max-w-2xl text-center">
+        <div class="mx-auto max-w-2xl text-center scroll-reveal">
             <p class="label-mono text-emerald-600 dark:text-emerald-400">Pricing</p>
             <h2 class="mt-4 text-4xl font-light tracking-tighter text-primary sm:text-5xl">
                 Plans for every church size
@@ -64,7 +58,7 @@
                     @php
                         $isPopular = $plan->is_default || ($plans->count() >= 3 && $index === $popularIndex);
                     @endphp
-                    <div class="relative {{ $isPopular ? 'glass-card border-emerald-500/50 bg-emerald-500/5 dark:bg-emerald-500/10' : 'glass-card' }} p-8 transition hover:border-emerald-500/40">
+                    <div class="relative {{ $isPopular ? 'glass-card border-emerald-500/50 bg-emerald-500/5 dark:bg-emerald-500/10' : 'glass-card' }} card-lift p-8 hover:border-emerald-500/40 scroll-reveal reveal-delay-{{ $index + 1 }}">
                         @if($isPopular)
                             {{-- Popular badge --}}
                             <div class="absolute -top-4 left-1/2 -translate-x-1/2">

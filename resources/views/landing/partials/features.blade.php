@@ -1,13 +1,7 @@
-<section
-    id="features"
-    class="py-24 transition-all duration-700 ease-out sm:py-32"
-    x-data="{ shown: false }"
-    x-intersect.once.threshold.10="shown = true"
-    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
->
+<section id="features" class="py-24 sm:py-32">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         {{-- Section header --}}
-        <div class="mx-auto max-w-2xl text-center">
+        <div class="mx-auto max-w-2xl text-center scroll-reveal">
             <p class="label-mono text-emerald-600 dark:text-emerald-400">Features</p>
             <h2 class="mt-4 text-4xl font-light tracking-tighter text-primary sm:text-5xl">
                 Everything you need
@@ -20,7 +14,7 @@
         {{-- Bento Grid --}}
         <div class="mx-auto mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {{-- Large Feature Card (spans 2x2) - Membership --}}
-            <div class="glass-card col-span-1 row-span-2 p-8 transition hover:border-emerald-500/40 sm:col-span-2">
+            <div class="glass-card card-lift col-span-1 row-span-2 p-8 hover:border-emerald-500/40 sm:col-span-2 scroll-reveal reveal-delay-1">
                 <div class="flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10">
                     <svg class="size-7 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -42,7 +36,7 @@
             </div>
 
             {{-- Standard Card - Attendance --}}
-            <div class="glass-card p-6 transition hover:border-emerald-500/40">
+            <div class="glass-card card-lift p-6 hover:border-emerald-500/40 scroll-reveal reveal-delay-2">
                 <div class="flex size-12 items-center justify-center rounded-xl bg-emerald-500/10">
                     <svg class="size-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
@@ -54,7 +48,7 @@
             </div>
 
             {{-- AI Feature Card with Badge --}}
-            <div class="glass-card relative p-6 transition hover:border-lime-500/40">
+            <div class="glass-card card-lift relative p-6 hover:border-lime-500/40 scroll-reveal reveal-delay-3">
                 <span class="status-tag absolute right-4 top-4 flex items-center gap-1.5 text-lime-600 dark:text-lime-accent">
                     <span class="size-1.5 rounded-full bg-lime-500 pulse-dot dark:bg-lime-accent"></span>
                     AI
@@ -69,7 +63,7 @@
             </div>
 
             {{-- Accent Card - Lime background --}}
-            <div class="noise-overlay relative overflow-hidden rounded-[2rem] bg-lime-accent p-6 text-obsidian-base transition hover:scale-[1.02]">
+            <div class="noise-overlay relative overflow-hidden rounded-[2rem] bg-lime-accent p-6 text-obsidian-base hover:scale-[1.02] scroll-reveal reveal-delay-4">
                 <div class="relative z-10">
                     <div class="flex size-12 items-center justify-center rounded-xl bg-black/10">
                         <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -82,7 +76,7 @@
             </div>
 
             {{-- Standard Card - Finance with AI badge --}}
-            <div class="glass-card relative p-6 transition hover:border-emerald-500/40">
+            <div class="glass-card card-lift relative p-6 hover:border-emerald-500/40 scroll-reveal reveal-delay-5">
                 <span class="status-tag absolute right-4 top-4 flex items-center gap-1.5 text-lime-600 dark:text-lime-accent">
                     <span class="size-1.5 rounded-full bg-lime-500 pulse-dot dark:bg-lime-accent"></span>
                     AI
@@ -97,7 +91,7 @@
             </div>
 
             {{-- Standard Card - Volunteers --}}
-            <div class="glass-card p-6 transition hover:border-emerald-500/40">
+            <div class="glass-card card-lift p-6 hover:border-emerald-500/40 scroll-reveal reveal-delay-6">
                 <div class="flex size-12 items-center justify-center rounded-xl bg-emerald-500/10">
                     <svg class="size-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
@@ -108,7 +102,7 @@
             </div>
 
             {{-- Tall Card (spans 1x2) - Reports with AI badge --}}
-            <div class="glass-card relative row-span-2 p-6 transition hover:border-lime-500/40">
+            <div class="glass-card card-lift relative row-span-2 p-6 hover:border-lime-500/40 scroll-reveal reveal-delay-7">
                 <span class="status-tag absolute right-4 top-4 flex items-center gap-1.5 text-lime-600 dark:text-lime-accent">
                     <span class="size-1.5 rounded-full bg-lime-500 pulse-dot dark:bg-lime-accent"></span>
                     AI

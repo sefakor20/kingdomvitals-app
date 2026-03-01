@@ -1,4 +1,7 @@
-<section class="relative isolate overflow-hidden pt-10 lg:pt-20" x-data="{ videoModalOpen: false }">
+<section
+    class="relative isolate overflow-hidden pt-10 lg:pt-20"
+    x-data="{ videoModalOpen: false }"
+>
     {{-- Glow Effects --}}
     <div class="glow-sphere glow-emerald absolute right-0 top-20 size-[600px] opacity-20"></div>
     <div class="glow-sphere glow-lime absolute -left-40 bottom-0 size-[400px] opacity-15"></div>
@@ -9,25 +12,25 @@
             {{-- Left Column (6 cols) - Content --}}
             <div class="lg:col-span-6">
                 {{-- Status Tag --}}
-                <div class="mb-8 inline-flex items-center gap-2">
+                <div class="mb-8 inline-flex items-center gap-2 hero-entrance hero-delay-1">
                     <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
                     <span class="label-mono text-emerald-600 dark:text-emerald-400">AI-Powered Platform</span>
                 </div>
 
                 {{-- Giant Headline --}}
-                <h1 class="heading-giant text-primary">
+                <h1 class="heading-giant text-primary hero-entrance hero-delay-2">
                     Church<br>
                     Management<br>
                     <span class="text-gradient-emerald italic pr-3">Powered by AI</span>
                 </h1>
 
                 {{-- Subheadline --}}
-                <p class="mt-8 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
+                <p class="mt-8 max-w-xl text-lg leading-relaxed text-secondary hero-entrance hero-delay-3 sm:text-xl">
                     The intelligent platform that helps you understand your congregation better. Manage membership, giving, and attendance while AI predicts trends and surfaces insights.
                 </p>
 
                 {{-- CTAs --}}
-                <div class="mt-10 flex flex-wrap items-center gap-4">
+                <div class="mt-10 flex flex-wrap items-center gap-4 hero-entrance hero-delay-4">
                     <a href="#pricing" class="btn-neon rounded-full px-8 py-4 text-base font-semibold">
                         Get Started
                     </a>
@@ -46,13 +49,13 @@
                 </div>
 
                 {{-- Contact text --}}
-                <p class="mt-6 text-sm text-muted">
+                <p class="mt-6 text-sm text-muted hero-entrance hero-delay-5">
                     Contact us to get started with your church.
                 </p>
             </div>
 
             {{-- Right Column (6 cols) - Tilted Dashboard with Floating Elements --}}
-            <div class="relative mt-12 lg:col-span-6 lg:mt-0">
+            <div class="relative mt-12 lg:col-span-6 lg:mt-0 hero-entrance hero-delay-6">
                 {{-- Floating Glass Card - Members (top left) --}}
                 <div class="animate-float absolute -left-4 top-8 z-10 hidden rounded-2xl border border-black/10 bg-white/95 p-4 shadow-xl backdrop-blur-sm lg:block dark:border-white/10 dark:bg-obsidian-surface/95">
                     <div class="label-mono text-emerald-600 dark:text-emerald-400">Members Active</div>
