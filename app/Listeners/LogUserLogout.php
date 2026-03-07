@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Enums\ActivityEvent;
+use App\Models\User;
 use App\Services\ActivityLoggingService;
 use Illuminate\Auth\Events\Logout;
 
@@ -19,7 +20,8 @@ class LogUserLogout
     {
         $user = $event->user;
 
-        if (! $user) {
+        // Only log for regular users, not super admins
+        if (! $user instanceof User) {
             return;
         }
 
