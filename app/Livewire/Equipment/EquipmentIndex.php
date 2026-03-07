@@ -220,45 +220,60 @@ class EquipmentIndex extends Component
     #[Computed]
     public function equipmentStats(): array
     {
-        // Query database directly for stats (not from paginated collection)
-        $baseQuery = Equipment::where('branch_id', $this->branch->id);
+        // N+1 fix: Calculate all stats in a single query using conditional aggregation
+        $activeCheckoutStatuses = [CheckoutStatus::Pending->value, CheckoutStatus::Approved->value];
 
-        $this->applySearch($baseQuery, ['name', 'description', 'serial_number', 'manufacturer', 'location']);
-        $this->applyEnumFilter($baseQuery, 'categoryFilter', 'category');
-        $this->applyEnumFilter($baseQuery, 'conditionFilter', 'condition');
+        $baseQuery = Equipment::where('equipment.branch_id', $this->branch->id)
+            ->leftJoin('equipment_checkouts', function ($join) use ($activeCheckoutStatuses): void {
+                $join->on('equipment.id', '=', 'equipment_checkouts.equipment_id')
+                    ->whereIn('equipment_checkouts.status', $activeCheckoutStatuses);
+            });
+
+        $this->applySearch($baseQuery, ['equipment.name', 'equipment.description', 'equipment.serial_number', 'equipment.manufacturer', 'equipment.location']);
+        $this->applyEnumFilterForTable($baseQuery, 'categoryFilter', 'equipment.category');
+        $this->applyEnumFilterForTable($baseQuery, 'conditionFilter', 'equipment.condition');
 
         if ($this->isFilterActive($this->availabilityFilter)) {
             if ($this->availabilityFilter === 'available') {
-                $baseQuery->where('condition', '!=', EquipmentCondition::OutOfService->value)
-                    ->whereDoesntHave('activeCheckout');
+                $baseQuery->where('equipment.condition', '!=', EquipmentCondition::OutOfService->value)
+                    ->whereNull('equipment_checkouts.id');
             } elseif ($this->availabilityFilter === 'checked_out') {
-                $baseQuery->whereHas('activeCheckout');
+                $baseQuery->whereNotNull('equipment_checkouts.id');
             } elseif ($this->availabilityFilter === 'out_of_service') {
-                $baseQuery->where('condition', EquipmentCondition::OutOfService->value);
+                $baseQuery->where('equipment.condition', EquipmentCondition::OutOfService->value);
             }
         }
 
-        $total = (clone $baseQuery)->count();
-        $available = (clone $baseQuery)
-            ->where('condition', '!=', EquipmentCondition::OutOfService->value)
-            ->whereDoesntHave('activeCheckout')
-            ->count();
-        $checkedOut = (clone $baseQuery)->whereHas('activeCheckout')->count();
-        $outOfService = (clone $baseQuery)->where('condition', EquipmentCondition::OutOfService->value)->count();
-        $maintenanceDue = (clone $baseQuery)
-            ->whereNotNull('next_maintenance_date')
-            ->where('next_maintenance_date', '<=', now())
-            ->count();
-        $totalValue = (clone $baseQuery)->sum('purchase_price');
+        $outOfServiceValue = EquipmentCondition::OutOfService->value;
+
+        $stats = $baseQuery->selectRaw('
+            COUNT(DISTINCT equipment.id) as total,
+            SUM(CASE WHEN equipment.condition != ? AND equipment_checkouts.id IS NULL THEN 1 ELSE 0 END) as available,
+            SUM(CASE WHEN equipment_checkouts.id IS NOT NULL THEN 1 ELSE 0 END) as checked_out,
+            SUM(CASE WHEN equipment.condition = ? THEN 1 ELSE 0 END) as out_of_service,
+            SUM(CASE WHEN equipment.next_maintenance_date IS NOT NULL AND equipment.next_maintenance_date <= NOW() THEN 1 ELSE 0 END) as maintenance_due,
+            SUM(equipment.purchase_price) as total_value
+        ', [$outOfServiceValue, $outOfServiceValue])
+            ->first();
 
         return [
-            'total' => $total,
-            'available' => $available,
-            'checkedOut' => $checkedOut,
-            'outOfService' => $outOfService,
-            'maintenanceDue' => $maintenanceDue,
-            'totalValue' => $totalValue,
+            'total' => (int) ($stats->total ?? 0),
+            'available' => (int) ($stats->available ?? 0),
+            'checkedOut' => (int) ($stats->checked_out ?? 0),
+            'outOfService' => (int) ($stats->out_of_service ?? 0),
+            'maintenanceDue' => (int) ($stats->maintenance_due ?? 0),
+            'totalValue' => (float) ($stats->total_value ?? 0),
         ];
+    }
+
+    /**
+     * Apply enum filter with explicit table prefix.
+     */
+    private function applyEnumFilterForTable(\Illuminate\Database\Eloquent\Builder $query, string $property, string $column): void
+    {
+        if ($this->isFilterActive($this->{$property})) {
+            $query->where($column, $this->{$property});
+        }
     }
 
     #[Computed]

@@ -401,18 +401,15 @@ class AttendanceAnalytics extends Component
             ];
         }
 
-        // Visitors who came more than once
-        $returningVisitors = 0;
-        foreach ($visitorIds as $visitorId) {
-            $visits = Attendance::where('branch_id', $this->branch->id)
-                ->where('visitor_id', $visitorId)
-                ->distinct('date')
-                ->count('date');
+        // N+1 fix: Get visit counts for all visitors in single query
+        $visitCounts = Attendance::where('branch_id', $this->branch->id)
+            ->whereIn('visitor_id', $visitorIds)
+            ->selectRaw('visitor_id, COUNT(DISTINCT date) as visit_count')
+            ->groupBy('visitor_id')
+            ->pluck('visit_count', 'visitor_id');
 
-            if ($visits > 1) {
-                $returningVisitors++;
-            }
-        }
+        // Count visitors who came more than once
+        $returningVisitors = $visitCounts->filter(fn ($count): bool => $count > 1)->count();
 
         // Visitors converted to members
         $convertedToMember = Visitor::whereIn('id', $visitorIds)
@@ -504,6 +501,8 @@ class AttendanceAnalytics extends Component
                 ->get()
                 ->keyBy('member_id');
 
+            // N+1 fix: Collect at-risk member IDs first, then batch load
+            $atRiskData = collect();
             foreach ($previousAttendance as $memberId => $prevData) {
                 $previousScore = ($prevData->attendance_count / $previousServiceDates) * 100;
 
@@ -514,39 +513,48 @@ class AttendanceAnalytics extends Component
                         : 0;
 
                     if ($currentScore < 50) {
-                        $member = Member::find($memberId);
-                        if ($member) {
-                            $atRiskMembers->push([
-                                'id' => $member->id,
-                                'name' => $member->fullName(),
-                                'photo_url' => $member->photo_url,
-                                'previous_score' => round($previousScore, 1),
-                                'current_score' => round($currentScore, 1),
-                                'change' => round($currentScore - $previousScore, 1),
-                            ]);
-                        }
+                        $atRiskData->put($memberId, [
+                            'previous_score' => round($previousScore, 1),
+                            'current_score' => round($currentScore, 1),
+                            'change' => round($currentScore - $previousScore, 1),
+                        ]);
+                    }
+                }
+            }
+
+            // Batch load all at-risk members in a single query
+            if ($atRiskData->isNotEmpty()) {
+                $members = Member::whereIn('id', $atRiskData->keys())->get()->keyBy('id');
+                foreach ($atRiskData as $memberId => $scores) {
+                    $member = $members->get($memberId);
+                    if ($member) {
+                        $atRiskMembers->push([
+                            'id' => $member->id,
+                            'name' => $member->fullName(),
+                            'photo_url' => $member->photo_url,
+                            'previous_score' => $scores['previous_score'],
+                            'current_score' => $scores['current_score'],
+                            'change' => $scores['change'],
+                        ]);
                     }
                 }
             }
         }
 
         // First-time visitors not returning (within 30 days)
+        // N+1 fix: Use withCount to filter single-visit visitors in database
         $thirtyDaysAgo = now()->subDays(30);
         $notReturningVisitors = Visitor::whereHas('attendance', function ($q) use ($thirtyDaysAgo, $currentEnd): void {
             $q->where('branch_id', $this->branch->id)
                 ->whereBetween('date', [$thirtyDaysAgo, $currentEnd]);
         })
             ->whereNull('converted_member_id')
+            ->withCount(['attendance as total_visit_count' => function ($q): void {
+                $q->where('branch_id', $this->branch->id);
+            }])
+            ->having('total_visit_count', '=', 1)
+            ->limit(10)
             ->get()
-            ->filter(function ($visitor): bool {
-                $visitCount = Attendance::where('branch_id', $this->branch->id)
-                    ->where('visitor_id', $visitor->id)
-                    ->distinct('date')
-                    ->count('date');
-
-                return $visitCount === 1;
-            })
-            ->take(10)
             ->map(fn ($visitor): array => [
                 'id' => $visitor->id,
                 'name' => $visitor->fullName(),
@@ -580,9 +588,18 @@ class AttendanceAnalytics extends Component
             ->distinct('date')
             ->count('date');
 
-        // Get all members with attendance in period
+        // Get all members with attendance counts in single query (N+1 fix)
         $membersQuery = Member::where('primary_branch_id', $this->branch->id)
-            ->where('status', MembershipStatus::Active);
+            ->where('status', MembershipStatus::Active)
+            ->withCount(['attendance as period_attendance_count' => function ($q) use ($currentStart, $currentEnd): void {
+                $q->where('branch_id', $this->branch->id)
+                    ->whereBetween('date', [$currentStart, $currentEnd]);
+            }])
+            ->addSelect([
+                'last_attendance_date' => Attendance::selectRaw('MAX(date)')
+                    ->whereColumn('member_id', 'members.id')
+                    ->where('branch_id', $this->branch->id),
+            ]);
 
         if ($this->memberSearch !== '' && $this->memberSearch !== '0') {
             $membersQuery->where(function ($q): void {
@@ -591,21 +608,13 @@ class AttendanceAnalytics extends Component
             });
         }
 
-        $members = $membersQuery->get()->map(function ($member) use ($currentStart, $currentEnd, $totalServiceDates) {
-            $attendanceCount = Attendance::where('branch_id', $this->branch->id)
-                ->where('member_id', $member->id)
-                ->whereBetween('date', [$currentStart, $currentEnd])
-                ->distinct('date')
-                ->count('date');
+        $members = $membersQuery->get()->map(function ($member) use ($totalServiceDates) {
+            $attendanceCount = $member->period_attendance_count ?? 0;
+            $lastAttendanceDate = $member->last_attendance_date ? Carbon::parse($member->last_attendance_date) : null;
 
             $engagementScore = $totalServiceDates > 0
                 ? round(($attendanceCount / $totalServiceDates) * 100, 1)
                 : 0;
-
-            $lastAttendance = Attendance::where('branch_id', $this->branch->id)
-                ->where('member_id', $member->id)
-                ->orderByDesc('date')
-                ->first();
 
             return (object) [
                 'id' => $member->id,
@@ -614,8 +623,8 @@ class AttendanceAnalytics extends Component
                 'photo_url' => $member->photo_url,
                 'attendance_count' => $attendanceCount,
                 'engagement_score' => $engagementScore,
-                'last_attendance' => $lastAttendance?->date,
-                'days_since' => $lastAttendance?->date ? (int) $lastAttendance->date->diffInDays(now()) : null,
+                'last_attendance' => $lastAttendanceDate,
+                'days_since' => $lastAttendanceDate ? (int) $lastAttendanceDate->diffInDays(now()) : null,
             ];
         });
 
