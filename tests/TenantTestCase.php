@@ -66,6 +66,9 @@ trait TenantTestCase
             // Database exists with schema: just initialize and truncate
             tenancy()->initialize($this->tenant);
 
+            // Run any pending migrations (handles new migrations added after database was created)
+            $this->runPendingMigrations();
+
             // Truncate all tables to clear data from previous test
             $this->truncateTenantTables();
         }
@@ -116,6 +119,24 @@ trait TenantTestCase
     }
 
     /**
+     * Run any pending migrations on the tenant database.
+     * This ensures new migrations are applied to existing test databases.
+     */
+    protected function runPendingMigrations(): void
+    {
+        // Check if there are pending migrations by comparing counts
+        $migrationPath = database_path('migrations/tenant');
+        $migrationFiles = File::glob($migrationPath.'/*.php');
+        $migrationCount = count($migrationFiles);
+
+        $runMigrations = DB::table('migrations')->count();
+
+        if ($runMigrations < $migrationCount) {
+            Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+        }
+    }
+
+    /**
      * Truncate all tenant tables to reset data between tests.
      * This is MUCH faster than dropping and recreating the database.
      * Uses batch truncate for improved performance.
@@ -138,7 +159,7 @@ trait TenantTestCase
         }
 
         // Truncate all tables in a single statement for better performance
-        if (!empty($tablesToTruncate)) {
+        if (! empty($tablesToTruncate)) {
             foreach ($tablesToTruncate as $table) {
                 DB::statement("TRUNCATE TABLE `{$table}`");
             }
