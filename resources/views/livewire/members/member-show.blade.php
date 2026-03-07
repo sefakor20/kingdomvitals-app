@@ -151,22 +151,22 @@
     <div x-data="{ activeTab: 'overview' }">
         <div class="mb-6 flex gap-1 border-b border-zinc-200 dark:border-zinc-700">
             <button @click="activeTab = 'overview'"
-                    :class="activeTab === 'overview' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    :class="activeTab === 'overview' ? 'border-b-2 border-accent text-accent' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
                     class="px-4 py-2 text-sm font-medium transition-colors">
                 {{ __('Overview') }}
             </button>
             <button @click="activeTab = 'attendance'"
-                    :class="activeTab === 'attendance' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    :class="activeTab === 'attendance' ? 'border-b-2 border-accent text-accent' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
                     class="px-4 py-2 text-sm font-medium transition-colors">
                 {{ __('Attendance') }}
             </button>
             <button @click="activeTab = 'giving'"
-                    :class="activeTab === 'giving' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    :class="activeTab === 'giving' ? 'border-b-2 border-accent text-accent' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
                     class="px-4 py-2 text-sm font-medium transition-colors">
                 {{ __('Giving') }}
             </button>
             <button @click="activeTab = 'activity'"
-                    :class="activeTab === 'activity' ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
+                    :class="activeTab === 'activity' ? 'border-b-2 border-accent text-accent' : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'"
                     class="px-4 py-2 text-sm font-medium transition-colors">
                 {{ __('Activity') }}
             </button>

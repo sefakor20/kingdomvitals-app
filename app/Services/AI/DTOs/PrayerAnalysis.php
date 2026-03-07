@@ -18,6 +18,10 @@ readonly class PrayerAnalysis
         public array $factors,
         public string $provider = 'heuristic',
         public string $model = 'v1',
+        public ?string $sentiment = null,
+        public array $themes = [],
+        public ?string $responseSuggestion = null,
+        public ?float $aiConfidence = null,
     ) {}
 
     /**
@@ -79,6 +83,14 @@ readonly class PrayerAnalysis
     }
 
     /**
+     * Check if AI analysis was performed.
+     */
+    public function hasAiAnalysis(): bool
+    {
+        return $this->sentiment !== null;
+    }
+
+    /**
      * Convert to array for storage.
      */
     public function toArray(): array
@@ -92,6 +104,10 @@ readonly class PrayerAnalysis
             'factors' => $this->factors,
             'provider' => $this->provider,
             'model' => $this->model,
+            'sentiment' => $this->sentiment,
+            'themes' => $this->themes,
+            'response_suggestion' => $this->responseSuggestion,
+            'ai_confidence' => $this->aiConfidence,
             'analyzed_at' => now()->toIso8601String(),
         ];
     }
@@ -110,6 +126,10 @@ readonly class PrayerAnalysis
             factors: $data['factors'] ?? [],
             provider: $data['provider'] ?? 'heuristic',
             model: $data['model'] ?? 'v1',
+            sentiment: $data['sentiment'] ?? null,
+            themes: $data['themes'] ?? [],
+            responseSuggestion: $data['response_suggestion'] ?? null,
+            aiConfidence: isset($data['ai_confidence']) ? (float) $data['ai_confidence'] : null,
         );
     }
 }

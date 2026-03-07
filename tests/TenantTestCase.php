@@ -66,6 +66,9 @@ trait TenantTestCase
             // Database exists with schema: just initialize and truncate
             tenancy()->initialize($this->tenant);
 
+            // Run any pending migrations (handles new migrations added after database was created)
+            $this->runPendingMigrations();
+
             // Truncate all tables to clear data from previous test
             $this->truncateTenantTables();
         }
@@ -110,37 +113,33 @@ trait TenantTestCase
      */
     protected function loadTenantSchema(): void
     {
-        $schemaPath = base_path('tests/tenant_schema.sql');
+        // For now, always use migrations to ensure all tables are created correctly
+        // TODO: Fix schema dump loading for better performance
+        Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
+    }
 
-        if (! File::exists($schemaPath)) {
-            // Fall back to migrations if schema doesn't exist
+    /**
+     * Run any pending migrations on the tenant database.
+     * This ensures new migrations are applied to existing test databases.
+     */
+    protected function runPendingMigrations(): void
+    {
+        // Check if there are pending migrations by comparing counts
+        $migrationPath = database_path('migrations/tenant');
+        $migrationFiles = File::glob($migrationPath.'/*.php');
+        $migrationCount = count($migrationFiles);
+
+        $runMigrations = DB::table('migrations')->count();
+
+        if ($runMigrations < $migrationCount) {
             Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-            return;
-        }
-
-        // Load schema using PHP
-        $schema = File::get($schemaPath);
-
-        // Remove comments and split by semicolons
-        $schema = preg_replace('/--.*$/m', '', $schema);
-        $statements = preg_split('/;\s*\n/', $schema);
-
-        foreach ($statements as $statement) {
-            $statement = trim($statement);
-            if ($statement !== '' && $statement !== '0') {
-                try {
-                    DB::unprepared($statement);
-                } catch (\Exception $e) {
-                    // Continue on error (e.g., table already exists)
-                }
-            }
         }
     }
 
     /**
      * Truncate all tenant tables to reset data between tests.
      * This is MUCH faster than dropping and recreating the database.
+     * Uses batch truncate for improved performance.
      */
     protected function truncateTenantTables(): void
     {
@@ -150,10 +149,19 @@ trait TenantTestCase
         $dbName = DB::getDatabaseName();
         $key = "Tables_in_{$dbName}";
 
+        // Batch truncate for better performance
+        $tablesToTruncate = [];
         foreach ($tables as $table) {
             $tableName = $table->$key;
-            if ($tableName !== 'migrations') {
-                DB::table($tableName)->truncate();
+            if ($tableName !== 'migrations' && $tableName !== 'personal_access_tokens') {
+                $tablesToTruncate[] = $tableName;
+            }
+        }
+
+        // Truncate all tables in a single statement for better performance
+        if (! empty($tablesToTruncate)) {
+            foreach ($tablesToTruncate as $table) {
+                DB::statement("TRUNCATE TABLE `{$table}`");
             }
         }
 

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Settings;
 
 use App\Enums\Currency;
+use App\Jobs\ProcessPlatformLogoJob;
 use App\Models\SuperAdminActivityLog;
 use App\Models\SystemSetting;
 use App\Services\ImageProcessingService;
+use App\Services\ImageStagingService;
 use App\Services\PaystackService;
 use App\Services\TextTangoService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -33,6 +36,8 @@ class SystemSettings extends Component
     public TemporaryUploadedFile|string|null $platformLogo = null;
 
     public ?string $existingPlatformLogoUrl = null;
+
+    public bool $isProcessingLogo = false;
 
     public string $supportEmail = '';
 
@@ -456,6 +461,9 @@ class SystemSettings extends Component
             $imageService = app(ImageProcessingService::class);
             $this->existingPlatformLogoUrl = $imageService->getLogoUrl($logoPaths, 'medium');
         }
+
+        // Check if logo is currently being processed (use file store to bypass tenant cache tagging)
+        $this->isProcessingLogo = cache()->store('file')->get('platform:logo_processing', false);
     }
 
     public function savePlatformLogo(): void
@@ -478,21 +486,30 @@ class SystemSettings extends Component
             return;
         }
 
-        // Delete existing logo if present
+        // Stage the file for background processing
+        $stagingService = app(ImageStagingService::class);
+        $stagedPath = $stagingService->stageForProcessing($this->platformLogo, 'platform-logo');
+
+        // Generate a unique token to handle re-uploads
+        $processingToken = Str::uuid()->toString();
+
+        // Set processing state in cache (use file store to bypass tenant cache tagging)
+        cache()->store('file')->put('platform:logo_processing', true, now()->addMinutes(5));
+        cache()->store('file')->put('platform:logo_processing_token', $processingToken, now()->addMinutes(5));
+
+        // Get existing logo paths for deletion after successful processing
         $existingPaths = SystemSetting::get('platform_logo');
-        if ($existingPaths && is_array($existingPaths)) {
-            $imageService->deleteLogoByPaths($existingPaths);
-        }
+        $existingLogoPaths = ($existingPaths && is_array($existingPaths)) ? $existingPaths : null;
 
-        // Process and store the new logo
-        $paths = $imageService->processLogo($this->platformLogo, 'logos/platform');
+        // Dispatch the job
+        ProcessPlatformLogoJob::dispatch(
+            tempFilePath: $stagedPath,
+            processingToken: $processingToken,
+            existingLogoPaths: $existingLogoPaths,
+        );
 
-        // Save paths to system settings
-        SystemSetting::set('platform_logo', $paths, 'app');
-
-        // Update URL for display
-        $this->existingPlatformLogoUrl = $imageService->getLogoUrl($paths, 'medium');
         $this->platformLogo = null;
+        $this->isProcessingLogo = true;
 
         SuperAdminActivityLog::log(
             superAdmin: Auth::guard('superadmin')->user(),
@@ -501,7 +518,31 @@ class SystemSettings extends Component
             metadata: ['section' => 'application', 'action' => 'upload_logo'],
         );
 
-        $this->dispatch('logo-saved');
+        $this->dispatch('logo-processing-started');
+    }
+
+    /**
+     * Check logo processing status (called by wire:poll).
+     */
+    public function checkLogoStatus(): void
+    {
+        // Check for error (use file store to bypass tenant cache tagging)
+        $fileCache = cache()->store('file');
+        $error = $fileCache->get('platform:logo_error');
+        $fileCache->forget('platform:logo_error');
+        if ($error) {
+            $this->isProcessingLogo = false;
+            $this->addError('platformLogo', $error);
+
+            return;
+        }
+
+        // Check if still processing
+        if (! $fileCache->get('platform:logo_processing')) {
+            $this->isProcessingLogo = false;
+            $this->loadPlatformLogo();
+            $this->dispatch('logo-saved');
+        }
     }
 
     public function removePlatformLogo(): void

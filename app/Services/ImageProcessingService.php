@@ -36,11 +36,26 @@ class ImageProcessingService
      */
     public function processLogo(UploadedFile|TemporaryUploadedFile $file, string $basePath, string $disk = 'public'): array
     {
+        return $this->processLogoFromPath($file->getRealPath(), $basePath, $disk);
+    }
+
+    /**
+     * Process a logo image from a file path and generate multiple sizes.
+     *
+     * Used by background jobs where the file is staged to a persistent location.
+     *
+     * @param  string  $filePath  Absolute path to the image file
+     * @param  string  $basePath  Base path for storing (e.g., 'logos/platform' or 'logos')
+     * @param  string  $disk  Storage disk to use
+     * @return array<string, string> Array of size names to stored paths
+     */
+    public function processLogoFromPath(string $filePath, string $basePath, string $disk = 'public'): array
+    {
         $paths = [];
 
         foreach (self::LOGO_SIZES as $sizeName => $targetSize) {
             // Create a copy of the image for this size
-            $resized = Image::read($file->getRealPath());
+            $resized = Image::read($filePath);
 
             // Cover crop: resize and crop to fit exactly the target dimensions
             $resized->cover($targetSize, $targetSize);
@@ -180,12 +195,77 @@ class ImageProcessingService
      */
     public function processMemberPhoto(UploadedFile|TemporaryUploadedFile $file): string
     {
-        $image = Image::read($file->getRealPath());
+        return $this->processMemberPhotoFromPath($file->getRealPath());
+    }
+
+    /**
+     * Process a member photo from a file path.
+     *
+     * Used by background jobs where the file is staged to a persistent location.
+     *
+     * @param  string  $filePath  Absolute path to the image file
+     * @return string The processed image as a binary string (JPEG format)
+     */
+    public function processMemberPhotoFromPath(string $filePath): string
+    {
+        $image = Image::read($filePath);
 
         // Cover crop to square (256x256 for 2x retina support on largest display of 80x80)
         $image->cover(256, 256);
 
         // Encode as JPEG with 85% quality (good balance of size/quality for photos)
         return (string) $image->encode(new JpegEncoder(85));
+    }
+
+    /**
+     * Validate a logo file from a file path.
+     *
+     * Used by background jobs where the file is staged to a persistent location.
+     *
+     * @param  string  $filePath  Absolute path to the image file
+     * @return array<string, string> Validation errors (empty if valid)
+     */
+    public function validateLogoFromPath(string $filePath): array
+    {
+        $errors = [];
+
+        if (! file_exists($filePath)) {
+            $errors['file'] = __('File not found.');
+
+            return $errors;
+        }
+
+        // Check file type using finfo
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($filePath);
+        $allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+
+        if (! in_array($mimeType, $allowedMimes, true)) {
+            $errors['type'] = __('Logo must be a PNG, JPG, or WebP image.');
+        }
+
+        // Check file size (max 2MB)
+        $maxSize = 2 * 1024 * 1024; // 2MB
+        if (filesize($filePath) > $maxSize) {
+            $errors['size'] = __('Logo must be less than 2MB.');
+        }
+
+        // Check minimum dimensions
+        try {
+            $image = Image::read($filePath);
+            $minDimension = 256;
+
+            if ($image->width() < $minDimension || $image->height() < $minDimension) {
+                $errors['dimensions'] = __('Logo must be at least :size x :size pixels.', ['size' => $minDimension]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('ImageProcessingService::validateLogoFromPath: Failed to read image', [
+                'error' => $e->getMessage(),
+                'file_path' => $filePath,
+            ]);
+            $errors['read'] = __('Unable to read image file.');
+        }
+
+        return $errors;
     }
 }

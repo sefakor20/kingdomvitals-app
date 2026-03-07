@@ -267,28 +267,35 @@ class VisitorAnalytics extends Component
     #[Computed]
     public function visitorsOverTimeData(): array
     {
+        // N+1 fix: Single query with date grouping instead of 24 separate queries
+        $startDate = now()->subWeeks(11)->startOfWeek();
+        $endDate = now()->endOfWeek();
+
+        $weeklyData = Visitor::where('branch_id', $this->branch->id)
+            ->whereBetween('visit_date', [$startDate, $endDate])
+            ->selectRaw('
+                YEARWEEK(visit_date, 1) as week_key,
+                COUNT(*) as visitor_count,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as converted_count
+            ', [VisitorStatus::Converted->value])
+            ->groupBy('week_key')
+            ->get()
+            ->keyBy('week_key');
+
         $labels = [];
         $visitorData = [];
         $convertedData = [];
 
-        // Last 12 weeks
+        // Build arrays for each week
         for ($i = 11; $i >= 0; $i--) {
             $weekStart = now()->subWeeks($i)->startOfWeek();
-            $weekEnd = now()->subWeeks($i)->endOfWeek();
+            $weekKey = $weekStart->format('oW'); // ISO year and week number
 
             $labels[] = $weekStart->format('M d');
 
-            $visitors = Visitor::where('branch_id', $this->branch->id)
-                ->whereBetween('visit_date', [$weekStart, $weekEnd])
-                ->count();
-
-            $converted = Visitor::where('branch_id', $this->branch->id)
-                ->whereBetween('visit_date', [$weekStart, $weekEnd])
-                ->where('status', VisitorStatus::Converted)
-                ->count();
-
-            $visitorData[] = $visitors;
-            $convertedData[] = $converted;
+            $data = $weeklyData->get($weekKey);
+            $visitorData[] = $data ? (int) $data->visitor_count : 0;
+            $convertedData[] = $data ? (int) $data->converted_count : 0;
         }
 
         return [
@@ -305,29 +312,36 @@ class VisitorAnalytics extends Component
     #[Computed]
     public function followUpTrendData(): array
     {
+        // N+1 fix: Single query for completed follow-ups with date grouping
+        $startDate = now()->subWeeks(11)->startOfWeek();
+        $endDate = now()->endOfWeek();
+
+        $completedWeeklyData = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
+            ->whereBetween('completed_at', [$startDate, $endDate])
+            ->where('outcome', '!=', FollowUpOutcome::Pending)
+            ->selectRaw('YEARWEEK(completed_at, 1) as week_key, COUNT(*) as count')
+            ->groupBy('week_key')
+            ->pluck('count', 'week_key');
+
+        $pendingWeeklyData = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
+            ->whereBetween('scheduled_at', [$startDate, $endDate])
+            ->where('outcome', FollowUpOutcome::Pending)
+            ->selectRaw('YEARWEEK(scheduled_at, 1) as week_key, COUNT(*) as count')
+            ->groupBy('week_key')
+            ->pluck('count', 'week_key');
+
         $labels = [];
         $completedData = [];
         $pendingData = [];
 
-        // Last 12 weeks
+        // Build arrays for each week
         for ($i = 11; $i >= 0; $i--) {
             $weekStart = now()->subWeeks($i)->startOfWeek();
-            $weekEnd = now()->subWeeks($i)->endOfWeek();
+            $weekKey = $weekStart->format('oW'); // ISO year and week number
 
             $labels[] = $weekStart->format('M d');
-
-            $completed = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
-                ->whereBetween('completed_at', [$weekStart, $weekEnd])
-                ->where('outcome', '!=', FollowUpOutcome::Pending)
-                ->count();
-
-            $pending = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
-                ->whereBetween('scheduled_at', [$weekStart, $weekEnd])
-                ->where('outcome', FollowUpOutcome::Pending)
-                ->count();
-
-            $completedData[] = $completed;
-            $pendingData[] = $pending;
+            $completedData[] = (int) ($completedWeeklyData->get($weekKey) ?? 0);
+            $pendingData[] = (int) ($pendingWeeklyData->get($weekKey) ?? 0);
         }
 
         return [

@@ -1,4 +1,4 @@
-<section class="w-full">
+<section class="w-full" @if($isProcessingLogo) wire:poll.2s="checkLogoStatus" @endif>
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('Organization')" :subheading="__('Customize your organization\'s branding')">
@@ -14,7 +14,12 @@
                         <!-- Current Logo Preview -->
                         <div class="shrink-0">
                             <div class="relative h-32 w-32 overflow-hidden rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700">
-                                @if($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                @if($isProcessingLogo)
+                                    <div class="flex h-full w-full flex-col items-center justify-center text-zinc-400">
+                                        <flux:icon.arrow-path class="size-8 animate-spin" />
+                                        <span class="mt-1 text-xs">{{ __('Processing...') }}</span>
+                                    </div>
+                                @elseif($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
                                     <img
                                         src="{{ $logo->temporaryUrl() }}"
                                         alt="{{ __('New logo preview') }}"
@@ -37,40 +42,47 @@
 
                         <!-- Upload Controls -->
                         <div class="flex-1 space-y-4">
-                            <div>
-                                <flux:field>
-                                    <flux:label>{{ __('Upload New Logo') }}</flux:label>
-                                    <input
-                                        type="file"
-                                        wire:model="logo"
-                                        accept="image/png,image/jpeg,image/jpg,image/webp"
-                                        class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100 dark:text-zinc-400 dark:file:bg-indigo-900/50 dark:file:text-indigo-300 dark:hover:file:bg-indigo-900"
-                                    />
-                                    <flux:description>{{ __('PNG, JPG, or WebP. Minimum 256x256 pixels. Maximum 2MB.') }}</flux:description>
-                                    <flux:error name="logo" />
-                                </flux:field>
-                            </div>
+                            @if($isProcessingLogo)
+                                <div class="flex items-center gap-2 text-sm text-zinc-500">
+                                    <flux:icon.arrow-path class="size-4 animate-spin" />
+                                    <span>{{ __('Processing your logo. This may take a few moments...') }}</span>
+                                </div>
+                            @else
+                                <div>
+                                    <flux:field>
+                                        <flux:label>{{ __('Upload New Logo') }}</flux:label>
+                                        <input
+                                            type="file"
+                                            wire:model="logo"
+                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100 dark:text-zinc-400 dark:file:bg-indigo-900/50 dark:file:text-indigo-300 dark:hover:file:bg-indigo-900"
+                                        />
+                                        <flux:description>{{ __('PNG, JPG, or WebP. Minimum 256x256 pixels. Maximum 2MB.') }}</flux:description>
+                                        <flux:error name="logo" />
+                                    </flux:field>
+                                </div>
 
-                            <div class="flex gap-2">
-                                @if($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
-                                    <flux:button wire:click="saveLogo" variant="primary" size="sm">
-                                        {{ __('Save Logo') }}
-                                    </flux:button>
-                                    <flux:button wire:click="$set('logo', null)" variant="ghost" size="sm">
-                                        {{ __('Cancel') }}
-                                    </flux:button>
-                                @endif
+                                <div class="flex gap-2">
+                                    @if($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                        <flux:button wire:click="saveLogo" variant="primary" size="sm">
+                                            {{ __('Save Logo') }}
+                                        </flux:button>
+                                        <flux:button wire:click="$set('logo', null)" variant="ghost" size="sm">
+                                            {{ __('Cancel') }}
+                                        </flux:button>
+                                    @endif
 
-                                @if($existingLogoUrl && !$logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
-                                    <flux:button wire:click="removeLogo" variant="ghost" size="sm" class="text-red-600 hover:text-red-700">
-                                        {{ __('Remove Logo') }}
-                                    </flux:button>
-                                @endif
-                            </div>
+                                    @if($existingLogoUrl && !$logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                        <flux:button wire:click="removeLogo" variant="ghost" size="sm" class="text-red-600 hover:text-red-700">
+                                            {{ __('Remove Logo') }}
+                                        </flux:button>
+                                    @endif
+                                </div>
 
-                            <flux:text class="text-sm text-zinc-500">
-                                {{ __('If no logo is set, the platform default logo will be used.') }}
-                            </flux:text>
+                                <flux:text class="text-sm text-zinc-500">
+                                    {{ __('If no logo is set, the platform default logo will be used.') }}
+                                </flux:text>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -111,6 +123,9 @@
         <!-- Toast Notifications -->
         <x-toast on="logo-saved" type="success">
             {{ __('Logo uploaded successfully.') }}
+        </x-toast>
+        <x-toast on="logo-processing-started" type="info">
+            {{ __('Logo upload started. Processing in background...') }}
         </x-toast>
         <x-toast on="logo-removed" type="success">
             {{ __('Logo removed successfully.') }}

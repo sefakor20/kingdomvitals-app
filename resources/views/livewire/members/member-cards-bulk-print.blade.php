@@ -65,11 +65,11 @@
                 <!-- ID Card -->
                 <div class="id-card overflow-hidden rounded-xl bg-white shadow-xl print:rounded-lg print:shadow-none" wire:key="card-{{ $member->id }}">
                     <!-- Header with gradient background -->
-                    <div class="relative h-16 bg-gradient-to-r from-blue-600 to-blue-800 px-4 pt-3">
+                    <div class="relative h-16 bg-gradient-to-r from-emerald-600 to-emerald-800 px-4 pt-3">
                         <h1 class="text-center text-sm font-bold uppercase tracking-wide text-white">
                             {{ tenant('name') ?? $branch->name }}
                         </h1>
-                        <p class="text-center text-xs text-blue-100">
+                        <p class="text-center text-xs text-emerald-100">
                             {{ __('Member ID Card') }}
                         </p>
                     </div>

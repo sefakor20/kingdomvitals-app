@@ -7,11 +7,13 @@ use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\MembershipStatus;
+use App\Jobs\ProcessMemberPhotoJob;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Services\AI\MemberRecommendationService;
 use App\Services\ImageProcessingService;
+use App\Services\ImageStagingService;
 use App\Services\PlanAccessService;
 use App\Services\QrCodeService;
 use Illuminate\Support\Collection;
@@ -38,6 +40,8 @@ class MemberShow extends Component
     public TemporaryUploadedFile|string|null $photo = null;
 
     public ?string $existingPhotoUrl = null;
+
+    public bool $isProcessingPhoto = false;
 
     // Form fields
     public string $first_name = '';
@@ -335,7 +339,7 @@ class MemberShow extends Component
             }
         }
 
-        // Handle photo upload
+        // Handle photo upload asynchronously
         if ($this->photo instanceof TemporaryUploadedFile) {
             // Check storage quota before uploading
             if (! app(PlanAccessService::class)->canUploadFile($this->photo->getSize())) {
@@ -344,9 +348,8 @@ class MemberShow extends Component
                 return;
             }
 
-            // Delete old photo if exists
-            $this->deleteOldPhoto($this->member);
-            $validated['photo_url'] = $this->storePhotoInCentralStorage($this->photo);
+            // Stage the file for background processing
+            $this->dispatchPhotoProcessingJob();
 
             // Invalidate storage cache after upload
             app(PlanAccessService::class)->invalidateCountCache('storage');
@@ -398,6 +401,66 @@ class MemberShow extends Component
             if ($relativePath && file_exists($fullPath)) {
                 unlink($fullPath);
             }
+        }
+    }
+
+    /**
+     * Dispatch photo processing job for background processing.
+     */
+    private function dispatchPhotoProcessingJob(): void
+    {
+        $tenant = tenant();
+        if (! $tenant || ! $this->photo instanceof TemporaryUploadedFile) {
+            return;
+        }
+
+        // Stage the file for background processing
+        $stagingService = app(ImageStagingService::class);
+        $stagedPath = $stagingService->stageForProcessing($this->photo, 'member-photo');
+
+        // Generate a unique token to handle re-uploads
+        $processingToken = Str::uuid()->toString();
+
+        // Set processing state in cache (use file store to bypass tenant cache tagging)
+        cache()->store('file')->put("member:{$this->member->id}:photo_processing", true, now()->addMinutes(5));
+        cache()->store('file')->put("member:{$this->member->id}:photo_processing_token", $processingToken, now()->addMinutes(5));
+
+        // Get old photo URL for deletion after successful processing
+        $oldPhotoUrl = $this->member->photo_url;
+
+        // Dispatch the job
+        ProcessMemberPhotoJob::dispatch(
+            tenantId: $tenant->id,
+            memberId: $this->member->id,
+            tempFilePath: $stagedPath,
+            processingToken: $processingToken,
+            oldPhotoUrl: $oldPhotoUrl,
+        );
+
+        $this->isProcessingPhoto = true;
+    }
+
+    /**
+     * Check photo processing status (called by wire:poll).
+     */
+    public function checkPhotoStatus(): void
+    {
+        // Check for error (use file store to bypass tenant cache tagging)
+        $fileCache = cache()->store('file');
+        $error = $fileCache->get("member:{$this->member->id}:photo_error");
+        $fileCache->forget("member:{$this->member->id}:photo_error");
+        if ($error) {
+            $this->isProcessingPhoto = false;
+            $this->addError('photo', $error);
+
+            return;
+        }
+
+        // Check if still processing
+        if (! $fileCache->get("member:{$this->member->id}:photo_processing")) {
+            $this->isProcessingPhoto = false;
+            $this->member->refresh();
+            $this->dispatch('photo-saved');
         }
     }
 

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\Settings;
 
 use App\Enums\Currency;
+use App\Jobs\ProcessLogoJob;
 use App\Services\ImageProcessingService;
+use App\Services\ImageStagingService;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\Encoders\PngEncoder;
-use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -23,6 +24,8 @@ class Organization extends Component
     public TemporaryUploadedFile|string|null $logo = null;
 
     public ?string $existingLogoUrl = null;
+
+    public bool $isProcessingLogo = false;
 
     // Organization Currency
     public string $currency = 'GHS';
@@ -39,6 +42,9 @@ class Organization extends Component
         if ($tenant->hasLogo()) {
             $this->existingLogoUrl = $tenant->getLogoUrl('medium');
         }
+
+        // Check if logo is currently being processed (use file store to bypass tenant cache tagging)
+        $this->isProcessingLogo = cache()->store('file')->get("tenant:{$tenant->id}:logo_processing", false);
 
         // Load existing currency
         $this->currency = $tenant->getCurrencyCode();
@@ -68,56 +74,62 @@ class Organization extends Component
             return;
         }
 
-        // Delete existing logo if present (from central storage)
-        if ($tenant->hasLogo()) {
-            $this->deleteLogoFromCentralStorage($tenant->logo);
-        }
+        // Stage the file for background processing
+        $stagingService = app(ImageStagingService::class);
+        $stagedPath = $stagingService->stageForProcessing($this->logo, 'logo');
 
-        // Process and store the new logo in central storage (bypasses tenant storage isolation)
-        $paths = $this->processLogoToCentralStorage($this->logo, $tenant->id);
+        // Generate a unique token to handle re-uploads
+        $processingToken = Str::uuid()->toString();
 
-        // Save paths to tenant
-        $tenant->setLogoPaths($paths);
+        // Set processing state in cache (use file store to bypass tenant cache tagging)
+        cache()->store('file')->put("tenant:{$tenant->id}:logo_processing", true, now()->addMinutes(5));
+        cache()->store('file')->put("tenant:{$tenant->id}:logo_processing_token", $processingToken, now()->addMinutes(5));
 
-        // Update URL for display
-        $this->existingLogoUrl = $tenant->getLogoUrl('medium');
+        // Get existing logo paths for deletion after successful processing
+        $existingLogoPaths = $tenant->hasLogo() ? $tenant->logo : null;
+
+        // Dispatch the job
+        ProcessLogoJob::dispatch(
+            tenantId: $tenant->id,
+            tempFilePath: $stagedPath,
+            processingToken: $processingToken,
+            existingLogoPaths: $existingLogoPaths,
+        );
+
         $this->logo = null;
+        $this->isProcessingLogo = true;
 
-        $this->dispatch('logo-saved');
+        $this->dispatch('logo-processing-started');
     }
 
     /**
-     * Process logo and store in central storage (bypasses tenant storage isolation).
-     *
-     * @return array<string, string>
+     * Check logo processing status (called by wire:poll).
      */
-    private function processLogoToCentralStorage(TemporaryUploadedFile $file, string $tenantId): array
+    public function checkLogoStatus(): void
     {
-        $paths = [];
-        $sizes = ImageProcessingService::LOGO_SIZES;
-
-        // Use base_path to store in central storage, bypassing tenant storage prefix
-        $directory = base_path("storage/app/public/logos/tenants/{$tenantId}");
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        $tenant = tenant();
+        if (! $tenant) {
+            return;
         }
 
-        foreach ($sizes as $sizeName => $targetSize) {
-            $resized = Image::read($file->getRealPath());
-            $resized->cover($targetSize, $targetSize);
+        // Check for error (use file store to bypass tenant cache tagging)
+        $fileCache = cache()->store('file');
+        $error = $fileCache->get("tenant:{$tenant->id}:logo_error");
+        $fileCache->forget("tenant:{$tenant->id}:logo_error");
+        if ($error) {
+            $this->isProcessingLogo = false;
+            $this->addError('logo', $error);
 
-            $filename = "logo-{$sizeName}.png";
-            $fullPath = $directory.'/'.$filename;
-
-            $encoded = $resized->encode(new PngEncoder);
-            file_put_contents($fullPath, (string) $encoded);
-
-            // Store relative path for URL generation
-            $paths[$sizeName] = "logos/tenants/{$tenantId}/{$filename}";
+            return;
         }
 
-        return $paths;
+        // Check if still processing
+        if (! $fileCache->get("tenant:{$tenant->id}:logo_processing")) {
+            $this->isProcessingLogo = false;
+            $tenant->refresh();
+            $this->existingLogoUrl = $tenant->getLogoUrl('medium');
+            $this->dispatch('logo-saved');
+        }
     }
 
     /**
