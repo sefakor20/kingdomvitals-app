@@ -110,32 +110,9 @@ trait TenantTestCase
      */
     protected function loadTenantSchema(): void
     {
-        $schemaPath = base_path('tests/tenant_schema.sql');
-
-        if (! File::exists($schemaPath)) {
-            // Fall back to migrations if schema doesn't exist
-            Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
-
-            return;
-        }
-
-        // Load schema using PHP
-        $schema = File::get($schemaPath);
-
-        // Remove comments and split by semicolons
-        $schema = preg_replace('/--.*$/m', '', $schema);
-        $statements = preg_split('/;\s*\n/', $schema);
-
-        foreach ($statements as $statement) {
-            $statement = trim($statement);
-            if ($statement !== '' && $statement !== '0') {
-                try {
-                    DB::unprepared($statement);
-                } catch (\Exception $e) {
-                    // Continue on error (e.g., table already exists)
-                }
-            }
-        }
+        // For now, always use migrations to ensure all tables are created correctly
+        // TODO: Fix schema dump loading for better performance
+        Artisan::call('tenants:migrate', ['--tenants' => [$this->tenant->id]]);
     }
 
     /**
