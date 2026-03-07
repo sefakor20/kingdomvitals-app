@@ -24,7 +24,7 @@
         .company-name {
             font-size: 24px;
             font-weight: bold;
-            color: #4F46E5;
+            color: #009866;
             margin-bottom: 5px;
         }
         .invoice-title {
@@ -32,7 +32,7 @@
         }
         .invoice-title h1 {
             font-size: 28px;
-            color: #4F46E5;
+            color: #009866;
             margin: 0;
             text-transform: uppercase;
         }
@@ -106,7 +106,7 @@
             margin: 20px 0;
         }
         .items-table th {
-            background: #4F46E5;
+            background: #009866;
             color: white;
             text-align: left;
             padding: 10px;
@@ -141,7 +141,7 @@
         }
         .grand-total {
             font-size: 16px;
-            border-top: 2px solid #4F46E5;
+            border-top: 2px solid #009866;
             padding-top: 10px;
         }
         .grand-total .label {
@@ -149,7 +149,7 @@
             font-weight: bold;
         }
         .grand-total .value {
-            color: #4F46E5;
+            color: #009866;
         }
         .balance-due {
             background: #FEE2E2;
@@ -171,7 +171,7 @@
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #4F46E5;
+            color: #009866;
         }
         .payments-table {
             width: 100%;
@@ -210,12 +210,12 @@
         .payment-instructions {
             margin-top: 30px;
             padding: 20px;
-            background: #EEF2FF;
+            background: #ECFDF5;
             border-radius: 8px;
         }
         .payment-instructions-title {
             font-weight: bold;
-            color: #4F46E5;
+            color: #009866;
             margin-bottom: 10px;
         }
         .payment-instructions-content {
