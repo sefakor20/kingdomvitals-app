@@ -68,6 +68,9 @@
                     <flux:navlist.item icon="clipboard-document-list" :href="route('superadmin.activity-logs')" :current="request()->routeIs('superadmin.activity-logs')" wire:navigate>
                         {{ __('Activity Logs') }}
                     </flux:navlist.item>
+                    <flux:navlist.item icon="document-text" :href="route('superadmin.system-logs')" :current="request()->routeIs('superadmin.system-logs')" wire:navigate>
+                        {{ __('System Logs') }}
+                    </flux:navlist.item>
                     <flux:navlist.item icon="chart-bar" :href="route('superadmin.revenue')" :current="request()->routeIs('superadmin.revenue')" wire:navigate>
                         {{ __('Revenue') }}
                     </flux:navlist.item>
