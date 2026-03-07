@@ -21,6 +21,77 @@
         </div>
     </div>
 
+    {{-- Filters Bar --}}
+    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+                <flux:icon icon="funnel" class="size-4 text-zinc-500" />
+                <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Filters') }}</flux:text>
+            </div>
+
+            {{-- Date Range Filter --}}
+            <flux:select wire:model.live="dateRange" size="sm" class="w-32">
+                <option value="7">{{ __('Last 7 days') }}</option>
+                <option value="30">{{ __('Last 30 days') }}</option>
+                <option value="90">{{ __('Last 90 days') }}</option>
+            </flux:select>
+
+            {{-- Alert Type Filter --}}
+            <flux:select wire:model.live="alertTypeFilter" size="sm" class="w-40" placeholder="{{ __('All Types') }}">
+                <option value="">{{ __('All Types') }}</option>
+                @foreach($this->availableAlertTypes as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </flux:select>
+
+            {{-- Alert Severity Filter --}}
+            <flux:select wire:model.live="alertSeverityFilter" size="sm" class="w-36" placeholder="{{ __('All Severities') }}">
+                <option value="">{{ __('All Severities') }}</option>
+                @foreach($this->availableAlertSeverities as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </flux:select>
+
+            {{-- Alert Status Filter --}}
+            <flux:select wire:model.live="alertStatusFilter" size="sm" class="w-36" placeholder="{{ __('All Status') }}">
+                <option value="">{{ __('All Status') }}</option>
+                <option value="unread">{{ __('Unread') }}</option>
+                <option value="read">{{ __('Read') }}</option>
+                <option value="acknowledged">{{ __('Acknowledged') }}</option>
+                <option value="unacknowledged">{{ __('Unacknowledged') }}</option>
+            </flux:select>
+
+            {{-- Reset Filters --}}
+            @if($dateRange !== '7' || $alertTypeFilter !== '' || $alertSeverityFilter !== '' || $alertStatusFilter !== '')
+                <flux:button wire:click="resetFilters" variant="ghost" size="sm">
+                    <flux:icon icon="x-mark" class="size-4" />
+                    {{ __('Reset') }}
+                </flux:button>
+            @endif
+
+            {{-- Export Dropdown --}}
+            <div class="ml-auto">
+                <flux:dropdown>
+                    <flux:button variant="ghost" size="sm" icon="arrow-down-tray" icon-trailing="chevron-down">
+                        {{ __('Export') }}
+                    </flux:button>
+
+                    <flux:menu>
+                        <flux:menu.item wire:click="exportAlertsCsv" icon="bell-alert">
+                            {{ __('Export Alerts') }}
+                        </flux:menu.item>
+                        <flux:menu.item wire:click="exportForecastsCsv" icon="currency-dollar">
+                            {{ __('Export Financial Forecasts') }}
+                        </flux:menu.item>
+                        <flux:menu.item wire:click="exportAttendanceForecastsCsv" icon="chart-bar">
+                            {{ __('Export Attendance Forecasts') }}
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+            </div>
+        </div>
+    </div>
+
     {{-- Summary Stats Row --}}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
@@ -40,6 +111,210 @@
             <flux:heading size="2xl" class="mt-1">{{ number_format($this->summaryStats['total_visitors']) }}</flux:heading>
         </div>
     </div>
+
+    {{-- Forecast Accuracy & Alert Trends --}}
+    @php $accuracyData = $this->forecastAccuracyData; @endphp
+    @if($accuracyData['attendance']['sample_size'] > 0 || $accuracyData['financial']['sample_size'] > 0)
+        <div class="grid gap-6 lg:grid-cols-2">
+            {{-- Forecast Accuracy Cards --}}
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="rounded-lg bg-indigo-100 p-2 dark:bg-indigo-900/50">
+                        <flux:icon icon="chart-bar-square" class="size-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                        <flux:heading size="base">{{ __('Forecast Accuracy') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('How accurate are our predictions?') }}</flux:text>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {{-- Attendance Accuracy --}}
+                    <div class="rounded-lg border border-zinc-100 p-4 dark:border-zinc-800">
+                        <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Attendance') }}</flux:text>
+                        @if($accuracyData['attendance']['accuracy_rate'] !== null)
+                            <div class="mt-2 flex items-end gap-2">
+                                <flux:heading size="2xl" class="{{ $accuracyData['attendance']['accuracy_rate'] >= 80 ? 'text-green-600 dark:text-green-400' : ($accuracyData['attendance']['accuracy_rate'] >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
+                                    {{ $accuracyData['attendance']['accuracy_rate'] }}%
+                                </flux:heading>
+                                <flux:text class="mb-1 text-sm text-zinc-500">{{ __('accurate') }}</flux:text>
+                            </div>
+                            <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                <div class="h-full rounded-full {{ $accuracyData['attendance']['accuracy_rate'] >= 80 ? 'bg-green-500' : ($accuracyData['attendance']['accuracy_rate'] >= 60 ? 'bg-amber-500' : 'bg-red-500') }}"
+                                     style="width: {{ min($accuracyData['attendance']['accuracy_rate'], 100) }}%"></div>
+                            </div>
+                            <flux:text class="mt-2 text-xs text-zinc-400">
+                                {{ __('Based on :count forecasts', ['count' => $accuracyData['attendance']['sample_size']]) }}
+                            </flux:text>
+                        @else
+                            <flux:text class="mt-2 text-sm text-zinc-400">{{ __('No data yet') }}</flux:text>
+                        @endif
+                    </div>
+
+                    {{-- Financial Accuracy --}}
+                    <div class="rounded-lg border border-zinc-100 p-4 dark:border-zinc-800">
+                        <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Financial') }}</flux:text>
+                        @if($accuracyData['financial']['accuracy_rate'] !== null)
+                            <div class="mt-2 flex items-end gap-2">
+                                <flux:heading size="2xl" class="{{ $accuracyData['financial']['accuracy_rate'] >= 80 ? 'text-green-600 dark:text-green-400' : ($accuracyData['financial']['accuracy_rate'] >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
+                                    {{ $accuracyData['financial']['accuracy_rate'] }}%
+                                </flux:heading>
+                                <flux:text class="mb-1 text-sm text-zinc-500">{{ __('accurate') }}</flux:text>
+                            </div>
+                            <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                <div class="h-full rounded-full {{ $accuracyData['financial']['accuracy_rate'] >= 80 ? 'bg-green-500' : ($accuracyData['financial']['accuracy_rate'] >= 60 ? 'bg-amber-500' : 'bg-red-500') }}"
+                                     style="width: {{ min($accuracyData['financial']['accuracy_rate'], 100) }}%"></div>
+                            </div>
+                            <flux:text class="mt-2 text-xs text-zinc-400">
+                                {{ __('Based on :count forecasts', ['count' => $accuracyData['financial']['sample_size']]) }}
+                            </flux:text>
+                        @else
+                            <flux:text class="mt-2 text-sm text-zinc-400">{{ __('No data yet') }}</flux:text>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Accuracy Comparison Chart --}}
+                @if(!empty($accuracyData['attendance']['data']) || !empty($accuracyData['financial']['data']))
+                    <div class="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                        <flux:text class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Recent Predictions vs Actuals') }}</flux:text>
+                        <div
+                            x-data="{
+                                attendanceData: @js($accuracyData['attendance']['data']),
+                                financialData: @js($accuracyData['financial']['data']),
+                                chart: null,
+                                init() {
+                                    this.renderChart();
+                                },
+                                renderChart() {
+                                    if (this.chart) this.chart.destroy();
+
+                                    const ctx = this.$refs.accuracyChart.getContext('2d');
+                                    const labels = this.attendanceData.length > 0
+                                        ? this.attendanceData.map(d => d.date)
+                                        : this.financialData.map(d => d.period);
+
+                                    const datasets = [];
+
+                                    if (this.attendanceData.length > 0) {
+                                        datasets.push({
+                                            label: '{{ __('Attendance Predicted') }}',
+                                            data: this.attendanceData.map(d => d.predicted),
+                                            borderColor: 'rgb(99, 102, 241)',
+                                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                            borderDash: [5, 5],
+                                            tension: 0.3,
+                                        });
+                                        datasets.push({
+                                            label: '{{ __('Attendance Actual') }}',
+                                            data: this.attendanceData.map(d => d.actual),
+                                            borderColor: 'rgb(34, 197, 94)',
+                                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                            tension: 0.3,
+                                        });
+                                    }
+
+                                    this.chart = new Chart(ctx, {
+                                        type: 'line',
+                                        data: { labels, datasets },
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                                legend: { position: 'bottom', labels: { usePointStyle: true } }
+                                            },
+                                            scales: {
+                                                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                                                x: { grid: { display: false } }
+                                            }
+                                        }
+                                    });
+                                }
+                            }"
+                            class="h-48"
+                        >
+                            <canvas x-ref="accuracyChart"></canvas>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Alert Trend Chart --}}
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="rounded-lg bg-red-100 p-2 dark:bg-red-900/50">
+                        <flux:icon icon="chart-bar" class="size-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                        <flux:heading size="base">{{ __('Alert Trends') }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Weekly alert volume by severity') }}</flux:text>
+                    </div>
+                </div>
+
+                <div
+                    x-data="{
+                        trendData: @js($this->alertTrendData),
+                        chart: null,
+                        init() {
+                            this.renderChart();
+                        },
+                        renderChart() {
+                            if (this.chart) this.chart.destroy();
+
+                            const ctx = this.$refs.alertTrendChart.getContext('2d');
+
+                            this.chart = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: this.trendData.map(d => d.week),
+                                    datasets: [
+                                        {
+                                            label: '{{ __('Critical') }}',
+                                            data: this.trendData.map(d => d.critical),
+                                            backgroundColor: 'rgb(239, 68, 68)',
+                                            borderRadius: 4,
+                                        },
+                                        {
+                                            label: '{{ __('High') }}',
+                                            data: this.trendData.map(d => d.high),
+                                            backgroundColor: 'rgb(249, 115, 22)',
+                                            borderRadius: 4,
+                                        },
+                                        {
+                                            label: '{{ __('Medium') }}',
+                                            data: this.trendData.map(d => d.medium),
+                                            backgroundColor: 'rgb(245, 158, 11)',
+                                            borderRadius: 4,
+                                        },
+                                        {
+                                            label: '{{ __('Low') }}',
+                                            data: this.trendData.map(d => d.low),
+                                            backgroundColor: 'rgb(156, 163, 175)',
+                                            borderRadius: 4,
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { position: 'bottom', labels: { usePointStyle: true } }
+                                    },
+                                    scales: {
+                                        x: { stacked: true, grid: { display: false } },
+                                        y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+                                    }
+                                }
+                            });
+                        }
+                    }"
+                    class="h-64"
+                >
+                    <canvas x-ref="alertTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- AI Alerts Panel --}}
     @if($this->recentAlerts->isNotEmpty())
@@ -202,10 +477,14 @@
                     </div>
                 @endforeach
             </div>
-            @if($this->alertStats['total'] > 10)
+            @if($this->alertStats['total'] > 0)
                 <div class="border-t border-zinc-200 px-6 py-3 dark:border-zinc-700">
                     <flux:text class="text-center text-sm text-zinc-500 dark:text-zinc-400">
-                        {{ __('Showing :shown of :total alerts', ['shown' => min(10, $this->alertStats['total']), 'total' => $this->alertStats['total']]) }}
+                        @if($alertTypeFilter !== '' || $alertSeverityFilter !== '' || $alertStatusFilter !== '')
+                            {{ __('Showing :shown filtered alerts from last :days days', ['shown' => $this->recentAlerts->count(), 'days' => $dateRange]) }}
+                        @else
+                            {{ __('Showing :shown of :total alerts from last :days days', ['shown' => min(20, $this->alertStats['total']), 'total' => $this->alertStats['total'], 'days' => $dateRange]) }}
+                        @endif
                     </flux:text>
                 </div>
             @endif
@@ -907,11 +1186,11 @@
                                     <flux:text>{{ $forecast->service?->name ?? __('Unknown') }}</flux:text>
                                 </td>
                                 <td class="py-3 text-right">
-                                    <flux:badge size="sm">{{ $forecast->predicted_total }}</flux:badge>
+                                    <flux:badge size="sm">{{ $forecast->predicted_attendance }}</flux:badge>
                                 </td>
                                 <td class="py-3 text-right">
                                     @php
-                                        $confidence = $forecast->confidence ?? 0;
+                                        $confidence = $forecast->confidence_score ?? 0;
                                         $color = match(true) {
                                             $confidence >= 80 => 'green',
                                             $confidence >= 60 => 'blue',
