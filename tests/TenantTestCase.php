@@ -141,6 +141,7 @@ trait TenantTestCase
     /**
      * Truncate all tenant tables to reset data between tests.
      * This is MUCH faster than dropping and recreating the database.
+     * Uses batch truncate for improved performance.
      */
     protected function truncateTenantTables(): void
     {
@@ -150,10 +151,19 @@ trait TenantTestCase
         $dbName = DB::getDatabaseName();
         $key = "Tables_in_{$dbName}";
 
+        // Batch truncate for better performance
+        $tablesToTruncate = [];
         foreach ($tables as $table) {
             $tableName = $table->$key;
-            if ($tableName !== 'migrations') {
-                DB::table($tableName)->truncate();
+            if ($tableName !== 'migrations' && $tableName !== 'personal_access_tokens') {
+                $tablesToTruncate[] = $tableName;
+            }
+        }
+
+        // Truncate all tables in a single statement for better performance
+        if (!empty($tablesToTruncate)) {
+            foreach ($tablesToTruncate as $table) {
+                DB::statement("TRUNCATE TABLE `{$table}`");
             }
         }
 
