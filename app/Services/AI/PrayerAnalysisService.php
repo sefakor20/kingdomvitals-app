@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\AI;
 
+use App\Ai\Agents\PrayerAnalyzer;
 use App\Enums\PrayerRequestCategory;
 use App\Enums\PrayerUrgencyLevel;
 use App\Models\Tenant\Branch;
@@ -71,7 +72,7 @@ class PrayerAnalysisService
     /**
      * Analyze a prayer request and return full analysis.
      */
-    public function analyze(PrayerRequest $prayer): PrayerAnalysis
+    public function analyze(PrayerRequest $prayer, bool $useAi = false): PrayerAnalysis
     {
         $content = $this->getAnalyzableContent($prayer);
 
@@ -87,6 +88,12 @@ class PrayerAnalysisService
         // Build factors
         $factors = $this->buildFactors($urgencyResult, $categoryResult, $prayer);
 
+        // Perform AI analysis if requested
+        $aiResult = null;
+        if ($useAi && config('ai.features.prayer_analysis.enabled', true)) {
+            $aiResult = $this->analyzeWithAi($prayer);
+        }
+
         return new PrayerAnalysis(
             urgencyLevel: $urgencyResult['level'],
             priorityScore: $priorityScore,
@@ -97,7 +104,42 @@ class PrayerAnalysisService
                 $categoryResult['keywords']
             ),
             factors: $factors,
+            provider: $aiResult ? 'ai' : 'heuristic',
+            model: $aiResult ? 'prayer-analyzer' : 'v1',
+            sentiment: $aiResult['sentiment'] ?? null,
+            themes: $aiResult['themes'] ?? [],
+            responseSuggestion: $aiResult['response_suggestion'] ?? null,
+            aiConfidence: $aiResult['confidence'] ?? null,
         );
+    }
+
+    /**
+     * Perform AI-powered analysis on a prayer request.
+     *
+     * @return array{sentiment: string, themes: array, response_suggestion: string, confidence: int}|null
+     */
+    public function analyzeWithAi(PrayerRequest $prayer): ?array
+    {
+        try {
+            $content = $this->getAnalyzableContent($prayer);
+            $agent = new PrayerAnalyzer($content);
+
+            $response = $agent->prompt("Analyze this prayer request:\n\n{$content}");
+
+            return [
+                'sentiment' => $response['sentiment'],
+                'themes' => $response['themes'],
+                'response_suggestion' => $response['response_suggestion'],
+                'confidence' => (int) $response['confidence'],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('AI prayer analysis failed', [
+                'prayer_id' => $prayer->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     /**

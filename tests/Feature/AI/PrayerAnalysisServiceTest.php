@@ -334,3 +334,80 @@ it('returns correct priority weight for urgency levels', function (): void {
     expect(PrayerUrgencyLevel::High->priorityWeight())->toBe(30);
     expect(PrayerUrgencyLevel::Critical->priorityWeight())->toBe(40);
 });
+
+// ============================================
+// AI ANALYSIS TESTS
+// ============================================
+
+it('analyzes prayer without AI by default', function (): void {
+    $prayer = Mockery::mock(PrayerRequest::class)->makePartial();
+    $prayer->title = 'Prayer for Healing';
+    $prayer->description = 'Please pray for my recovery from surgery';
+    $prayer->submitted_at = now();
+    $prayer->created_at = now();
+
+    $prayer->shouldReceive('isOpen')->andReturn(true);
+    $prayer->shouldReceive('isAnonymous')->andReturn(false);
+    $prayer->shouldReceive('isLeadersOnly')->andReturn(false);
+    $prayer->shouldReceive('getAttribute')->with('updates')->andReturn(collect([]));
+
+    $analysis = $this->service->analyze($prayer);
+
+    expect($analysis->sentiment)->toBeNull();
+    expect($analysis->themes)->toBeEmpty();
+    expect($analysis->responseSuggestion)->toBeNull();
+    expect($analysis->aiConfidence)->toBeNull();
+    expect($analysis->hasAiAnalysis())->toBeFalse();
+    expect($analysis->provider)->toBe('heuristic');
+});
+
+it('includes AI fields in toArray output', function (): void {
+    $prayer = Mockery::mock(PrayerRequest::class)->makePartial();
+    $prayer->title = 'Test Prayer';
+    $prayer->description = 'Test description';
+    $prayer->submitted_at = now();
+    $prayer->created_at = now();
+
+    $prayer->shouldReceive('isOpen')->andReturn(true);
+    $prayer->shouldReceive('isAnonymous')->andReturn(false);
+    $prayer->shouldReceive('isLeadersOnly')->andReturn(false);
+    $prayer->shouldReceive('getAttribute')->with('updates')->andReturn(collect([]));
+
+    $analysis = $this->service->analyze($prayer);
+    $array = $analysis->toArray();
+
+    expect($array)->toHaveKeys([
+        'urgency_level',
+        'priority_score',
+        'suggested_category',
+        'sentiment',
+        'themes',
+        'response_suggestion',
+        'ai_confidence',
+    ]);
+});
+
+it('can restore PrayerAnalysis from array with AI fields', function (): void {
+    $data = [
+        'urgency_level' => 'high',
+        'priority_score' => 75.5,
+        'suggested_category' => 'health',
+        'category_confidence' => 85.0,
+        'detected_keywords' => ['hospital', 'surgery'],
+        'factors' => [],
+        'provider' => 'ai',
+        'model' => 'prayer-analyzer',
+        'sentiment' => 'anxious',
+        'themes' => ['health', 'family'],
+        'response_suggestion' => 'Consider a pastoral visit',
+        'ai_confidence' => 90,
+    ];
+
+    $analysis = \App\Services\AI\DTOs\PrayerAnalysis::fromArray($data);
+
+    expect($analysis->sentiment)->toBe('anxious');
+    expect($analysis->themes)->toBe(['health', 'family']);
+    expect($analysis->responseSuggestion)->toBe('Consider a pastoral visit');
+    expect($analysis->aiConfidence)->toBe(90.0);
+    expect($analysis->hasAiAnalysis())->toBeTrue();
+});
