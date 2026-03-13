@@ -353,7 +353,7 @@ test('visitor source analysis groups by how did you hear', function (): void {
 // VISITORS OVER TIME TESTS
 // ============================================
 
-test('visitors over time returns 12 weeks of data', function (): void {
+test('visitors over time returns correct data points for default 90 day period (weekly)', function (): void {
     $user = User::factory()->create();
     UserBranchAccess::factory()->create([
         'user_id' => $user->id,
@@ -363,7 +363,47 @@ test('visitors over time returns 12 weeks of data', function (): void {
 
     $this->actingAs($user);
 
+    // Default period is 90 days, which uses weekly grouping (13 weeks)
     $component = Livewire::test(VisitorAnalytics::class, ['branch' => $this->branch]);
+    $timeData = $component->get('visitorsOverTimeData');
+
+    $expectedWeeks = (int) ceil(90 / 7);
+    expect($timeData['labels'])->toHaveCount($expectedWeeks);
+    expect($timeData['visitors'])->toHaveCount($expectedWeeks);
+    expect($timeData['converted'])->toHaveCount($expectedWeeks);
+});
+
+test('visitors over time returns daily data for 30 day period', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(VisitorAnalytics::class, ['branch' => $this->branch])
+        ->call('setPeriod', 30);
+    $timeData = $component->get('visitorsOverTimeData');
+
+    expect($timeData['labels'])->toHaveCount(30);
+    expect($timeData['visitors'])->toHaveCount(30);
+    expect($timeData['converted'])->toHaveCount(30);
+});
+
+test('visitors over time returns monthly data for 365 day period', function (): void {
+    $user = User::factory()->create();
+    UserBranchAccess::factory()->create([
+        'user_id' => $user->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Admin,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(VisitorAnalytics::class, ['branch' => $this->branch])
+        ->call('setPeriod', 365);
     $timeData = $component->get('visitorsOverTimeData');
 
     expect($timeData['labels'])->toHaveCount(12);

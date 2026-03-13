@@ -37,7 +37,14 @@ class VisitorAnalytics extends Component
     {
         $this->period = $days;
         $this->clearComputedCache();
-        $this->dispatch('charts-updated');
+
+        $this->dispatch('charts-updated', [
+            'visitorsOverTime' => $this->visitorsOverTimeData,
+            'followUpEffectiveness' => $this->followUpEffectivenessData,
+            'statusDistribution' => $this->conversionFunnelData,
+            'followUpTrend' => $this->followUpTrendData,
+            'visitorSource' => $this->visitorSourceData,
+        ]);
     }
 
     // ============================================
@@ -62,6 +69,35 @@ class VisitorAnalytics extends Component
     private function getPreviousPeriodEnd(): Carbon
     {
         return $this->getCurrentPeriodStart()->copy()->subDay()->endOfDay();
+    }
+
+    /**
+     * Determine the chart grouping strategy based on the selected period.
+     *
+     * @return array{type: string, format: string, sql_group: string, sql_format: string}
+     */
+    private function getChartGroupingStrategy(): array
+    {
+        return match (true) {
+            $this->period <= 30 => [
+                'type' => 'daily',
+                'format' => 'M d',
+                'sql_group' => 'DATE(visit_date)',
+                'sql_format' => '%Y-%m-%d',
+            ],
+            $this->period <= 180 => [
+                'type' => 'weekly',
+                'format' => 'M d',
+                'sql_group' => 'YEARWEEK(visit_date, 1)',
+                'sql_format' => '%x%v',
+            ],
+            default => [
+                'type' => 'monthly',
+                'format' => 'M Y',
+                'sql_group' => "DATE_FORMAT(visit_date, '%Y-%m')",
+                'sql_format' => '%Y-%m',
+            ],
+        };
     }
 
     // ============================================
@@ -267,35 +303,58 @@ class VisitorAnalytics extends Component
     #[Computed]
     public function visitorsOverTimeData(): array
     {
-        // N+1 fix: Single query with date grouping instead of 24 separate queries
-        $startDate = now()->subWeeks(11)->startOfWeek();
-        $endDate = now()->endOfWeek();
+        $strategy = $this->getChartGroupingStrategy();
+        $startDate = $this->getCurrentPeriodStart();
+        $endDate = $this->getCurrentPeriodEnd();
 
-        $weeklyData = Visitor::where('branch_id', $this->branch->id)
+        $groupedData = Visitor::where('branch_id', $this->branch->id)
             ->whereBetween('visit_date', [$startDate, $endDate])
-            ->selectRaw('
-                YEARWEEK(visit_date, 1) as week_key,
+            ->selectRaw("
+                {$strategy['sql_group']} as date_key,
                 COUNT(*) as visitor_count,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as converted_count
-            ', [VisitorStatus::Converted->value])
-            ->groupBy('week_key')
+            ", [VisitorStatus::Converted->value])
+            ->groupBy('date_key')
             ->get()
-            ->keyBy('week_key');
+            ->keyBy('date_key');
 
         $labels = [];
         $visitorData = [];
         $convertedData = [];
 
-        // Build arrays for each week
-        for ($i = 11; $i >= 0; $i--) {
-            $weekStart = now()->subWeeks($i)->startOfWeek();
-            $weekKey = $weekStart->format('oW'); // ISO year and week number
+        // Build arrays based on grouping strategy
+        if ($strategy['type'] === 'daily') {
+            for ($i = $this->period - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i);
+                $dateKey = $date->format('Y-m-d');
 
-            $labels[] = $weekStart->format('M d');
+                $labels[] = $date->format($strategy['format']);
+                $data = $groupedData->get($dateKey);
+                $visitorData[] = $data ? (int) $data->visitor_count : 0;
+                $convertedData[] = $data ? (int) $data->converted_count : 0;
+            }
+        } elseif ($strategy['type'] === 'weekly') {
+            $weeks = (int) ceil($this->period / 7);
+            for ($i = $weeks - 1; $i >= 0; $i--) {
+                $weekStart = now()->subWeeks($i)->startOfWeek();
+                $weekKey = $weekStart->format('oW'); // ISO year and week number
 
-            $data = $weeklyData->get($weekKey);
-            $visitorData[] = $data ? (int) $data->visitor_count : 0;
-            $convertedData[] = $data ? (int) $data->converted_count : 0;
+                $labels[] = $weekStart->format($strategy['format']);
+                $data = $groupedData->get($weekKey);
+                $visitorData[] = $data ? (int) $data->visitor_count : 0;
+                $convertedData[] = $data ? (int) $data->converted_count : 0;
+            }
+        } else {
+            // Monthly grouping
+            for ($i = 11; $i >= 0; $i--) {
+                $monthStart = now()->subMonths($i)->startOfMonth();
+                $monthKey = $monthStart->format('Y-m');
+
+                $labels[] = $monthStart->format($strategy['format']);
+                $data = $groupedData->get($monthKey);
+                $visitorData[] = $data ? (int) $data->visitor_count : 0;
+                $convertedData[] = $data ? (int) $data->converted_count : 0;
+            }
         }
 
         return [
@@ -312,36 +371,62 @@ class VisitorAnalytics extends Component
     #[Computed]
     public function followUpTrendData(): array
     {
-        // N+1 fix: Single query for completed follow-ups with date grouping
-        $startDate = now()->subWeeks(11)->startOfWeek();
-        $endDate = now()->endOfWeek();
+        $strategy = $this->getChartGroupingStrategy();
+        $startDate = $this->getCurrentPeriodStart();
+        $endDate = $this->getCurrentPeriodEnd();
 
-        $completedWeeklyData = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
+        // Build SQL grouping for follow-up dates (uses completed_at/scheduled_at instead of visit_date)
+        $completedSqlGroup = str_replace('visit_date', 'completed_at', $strategy['sql_group']);
+        $scheduledSqlGroup = str_replace('visit_date', 'scheduled_at', $strategy['sql_group']);
+
+        $completedGroupedData = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
             ->whereBetween('completed_at', [$startDate, $endDate])
             ->where('outcome', '!=', FollowUpOutcome::Pending)
-            ->selectRaw('YEARWEEK(completed_at, 1) as week_key, COUNT(*) as count')
-            ->groupBy('week_key')
-            ->pluck('count', 'week_key');
+            ->selectRaw("{$completedSqlGroup} as date_key, COUNT(*) as count")
+            ->groupBy('date_key')
+            ->pluck('count', 'date_key');
 
-        $pendingWeeklyData = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
+        $pendingGroupedData = VisitorFollowUp::whereHas('visitor', fn ($q) => $q->where('branch_id', $this->branch->id))
             ->whereBetween('scheduled_at', [$startDate, $endDate])
             ->where('outcome', FollowUpOutcome::Pending)
-            ->selectRaw('YEARWEEK(scheduled_at, 1) as week_key, COUNT(*) as count')
-            ->groupBy('week_key')
-            ->pluck('count', 'week_key');
+            ->selectRaw("{$scheduledSqlGroup} as date_key, COUNT(*) as count")
+            ->groupBy('date_key')
+            ->pluck('count', 'date_key');
 
         $labels = [];
         $completedData = [];
         $pendingData = [];
 
-        // Build arrays for each week
-        for ($i = 11; $i >= 0; $i--) {
-            $weekStart = now()->subWeeks($i)->startOfWeek();
-            $weekKey = $weekStart->format('oW'); // ISO year and week number
+        // Build arrays based on grouping strategy
+        if ($strategy['type'] === 'daily') {
+            for ($i = $this->period - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i);
+                $dateKey = $date->format('Y-m-d');
 
-            $labels[] = $weekStart->format('M d');
-            $completedData[] = (int) ($completedWeeklyData->get($weekKey) ?? 0);
-            $pendingData[] = (int) ($pendingWeeklyData->get($weekKey) ?? 0);
+                $labels[] = $date->format($strategy['format']);
+                $completedData[] = (int) ($completedGroupedData->get($dateKey) ?? 0);
+                $pendingData[] = (int) ($pendingGroupedData->get($dateKey) ?? 0);
+            }
+        } elseif ($strategy['type'] === 'weekly') {
+            $weeks = (int) ceil($this->period / 7);
+            for ($i = $weeks - 1; $i >= 0; $i--) {
+                $weekStart = now()->subWeeks($i)->startOfWeek();
+                $weekKey = $weekStart->format('oW');
+
+                $labels[] = $weekStart->format($strategy['format']);
+                $completedData[] = (int) ($completedGroupedData->get($weekKey) ?? 0);
+                $pendingData[] = (int) ($pendingGroupedData->get($weekKey) ?? 0);
+            }
+        } else {
+            // Monthly grouping
+            for ($i = 11; $i >= 0; $i--) {
+                $monthStart = now()->subMonths($i)->startOfMonth();
+                $monthKey = $monthStart->format('Y-m');
+
+                $labels[] = $monthStart->format($strategy['format']);
+                $completedData[] = (int) ($completedGroupedData->get($monthKey) ?? 0);
+                $pendingData[] = (int) ($pendingGroupedData->get($monthKey) ?? 0);
+            }
         }
 
         return [

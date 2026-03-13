@@ -145,7 +145,7 @@
                 <div
                     x-data="visitorsOverTimeChart(@js($this->visitorsOverTimeData))"
                     x-init="initChart()"
-                    @charts-updated.window="updateChart(@js($this->visitorsOverTimeData))"
+                    @charts-updated.window="updateChart($event.detail.visitorsOverTime)"
                     class="h-64"
                     wire:ignore
                 >
@@ -159,7 +159,7 @@
                 <div
                     x-data="followUpEffectivenessChart(@js($this->followUpEffectivenessData))"
                     x-init="initChart()"
-                    @charts-updated.window="updateChart(@js($this->followUpEffectivenessData))"
+                    @charts-updated.window="updateChart($event.detail.followUpEffectiveness)"
                     class="h-64"
                     wire:ignore
                 >
@@ -173,7 +173,7 @@
                 <div
                     x-data="statusDistributionChart(@js($this->conversionFunnelData))"
                     x-init="initChart()"
-                    @charts-updated.window="updateChart(@js($this->conversionFunnelData))"
+                    @charts-updated.window="updateChart($event.detail.statusDistribution)"
                     class="h-64"
                     wire:ignore
                 >
@@ -187,7 +187,7 @@
                 <div
                     x-data="followUpTrendChart(@js($this->followUpTrendData))"
                     x-init="initChart()"
-                    @charts-updated.window="updateChart(@js($this->followUpTrendData))"
+                    @charts-updated.window="updateChart($event.detail.followUpTrend)"
                     class="h-64"
                     wire:ignore
                 >
@@ -205,7 +205,7 @@
                     <div
                         x-data="visitorSourceChart(@js($this->visitorSourceData))"
                         x-init="initChart()"
-                        @charts-updated.window="updateChart(@js($this->visitorSourceData))"
+                        @charts-updated.window="updateChart($event.detail.visitorSource)"
                         class="h-64"
                         wire:ignore
                     >
@@ -363,8 +363,17 @@
                     },
                     plugins: {
                         legend: {
+                            onClick: (e, legendItem, legend) => {
+                                const index = legendItem.datasetIndex;
+                                const chart = legend.chart;
+                                const meta = chart.getDatasetMeta(index);
+                                meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+                                chart.update();
+                            },
                             labels: {
                                 color: isDark ? '#a1a1aa' : '#71717a',
+                                usePointStyle: true,
+                                cursor: 'pointer',
                             }
                         }
                     }
@@ -433,8 +442,17 @@
                     },
                     plugins: {
                         legend: {
+                            onClick: (e, legendItem, legend) => {
+                                const index = legendItem.datasetIndex;
+                                const chart = legend.chart;
+                                const meta = chart.getDatasetMeta(index);
+                                meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+                                chart.update();
+                            },
                             labels: {
                                 color: isDark ? '#a1a1aa' : '#71717a',
+                                usePointStyle: true,
+                                cursor: 'pointer',
                             }
                         }
                     }
@@ -475,8 +493,16 @@
                     plugins: {
                         legend: {
                             position: 'right',
+                            onClick: (e, legendItem, legend) => {
+                                const index = legendItem.index;
+                                const chart = legend.chart;
+                                chart.toggleDataVisibility(index);
+                                chart.update();
+                            },
                             labels: {
                                 color: isDark ? '#a1a1aa' : '#71717a',
+                                usePointStyle: true,
+                                cursor: 'pointer',
                             }
                         }
                     }
@@ -549,8 +575,17 @@
                     },
                     plugins: {
                         legend: {
+                            onClick: (e, legendItem, legend) => {
+                                const index = legendItem.datasetIndex;
+                                const chart = legend.chart;
+                                const meta = chart.getDatasetMeta(index);
+                                meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+                                chart.update();
+                            },
                             labels: {
                                 color: isDark ? '#a1a1aa' : '#71717a',
+                                usePointStyle: true,
+                                cursor: 'pointer',
                             }
                         }
                     }
@@ -602,8 +637,16 @@
                     plugins: {
                         legend: {
                             position: 'right',
+                            onClick: (e, legendItem, legend) => {
+                                const index = legendItem.index;
+                                const chart = legend.chart;
+                                chart.toggleDataVisibility(index);
+                                chart.update();
+                            },
                             labels: {
                                 color: isDark ? '#a1a1aa' : '#71717a',
+                                usePointStyle: true,
+                                cursor: 'pointer',
                             }
                         }
                     }
