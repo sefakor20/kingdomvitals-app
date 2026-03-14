@@ -7,22 +7,20 @@
         <link rel="preload" href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700|jetbrains-mono:400,500" as="style">
         <link href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700|jetbrains-mono:400,500" rel="stylesheet" />
 
-        <title>{{ config('app.name') }} - AI-Powered Church Management</title>
-        <meta name="description" content="AI-powered church management platform. Predict trends, identify at-risk members, and get actionable insights while managing membership, giving, and attendance.">
+        <title>{{ config('app.name') }} - Church Management Made Simple</title>
+        <meta name="description" content="Church management software for membership, giving, attendance, visitor tracking, finances, events, and volunteer coordination. AI-powered insights to grow your church.">
 
-        {{-- Open Graph Meta Tags --}}
+        {{-- Open Graph Meta Tags (og:image injected by spatie/laravel-og-image) --}}
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url('/') }}">
-        <meta property="og:title" content="{{ config('app.name') }} - AI-Powered Church Management">
-        <meta property="og:description" content="AI-powered church management platform. Predict trends, identify at-risk members, and get actionable insights while managing your ministry.">
-        <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+        <meta property="og:title" content="{{ config('app.name') }} - Church Management Made Simple">
+        <meta property="og:description" content="Church management software for membership, giving, attendance, visitor tracking, finances, events, and volunteer coordination. AI-powered insights to grow your church.">
         <meta property="og:site_name" content="{{ config('app.name') }}">
 
-        {{-- Twitter Card Meta Tags --}}
+        {{-- Twitter Card Meta Tags (twitter:image injected by spatie/laravel-og-image) --}}
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ config('app.name') }} - AI-Powered Church Management">
-        <meta name="twitter:description" content="AI-powered church management with predictive insights, smart alerts, and actionable recommendations.">
-        <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+        <meta name="twitter:title" content="{{ config('app.name') }} - Church Management Made Simple">
+        <meta name="twitter:description" content="Church management software for membership, giving, attendance, visitor tracking, finances, events, and volunteers. AI-powered insights included.">
 
         {{-- Additional SEO --}}
         <meta name="robots" content="index, follow">
@@ -199,6 +197,9 @@
 
         {{-- Cookie Consent Banner --}}
         @include('landing.partials.cookie-consent')
+
+        {{-- OG Image Template (rendered by spatie/laravel-og-image) --}}
+        @include('landing.partials.og-image')
 
         @fluxScripts
     </body>
