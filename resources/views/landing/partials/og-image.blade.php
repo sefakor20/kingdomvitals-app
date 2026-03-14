@@ -1,0 +1,52 @@
+{{-- OG Image Template for Landing Page --}}
+<x-og-image>
+    <div class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950 p-12">
+        {{-- Background Pattern --}}
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+        </div>
+
+        {{-- Content --}}
+        <div class="relative z-10 flex flex-col items-center text-center">
+            {{-- Logo --}}
+            <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 ring-4 ring-white/20">
+                <img src="{{ public_path('favicon.svg') }}" alt="Kingdom Vitals" class="h-14 w-14">
+            </div>
+
+            {{-- Title --}}
+            <h1 class="mb-3 text-5xl font-bold tracking-tight text-white">
+                {{ config('app.name') }}
+            </h1>
+
+            {{-- Tagline --}}
+            <p class="mb-6 max-w-2xl text-xl font-medium text-emerald-200">
+                Church Management Made Simple
+            </p>
+
+            {{-- Features - 6 badges + AI accent --}}
+            <div class="flex flex-wrap justify-center gap-3">
+                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                    Membership
+                </span>
+                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                    Giving
+                </span>
+                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                    Attendance
+                </span>
+                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                    Visitors
+                </span>
+                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                    Finances
+                </span>
+                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                    Events
+                </span>
+                <span class="rounded-full bg-lime-400/20 px-5 py-2 text-base font-medium text-lime-300">
+                    AI-Powered
+                </span>
+            </div>
+        </div>
+    </div>
+</x-og-image>
