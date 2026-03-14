@@ -328,6 +328,7 @@
                     >
                         {{ __('Giving Intelligence') }}
                     </flux:sidebar.item>
+                    {{-- Chatbot Monitor - Disabled until SMS provider supports inbound webhooks
                     <flux:sidebar.item
                         icon="chat-bubble-left-right"
                         :href="route('ai-insights.chatbot', $this->currentBranch)"
@@ -337,6 +338,7 @@
                     >
                         {{ __('Chatbot Monitor') }}
                     </flux:sidebar.item>
+                    --}}
                 @endif
                 @if($this->canViewReports)
                     <flux:sidebar.item

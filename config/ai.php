@@ -275,7 +275,8 @@ return [
         ],
 
         'chatbot' => [
-            'enabled' => env('AI_FEATURE_CHATBOT', true),
+            // Disabled by default - TextTango doesn't support inbound SMS webhooks
+            'enabled' => env('AI_FEATURE_CHATBOT', false),
             'provider' => env('AI_CHATBOT_PROVIDER'),
             'channels' => ['sms', 'whatsapp'],
             'use_ai_classification' => true,
