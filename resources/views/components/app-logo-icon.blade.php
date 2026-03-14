@@ -1,8 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 42" {{ $attributes }}>
-    <path 
-        fill="currentColor" 
-        fill-rule="evenodd" 
-        clip-rule="evenodd"
-        d="M17.2 5.633 8.6.855 0 5.633v26.51l16.2 9 16.2-9v-8.442l7.6-4.223V9.856l-8.6-4.777-8.6 4.777V18.3l-5.6 3.111V5.633ZM38 18.301l-5.6 3.11v-6.157l5.6-3.11V18.3Zm-1.06-7.856-5.54 3.078-5.54-3.079 5.54-3.078 5.54 3.079ZM24.8 18.3v-6.157l5.6 3.111v6.158L24.8 18.3Zm-1 1.732 5.54 3.078-13.14 7.302-5.54-3.078 13.14-7.3v-.002Zm-16.2 7.89 7.6 4.222V38.3L2 30.966V7.92l5.6 3.111v16.892ZM8.6 9.3 3.06 6.222 8.6 3.143l5.54 3.08L8.6 9.3Zm21.8 15.51-13.2 7.334V38.3l13.2-7.334v-6.156ZM9.6 11.034l5.6-3.11v14.6l-5.6 3.11v-14.6Z"
-    />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41.15 45.68" {{ $attributes }}>
+    <defs>
+        <style>
+            .kv-teal { fill: #00a79d; stroke: #00a79d; stroke-miterlimit: 10; }
+            .kv-ring { fill: none; stroke: #00a79d; stroke-miterlimit: 10; stroke-width: .5px; }
+            .kv-white { fill: #fff; }
+            .kv-accent { fill: #74ccce; }
+        </style>
+    </defs>
+    <path class="kv-ring" d="M1.24,21.16C2.07,12.96,7.98,6.25,15.79,4.24"/>
+    <path class="kv-ring" d="M15.79,42.04c-7.41-1.91-13.12-8.05-14.38-15.7"/>
+    <path class="kv-ring" d="M39.91,26.34c-1.26,7.61-6.91,13.73-14.27,15.67"/>
+    <path class="kv-ring" d="M25.65,4.27c7.74,2.04,13.6,8.72,14.43,16.89"/>
+    <circle class="kv-teal" cx="20.66" cy="22.93" r="14.73"/>
+    <circle class="kv-accent" cx="1.07" cy="23.51" r="1.07"/>
+    <circle class="kv-accent" cx="40.08" cy="23.51" r="1.07"/>
+    <path class="kv-accent" d="M20.66,0c0,1.88-1.52,3.4-3.4,3.4,1.88,0,3.4,1.52,3.4,3.4h0c.04-1.89,1.54-3.4,3.4-3.4-1.88,0-3.4-1.52-3.4-3.4Z"/>
+    <path class="kv-accent" d="M20.66,38.88c0,1.88-1.52,3.4-3.4,3.4,1.88,0,3.4,1.52,3.4,3.4h0c.04-1.89,1.54-3.4,3.4-3.4-1.88,0-3.4-1.52-3.4-3.4Z"/>
+    <rect class="kv-white" x="14.73" y="27.38" width="11.86" height="2.22"/>
+    <polygon class="kv-white" points="24.25 21.77 26.61 26.51 28.07 19.22 24.25 21.77"/>
+    <polygon class="kv-white" points="17.07 21.77 13.25 19.22 14.71 26.51 17.07 21.77"/>
+    <polygon class="kv-white" points="20.66 16.26 15.47 26.63 19.07 26.63 20.66 23.45 22.25 26.63 25.85 26.63 20.66 16.26"/>
 </svg>
