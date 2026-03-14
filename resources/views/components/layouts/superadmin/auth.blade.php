@@ -24,8 +24,8 @@
                     @if($platformLogoUrl)
                         <img src="{{ $platformLogoUrl }}" alt="{{ $platformName }}" class="h-12 w-12 rounded-lg object-contain" />
                     @else
-                        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600">
-                            <flux:icon.shield-check class="size-7 text-white" />
+                        <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/10 ring-2 ring-emerald-500/20">
+                            <x-app-logo-icon class="size-10" />
                         </div>
                     @endif
                     <span class="text-lg font-semibold text-zinc-900 dark:text-white">{{ $platformName }}</span>
