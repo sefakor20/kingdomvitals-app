@@ -12,11 +12,11 @@
                 ? 'border border-black/10 bg-white/70 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-obsidian-surface/70'
                 : 'border border-transparent bg-transparent shadow-none'"
         >
-            {{-- Logo with Status Dot --}}
-            <div class="flex items-center gap-3 lg:flex-1">
-                <a href="{{ route('home') }}" class="-m-1.5 flex items-center gap-2 p-1.5">
-                    <span class="text-xl font-semibold tracking-tighter text-primary">{{ config('app.name') }}</span>
-                    <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
+            {{-- Logo --}}
+            <div class="flex items-center lg:flex-1">
+                <a href="{{ route('home') }}" class="-m-1.5 p-1.5">
+                    <img src="{{ asset('images/logo-black.svg') }}" alt="{{ config('app.name') }}" class="h-12 dark:hidden">
+                    <img src="{{ asset('images/logo-white.svg') }}" alt="{{ config('app.name') }}" class="hidden h-12 dark:block">
                 </a>
             </div>
 
@@ -91,9 +91,9 @@
                 <div class="flex h-full flex-col overflow-y-auto px-6 py-6">
                     {{-- Header with logo and close --}}
                     <div class="flex items-center justify-between">
-                        <a href="{{ route('home') }}" class="-m-1.5 flex items-center gap-2 p-1.5" @click="mobileMenuOpen = false">
-                            <span class="text-xl font-semibold tracking-tighter text-primary">{{ config('app.name') }}</span>
-                            <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
+                        <a href="{{ route('home') }}" class="-m-1.5 p-1.5" @click="mobileMenuOpen = false">
+                            <img src="{{ asset('images/logo-black.svg') }}" alt="{{ config('app.name') }}" class="h-10 dark:hidden">
+                            <img src="{{ asset('images/logo-white.svg') }}" alt="{{ config('app.name') }}" class="hidden h-10 dark:block">
                         </a>
                         <button
                             type="button"
