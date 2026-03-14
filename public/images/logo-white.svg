@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814.13 330.56">
+  <defs>
+    <style>
+      .cls-1 {
+        font-family: Praktika-Regular, Praktika;
+        font-size: 45.17px;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        fill: #fff;
+      }
+
+      .cls-4 {
+        fill: #00a79d;
+      }
+
+      .cls-4, .cls-5 {
+        stroke: #00a79d;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-6 {
+        letter-spacing: .92em;
+      }
+
+      .cls-3 {
+        font-family: Praktika-Medium, Praktika;
+        font-size: 113.07px;
+        font-weight: 500;
+        letter-spacing: -.02em;
+      }
+
+      .cls-7 {
+        letter-spacing: 1em;
+      }
+
+      .cls-8 {
+        fill: #74ccce;
+      }
+
+      .cls-9 {
+        letter-spacing: 1em;
+      }
+
+      .cls-5 {
+        fill: none;
+        stroke-width: .5px;
+      }
+    </style>
+  </defs>
+  <path class="cls-5" d="M9,153.15C14.99,93.75,57.78,45.21,114.23,30.7"/>
+  <path class="cls-5" d="M114.23,304.24c-53.62-13.79-94.92-58.28-104.05-113.61"/>
+  <path class="cls-5" d="M288.82,190.63c-9.08,55.05-50.01,99.37-103.22,113.4"/>
+  <path class="cls-5" d="M185.6,30.91c56.04,14.77,98.44,63.13,104.4,122.24"/>
+  <circle class="cls-4" cx="149.5" cy="165.91" r="106.59"/>
+  <circle class="cls-8" cx="7.77" cy="170.1" r="7.77"/>
+  <circle class="cls-8" cx="290" cy="170.1" r="7.77"/>
+  <path class="cls-8" d="M149.5,0c0,13.6-11.01,24.61-24.61,24.61,13.6,0,24.61,11.01,24.61,24.61l.03-.03c.27-13.63,11.15-24.58,24.58-24.58-13.6,0-24.61-11.01-24.61-24.61Z"/>
+  <path class="cls-8" d="M149.5,281.35c0,13.6-11.01,24.61-24.61,24.61,13.6,0,24.61,11.01,24.61,24.61l.03-.03c.27-13.63,11.15-24.58,24.58-24.58-13.6,0-24.61-11.01-24.61-24.61Z"/>
+  <text class="cls-3" transform="translate(341.12 169.99) scale(1.09 1)"><tspan x="0" y="0">Kingdom</tspan></text>
+  <text class="cls-1" transform="translate(351.5 243.85) scale(1.09 1)"><tspan class="cls-9" x="0" y="0">VI</tspan><tspan class="cls-6" x="128.68" y="0">T</tspan><tspan class="cls-7" x="195.13" y="0">ALS</tspan></text>
+  <g>
+    <rect class="cls-2" x="106.59" y="198.09" width="85.82" height="16.09"/>
+    <g>
+      <polygon class="cls-2" points="175.45 157.55 192.59 191.82 203.14 139.09 175.45 157.55"/>
+      <polygon class="cls-2" points="123.55 157.55 95.87 139.09 106.41 191.82 123.55 157.55"/>
+    </g>
+    <polygon class="cls-2" points="149.5 117.64 111.96 192.73 137.99 192.73 149.5 169.71 161.01 192.73 187.04 192.73 149.5 117.64"/>
+  </g>
+</svg>

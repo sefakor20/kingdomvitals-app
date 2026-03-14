@@ -12,9 +12,9 @@
             <div class="grid gap-8 md:grid-cols-4">
                 {{-- Brand --}}
                 <div class="md:col-span-1">
-                    <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-semibold tracking-tighter text-primary">
-                        {{ config('app.name') }}
-                        <span class="size-2 rounded-full bg-emerald-500 pulse-dot"></span>
+                    <a href="{{ route('home') }}" class="inline-block">
+                        <img src="{{ asset('images/logo-black.svg') }}" alt="{{ config('app.name') }}" class="h-10 dark:hidden">
+                        <img src="{{ asset('images/logo-white.svg') }}" alt="{{ config('app.name') }}" class="hidden h-10 dark:block">
                     </a>
                     <p class="mt-4 text-sm text-secondary">
                         The all-in-one church management platform for modern ministries.

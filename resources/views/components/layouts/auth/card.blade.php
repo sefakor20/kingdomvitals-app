@@ -33,7 +33,7 @@
                             <img src="{{ $authLogoUrl }}" alt="{{ $authAppName }}" class="h-14 w-14 rounded-xl object-contain ring-2 ring-emerald-500/20" />
                         @else
                             <span class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/10 ring-2 ring-emerald-500/20">
-                                <x-app-logo-icon class="size-8 fill-current text-emerald-600 dark:text-emerald-400" />
+                                <x-app-logo-icon class="size-10 fill-current text-emerald-600 dark:text-emerald-400" />
                             </span>
                         @endif
                         <span class="text-lg font-semibold text-primary">{{ $authAppName }}</span>
