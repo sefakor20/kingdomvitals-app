@@ -314,10 +314,28 @@
                     <flux:sidebar.item
                         icon="sparkles"
                         :href="route('ai-insights.dashboard', $this->currentBranch)"
-                        :current="request()->routeIs('ai-insights.*')"
+                        :current="request()->routeIs('ai-insights.dashboard')"
                         wire:navigate
                     >
                         {{ __('AI Insights') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="banknotes"
+                        :href="route('ai-insights.giving', $this->currentBranch)"
+                        :current="request()->routeIs('ai-insights.giving')"
+                        wire:navigate
+                        class="ml-4"
+                    >
+                        {{ __('Giving Intelligence') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="chat-bubble-left-right"
+                        :href="route('ai-insights.chatbot', $this->currentBranch)"
+                        :current="request()->routeIs('ai-insights.chatbot')"
+                        wire:navigate
+                        class="ml-4"
+                    >
+                        {{ __('Chatbot Monitor') }}
                     </flux:sidebar.item>
                 @endif
                 @if($this->canViewReports)

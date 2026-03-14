@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\AI;
 
 use App\Ai\Agents\PrayerAnalyzer;
+use App\Ai\Agents\PrayerSummaryAgent;
 use App\Enums\PrayerRequestCategory;
 use App\Enums\PrayerUrgencyLevel;
 use App\Models\Tenant\Branch;
@@ -509,7 +510,7 @@ class PrayerAnalysisService
     }
 
     /**
-     * Generate AI-powered summary using the LLM.
+     * Generate AI-powered summary using the LLM with structured output.
      *
      * @return array{summary_text: string, key_themes: array<string>, pastoral_recommendations: array<string>, provider: string, model: string}
      */
@@ -527,7 +528,8 @@ class PrayerAnalysisService
             : $periodStart->format('F Y');
 
         // Get anonymized excerpts (remove names, limit content)
-        $excerpts = $prayers->take(10)->map(function (PrayerRequest $prayer): array {
+        $maxExcerpts = config('ai.features.prayer_summary_llm.max_excerpts', 15);
+        $excerpts = $prayers->take($maxExcerpts)->map(function (PrayerRequest $prayer): array {
             return [
                 'category' => $prayer->category?->value ?? 'other',
                 'urgency' => $prayer->urgency_level?->value ?? 'normal',
@@ -535,27 +537,32 @@ class PrayerAnalysisService
             ];
         })->toArray();
 
-        $systemPrompt = $this->getSummarySystemPrompt();
-        $userPrompt = $this->buildSummaryUserPrompt(
-            $periodLabel,
-            $categoryBreakdown,
-            $urgencyBreakdown,
-            $excerpts,
-            $prayers->count()
-        );
+        // Check if structured output via agent is enabled
+        if (config('ai.features.prayer_summary_llm.enabled', true)) {
+            try {
+                return $this->generateSummaryWithAgent(
+                    $periodLabel,
+                    $prayers->count(),
+                    $categoryBreakdown,
+                    $urgencyBreakdown,
+                    $excerpts
+                );
+            } catch (\Throwable $e) {
+                Log::warning('PrayerAnalysisService: Agent-based summary failed, trying fallback', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
+        // Fallback to legacy text-based generation
         try {
-            $response = $this->aiService->generateWithFallback($userPrompt, $systemPrompt);
-
-            $parsed = $this->parseSummaryResponse($response->text);
-
-            return [
-                'summary_text' => $parsed['summary_text'],
-                'key_themes' => $parsed['key_themes'],
-                'pastoral_recommendations' => $parsed['pastoral_recommendations'],
-                'provider' => $this->aiService->getProvider(),
-                'model' => $this->aiService->getModel(),
-            ];
+            return $this->generateSummaryWithLegacyPrompt(
+                $periodLabel,
+                $categoryBreakdown,
+                $urgencyBreakdown,
+                $excerpts,
+                $prayers->count()
+            );
         } catch (\Throwable $e) {
             Log::warning('PrayerAnalysisService: AI summary generation failed, using heuristic', [
                 'error' => $e->getMessage(),
@@ -568,6 +575,72 @@ class PrayerAnalysisService
                 $periodLabel
             );
         }
+    }
+
+    /**
+     * Generate summary using the PrayerSummaryAgent with structured output.
+     *
+     * @param  array<array{category: string, urgency: string, excerpt: string}>  $excerpts
+     * @return array{summary_text: string, key_themes: array<string>, pastoral_recommendations: array<string>, provider: string, model: string}
+     */
+    protected function generateSummaryWithAgent(
+        string $periodLabel,
+        int $totalRequests,
+        array $categoryBreakdown,
+        array $urgencyBreakdown,
+        array $excerpts
+    ): array {
+        $agent = new PrayerSummaryAgent(
+            periodLabel: $periodLabel,
+            totalRequests: $totalRequests,
+            categoryBreakdown: $categoryBreakdown,
+            urgencyBreakdown: $urgencyBreakdown,
+            excerpts: $excerpts
+        );
+
+        $response = $agent->prompt($agent->buildPrompt());
+
+        return [
+            'summary_text' => $response['summary_text'],
+            'key_themes' => array_slice($response['key_themes'], 0, 5),
+            'pastoral_recommendations' => array_slice($response['pastoral_recommendations'], 0, 4),
+            'provider' => 'ai-agent',
+            'model' => 'prayer-summary-agent',
+        ];
+    }
+
+    /**
+     * Generate summary using legacy text prompt with regex parsing.
+     *
+     * @param  array<array{category: string, urgency: string, excerpt: string}>  $excerpts
+     * @return array{summary_text: string, key_themes: array<string>, pastoral_recommendations: array<string>, provider: string, model: string}
+     */
+    protected function generateSummaryWithLegacyPrompt(
+        string $periodLabel,
+        array $categoryBreakdown,
+        array $urgencyBreakdown,
+        array $excerpts,
+        int $totalCount
+    ): array {
+        $systemPrompt = $this->getSummarySystemPrompt();
+        $userPrompt = $this->buildSummaryUserPrompt(
+            $periodLabel,
+            $categoryBreakdown,
+            $urgencyBreakdown,
+            $excerpts,
+            $totalCount
+        );
+
+        $response = $this->aiService->generateWithFallback($userPrompt, $systemPrompt);
+        $parsed = $this->parseSummaryResponse($response->text);
+
+        return [
+            'summary_text' => $parsed['summary_text'],
+            'key_themes' => $parsed['key_themes'],
+            'pastoral_recommendations' => $parsed['pastoral_recommendations'],
+            'provider' => $this->aiService->getProvider(),
+            'model' => $this->aiService->getModel(),
+        ];
     }
 
     /**

@@ -298,6 +298,10 @@ Route::middleware(['web'])->group(function (): void {
                 ->name('ai-insights.dashboard');
             Route::get('/branches/{branch}/ai-insights/settings', \App\Livewire\Branches\AlertSettings::class)
                 ->name('branches.alert-settings');
+            Route::get('/branches/{branch}/ai-insights/giving', \App\Livewire\Giving\GivingIntelligenceDashboard::class)
+                ->name('ai-insights.giving');
+            Route::get('/branches/{branch}/ai-insights/chatbot', \App\Livewire\Chatbot\ConversationMonitor::class)
+                ->name('ai-insights.chatbot');
         });
 
         // Event Management (requires events module)
@@ -310,6 +314,8 @@ Route::middleware(['web'])->group(function (): void {
                 ->name('events.registrations');
             Route::get('/branches/{branch}/events/{event}/check-in', \App\Livewire\Events\EventCheckIn::class)
                 ->name('events.check-in');
+            Route::get('/branches/{branch}/events/{event}/predictions', \App\Livewire\Events\EventAttendancePredictions::class)
+                ->name('events.predictions');
         });
 
         // Report Center (requires reports module)

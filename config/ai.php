@@ -182,6 +182,12 @@ return [
             'notify_on_critical' => true,
         ],
 
+        'prayer_summary_llm' => [
+            'enabled' => env('AI_FEATURE_PRAYER_SUMMARY_LLM', true),
+            'provider' => env('AI_PRAYER_SUMMARY_PROVIDER'),
+            'max_excerpts' => 15,
+        ],
+
         'roster_optimization' => [
             'enabled' => env('AI_FEATURE_ROSTER', true),
             'provider' => env('AI_ROSTER_PROVIDER'),
@@ -246,6 +252,35 @@ return [
             'enabled' => env('AI_FEATURE_RECOMMENDATIONS', true),
             'max_per_alert' => 3,
             'show_priority_badges' => true,
+        ],
+
+        'event_prediction' => [
+            'enabled' => env('AI_FEATURE_EVENT_PREDICTION', true),
+            'provider' => env('AI_EVENT_PREDICTION_PROVIDER'),
+            'min_prediction_days_ahead' => 3,
+            'high_probability_threshold' => 70,
+            'medium_probability_threshold' => 40,
+        ],
+
+        'giving_capacity' => [
+            'enabled' => env('AI_FEATURE_GIVING_CAPACITY', true),
+            'provider' => env('AI_GIVING_CAPACITY_PROVIDER'),
+        ],
+
+        'pledge_prediction' => [
+            'enabled' => env('AI_FEATURE_PLEDGE_PREDICTION', true),
+            'provider' => env('AI_PLEDGE_PREDICTION_PROVIDER'),
+            'at_risk_threshold' => 40,
+            'nudge_before_due_days' => 7,
+        ],
+
+        'chatbot' => [
+            'enabled' => env('AI_FEATURE_CHATBOT', true),
+            'provider' => env('AI_CHATBOT_PROVIDER'),
+            'channels' => ['sms', 'whatsapp'],
+            'use_ai_classification' => true,
+            'require_member_phone_match' => true,
+            'max_history_lookback_days' => 365,
         ],
 
         'member_recommendation' => [

@@ -173,3 +173,18 @@ Schedule::command('ai:process-alerts')
 Schedule::command('ai:send-alert-digest')
     ->dailyAt('08:00')
     ->withoutOverlapping();
+
+// AI: Analyze giving capacity weekly on Wednesday at 6 AM
+Schedule::command('ai:analyze-giving-capacity')
+    ->weeklyOn(3, '06:00')
+    ->withoutOverlapping();
+
+// AI: Predict pledge fulfillment daily at 6:30 AM
+Schedule::command('ai:predict-pledge-fulfillment')
+    ->dailyAt('06:30')
+    ->withoutOverlapping();
+
+// AI: Predict event attendance 3 days before events (daily at 7 AM)
+Schedule::command('ai:predict-event-attendance --days-ahead=3')
+    ->dailyAt('07:00')
+    ->withoutOverlapping();
