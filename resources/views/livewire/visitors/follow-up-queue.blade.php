@@ -95,8 +95,8 @@
                 size="sm"
                 wire:click="toggleConversionSort"
                 class="shrink-0"
+                icon="sparkles"
             >
-                <flux:icon icon="sparkles" class="size-4" />
                 {{ __('AI Score') }}
             </flux:button>
         @endif
