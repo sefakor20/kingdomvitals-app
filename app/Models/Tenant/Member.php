@@ -118,6 +118,10 @@ class Member extends Model
         'donor_tier',
         'giving_trend',
         'giving_analyzed_at',
+        'giving_capacity_score',
+        'giving_potential_gap',
+        'giving_capacity_factors',
+        'giving_capacity_analyzed_at',
     ];
 
     protected function casts(): array
@@ -154,6 +158,10 @@ class Member extends Model
             'giving_consistency_score' => 'integer',
             'giving_growth_rate' => 'decimal:2',
             'giving_analyzed_at' => 'datetime',
+            'giving_capacity_score' => 'decimal:2',
+            'giving_potential_gap' => 'decimal:2',
+            'giving_capacity_factors' => 'array',
+            'giving_capacity_analyzed_at' => 'datetime',
         ];
     }
 
