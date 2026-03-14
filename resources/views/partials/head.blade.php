@@ -40,6 +40,14 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ $appleTouchUrl ?? '/apple-touch-icon.png' }}">
 
+{{-- PWA Meta Tags --}}
+<meta name="theme-color" content="#009866">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
+<link rel="manifest" href="/manifest.json">
+
 {{-- Resource hints for performance --}}
 <link rel="dns-prefetch" href="//fonts.bunny.net">
 <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>

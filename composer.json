@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1.1",
+        "erag/laravel-pwa": "^1.9",
         "intervention/image-laravel": "^1.5.7",
         "laravel/ai": "^0.1.5",
         "laravel/fortify": "^1.36.1",
