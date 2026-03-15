@@ -72,8 +72,14 @@
 
             {{-- Bottom bar --}}
             <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-black/10 pt-8 dark:border-white/10 md:flex-row">
+                {{-- Copyright --}}
                 <p class="font-mono text-xs uppercase tracking-wider text-muted">
                     &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
+                </p>
+
+                {{-- rCodez branding --}}
+                <p class="font-mono text-xs tracking-wider text-muted">
+                    A product of <a href="https://rcodez.com" target="_blank" rel="noopener noreferrer" class="text-emerald-600 transition hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300">rCodez</a>
                 </p>
 
                 {{-- Social links --}}

@@ -21,7 +21,7 @@
                 <h1 class="heading-giant text-primary hero-entrance hero-delay-2">
                     Church<br>
                     Management<br>
-                    <span class="text-gradient-emerald italic pr-3">Powered by AI</span>
+                    <span class="text-gradient-emerald italic pr-3">Made Simple</span>
                 </h1>
 
                 {{-- Subheadline --}}
