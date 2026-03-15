@@ -294,6 +294,11 @@
                                                 </flux:menu.item>
                                             @endcan
                                         @else
+                                            @can('view', $member)
+                                                <flux:menu.item :href="route('members.show', [$branch, $member])" icon="eye" wire:navigate>
+                                                    {{ __('View') }}
+                                                </flux:menu.item>
+                                            @endcan
                                             @can('update', $member)
                                                 <flux:menu.item wire:click="edit('{{ $member->id }}')" icon="pencil">
                                                     {{ __('Edit') }}
