@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\EmailStatus;
 use App\Models\Tenant\EmailLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,10 +17,11 @@ class EmailTrackingController extends Controller
      */
     public function pixel(Request $request, EmailLog $emailLog): Response
     {
-        // Update the opened_at timestamp if not already set
+        // Update the opened_at timestamp and mark as delivered (proof of delivery)
         if (! $emailLog->opened_at) {
             $emailLog->update([
                 'opened_at' => now(),
+                'status' => EmailStatus::Delivered,
             ]);
         }
 
@@ -44,6 +46,7 @@ class EmailTrackingController extends Controller
         if (! $emailLog->clicked_at) {
             $emailLog->update([
                 'clicked_at' => now(),
+                'status' => EmailStatus::Delivered,
             ]);
         }
 
@@ -51,6 +54,7 @@ class EmailTrackingController extends Controller
         if (! $emailLog->opened_at) {
             $emailLog->update([
                 'opened_at' => now(),
+                'status' => EmailStatus::Delivered,
             ]);
         }
 

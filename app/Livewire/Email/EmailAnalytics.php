@@ -194,15 +194,22 @@ class EmailAnalytics extends Component
         $opened = (int) $stats->opened;
         $clicked = (int) $stats->clicked;
 
+        // If an email was opened, it was definitively delivered
+        // (tracking pixel only loads if email reached inbox)
+        $effectiveDelivered = max($delivered, $opened);
+
+        // For rate calculations, use emails that weren't bounced/failed
+        $sentSuccessfully = $total - $bounced - $failed;
+
         return [
             'total' => $total,
-            'delivered' => $delivered,
+            'delivered' => $effectiveDelivered,
             'bounced' => $bounced,
             'failed' => $failed,
             'opened' => $opened,
             'clicked' => $clicked,
-            'delivery_rate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
-            'open_rate' => $delivered > 0 ? round(($opened / $delivered) * 100, 1) : 0,
+            'delivery_rate' => $total > 0 ? round(($effectiveDelivered / $total) * 100, 1) : 0,
+            'open_rate' => $sentSuccessfully > 0 ? round(($opened / $sentSuccessfully) * 100, 1) : 0,
             'click_rate' => $opened > 0 ? round(($clicked / $opened) * 100, 1) : 0,
         ];
     }

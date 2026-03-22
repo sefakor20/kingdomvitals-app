@@ -17,12 +17,44 @@ class BulkEmailMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
+    protected ?string $tenantBaseUrl = null;
+
     public function __construct(
         public string $emailSubject,
         public string $emailBody,
         public EmailLog $emailLog,
         public ?Branch $branch = null
-    ) {}
+    ) {
+        $this->resolveTenantBaseUrl();
+    }
+
+    /**
+     * Resolve the tenant's base URL for tracking links.
+     * This ensures tracking URLs work correctly when sent from queue workers.
+     */
+    protected function resolveTenantBaseUrl(): void
+    {
+        $tenant = tenancy()->tenant;
+        $domain = $tenant?->domains()->first()?->domain;
+
+        if ($domain) {
+            $scheme = app()->environment('production') ? 'https' : 'http';
+            $this->tenantBaseUrl = "{$scheme}://{$domain}";
+        }
+    }
+
+    /**
+     * Build a tracking URL using the tenant's domain.
+     */
+    protected function buildTrackingUrl(string $path): string
+    {
+        if ($this->tenantBaseUrl) {
+            return "{$this->tenantBaseUrl}{$path}";
+        }
+
+        // Fallback: try to use the route helper
+        return url($path);
+    }
 
     public function envelope(): Envelope
     {
@@ -49,7 +81,7 @@ class BulkEmailMailable extends Mailable
 
     protected function addTrackingToBody(string $body): string
     {
-        $trackingPixelUrl = route('email.track.pixel', ['emailLog' => $this->emailLog->id]);
+        $trackingPixelUrl = $this->buildTrackingUrl("/email/track/{$this->emailLog->id}/pixel.gif");
         $trackingPixel = '<img src="'.$trackingPixelUrl.'" width="1" height="1" style="display:none;" alt="" />';
 
         $body = $this->wrapLinksForTracking($body);
@@ -70,10 +102,8 @@ class BulkEmailMailable extends Mailable
                     return $matches[0];
                 }
 
-                $trackingUrl = route('email.track.click', [
-                    'emailLog' => $this->emailLog->id,
-                    'url' => base64_encode($originalUrl),
-                ]);
+                $encodedUrl = base64_encode($originalUrl);
+                $trackingUrl = $this->buildTrackingUrl("/email/track/{$this->emailLog->id}/click?url={$encodedUrl}");
 
                 return '<a '.$beforeHref.'href="'.$trackingUrl.'"'.$afterHref.'>';
             },
