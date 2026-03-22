@@ -9,6 +9,36 @@
 
         <div class="flex items-center gap-2">
             @if(!$editing)
+                {{-- Portal Access Button --}}
+                @if($member->hasPortalAccess())
+                    <flux:badge color="green" size="sm" class="mr-2">
+                        <flux:icon.check-circle class="mr-1 size-3" />
+                        {{ __('Portal Active') }}
+                    </flux:badge>
+                @elseif($this->pendingPortalInvitation)
+                    @if($this->canEdit)
+                        <flux:dropdown>
+                            <flux:button variant="ghost" size="sm" icon="clock" class="text-yellow-600 dark:text-yellow-400">
+                                {{ __('Invitation Pending') }}
+                            </flux:button>
+                            <flux:menu>
+                                <flux:menu.item wire:click="resendPortalInvitation" icon="arrow-path">
+                                    {{ __('Resend Invitation') }}
+                                </flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+                    @else
+                        <flux:badge color="yellow" size="sm" class="mr-2">
+                            <flux:icon.clock class="mr-1 size-3" />
+                            {{ __('Invitation Pending') }}
+                        </flux:badge>
+                    @endif
+                @elseif($member->email && $this->canEdit)
+                    <flux:button variant="ghost" wire:click="openPortalInviteModal" icon="envelope">
+                        {{ __('Invite to Portal') }}
+                    </flux:button>
+                @endif
+
                 <flux:button variant="ghost" wire:click="openQrModal" icon="qr-code">
                     {{ __('QR Code') }}
                 </flux:button>
@@ -866,6 +896,78 @@
     <x-toast on="qr-regenerated" type="success">
         {{ __('QR code regenerated successfully.') }}
     </x-toast>
+
+    <x-toast on="portal-invitation-sent" type="success">
+        {{ __('Portal invitation sent successfully.') }}
+    </x-toast>
+
+    <x-toast on="portal-invitation-resent" type="success">
+        {{ __('Portal invitation resent successfully.') }}
+    </x-toast>
+
+    <!-- Portal Invitation Modal -->
+    <flux:modal wire:model.self="showPortalInviteModal" name="portal-invite" class="w-full max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Invite to Member Portal') }}</flux:heading>
+
+            <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800">
+                <div class="flex items-center gap-3">
+                    @if($member->photo_url)
+                        <img src="{{ $member->photo_url }}" alt="{{ $member->fullName() }}" class="size-12 rounded-full object-cover" />
+                    @else
+                        <flux:avatar size="lg" name="{{ $member->fullName() }}" />
+                    @endif
+                    <div>
+                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $member->fullName() }}</div>
+                        <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $member->email }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                {{ __('This will send an email invitation to :email allowing them to create an account and access the member portal.', ['email' => $member->email]) }}
+            </flux:text>
+
+            <div class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:heading size="sm" class="mb-2">{{ __('Portal Features') }}</flux:heading>
+                <ul class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li class="flex items-center gap-2">
+                        <flux:icon.check class="size-4 text-green-500" />
+                        {{ __('View giving history and download statements') }}
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <flux:icon.check class="size-4 text-green-500" />
+                        {{ __('Track attendance') }}
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <flux:icon.check class="size-4 text-green-500" />
+                        {{ __('Manage pledges') }}
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <flux:icon.check class="size-4 text-green-500" />
+                        {{ __('View event registrations') }}
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <flux:icon.check class="size-4 text-green-500" />
+                        {{ __('Update contact information') }}
+                    </li>
+                </ul>
+            </div>
+
+            <flux:text class="text-xs text-zinc-500">
+                {{ __('The invitation will expire in 7 days.') }}
+            </flux:text>
+
+            <div class="flex justify-end gap-3 pt-4">
+                <flux:button variant="ghost" wire:click="$set('showPortalInviteModal', false)">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="primary" wire:click="sendPortalInvitation" icon="paper-airplane">
+                    {{ __('Send Invitation') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <!-- QR Code Modal -->
     <flux:modal wire:model.self="showQrModal" name="qr-code" class="w-full max-w-sm">

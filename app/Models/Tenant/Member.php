@@ -12,6 +12,7 @@ use App\Enums\MembershipStatus;
 use App\Enums\SmsEngagementLevel;
 use App\Enums\SubjectType;
 use App\Models\Concerns\HasActivityLogging;
+use App\Models\User;
 use App\Observers\MemberObserver;
 use Database\Factories\Tenant\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -64,6 +65,8 @@ class Member extends Model
     }
 
     protected $fillable = [
+        'user_id',
+        'portal_activated_at',
         'primary_branch_id',
         'membership_number',
         'household_id',
@@ -185,7 +188,27 @@ class Member extends Model
             'giving_potential_gap' => 'decimal:2',
             'giving_capacity_factors' => 'array',
             'giving_capacity_analyzed_at' => 'datetime',
+            'portal_activated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if member has portal access.
+     */
+    public function hasPortalAccess(): bool
+    {
+        return $this->user_id !== null && $this->portal_activated_at !== null;
+    }
+
+    /**
+     * Activate portal access for this member.
+     */
+    public function activatePortal(User $user): void
+    {
+        $this->update([
+            'user_id' => $user->id,
+            'portal_activated_at' => now(),
+        ]);
     }
 
     public function fullName(): string
@@ -215,6 +238,11 @@ class Member extends Model
     public function primaryBranch(): BelongsTo
     {
         return $this->belongsTo(Branch::class, 'primary_branch_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function household(): BelongsTo
