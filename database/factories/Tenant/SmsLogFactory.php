@@ -8,7 +8,7 @@ use App\Models\Tenant\SmsLog;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\SmsLog>
+ * @extends Factory<SmsLog>
  */
 class SmsLogFactory extends Factory
 {

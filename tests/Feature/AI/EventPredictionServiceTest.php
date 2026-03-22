@@ -12,7 +12,9 @@ use App\Models\Tenant\EventRegistration;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Services\AI\AiService;
+use App\Services\AI\DTOs\EventAttendancePrediction;
 use App\Services\AI\EventPredictionService;
+use Illuminate\Support\Str;
 use Tests\TenantTestCase;
 
 uses(TenantTestCase::class);
@@ -110,7 +112,7 @@ it('adds cluster bonus for cluster events when member is in cluster', function (
 
     // Attach member to cluster
     $member->clusters()->attach($cluster->id, [
-        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'id' => Str::uuid()->toString(),
         'role' => 'member',
         'joined_at' => now(),
     ]);
@@ -151,7 +153,7 @@ it('caps probability at 100', function (): void {
 
     // Attach member to cluster
     $member->clusters()->attach($cluster->id, [
-        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'id' => Str::uuid()->toString(),
         'role' => 'member',
         'joined_at' => now(),
     ]);
@@ -184,7 +186,7 @@ it('returns predictions for all branch members', function (): void {
     $predictions = $this->service->predictForEvent($event);
 
     expect($predictions)->toHaveCount(3);
-    expect($predictions->first())->toBeInstanceOf(\App\Services\AI\DTOs\EventAttendancePrediction::class);
+    expect($predictions->first())->toBeInstanceOf(EventAttendancePrediction::class);
 });
 
 it('reports correct feature enabled status', function (): void {

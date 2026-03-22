@@ -10,6 +10,7 @@ use App\Livewire\SuperAdmin\Revenue\RevenueDashboard;
 use App\Livewire\SuperAdmin\Tenants\TenantIndex;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdmin;
+use App\Models\SuperAdminActivityLog;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
@@ -156,7 +157,7 @@ it('includes record count in export metadata', function (): void {
         ->test(PlanIndex::class)
         ->call('exportCsv');
 
-    $log = \App\Models\SuperAdminActivityLog::where('action', 'export_plans')
+    $log = SuperAdminActivityLog::where('action', 'export_plans')
         ->latest()
         ->first();
 
@@ -172,7 +173,7 @@ it('can export activity logs to CSV', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create some activity logs
-    \App\Models\SuperAdminActivityLog::log(
+    SuperAdminActivityLog::log(
         superAdmin: $admin,
         action: 'test_action',
         description: 'Test activity for export',
@@ -221,7 +222,7 @@ it('exports activity logs with applied filters in metadata', function (): void {
         ->set('startDate', '2024-01-01')
         ->call('exportCsv');
 
-    $log = \App\Models\SuperAdminActivityLog::where('action', 'export_activity_logs')
+    $log = SuperAdminActivityLog::where('action', 'export_activity_logs')
         ->latest()
         ->first();
 
@@ -235,13 +236,13 @@ it('can filter activity logs by action type', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     // Create logs with different actions
-    \App\Models\SuperAdminActivityLog::log(
+    SuperAdminActivityLog::log(
         superAdmin: $admin,
         action: 'tenant_created',
         description: 'Created a tenant',
     );
 
-    \App\Models\SuperAdminActivityLog::log(
+    SuperAdminActivityLog::log(
         superAdmin: $admin,
         action: 'tenant_suspended',
         description: 'Suspended a tenant',
@@ -328,7 +329,7 @@ it('includes MRR and ARR in revenue export metadata', function (): void {
         ->test(RevenueDashboard::class)
         ->call('exportCsv');
 
-    $log = \App\Models\SuperAdminActivityLog::where('action', 'export_revenue')
+    $log = SuperAdminActivityLog::where('action', 'export_revenue')
         ->latest()
         ->first();
 
@@ -377,7 +378,7 @@ it('exports revenue data for all active plans', function (): void {
         ->test(RevenueDashboard::class)
         ->call('exportCsv');
 
-    $log = \App\Models\SuperAdminActivityLog::where('action', 'export_revenue')
+    $log = SuperAdminActivityLog::where('action', 'export_revenue')
         ->latest()
         ->first();
 

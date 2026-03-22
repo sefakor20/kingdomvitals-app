@@ -6,6 +6,7 @@ namespace App\Models\Tenant;
 
 use App\Enums\ChatbotChannel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -111,9 +112,9 @@ class ChatbotConversation extends Model
     /**
      * Get the last N messages in the conversation.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<ChatbotMessage>
+     * @return Collection<ChatbotMessage>
      */
-    public function getRecentMessages(int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public function getRecentMessages(int $limit = 10): Collection
     {
         return $this->messages()
             ->latest()

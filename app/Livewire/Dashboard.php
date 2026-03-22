@@ -28,6 +28,8 @@ use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\BranchContextService;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -592,7 +594,7 @@ class Dashboard extends Component
             ->count();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.dashboard');
     }

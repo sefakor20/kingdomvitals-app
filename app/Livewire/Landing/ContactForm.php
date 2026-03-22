@@ -3,6 +3,8 @@
 namespace App\Livewire\Landing;
 
 use App\Mail\ContactFormSubmission;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -46,7 +48,7 @@ class ContactForm extends Component
         $this->reset(['name', 'email', 'church', 'size', 'message']);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.landing.contact-form');
     }

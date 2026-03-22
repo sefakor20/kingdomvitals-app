@@ -7,6 +7,7 @@ use App\Enums\SupportLevel;
 use App\Livewire\SuperAdmin\Plans\PlanIndex;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdmin;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 it('can view plans page', function (): void {
@@ -214,7 +215,7 @@ it('shows subscriber count when trying to delete a plan with subscribers', funct
     ]);
 
     // Directly insert into tenants table to avoid Stancl tenancy events
-    \Illuminate\Support\Facades\DB::table('tenants')->insert([
+    DB::table('tenants')->insert([
         'id' => 'subscriber-tenant-plan',
         'name' => 'Subscribed Tenant',
         'status' => 'active',

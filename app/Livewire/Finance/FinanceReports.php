@@ -18,6 +18,8 @@ use App\Models\Tenant\Expense;
 use App\Models\Tenant\PaymentTransaction;
 use App\Models\Tenant\Pledge;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -734,7 +736,7 @@ class FinanceReports extends Component
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.finance.finance-reports');
     }

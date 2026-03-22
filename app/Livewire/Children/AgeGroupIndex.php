@@ -7,6 +7,8 @@ namespace App\Livewire\Children;
 use App\Models\Tenant\AgeGroup;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -222,7 +224,7 @@ class AgeGroupIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.children.age-group-index');
     }

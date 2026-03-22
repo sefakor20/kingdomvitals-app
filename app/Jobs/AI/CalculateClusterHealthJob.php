@@ -6,6 +6,7 @@ namespace App\Jobs\AI;
 
 use App\Enums\BranchRole;
 use App\Enums\ClusterHealthLevel;
+use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Notifications\ClusterHealthAlertNotification;
 use App\Services\AI\ClusterHealthService;
@@ -122,7 +123,7 @@ class CalculateClusterHealthJob implements ShouldQueue
 
         try {
             // Get branch admins/managers to notify
-            $branch = \App\Models\Tenant\Branch::find($this->branchId);
+            $branch = Branch::find($this->branchId);
             if (! $branch) {
                 return;
             }

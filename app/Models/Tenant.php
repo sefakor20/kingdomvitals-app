@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\BillingCycle;
 use App\Enums\Currency;
 use App\Enums\TenantStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -387,7 +388,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /**
      * Set the billing period for the tenant.
      */
-    public function setBillingPeriod(BillingCycle $cycle, \Carbon\Carbon $periodStart, \Carbon\Carbon $periodEnd): void
+    public function setBillingPeriod(BillingCycle $cycle, Carbon $periodStart, Carbon $periodEnd): void
     {
         $this->update([
             'billing_cycle' => $cycle->value,

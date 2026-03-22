@@ -9,6 +9,7 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Tests\TenantTestCase;
 
 uses(TenantTestCase::class);
@@ -85,7 +86,7 @@ it('requires authentication to download invoice', function (): void {
     try {
         $this->get("/invoices/{$invoice->id}/download");
         $this->fail('Expected RouteNotFoundException for login redirect');
-    } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+    } catch (RouteNotFoundException $e) {
         // Auth middleware is working - it tried to redirect to login
         expect($e->getMessage())->toContain('Route [login] not defined');
     }

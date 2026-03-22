@@ -164,7 +164,7 @@ class DutyRosterOptimizationService
             $maxAssignmentCount = $poolMembers->max('assignment_count') ?: 1;
 
             // Score all members
-            $scores = $poolMembers->map(function (\App\Models\Tenant\DutyRosterPoolMember $pm) use ($date, $assignedMemberIds, $maxAssignmentCount, $serviceId): \App\Services\AI\DTOs\MemberSuitabilityScore {
+            $scores = $poolMembers->map(function (DutyRosterPoolMember $pm) use ($date, $assignedMemberIds, $maxAssignmentCount, $serviceId): MemberSuitabilityScore {
                 return $this->calculateMemberSuitability($pm, $date, [
                     'assigned_member_ids' => $assignedMemberIds,
                     'max_assignment_count' => $maxAssignmentCount,

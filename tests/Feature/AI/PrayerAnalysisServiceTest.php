@@ -6,6 +6,7 @@ use App\Enums\PrayerRequestCategory;
 use App\Enums\PrayerUrgencyLevel;
 use App\Models\Tenant\PrayerRequest;
 use App\Services\AI\AiService;
+use App\Services\AI\DTOs\PrayerAnalysis;
 use App\Services\AI\PrayerAnalysisService;
 
 beforeEach(function (): void {
@@ -403,7 +404,7 @@ it('can restore PrayerAnalysis from array with AI fields', function (): void {
         'ai_confidence' => 90,
     ];
 
-    $analysis = \App\Services\AI\DTOs\PrayerAnalysis::fromArray($data);
+    $analysis = PrayerAnalysis::fromArray($data);
 
     expect($analysis->sentiment)->toBe('anxious');
     expect($analysis->themes)->toBe(['health', 'family']);

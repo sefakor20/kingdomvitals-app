@@ -6,9 +6,11 @@ namespace App\Livewire\SuperAdmin\Tenants;
 
 use App\Enums\TenantStatus;
 use App\Livewire\Concerns\HasReportExport;
+use App\Models\Domain;
 use App\Models\SuperAdminActivityLog;
 use App\Models\Tenant;
 use App\Services\TenantCreationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -110,7 +112,7 @@ class TenantIndex extends Component
         ]);
 
         // Validate uniqueness of the full domain
-        if (\App\Models\Domain::where('domain', $fullDomain)->exists()) {
+        if (Domain::where('domain', $fullDomain)->exists()) {
             $this->addError('subdomain', 'This subdomain is already taken.');
 
             return;
@@ -194,9 +196,9 @@ class TenantIndex extends Component
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<Tenant>
+     * @return Builder<Tenant>
      */
-    private function getFilteredTenants(): \Illuminate\Database\Eloquent\Builder
+    private function getFilteredTenants(): Builder
     {
         return Tenant::query()
             ->with('subscriptionPlan')

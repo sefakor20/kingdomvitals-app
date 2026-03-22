@@ -1,8 +1,13 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\FortifyServiceProvider;
+use App\Providers\SuperAdminRouteServiceProvider;
+use App\Providers\TenancyServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\FortifyServiceProvider::class,
-    App\Providers\SuperAdminRouteServiceProvider::class,
-    App\Providers\TenancyServiceProvider::class,
+    AppServiceProvider::class,
+    FortifyServiceProvider::class,
+    SuperAdminRouteServiceProvider::class,
+    TenancyServiceProvider::class,
 ];

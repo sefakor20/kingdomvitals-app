@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\SuperAdminRole;
+use App\Enums\SupportLevel;
 use App\Enums\TenantStatus;
 use App\Livewire\SuperAdmin\Analytics\UsageAnalytics;
 use App\Models\SubscriptionPlan;
@@ -167,7 +168,7 @@ describe('quota alerts', function (): void {
             'price_annual' => 500.00,
             'storage_quota_gb' => 5,
             'sms_credits_monthly' => 100,
-            'support_level' => \App\Enums\SupportLevel::Community,
+            'support_level' => SupportLevel::Community,
         ]);
 
         DB::table('tenants')->insert([

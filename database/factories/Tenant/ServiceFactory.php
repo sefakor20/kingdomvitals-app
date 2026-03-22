@@ -7,7 +7,7 @@ use App\Models\Tenant\Service;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\Service>
+ * @extends Factory<Service>
  */
 class ServiceFactory extends Factory
 {

@@ -12,8 +12,11 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\PrayerUpdate;
+use App\Models\User;
 use App\Notifications\PrayerRequestAnsweredNotification;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -289,7 +292,7 @@ class PrayerRequestShow extends Component
         // Notify the submitter if they have an email
         $member = $this->prayerRequest->member;
         if ($member && $member->email) {
-            $user = \App\Models\User::where('email', $member->email)->first();
+            $user = User::where('email', $member->email)->first();
             if ($user) {
                 $user->notify(new PrayerRequestAnsweredNotification($this->prayerRequest));
             }
@@ -367,7 +370,7 @@ class PrayerRequestShow extends Component
         $this->dispatch('prayer-chain-sent');
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.prayer-requests.prayer-request-show');
     }

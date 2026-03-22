@@ -112,7 +112,7 @@ class GivingTrendService
             ->get();
 
         // Analyze each member
-        $trends = $members->map(fn (Member $member): \App\Services\AI\DTOs\GivingTrend => $this->analyzeForMember($member, $historyMonths));
+        $trends = $members->map(fn (Member $member): GivingTrend => $this->analyzeForMember($member, $historyMonths));
 
         // Calculate donor tiers based on branch totals
         return $this->assignDonorTiers($trends);
@@ -456,8 +456,8 @@ class GivingTrendService
         }
 
         $dates = $donations->pluck('donation_date')
-            ->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): \Carbon\Carbon => Carbon::parse($d))
-            ->sortByDesc(fn ($d): \Carbon\Carbon => $d)
+            ->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): Carbon => Carbon::parse($d))
+            ->sortByDesc(fn ($d): Carbon => $d)
             ->values();
 
         $gaps = [];
@@ -593,7 +593,7 @@ class GivingTrendService
         $sorted = $trends->sortByDesc(fn (GivingTrend $t): float => $t->totalGiven)->values();
         $count = $sorted->count();
 
-        return $sorted->map(function (GivingTrend $trend, int $index) use ($count): \App\Services\AI\DTOs\GivingTrend {
+        return $sorted->map(function (GivingTrend $trend, int $index) use ($count): GivingTrend {
             $percentile = (($count - $index) / $count) * 100;
 
             $tier = match (true) {

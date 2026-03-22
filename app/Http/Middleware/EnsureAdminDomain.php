@@ -17,7 +17,7 @@ class EnsureAdminDomain
      * Ensures the request is coming from an admin domain.
      * This middleware protects superadmin routes from being accessed on tenant domains.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {

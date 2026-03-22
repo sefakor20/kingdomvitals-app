@@ -8,6 +8,8 @@ use App\Enums\Currency;
 use App\Models\SubscriptionPlan;
 use App\Models\SystemSetting;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -100,7 +102,7 @@ class PlansIndex extends Component
         }
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.upgrade.plans-index');
     }

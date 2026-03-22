@@ -15,6 +15,7 @@ use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
+use App\Models\User;
 use App\Services\AI\AiAlertService;
 use Tests\TenantTestCase;
 
@@ -377,7 +378,7 @@ it('marks alerts as read', function (): void {
 });
 
 it('acknowledges alerts', function (): void {
-    $user = \App\Models\User::factory()->create();
+    $user = User::factory()->create();
 
     $alert = AiAlert::factory()
         ->for($this->branch)

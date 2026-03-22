@@ -9,6 +9,8 @@ use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -109,7 +111,7 @@ class BranchIndex extends Component
 
     public function updatedName(string $value): void
     {
-        if (! $this->editingBranch instanceof \App\Models\Tenant\Branch) {
+        if (! $this->editingBranch instanceof Branch) {
             $this->slug = Str::slug($value);
         }
     }
@@ -251,7 +253,7 @@ class BranchIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.branches.branch-index');
     }

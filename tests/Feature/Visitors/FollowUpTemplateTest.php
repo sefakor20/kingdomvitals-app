@@ -9,6 +9,7 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
 use App\Services\FollowUpTemplatePlaceholderService;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Facades\Cache;
 use Tests\TenantTestCase;
 
@@ -26,7 +27,7 @@ beforeEach(function (): void {
         'enabled_modules' => ['visitors', 'members'],
     ]);    // Initialize tenancy and run migrations    // Clear cached plan data
     Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
+    app()->forgetInstance(PlanAccessService::class);
 
     // Configure app URL and host for tenant domain routing    // Create main branch
     $this->branch = Branch::factory()->main()->create();

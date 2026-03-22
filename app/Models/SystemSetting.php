@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -45,7 +46,7 @@ class SystemSetting extends Model
      * Get the cache store directly to bypass tenancy's tagging wrapper.
      * The database cache driver doesn't support tags.
      */
-    private static function cache(): \Illuminate\Contracts\Cache\Repository
+    private static function cache(): Repository
     {
         return Cache::store(config('cache.default'));
     }

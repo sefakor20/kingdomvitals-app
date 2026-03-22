@@ -11,7 +11,7 @@ use App\Models\Tenant\EquipmentMaintenance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\EquipmentMaintenance>
+ * @extends Factory<EquipmentMaintenance>
  */
 class EquipmentMaintenanceFactory extends Factory
 {

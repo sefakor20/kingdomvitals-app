@@ -14,6 +14,8 @@ use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
 use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -516,7 +518,7 @@ class SmsCompose extends Component
         unset($this->smsPartCount);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.sms.sms-compose');
     }

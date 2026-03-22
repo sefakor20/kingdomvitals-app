@@ -6,6 +6,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\MemberUnavailability;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -194,7 +196,7 @@ class MemberAvailabilityIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.duty-rosters.member-availability-index');
     }

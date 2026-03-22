@@ -7,6 +7,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\DutyRosterPool;
 use App\Models\Tenant\Member;
 use App\Services\DutyRosterGenerationService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -85,7 +87,7 @@ class DutyRosterPoolIndex extends Component
     #[Computed]
     public function availableMembers(): Collection
     {
-        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof DutyRosterPool) {
             return collect();
         }
 
@@ -218,7 +220,7 @@ class DutyRosterPoolIndex extends Component
 
     public function removeMember(string $memberId): void
     {
-        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof DutyRosterPool) {
             return;
         }
 
@@ -231,7 +233,7 @@ class DutyRosterPoolIndex extends Component
 
     public function toggleMemberActive(string $memberId): void
     {
-        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof DutyRosterPool) {
             return;
         }
 
@@ -248,7 +250,7 @@ class DutyRosterPoolIndex extends Component
 
     public function resetMemberCounters(string $memberId): void
     {
-        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof DutyRosterPool) {
             return;
         }
 
@@ -264,7 +266,7 @@ class DutyRosterPoolIndex extends Component
 
     public function resetAllCounters(): void
     {
-        if (! $this->managingPool instanceof \App\Models\Tenant\DutyRosterPool) {
+        if (! $this->managingPool instanceof DutyRosterPool) {
             return;
         }
 
@@ -309,7 +311,7 @@ class DutyRosterPoolIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.duty-rosters.duty-roster-pool-index');
     }

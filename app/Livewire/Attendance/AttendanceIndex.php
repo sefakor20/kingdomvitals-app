@@ -10,6 +10,8 @@ use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -383,7 +385,7 @@ class AttendanceIndex extends Component
         ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.attendance.attendance-index');
     }

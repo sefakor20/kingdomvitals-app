@@ -15,6 +15,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\FollowUpTemplatePlaceholderService;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -160,7 +162,7 @@ class FollowUpQueue extends Component
     #[Computed]
     public function followUpTemplates(): Collection
     {
-        if (! $this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->completingFollowUp instanceof VisitorFollowUp) {
             return collect();
         }
 
@@ -226,7 +228,7 @@ class FollowUpQueue extends Component
 
     public function completeFollowUp(): void
     {
-        if (! $this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->completingFollowUp instanceof VisitorFollowUp) {
             return;
         }
 
@@ -294,7 +296,7 @@ class FollowUpQueue extends Component
 
     public function rescheduleFollowUp(): void
     {
-        if (! $this->reschedulingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->reschedulingFollowUp instanceof VisitorFollowUp) {
             return;
         }
 
@@ -369,7 +371,7 @@ class FollowUpQueue extends Component
 
     public function rejectAiMessage(): void
     {
-        if (! $this->generatedMessage instanceof \App\Models\Tenant\AiGeneratedMessage) {
+        if (! $this->generatedMessage instanceof AiGeneratedMessage) {
             return;
         }
 
@@ -449,7 +451,7 @@ class FollowUpQueue extends Component
         unset($this->stats);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.visitors.follow-up-queue');
     }

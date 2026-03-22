@@ -6,7 +6,7 @@ use App\Models\Tenant\ChildMedicalInfo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\ChildMedicalInfo>
+ * @extends Factory<ChildMedicalInfo>
  */
 class ChildMedicalInfoFactory extends Factory
 {

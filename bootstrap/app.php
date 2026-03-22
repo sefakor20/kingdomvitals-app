@@ -1,9 +1,16 @@
 <?php
 
+use App\Http\Middleware\EnforceQuota;
+use App\Http\Middleware\EnsureModuleEnabled;
+use App\Http\Middleware\EnsureOnboardingComplete;
+use App\Http\Middleware\SuperAdminAuthenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,20 +34,20 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->group('tenant', [
-            \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
-            \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+            InitializeTenancyByDomain::class,
+            PreventAccessFromCentralDomains::class,
         ]);
 
         $middleware->group('universal', [
-            \Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain::class,
+            InitializeTenancyByDomainOrSubdomain::class,
         ]);
 
         // Super admin middleware alias
         $middleware->alias([
-            'superadmin' => \App\Http\Middleware\SuperAdminAuthenticate::class,
-            'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
-            'module' => \App\Http\Middleware\EnsureModuleEnabled::class,
-            'quota' => \App\Http\Middleware\EnforceQuota::class,
+            'superadmin' => SuperAdminAuthenticate::class,
+            'onboarding.complete' => EnsureOnboardingComplete::class,
+            'module' => EnsureModuleEnabled::class,
+            'quota' => EnforceQuota::class,
         ]);
 
         // Exclude webhook routes from CSRF verification

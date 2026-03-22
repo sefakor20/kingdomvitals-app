@@ -7,6 +7,8 @@ namespace App\Livewire\Reports\Attendance;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -204,7 +206,7 @@ class MonthlyAttendanceComparison extends Component
         ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.attendance.monthly-attendance-comparison');
     }

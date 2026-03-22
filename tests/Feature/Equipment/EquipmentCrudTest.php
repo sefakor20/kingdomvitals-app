@@ -6,6 +6,7 @@ use App\Enums\EquipmentCondition;
 use App\Livewire\Equipment\EquipmentIndex;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Equipment;
+use App\Models\Tenant\EquipmentCheckout;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
@@ -585,7 +586,7 @@ test('staff can return checked out equipment', function (): void {
     $member = Member::factory()->create(['primary_branch_id' => $this->branch->id]);
 
     // Create an active checkout
-    \App\Models\Tenant\EquipmentCheckout::factory()->approved()->create([
+    EquipmentCheckout::factory()->approved()->create([
         'equipment_id' => $equipment->id,
         'branch_id' => $this->branch->id,
         'member_id' => $member->id,

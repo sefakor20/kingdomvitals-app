@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\AI;
 
 use App\Enums\BranchRole;
+use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Notifications\MemberLifecycleTransitionNotification;
 use App\Services\AI\MemberLifecycleService;
@@ -117,7 +118,7 @@ class DetectLifecycleStagesJob implements ShouldQueue
 
         try {
             // Get branch admins/managers to notify
-            $branch = \App\Models\Tenant\Branch::find($this->branchId);
+            $branch = Branch::find($this->branchId);
             if (! $branch) {
                 return;
             }

@@ -13,6 +13,8 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Services\DutyRosterGenerationService;
+use App\Services\PlanAccessService;
+use Illuminate\Support\Facades\Cache;
 use Tests\TenantTestCase;
 
 uses(TenantTestCase::class);
@@ -27,8 +29,8 @@ beforeEach(function (): void {
         'price_annual' => 100.00,
         'enabled_modules' => ['duty_roster', 'members', 'clusters', 'services'],
     ]);
-    \Illuminate\Support\Facades\Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
+    Cache::flush();
+    app()->forgetInstance(PlanAccessService::class);
     $this->branch = Branch::factory()->main()->create();
 });
 

@@ -23,6 +23,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\PrayerSummary;
 use App\Models\Tenant\Visitor;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -1101,7 +1103,7 @@ class InsightsDashboard extends Component
         ];
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.ai.insights-dashboard');
     }

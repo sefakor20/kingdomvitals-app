@@ -10,6 +10,8 @@ use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
@@ -398,7 +400,7 @@ class DutyRosterIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.duty-rosters.duty-roster-index');
     }

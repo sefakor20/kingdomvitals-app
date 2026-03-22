@@ -13,6 +13,7 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
@@ -32,7 +33,7 @@ beforeEach(function (): void {
         'enabled_modules' => ['attendance', 'members', 'visitors'],
     ]);    // Clear cached plan data
     Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);    // Load routes for testing
+    app()->forgetInstance(PlanAccessService::class);    // Load routes for testing
     Route::middleware(['web'])->group(base_path('routes/tenant.php'));
 
     $this->branch = Branch::factory()->main()->create();

@@ -10,6 +10,7 @@ use App\Models\Tenant\BranchUserInvitation;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Notifications\BranchUserInvitationNotification;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
@@ -25,7 +26,7 @@ beforeEach(function (): void {
     // Load the tenant routes including Fortify auth routes
     Route::middleware(['web'])->group(function (): void {
         require base_path('vendor/laravel/fortify/routes/routes.php');
-        Route::get('/invitations/{token}/accept', \App\Livewire\Auth\AcceptBranchInvitation::class)
+        Route::get('/invitations/{token}/accept', AcceptBranchInvitation::class)
             ->name('invitations.accept')
             ->middleware('guest');
     });
@@ -434,7 +435,7 @@ test('admin can send password reset link to user', function (): void {
         ->call('sendPasswordResetLink', $userAccess->id)
         ->assertDispatched('password-reset-sent');
 
-    Notification::assertSentTo($user, \Illuminate\Auth\Notifications\ResetPassword::class);
+    Notification::assertSentTo($user, ResetPassword::class);
 });
 
 test('admin cannot send password reset link to themselves', function (): void {

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\SuperAdminRole;
 use App\Models\SuperAdmin;
 use App\Models\SuperAdminActivityLog;
 
@@ -117,7 +118,7 @@ it('can filter super admins by role', function (): void {
     SuperAdmin::factory()->count(2)->create(); // admin role
     SuperAdmin::factory()->support()->create();
 
-    $adminCount = SuperAdmin::withRole(\App\Enums\SuperAdminRole::Admin)->count();
+    $adminCount = SuperAdmin::withRole(SuperAdminRole::Admin)->count();
 
     expect($adminCount)->toBe(2);
 });

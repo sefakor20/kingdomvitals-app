@@ -10,6 +10,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -295,7 +297,7 @@ class ClusterIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.clusters.cluster-index');
     }

@@ -10,6 +10,8 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Notifications\BranchUserInvitationNotification;
 use App\Notifications\InvitedToBranchNotification;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -341,7 +343,7 @@ class BranchUserIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.users.branch-user-index');
     }

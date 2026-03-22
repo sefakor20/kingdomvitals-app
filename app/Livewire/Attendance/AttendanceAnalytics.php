@@ -15,7 +15,12 @@ use App\Models\Tenant\Visitor;
 use App\Services\AI\AttendanceForecastService;
 use App\Services\PlanAccessService;
 use Carbon\Carbon;
+use Carbon\Month;
+use Carbon\WeekDay;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -104,7 +109,7 @@ class AttendanceAnalytics extends Component
         return $this->getCurrentPeriodStart()->copy()->subDay()->endOfDay();
     }
 
-    private function baseQuery(): \Illuminate\Database\Eloquent\Builder
+    private function baseQuery(): Builder
     {
         $query = Attendance::where('branch_id', $this->branch->id);
 
@@ -693,7 +698,7 @@ class AttendanceAnalytics extends Component
             ->with('service')
             ->get()
             ->groupBy(fn ($forecast) => $forecast->forecast_date->format('Y-m-d'))
-            ->map(function ($forecasts, \DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $date): array {
+            ->map(function ($forecasts, \DateTimeInterface|WeekDay|Month|string|int|float|null $date): array {
                 return [
                     'date' => Carbon::parse($date),
                     'forecasts' => $forecasts->map(fn ($f): array => [
@@ -746,7 +751,7 @@ class AttendanceAnalytics extends Component
             ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.attendance.attendance-analytics');
     }

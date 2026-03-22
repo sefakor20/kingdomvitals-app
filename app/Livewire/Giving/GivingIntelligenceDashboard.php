@@ -10,6 +10,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PledgePrediction;
 use App\Services\AI\GivingCapacityService;
 use App\Services\AI\PledgePredictionService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -100,7 +102,7 @@ class GivingIntelligenceDashboard extends Component
     // ============================================
 
     #[Computed]
-    public function highPotentialMembers(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function highPotentialMembers(): LengthAwarePaginator
     {
         $query = Member::query()
             ->where('primary_branch_id', $this->branch->id)
@@ -155,7 +157,7 @@ class GivingIntelligenceDashboard extends Component
     // ============================================
 
     #[Computed]
-    public function atRiskPledges(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function atRiskPledges(): LengthAwarePaginator
     {
         $query = PledgePrediction::query()
             ->where('branch_id', $this->branch->id)
@@ -222,7 +224,7 @@ class GivingIntelligenceDashboard extends Component
         return app(PledgePredictionService::class)->isEnabled();
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.giving.giving-intelligence-dashboard');
     }

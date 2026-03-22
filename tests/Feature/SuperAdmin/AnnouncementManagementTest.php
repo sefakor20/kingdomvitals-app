@@ -11,6 +11,7 @@ use App\Livewire\SuperAdmin\Announcements\AnnouncementIndex;
 use App\Models\Announcement;
 use App\Models\AnnouncementRecipient;
 use App\Models\SuperAdmin;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
@@ -366,7 +367,7 @@ describe('viewing announcement details', function (): void {
             'failed_count' => 1,
         ]);
 
-        \Illuminate\Support\Facades\DB::table('tenants')->insert([
+        DB::table('tenants')->insert([
             'id' => 'test-tenant-view',
             'name' => 'Test Tenant',
             'status' => 'active',
@@ -395,7 +396,7 @@ describe('resending failed announcements', function (): void {
     it('can resend failed recipients', function (): void {
         $owner = SuperAdmin::factory()->owner()->create();
 
-        \Illuminate\Support\Facades\DB::table('tenants')->insert([
+        DB::table('tenants')->insert([
             'id' => 'test-tenant-resend',
             'name' => 'Test Tenant Resend',
             'contact_email' => 'test@example.com',

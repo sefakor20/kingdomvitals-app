@@ -6,7 +6,7 @@ use App\Models\Tenant\MemberUnavailability;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\MemberUnavailability>
+ * @extends Factory<MemberUnavailability>
  */
 class MemberUnavailabilityFactory extends Factory
 {

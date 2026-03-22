@@ -6,9 +6,12 @@ namespace App\Livewire\Sms;
 
 use App\Enums\Currency;
 use App\Enums\SmsStatus;
+use App\Enums\SmsType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -90,7 +93,7 @@ class SmsAnalytics extends Component
 
         foreach ($results as $row) {
             if ($row->count > 0) {
-                $messageType = $row->message_type instanceof \App\Enums\SmsType
+                $messageType = $row->message_type instanceof SmsType
                     ? $row->message_type->value
                     : ($row->message_type ?? 'custom');
                 $labels[] = ucfirst(str_replace('_', ' ', $messageType));
@@ -196,7 +199,7 @@ class SmsAnalytics extends Component
         ];
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.sms.sms-analytics');
     }

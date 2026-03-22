@@ -8,6 +8,8 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\User;
+use App\Services\BranchContextService;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use Tests\TenantTestCase;
@@ -19,8 +21,8 @@ beforeEach(function (): void {
 
     // Clear caches
     Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
-    app()->forgetInstance(\App\Services\BranchContextService::class);
+    app()->forgetInstance(PlanAccessService::class);
+    app()->forgetInstance(BranchContextService::class);
 
     $this->branch = Branch::factory()->main()->create();
 

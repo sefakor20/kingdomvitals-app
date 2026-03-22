@@ -9,6 +9,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\Visitor;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -463,7 +465,7 @@ class ServiceShow extends Component
         $this->dispatch('attendance-deleted');
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.services.service-show');
     }

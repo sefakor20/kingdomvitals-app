@@ -89,7 +89,7 @@ class ProcessAiAlertsJob implements ShouldQueue
      */
     protected function processAlerts(AiAlertService $service, Branch $branch): Collection
     {
-        if ($this->alertType instanceof \App\Enums\AiAlertType) {
+        if ($this->alertType instanceof AiAlertType) {
             return match ($this->alertType) {
                 AiAlertType::ChurnRisk => $service->checkChurnRiskAlerts($branch),
                 AiAlertType::AttendanceAnomaly => $service->checkAttendanceAnomalyAlerts($branch),

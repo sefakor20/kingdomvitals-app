@@ -7,6 +7,8 @@ namespace App\Livewire\Members;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Services\QrCodeService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -64,7 +66,7 @@ class MemberCardsBulkPrint extends Component
         return $qrCodes;
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.members.member-cards-bulk-print');
     }

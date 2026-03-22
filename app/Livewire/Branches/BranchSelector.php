@@ -4,6 +4,8 @@ namespace App\Livewire\Branches;
 
 use App\Models\Tenant\Branch;
 use App\Services\BranchContextService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Session;
@@ -93,7 +95,7 @@ class BranchSelector extends Component
         $this->dispatch('branch-switched', branchId: $branchId);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.branches.branch-selector');
     }

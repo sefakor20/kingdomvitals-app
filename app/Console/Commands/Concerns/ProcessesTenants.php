@@ -117,7 +117,7 @@ trait ProcessesTenants
             $query->with($eagerLoad);
         }
 
-        if ($filter instanceof \Closure) {
+        if ($filter instanceof Closure) {
             $filter($query);
         }
 

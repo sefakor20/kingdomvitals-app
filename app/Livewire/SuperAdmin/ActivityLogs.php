@@ -6,6 +6,7 @@ namespace App\Livewire\SuperAdmin;
 
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\SuperAdminActivityLog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
@@ -93,9 +94,9 @@ class ActivityLogs extends Component
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<SuperAdminActivityLog>
+     * @return Builder<SuperAdminActivityLog>
      */
-    private function getFilteredLogs(): \Illuminate\Database\Eloquent\Builder
+    private function getFilteredLogs(): Builder
     {
         return SuperAdminActivityLog::query()
             ->with(['superAdmin', 'tenant'])

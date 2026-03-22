@@ -89,7 +89,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert instanceof \App\Models\Tenant\AiAlert) {
+                if ($alert instanceof AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -144,7 +144,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert instanceof \App\Models\Tenant\AiAlert) {
+                if ($alert instanceof AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -207,7 +207,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert instanceof \App\Models\Tenant\AiAlert) {
+                if ($alert instanceof AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -273,7 +273,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert instanceof \App\Models\Tenant\AiAlert) {
+                if ($alert instanceof AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -341,7 +341,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert instanceof \App\Models\Tenant\AiAlert) {
+                if ($alert instanceof AiAlert) {
                     $alerts->push($alert);
                 }
             }
@@ -396,7 +396,7 @@ class AiAlertService
                     ]
                 );
 
-                if ($alert instanceof \App\Models\Tenant\AiAlert) {
+                if ($alert instanceof AiAlert) {
                     $alerts->push($alert);
                 }
             }

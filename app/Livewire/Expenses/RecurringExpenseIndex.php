@@ -11,7 +11,10 @@ use App\Enums\PledgeFrequency;
 use App\Enums\RecurringExpenseStatus;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\Expense;
 use App\Models\Tenant\RecurringExpense;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -341,7 +344,7 @@ class RecurringExpenseIndex extends Component
 
         $expense = $this->generatingRecurringExpense->generateExpense();
 
-        if (! $expense instanceof \App\Models\Tenant\Expense) {
+        if (! $expense instanceof Expense) {
             // Restore original date if generation failed
             $this->generatingRecurringExpense->update(['next_generation_date' => $originalDate]);
             $this->dispatch('recurring-expense-generation-failed');
@@ -400,7 +403,7 @@ class RecurringExpenseIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.expenses.recurring-expense-index');
     }

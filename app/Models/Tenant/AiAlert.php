@@ -7,6 +7,7 @@ namespace App\Models\Tenant;
 use App\Enums\AiAlertType;
 use App\Enums\AlertSeverity;
 use App\Models\User;
+use App\Services\AI\DTOs\AlertRecommendation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -223,7 +224,7 @@ class AiAlert extends Model
     /**
      * Get recommendations as AlertRecommendation DTOs.
      *
-     * @return array<\App\Services\AI\DTOs\AlertRecommendation>
+     * @return array<AlertRecommendation>
      */
     public function getRecommendationDtosAttribute(): array
     {
@@ -232,7 +233,7 @@ class AiAlert extends Model
         }
 
         return array_map(
-            fn (array $r): \App\Services\AI\DTOs\AlertRecommendation => \App\Services\AI\DTOs\AlertRecommendation::fromArray($r),
+            fn (array $r): AlertRecommendation => AlertRecommendation::fromArray($r),
             $this->recommendations
         );
     }

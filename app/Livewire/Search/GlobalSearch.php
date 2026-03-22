@@ -17,6 +17,8 @@ use App\Models\Tenant\Visitor;
 use App\Services\BranchContextService;
 use App\Services\PlanAccessService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
@@ -634,7 +636,7 @@ class GlobalSearch extends Component
         };
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.search.global-search');
     }

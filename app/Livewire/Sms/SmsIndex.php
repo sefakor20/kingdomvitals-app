@@ -12,6 +12,8 @@ use App\Models\Tenant\SmsLog;
 use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -353,7 +355,7 @@ class SmsIndex extends Component
         ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.sms.sms-index');
     }

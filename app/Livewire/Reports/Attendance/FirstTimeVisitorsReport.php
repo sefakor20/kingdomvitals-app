@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Livewire\Reports\Attendance;
 
+use App\Enums\VisitorStatus;
 use App\Livewire\Concerns\HasReportExport;
 use App\Livewire\Concerns\HasReportFilters;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Visitor;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -128,7 +131,7 @@ class FirstTimeVisitorsReport extends Component
     #[Computed]
     public function statuses(): array
     {
-        return \App\Enums\VisitorStatus::cases();
+        return VisitorStatus::cases();
     }
 
     #[Computed]
@@ -214,7 +217,7 @@ class FirstTimeVisitorsReport extends Component
             ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.attendance.first-time-visitors-report');
     }

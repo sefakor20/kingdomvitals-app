@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 #[ObservedBy([EventObserver::class])]
 class Event extends Model
@@ -361,9 +362,9 @@ class Event extends Model
     /**
      * Get all events in this series (including parent and all occurrences).
      *
-     * @return \Illuminate\Support\Collection<int, Event>
+     * @return Collection<int, Event>
      */
-    public function getSeriesEvents(): \Illuminate\Support\Collection
+    public function getSeriesEvents(): Collection
     {
         if ($this->isOccurrence()) {
             // Get from parent

@@ -10,6 +10,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\ChatbotConversation;
 use App\Models\Tenant\ChatbotMessage;
 use App\Services\AI\ChatbotService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -64,7 +66,7 @@ class ConversationMonitor extends Component
     }
 
     #[Computed]
-    public function conversations(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function conversations(): LengthAwarePaginator
     {
         $query = ChatbotConversation::query()
             ->where('branch_id', $this->branch->id)
@@ -171,7 +173,7 @@ class ConversationMonitor extends Component
         return app(ChatbotService::class)->isEnabled();
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.chatbot.conversation-monitor');
     }

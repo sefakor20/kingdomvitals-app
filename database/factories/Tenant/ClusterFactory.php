@@ -7,7 +7,7 @@ use App\Models\Tenant\Cluster;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\Cluster>
+ * @extends Factory<Cluster>
  */
 class ClusterFactory extends Factory
 {

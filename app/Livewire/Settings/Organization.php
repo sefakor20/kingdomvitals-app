@@ -8,6 +8,8 @@ use App\Enums\Currency;
 use App\Jobs\ProcessLogoJob;
 use App\Services\ImageProcessingService;
 use App\Services\ImageStagingService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -180,7 +182,7 @@ class Organization extends Component
         $this->dispatch('currency-saved');
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.settings.organization', [
             'currencies' => Currency::options(),

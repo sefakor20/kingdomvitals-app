@@ -13,6 +13,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\FollowUpTemplatePlaceholderService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -427,7 +429,7 @@ class VisitorShow extends Component
 
     public function completeFollowUp(): void
     {
-        if (! $this->completingFollowUp instanceof \App\Models\Tenant\VisitorFollowUp) {
+        if (! $this->completingFollowUp instanceof VisitorFollowUp) {
             return;
         }
 
@@ -507,7 +509,7 @@ class VisitorShow extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.visitors.visitor-show');
     }

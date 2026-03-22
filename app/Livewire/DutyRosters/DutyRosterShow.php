@@ -10,6 +10,8 @@ use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\DutyRosterScripture;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -409,7 +411,7 @@ class DutyRosterShow extends Component
         $this->redirect(route('duty-rosters.index', $this->branch), navigate: true);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.duty-rosters.duty-roster-show');
     }

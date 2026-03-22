@@ -8,7 +8,10 @@ use App\Enums\FollowUpType;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\FollowUpTemplate;
+use App\Models\User;
 use App\Services\FollowUpTemplatePlaceholderService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -85,7 +88,7 @@ class FollowUpTemplateIndex extends Component
     #[Computed]
     public function canCreate(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = auth()->user();
 
         return $user?->can('create', [FollowUpTemplate::class, $this->branch]) ?? false;
@@ -239,7 +242,7 @@ class FollowUpTemplateIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.visitors.follow-up-template-index');
     }

@@ -11,7 +11,10 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -441,7 +444,7 @@ class VisitorAnalytics extends Component
     // ============================================
 
     #[Computed]
-    public function recentConversions(): \Illuminate\Support\Collection
+    public function recentConversions(): Collection
     {
         return Visitor::where('branch_id', $this->branch->id)
             ->where('status', VisitorStatus::Converted)
@@ -471,7 +474,7 @@ class VisitorAnalytics extends Component
         );
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.visitors.visitor-analytics');
     }

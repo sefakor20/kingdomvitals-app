@@ -17,6 +17,8 @@ use App\Models\Tenant\Expense;
 use App\Models\User;
 use App\Notifications\BudgetThresholdNotification;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -165,8 +167,8 @@ class ExpenseIndex extends Component
         return auth()->user()->branchAccess()
             ->where('branch_id', $this->branch->id)
             ->whereIn('role', [
-                \App\Enums\BranchRole::Admin,
-                \App\Enums\BranchRole::Manager,
+                BranchRole::Admin,
+                BranchRole::Manager,
             ])
             ->exists();
     }
@@ -597,7 +599,7 @@ class ExpenseIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.expenses.expense-index');
     }

@@ -6,7 +6,7 @@ use App\Models\Tenant\AgeGroup;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\AgeGroup>
+ * @extends Factory<AgeGroup>
  */
 class AgeGroupFactory extends Factory
 {

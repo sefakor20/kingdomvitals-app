@@ -542,6 +542,6 @@ class AlertRecommendationService
      */
     public function fromStoredFormat(array $data): array
     {
-        return array_map(fn (array $r): \App\Services\AI\DTOs\AlertRecommendation => AlertRecommendation::fromArray($r), $data);
+        return array_map(fn (array $r): AlertRecommendation => AlertRecommendation::fromArray($r), $data);
     }
 }

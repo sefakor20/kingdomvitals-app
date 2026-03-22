@@ -14,6 +14,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Services\DonationReceiptService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -613,7 +615,7 @@ class DonationIndex extends Component
         unset($this->selectedDonationsCount);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.donations.donation-index');
     }

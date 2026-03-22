@@ -10,7 +10,7 @@ use App\Models\Tenant\RecurringExpense;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\RecurringExpense>
+ * @extends Factory<RecurringExpense>
  */
 class RecurringExpenseFactory extends Factory
 {

@@ -11,6 +11,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -183,7 +185,7 @@ class MemberDirectory extends Component
             ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.membership.member-directory');
     }
