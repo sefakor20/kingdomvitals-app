@@ -71,8 +71,8 @@
                             <flux:table.cell>{{ $donation->donation_date->format('M d, Y') }}</flux:table.cell>
                             <flux:table.cell class="font-medium">{{ $this->currency->symbol() }}{{ number_format($donation->amount, 2) }}</flux:table.cell>
                             <flux:table.cell>
-                                @if($donation->category)
-                                    <flux:badge size="sm">{{ $donation->category }}</flux:badge>
+                                @if($donation->donation_type)
+                                    <flux:badge size="sm">{{ __(str()->headline($donation->donation_type->value)) }}</flux:badge>
                                 @else
                                     <span class="text-zinc-400">-</span>
                                 @endif

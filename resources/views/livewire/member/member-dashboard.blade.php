@@ -122,8 +122,8 @@
                                     </div>
                                 </flux:table.cell>
                                 <flux:table.cell class="text-right">
-                                    @if($donation->category)
-                                        <flux:badge size="sm">{{ $donation->category }}</flux:badge>
+                                    @if($donation->donation_type)
+                                        <flux:badge size="sm">{{ __(str()->headline($donation->donation_type->value)) }}</flux:badge>
                                     @endif
                                 </flux:table.cell>
                             </flux:table.row>
