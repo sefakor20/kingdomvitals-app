@@ -14,6 +14,15 @@
             </div>
 
             <div class="space-y-4 p-4">
+                {{-- Member Photo --}}
+                <div class="flex justify-center pb-2">
+                    @if($this->member->photo_url)
+                        <img src="{{ $this->member->photo_url }}" alt="{{ $this->member->fullName() }}" class="size-24 rounded-full object-cover ring-2 ring-zinc-200 dark:ring-zinc-700" />
+                    @else
+                        <flux:avatar size="xl" name="{{ $this->member->fullName() }}" class="size-24" />
+                    @endif
+                </div>
+
                 <div>
                     <flux:text class="text-sm text-zinc-500">{{ __('Full Name') }}</flux:text>
                     <flux:heading size="lg">{{ $this->member->fullName() }}</flux:heading>
