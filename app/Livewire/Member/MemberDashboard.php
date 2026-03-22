@@ -22,7 +22,9 @@ class MemberDashboard extends Component
     #[Computed]
     public function member(): Member
     {
-        return app('currentMember');
+        return Member::where('user_id', auth()->id())
+            ->whereNotNull('portal_activated_at')
+            ->firstOrFail();
     }
 
     #[Computed]

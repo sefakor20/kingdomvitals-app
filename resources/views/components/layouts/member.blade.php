@@ -27,8 +27,8 @@
                     <flux:navlist.item icon="home" :href="route('member.dashboard')" :current="request()->routeIs('member.dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:navlist.item>
-                    <flux:navlist.item icon="user" :href="route('member.profile')" :current="request()->routeIs('member.profile')" wire:navigate>
-                        {{ __('My Profile') }}
+                    <flux:navlist.item icon="cog-6-tooth" :href="route('member.profile')" :current="request()->routeIs('member.profile', 'member.password', 'member.two-factor', 'member.appearance')" wire:navigate>
+                        {{ __('Settings') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
 
@@ -86,7 +86,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('member.profile')" icon="user" wire:navigate>{{ __('My Profile') }}</flux:menu.item>
+                        <flux:menu.item :href="route('member.profile')" icon="cog-6-tooth" wire:navigate>{{ __('Settings') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -114,7 +114,7 @@
                 />
 
                 <flux:menu>
-                    <flux:menu.item :href="route('member.profile')" icon="user" wire:navigate>{{ __('My Profile') }}</flux:menu.item>
+                    <flux:menu.item :href="route('member.profile')" icon="cog-6-tooth" wire:navigate>{{ __('Settings') }}</flux:menu.item>
 
                     <flux:menu.separator />
 

@@ -7,6 +7,7 @@ namespace App\Livewire\Member;
 use App\Enums\Currency;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
+use App\Services\GivingStatementService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -15,6 +16,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.member')]
 class MemberGiving extends Component
@@ -32,7 +34,9 @@ class MemberGiving extends Component
     #[Computed]
     public function member(): Member
     {
-        return app('currentMember');
+        return Member::where('user_id', auth()->id())
+            ->whereNotNull('portal_activated_at')
+            ->firstOrFail();
     }
 
     #[Computed]
@@ -101,6 +105,12 @@ class MemberGiving extends Component
     {
         $this->year = $year;
         $this->resetPage();
+    }
+
+    public function downloadStatement(): StreamedResponse
+    {
+        return app(GivingStatementService::class)
+            ->downloadStatement($this->member, $this->year);
     }
 
     public function render(): Factory|View

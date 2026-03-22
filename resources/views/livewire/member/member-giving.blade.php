@@ -28,7 +28,9 @@
                 <flux:text class="text-sm text-zinc-500">{{ __('Total Giving in :year', ['year' => $year]) }}</flux:text>
                 <flux:heading size="xl">{{ $this->currency->symbol() }}{{ number_format($this->yearlyTotal, 2) }}</flux:heading>
             </div>
-            {{-- Monthly breakdown could go here --}}
+            <flux:button wire:click="downloadStatement" variant="filled" icon="document-arrow-down">
+                {{ __('Download Statement') }}
+            </flux:button>
         </div>
     </flux:card>
 
