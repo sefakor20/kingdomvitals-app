@@ -59,18 +59,20 @@ class MemberPledges extends Component
     public function pledgeProgress(): array
     {
         return $this->activePledges->map(function (Pledge $pledge) {
-            $paid = Donation::query()
+            $paid = (float) Donation::query()
                 ->where('member_id', $this->member->id)
                 ->where('pledge_id', $pledge->id)
                 ->sum('amount');
+
+            $percentage = $pledge->amount > 0
+                ? min(100, round(($paid / $pledge->amount) * 100, 1))
+                : 0;
 
             return [
                 'pledge' => $pledge,
                 'paid' => $paid,
                 'remaining' => max(0, $pledge->amount - $paid),
-                'percentage' => $pledge->amount > 0
-                    ? min(100, round(($paid / $pledge->amount) * 100, 1))
-                    : 0,
+                'percentage' => $percentage,
             ];
         })->toArray();
     }

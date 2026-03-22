@@ -38,33 +38,13 @@ class AcceptMemberInvitation extends Component
             ->where('token', $token)
             ->first();
 
-        if (! $this->invitation) {
-            $this->invitationValid = false;
-
-            return;
-        }
-
-        if ($this->invitation->isExpired()) {
-            $this->invitationValid = false;
-
-            return;
-        }
-
-        if ($this->invitation->isAccepted()) {
-            $this->invitationValid = false;
-
+        if (! $this->invitation || $this->invitation->isExpired() || $this->invitation->isAccepted()) {
             return;
         }
 
         $this->invitationValid = true;
         $this->email = $this->invitation->email;
-
-        // Pre-fill name from member record
-        if ($this->invitation->member) {
-            $this->name = $this->invitation->member->fullName();
-        }
-
-        // Check if user already exists
+        $this->name = $this->invitation->member?->fullName() ?? '';
         $this->userExists = User::where('email', $this->email)->exists();
     }
 
