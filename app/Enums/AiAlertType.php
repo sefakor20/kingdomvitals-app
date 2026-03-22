@@ -12,6 +12,7 @@ enum AiAlertType: string
     case CriticalPrayer = 'critical_prayer';
     case ClusterHealth = 'cluster_health';
     case HouseholdDisengagement = 'household_disengagement';
+    case EmailEngagementDeclining = 'email_engagement_declining';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum AiAlertType: string
             self::CriticalPrayer => 'Critical Prayer Request',
             self::ClusterHealth => 'Cluster Health Alert',
             self::HouseholdDisengagement => 'Household Disengagement',
+            self::EmailEngagementDeclining => 'Email Engagement Declining',
         };
     }
 
@@ -34,6 +36,7 @@ enum AiAlertType: string
             self::CriticalPrayer => 'A critical or high-urgency prayer request requires attention',
             self::ClusterHealth => 'A cluster/small group health has declined significantly',
             self::HouseholdDisengagement => 'Household engagement has dropped to disengaged level',
+            self::EmailEngagementDeclining => 'Member email engagement has significantly declined',
         };
     }
 
@@ -46,6 +49,7 @@ enum AiAlertType: string
             self::CriticalPrayer => 'hand-raised',
             self::ClusterHealth => 'user-group',
             self::HouseholdDisengagement => 'home',
+            self::EmailEngagementDeclining => 'envelope',
         };
     }
 
@@ -58,6 +62,7 @@ enum AiAlertType: string
             self::CriticalPrayer => 'purple',
             self::ClusterHealth => 'yellow',
             self::HouseholdDisengagement => 'blue',
+            self::EmailEngagementDeclining => 'sky',
         };
     }
 
@@ -73,6 +78,7 @@ enum AiAlertType: string
             self::CriticalPrayer => null,
             self::ClusterHealth => 50,
             self::HouseholdDisengagement => null,
+            self::EmailEngagementDeclining => 20,
         };
     }
 
@@ -88,6 +94,7 @@ enum AiAlertType: string
             self::CriticalPrayer => AlertSeverity::Critical,
             self::ClusterHealth => AlertSeverity::High,
             self::HouseholdDisengagement => AlertSeverity::Medium,
+            self::EmailEngagementDeclining => AlertSeverity::Medium,
         };
     }
 
@@ -103,6 +110,7 @@ enum AiAlertType: string
             self::CriticalPrayer => 0, // Immediate, no cooldown
             self::ClusterHealth => 168, // 7 days
             self::HouseholdDisengagement => 168, // 7 days
+            self::EmailEngagementDeclining => 168, // 7 days
         };
     }
 

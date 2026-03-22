@@ -199,6 +199,12 @@ return [
             'inactivity_threshold_days' => 60,
         ],
 
+        'email_optimization' => [
+            'enabled' => env('AI_FEATURE_EMAIL_OPT', true),
+            'provider' => env('AI_EMAIL_OPT_PROVIDER'),
+            'inactivity_threshold_days' => 60,
+        ],
+
         'lifecycle_detection' => [
             'enabled' => env('AI_FEATURE_LIFECYCLE', true),
             'provider' => env('AI_LIFECYCLE_PROVIDER'),
@@ -362,6 +368,15 @@ return [
             'consistency_max_bonus' => 15,
             'inactivity_decay_per_week' => 2,
             'opt_out_penalty' => 50,
+        ],
+
+        'email_engagement' => [
+            'base_score' => 50,
+            'open_weight' => 30,
+            'click_weight' => 25,
+            'recency_max_bonus' => 20,
+            'consistency_max_bonus' => 15,
+            'inactivity_decay_per_week' => 2,
         ],
 
         'lifecycle' => [

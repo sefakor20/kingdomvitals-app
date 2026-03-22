@@ -7,6 +7,7 @@ namespace App\Services\AI;
 use App\Enums\AiAlertType;
 use App\Enums\AlertSeverity;
 use App\Enums\ClusterHealthLevel;
+use App\Enums\EmailEngagementLevel;
 use App\Enums\HouseholdEngagementLevel;
 use App\Enums\LifecycleStage;
 use App\Enums\PrayerUrgencyLevel;
@@ -42,8 +43,9 @@ class AiAlertService
         $alerts = $alerts->merge($this->checkLifecycleTransitionAlerts($branch));
         $alerts = $alerts->merge($this->checkCriticalPrayerAlerts($branch));
         $alerts = $alerts->merge($this->checkClusterHealthAlerts($branch));
+        $alerts = $alerts->merge($this->checkHouseholdDisengagementAlerts($branch));
 
-        return $alerts->merge($this->checkHouseholdDisengagementAlerts($branch));
+        return $alerts->merge($this->checkEmailEngagementDecliningAlerts($branch));
     }
 
     /**
@@ -393,6 +395,82 @@ class AiAlertService
                         'engagement_score' => $household->engagement_score,
                         'engagement_level' => $household->engagement_level,
                         'member_count' => $memberCount,
+                    ]
+                );
+
+                if ($alert instanceof AiAlert) {
+                    $alerts->push($alert);
+                }
+            }
+        }
+
+        if ($alerts->isNotEmpty()) {
+            $setting->markTriggered();
+        }
+
+        return $alerts;
+    }
+
+    /**
+     * Check for members with declining email engagement.
+     *
+     * @return Collection<int, AiAlert>
+     */
+    public function checkEmailEngagementDecliningAlerts(Branch $branch): Collection
+    {
+        $setting = AiAlertSetting::getOrCreateForBranch(
+            $branch->id,
+            AiAlertType::EmailEngagementDeclining
+        );
+
+        if (! $setting->canTrigger()) {
+            return collect();
+        }
+
+        $threshold = $setting->getEffectiveThreshold() ?? 20;
+
+        // Find members who have dropped to low/inactive email engagement
+        $decliningMembers = Member::where('primary_branch_id', $branch->id)
+            ->whereIn('email_engagement_level', [
+                EmailEngagementLevel::Low->value,
+                EmailEngagementLevel::Inactive->value,
+            ])
+            ->whereNotNull('email_engagement_calculated_at')
+            ->where('email_engagement_calculated_at', '>=', now()->subDays(7))
+            ->whereNotNull('email_total_sent')
+            ->where('email_total_sent', '>', 0)
+            ->get();
+
+        $alerts = collect();
+
+        foreach ($decliningMembers as $member) {
+            if ($this->shouldCreateAlert($branch, AiAlertType::EmailEngagementDeclining, $member)) {
+                $engagementLevel = $member->email_engagement_level instanceof EmailEngagementLevel
+                    ? $member->email_engagement_level
+                    : EmailEngagementLevel::tryFrom($member->email_engagement_level);
+
+                $severity = $engagementLevel === EmailEngagementLevel::Inactive
+                    ? AlertSeverity::High
+                    : AlertSeverity::Medium;
+
+                $engagementLevelLabel = $engagementLevel?->label() ?? 'unknown';
+                $openRate = number_format($member->email_open_rate ?? 0, 1);
+
+                $alert = $this->createAlert(
+                    branch: $branch,
+                    type: AiAlertType::EmailEngagementDeclining,
+                    alertable: $member,
+                    title: "Email engagement declining for {$member->fullName()}",
+                    description: "Member {$member->fullName()} has {$engagementLevelLabel} email engagement with a {$openRate}% open rate. Consider re-engagement strategies.",
+                    severity: $severity,
+                    data: [
+                        'member_id' => $member->id,
+                        'engagement_score' => $member->email_engagement_score,
+                        'engagement_level' => $engagementLevel?->value,
+                        'open_rate' => $member->email_open_rate,
+                        'click_rate' => $member->email_click_rate,
+                        'total_sent' => $member->email_total_sent,
+                        'total_opened' => $member->email_total_opened,
                     ]
                 );
 
