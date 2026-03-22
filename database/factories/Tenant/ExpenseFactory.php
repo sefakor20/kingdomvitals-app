@@ -9,7 +9,7 @@ use App\Models\Tenant\Expense;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\Expense>
+ * @extends Factory<Expense>
  */
 class ExpenseFactory extends Factory
 {

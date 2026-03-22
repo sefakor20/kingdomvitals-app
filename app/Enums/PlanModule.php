@@ -18,6 +18,7 @@ enum PlanModule: string
     case Pledges = 'pledges';
     case Budgets = 'budgets';
     case Sms = 'sms';
+    case Email = 'email';
     case Equipment = 'equipment';
     case PrayerRequests = 'prayer_requests';
     case Reports = 'reports';
@@ -40,6 +41,7 @@ enum PlanModule: string
             self::Pledges => 'Pledges & Campaigns',
             self::Budgets => 'Budgets',
             self::Sms => 'SMS Messaging',
+            self::Email => 'Email Messaging',
             self::Equipment => 'Equipment',
             self::PrayerRequests => 'Prayer Requests',
             self::Reports => 'Reports',
@@ -69,6 +71,7 @@ enum PlanModule: string
             'pledges', 'campaigns' => self::Pledges,
             'budgets' => self::Budgets,
             'sms' => self::Sms,
+            'email' => self::Email,
             'equipment' => self::Equipment,
             'prayer-requests' => self::PrayerRequests,
             'reports' => self::Reports,

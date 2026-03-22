@@ -165,7 +165,7 @@ class DonorChurnService
         }
 
         $intervals = [];
-        $dates = $donations->pluck('donation_date')->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): \Illuminate\Support\Carbon => Carbon::parse($d))->values();
+        $dates = $donations->pluck('donation_date')->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): Carbon => Carbon::parse($d))->values();
 
         for ($i = 0; $i < min($dates->count() - 1, 10); $i++) {
             $intervals[] = $dates[$i]->diffInDays($dates[$i + 1]);

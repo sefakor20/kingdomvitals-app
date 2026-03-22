@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Livewire\SuperAdmin\Profile\Security;
 use App\Models\SuperAdmin;
 use Livewire\Livewire;
 use PragmaRX\Google2FA\Google2FA;
@@ -19,7 +20,7 @@ it('shows 2FA as disabled by default', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Profile\Security::class)
+        ->test(Security::class)
         ->assertSet('twoFactorEnabled', false)
         ->assertSee('Disabled');
 });
@@ -28,7 +29,7 @@ it('can enable 2FA and show QR code modal', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Profile\Security::class)
+        ->test(Security::class)
         ->assertSet('showModal', false)
         ->call('enable')
         ->assertSet('showModal', true);
@@ -43,7 +44,7 @@ it('can confirm 2FA with valid code', function (): void {
 
     // Enable 2FA first (which generates the secret)
     $component = Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Profile\Security::class)
+        ->test(Security::class)
         ->call('enable')
         ->call('showVerificationIfNecessary')
         ->assertSet('showVerificationStep', true);
@@ -78,7 +79,7 @@ it('can disable 2FA', function (): void {
     ])->save();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Profile\Security::class)
+        ->test(Security::class)
         ->assertSet('twoFactorEnabled', true)
         ->call('disable')
         ->assertSet('twoFactorEnabled', false)
@@ -102,7 +103,7 @@ it('shows recovery codes when 2FA is enabled', function (): void {
     ])->save();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Profile\Security::class)
+        ->test(Security::class)
         ->assertSet('twoFactorEnabled', true)
         ->assertSee('Recovery Codes')
         ->assertSee('ABCD-EFGH-IJKL');
@@ -122,7 +123,7 @@ it('can regenerate recovery codes', function (): void {
     ])->save();
 
     $component = Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Profile\Security::class)
+        ->test(Security::class)
         ->assertSee('OLD-CODE-1')
         ->call('regenerateRecoveryCodes')
         ->assertDispatched('recovery-codes-regenerated');

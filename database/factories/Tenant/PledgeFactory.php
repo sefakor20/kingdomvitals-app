@@ -8,7 +8,7 @@ use App\Models\Tenant\Pledge;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\Pledge>
+ * @extends Factory<Pledge>
  */
 class PledgeFactory extends Factory
 {

@@ -11,6 +11,8 @@ use App\Models\Tenant\ChildEmergencyContact;
 use App\Models\Tenant\ChildMedicalInfo;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -623,7 +625,7 @@ class ChildrenDirectory extends Component
         ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.children.children-directory');
     }

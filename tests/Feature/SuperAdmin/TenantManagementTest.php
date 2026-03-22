@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\TenantStatus;
+use App\Livewire\SuperAdmin\Tenants\TenantIndex;
+use App\Livewire\SuperAdmin\Tenants\TenantShow;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Notification;
@@ -27,7 +29,7 @@ it('displays tenants in the list', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->assertSee('Test Church');
 });
 
@@ -45,7 +47,7 @@ it('can search tenants', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('search', 'Searchable')
         ->assertSee('Searchable Church')
         ->assertDontSee('Other Church');
@@ -65,7 +67,7 @@ it('can filter tenants by status', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('status', TenantStatus::Active->value)
         ->assertSee('Active Church')
         ->assertDontSee('Trial Church');
@@ -75,7 +77,7 @@ it('can open tenant create modal', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->assertSet('showCreateModal', false)
         ->set('showCreateModal', true)
         ->assertSet('showCreateModal', true);
@@ -86,7 +88,7 @@ it('can create a new tenant', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', 'New Test Church')
         ->set('domain', 'newtest.kingdomvitals.test')
@@ -111,7 +113,7 @@ it('validates required fields when creating tenant', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', '')
         ->set('domain', '')
@@ -131,7 +133,7 @@ it('can view tenant details', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->assertSee('View Church')
         ->assertSee('contact@viewchurch.com');
 });
@@ -145,7 +147,7 @@ it('can suspend a tenant', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->set('showSuspendModal', true)
         ->set('suspensionReason', 'Non-payment of fees')
         ->call('suspend');
@@ -166,7 +168,7 @@ it('can reactivate a suspended tenant', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->call('reactivate');
 
     $tenant->refresh();
@@ -183,7 +185,7 @@ it('can change tenant status', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->call('updateStatus', TenantStatus::Active->value);
 
     $tenant->refresh();
@@ -195,7 +197,7 @@ it('logs tenant creation activity', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', 'Logged Church')
         ->set('domain', 'logged.kingdomvitals.test')
@@ -220,7 +222,7 @@ it('can open tenant edit modal', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->assertSet('showEditModal', false)
         ->call('openEditModal')
         ->assertSet('showEditModal', true)
@@ -238,7 +240,7 @@ it('can update a tenant', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->call('openEditModal')
         ->set('editName', 'Updated Church')
         ->set('editContactEmail', 'updated@church.com')
@@ -259,7 +261,7 @@ it('logs tenant update activity', function (): void {
     ]);
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantShow::class, ['tenant' => $tenant])
+        ->test(TenantShow::class, ['tenant' => $tenant])
         ->call('openEditModal')
         ->set('editName', 'Log Update Church - Updated')
         ->call('updateTenant');

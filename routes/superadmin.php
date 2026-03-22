@@ -4,6 +4,24 @@ declare(strict_types=1);
 
 use App\Http\Controllers\SuperAdmin\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\SuperAdmin\Auth\TwoFactorChallengeController;
+use App\Livewire\SuperAdmin\ActivityLogs;
+use App\Livewire\SuperAdmin\Admins\AdminIndex;
+use App\Livewire\SuperAdmin\Analytics\UsageAnalytics;
+use App\Livewire\SuperAdmin\Announcements\AnnouncementIndex;
+use App\Livewire\SuperAdmin\Billing\BillingDashboard;
+use App\Livewire\SuperAdmin\Billing\InvoiceCreate;
+use App\Livewire\SuperAdmin\Billing\InvoiceIndex;
+use App\Livewire\SuperAdmin\Billing\InvoiceShow;
+use App\Livewire\SuperAdmin\Billing\OverdueInvoices;
+use App\Livewire\SuperAdmin\Billing\PaymentIndex;
+use App\Livewire\SuperAdmin\Dashboard;
+use App\Livewire\SuperAdmin\Plans\PlanIndex;
+use App\Livewire\SuperAdmin\Profile\Security;
+use App\Livewire\SuperAdmin\Revenue\RevenueDashboard;
+use App\Livewire\SuperAdmin\Settings\SystemSettings;
+use App\Livewire\SuperAdmin\SystemLogs;
+use App\Livewire\SuperAdmin\Tenants\TenantIndex;
+use App\Livewire\SuperAdmin\Tenants\TenantShow;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,69 +54,69 @@ Route::middleware('superadmin')->group(function (): void {
         ->name('superadmin.logout');
 
     // Dashboard
-    Route::get('/', \App\Livewire\SuperAdmin\Dashboard::class)
+    Route::get('/', Dashboard::class)
         ->name('superadmin.dashboard');
 
     // Tenant Management
-    Route::get('tenants', \App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+    Route::get('tenants', TenantIndex::class)
         ->name('superadmin.tenants.index');
 
-    Route::get('tenants/{tenant}', \App\Livewire\SuperAdmin\Tenants\TenantShow::class)
+    Route::get('tenants/{tenant}', TenantShow::class)
         ->name('superadmin.tenants.show')
         ->withTrashed();
 
     // Subscription Plans
-    Route::get('plans', \App\Livewire\SuperAdmin\Plans\PlanIndex::class)
+    Route::get('plans', PlanIndex::class)
         ->name('superadmin.plans.index');
 
     // Announcements
-    Route::get('announcements', \App\Livewire\SuperAdmin\Announcements\AnnouncementIndex::class)
+    Route::get('announcements', AnnouncementIndex::class)
         ->name('superadmin.announcements.index');
 
     // Super Admin Management
-    Route::get('admins', \App\Livewire\SuperAdmin\Admins\AdminIndex::class)
+    Route::get('admins', AdminIndex::class)
         ->name('superadmin.admins.index');
 
     // Activity Logs
-    Route::get('activity-logs', \App\Livewire\SuperAdmin\ActivityLogs::class)
+    Route::get('activity-logs', ActivityLogs::class)
         ->name('superadmin.activity-logs');
 
     // System Logs (Laravel application logs)
-    Route::get('system-logs', \App\Livewire\SuperAdmin\SystemLogs::class)
+    Route::get('system-logs', SystemLogs::class)
         ->name('superadmin.system-logs');
 
     // Revenue Dashboard
-    Route::get('revenue', \App\Livewire\SuperAdmin\Revenue\RevenueDashboard::class)
+    Route::get('revenue', RevenueDashboard::class)
         ->name('superadmin.revenue');
 
     // Usage Analytics Dashboard
-    Route::get('analytics/usage', \App\Livewire\SuperAdmin\Analytics\UsageAnalytics::class)
+    Route::get('analytics/usage', UsageAnalytics::class)
         ->name('superadmin.analytics.usage');
 
     // System Settings
-    Route::get('settings', \App\Livewire\SuperAdmin\Settings\SystemSettings::class)
+    Route::get('settings', SystemSettings::class)
         ->name('superadmin.settings');
 
     // Billing Management
-    Route::get('billing', \App\Livewire\SuperAdmin\Billing\BillingDashboard::class)
+    Route::get('billing', BillingDashboard::class)
         ->name('superadmin.billing.dashboard');
 
-    Route::get('billing/invoices', \App\Livewire\SuperAdmin\Billing\InvoiceIndex::class)
+    Route::get('billing/invoices', InvoiceIndex::class)
         ->name('superadmin.billing.invoices');
 
-    Route::get('billing/invoices/create', \App\Livewire\SuperAdmin\Billing\InvoiceCreate::class)
+    Route::get('billing/invoices/create', InvoiceCreate::class)
         ->name('superadmin.billing.invoices.create');
 
-    Route::get('billing/invoices/{invoice}', \App\Livewire\SuperAdmin\Billing\InvoiceShow::class)
+    Route::get('billing/invoices/{invoice}', InvoiceShow::class)
         ->name('superadmin.billing.invoices.show');
 
-    Route::get('billing/payments', \App\Livewire\SuperAdmin\Billing\PaymentIndex::class)
+    Route::get('billing/payments', PaymentIndex::class)
         ->name('superadmin.billing.payments');
 
-    Route::get('billing/overdue', \App\Livewire\SuperAdmin\Billing\OverdueInvoices::class)
+    Route::get('billing/overdue', OverdueInvoices::class)
         ->name('superadmin.billing.overdue');
 
     // Profile/Security
-    Route::get('profile/security', \App\Livewire\SuperAdmin\Profile\Security::class)
+    Route::get('profile/security', Security::class)
         ->name('superadmin.profile.security');
 });

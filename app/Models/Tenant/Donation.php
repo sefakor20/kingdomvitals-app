@@ -7,6 +7,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\SubjectType;
 use App\Models\Concerns\HasActivityLogging;
 use App\Observers\DonationObserver;
+use App\Services\DonationReceiptService;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -87,7 +88,7 @@ class Donation extends Model
     public function getReceiptNumber(): string
     {
         if (! $this->receipt_number) {
-            $this->receipt_number = app(\App\Services\DonationReceiptService::class)->generateReceiptNumber($this);
+            $this->receipt_number = app(DonationReceiptService::class)->generateReceiptNumber($this);
             $this->save();
         }
 

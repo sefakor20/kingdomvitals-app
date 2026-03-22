@@ -286,24 +286,44 @@
         @endif
 
         {{-- Communication Group --}}
-        @if($this->canViewSms)
-            <flux:sidebar.group icon="chat-bubble-left-right" :heading="__('Communication')" expandable :expanded="request()->routeIs('sms.*')" class="grid">
-                <flux:sidebar.item
-                    icon="chat-bubble-left-right"
-                    :href="route('sms.index', $this->currentBranch)"
-                    :current="request()->routeIs('sms.index', 'sms.compose')"
-                    wire:navigate
-                >
-                    {{ __('SMS') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item
-                    icon="document-text"
-                    :href="route('sms.templates', $this->currentBranch)"
-                    :current="request()->routeIs('sms.templates')"
-                    wire:navigate
-                >
-                    {{ __('Templates') }}
-                </flux:sidebar.item>
+        @if($this->canViewSms || $this->canViewEmail)
+            <flux:sidebar.group icon="chat-bubble-left-right" :heading="__('Communication')" expandable :expanded="request()->routeIs('sms.*', 'email.*')" class="grid">
+                @if($this->canViewSms)
+                    <flux:sidebar.item
+                        icon="chat-bubble-left-right"
+                        :href="route('sms.index', $this->currentBranch)"
+                        :current="request()->routeIs('sms.index', 'sms.compose')"
+                        wire:navigate
+                    >
+                        {{ __('SMS') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="document-text"
+                        :href="route('sms.templates', $this->currentBranch)"
+                        :current="request()->routeIs('sms.templates')"
+                        wire:navigate
+                    >
+                        {{ __('SMS Templates') }}
+                    </flux:sidebar.item>
+                @endif
+                @if($this->canViewEmail)
+                    <flux:sidebar.item
+                        icon="envelope"
+                        :href="route('email.index', $this->currentBranch)"
+                        :current="request()->routeIs('email.index', 'email.compose')"
+                        wire:navigate
+                    >
+                        {{ __('Email') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="document-text"
+                        :href="route('email.templates', $this->currentBranch)"
+                        :current="request()->routeIs('email.templates')"
+                        wire:navigate
+                    >
+                        {{ __('Email Templates') }}
+                    </flux:sidebar.item>
+                @endif
             </flux:sidebar.group>
         @endif
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\BranchRole;
+use App\Models\TenantImpersonationLog;
 use App\Models\User;
 use App\Services\TenantImpersonationService;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +29,7 @@ class ImpersonationController extends Controller
 
         $log = $this->impersonationService->getActiveSession($token);
 
-        if (! $log instanceof \App\Models\TenantImpersonationLog) {
+        if (! $log instanceof TenantImpersonationLog) {
             abort(403, 'Impersonation session expired or invalid');
         }
 

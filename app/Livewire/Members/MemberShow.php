@@ -11,11 +11,14 @@ use App\Jobs\ProcessMemberPhotoJob;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use App\Services\AI\DTOs\ClusterRecommendation;
 use App\Services\AI\MemberRecommendationService;
 use App\Services\ImageProcessingService;
 use App\Services\ImageStagingService;
 use App\Services\PlanAccessService;
 use App\Services\QrCodeService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -170,7 +173,7 @@ class MemberShow extends Component
     /**
      * Get AI-powered cluster recommendations for this member.
      *
-     * @return array<\App\Services\AI\DTOs\ClusterRecommendation>
+     * @return array<ClusterRecommendation>
      */
     #[Computed]
     public function clusterRecommendations(): array
@@ -621,7 +624,7 @@ class MemberShow extends Component
         $this->dispatch('sms-opt-out-updated');
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.members.member-show');
     }

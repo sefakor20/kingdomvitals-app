@@ -7,6 +7,7 @@ namespace App\Livewire\AI;
 use App\Enums\AiAlertType;
 use App\Enums\AlertSeverity;
 use App\Enums\ClusterHealthLevel;
+use App\Enums\EmailEngagementLevel;
 use App\Enums\HouseholdEngagementLevel;
 use App\Enums\LifecycleStage;
 use App\Enums\MembershipStatus;
@@ -23,6 +24,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\PrayerSummary;
 use App\Models\Tenant\Visitor;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -593,6 +596,51 @@ class InsightsDashboard extends Component
     }
 
     // ============================================
+    // EMAIL ENGAGEMENT
+    // ============================================
+
+    /**
+     * @return array<string, array{count: int, level: EmailEngagementLevel, percentage: float}>
+     */
+    #[Computed]
+    public function emailEngagementDistribution(): array
+    {
+        $counts = Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->whereNotNull('email_engagement_level')
+            ->selectRaw('email_engagement_level, COUNT(*) as count')
+            ->groupBy('email_engagement_level')
+            ->pluck('count', 'email_engagement_level')
+            ->toArray();
+
+        $total = array_sum($counts);
+
+        $distribution = [];
+        foreach (EmailEngagementLevel::cases() as $level) {
+            $count = $counts[$level->value] ?? 0;
+            $distribution[$level->value] = [
+                'count' => $count,
+                'level' => $level,
+                'percentage' => $total > 0 ? round(($count / $total) * 100, 1) : 0,
+            ];
+        }
+
+        return $distribution;
+    }
+
+    #[Computed]
+    public function lowEmailEngagementCount(): int
+    {
+        return Member::where('primary_branch_id', $this->branch->id)
+            ->where('status', MembershipStatus::Active)
+            ->whereIn('email_engagement_level', [
+                EmailEngagementLevel::Low,
+                EmailEngagementLevel::Inactive,
+            ])
+            ->count();
+    }
+
+    // ============================================
     // ATTENDANCE FORECAST
     // ============================================
 
@@ -1101,7 +1149,7 @@ class InsightsDashboard extends Component
         ];
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.ai.insights-dashboard');
     }

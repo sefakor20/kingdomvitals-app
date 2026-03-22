@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\TenantStatus;
+use App\Livewire\SuperAdmin\Tenants\TenantIndex;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
 use App\Models\User;
@@ -17,7 +18,7 @@ it('creates tenant with admin user and sends invitation', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', 'New Church')
         ->set('domain', 'newchurch.kingdomvitals.test')
@@ -58,7 +59,7 @@ it('validates admin name is required', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', 'Test Church')
         ->set('domain', 'test.kingdomvitals.test')
@@ -73,7 +74,7 @@ it('validates admin email is required', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', 'Test Church')
         ->set('domain', 'test.kingdomvitals.test')
@@ -88,7 +89,7 @@ it('validates admin email format', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('showCreateModal', true)
         ->set('name', 'Test Church')
         ->set('domain', 'test.kingdomvitals.test')
@@ -103,7 +104,7 @@ it('resets admin fields when form is reset', function (): void {
     $admin = SuperAdmin::factory()->create();
 
     Livewire::actingAs($admin, 'superadmin')
-        ->test(\App\Livewire\SuperAdmin\Tenants\TenantIndex::class)
+        ->test(TenantIndex::class)
         ->set('admin_name', 'Test Admin')
         ->set('admin_email', 'test@admin.com')
         ->call('resetCreateForm')

@@ -724,52 +724,52 @@
         </div>
     </div>
 
-    {{-- Two Column Layout: Prayer Requests & SMS Engagement --}}
-    <div class="grid gap-6 lg:grid-cols-2">
-        {{-- Prayer Request Urgency --}}
-        <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-4 flex items-center justify-between">
-                <div>
-                    <flux:heading size="base">{{ __('Prayer Requests') }}</flux:heading>
-                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Open requests by urgency') }}</flux:text>
-                </div>
-                <flux:badge>{{ $this->openPrayerRequestsCount }} {{ __('open') }}</flux:badge>
+    {{-- Prayer Request Section --}}
+    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <flux:heading size="base">{{ __('Prayer Requests') }}</flux:heading>
+                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Open requests by urgency') }}</flux:text>
+            </div>
+            <flux:badge>{{ $this->openPrayerRequestsCount }} {{ __('open') }}</flux:badge>
+        </div>
+
+        @if(empty($this->prayerUrgencyDistribution) || collect($this->prayerUrgencyDistribution)->sum('count') === 0)
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+                <flux:icon icon="hand-raised" class="size-12 text-zinc-400" />
+                <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No open prayer requests') }}</flux:text>
+            </div>
+        @else
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                @foreach($this->prayerUrgencyDistribution as $levelData)
+                    <div class="rounded-lg border border-zinc-100 p-3 text-center dark:border-zinc-800">
+                        <flux:heading size="lg" class="{{ $levelData['level']->color() }}">{{ $levelData['count'] }}</flux:heading>
+                        <flux:text class="text-xs">{{ $levelData['level']->label() }}</flux:text>
+                    </div>
+                @endforeach
             </div>
 
-            @if(empty($this->prayerUrgencyDistribution) || collect($this->prayerUrgencyDistribution)->sum('count') === 0)
-                <div class="flex flex-col items-center justify-center py-8 text-center">
-                    <flux:icon icon="hand-raised" class="size-12 text-zinc-400" />
-                    <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No open prayer requests') }}</flux:text>
-                </div>
-            @else
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    @foreach($this->prayerUrgencyDistribution as $levelData)
-                        <div class="rounded-lg border border-zinc-100 p-3 text-center dark:border-zinc-800">
-                            <flux:heading size="lg" class="{{ $levelData['level']->color() }}">{{ $levelData['count'] }}</flux:heading>
-                            <flux:text class="text-xs">{{ $levelData['level']->label() }}</flux:text>
+            @if($this->criticalPrayerRequests->isNotEmpty())
+                <div class="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                    <flux:text class="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Urgent Requests') }}</flux:text>
+                    @foreach($this->criticalPrayerRequests as $prayer)
+                        <div class="mb-2 rounded-lg border border-red-100 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <flux:text class="font-medium">{{ $prayer->member?->fullName() ?? __('Anonymous') }}</flux:text>
+                                    <flux:text class="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{{ Str::limit($prayer->request, 100) }}</flux:text>
+                                </div>
+                                <flux:badge size="sm" color="red">{{ $prayer->urgency_level->label() }}</flux:badge>
+                            </div>
                         </div>
                     @endforeach
                 </div>
-
-                @if($this->criticalPrayerRequests->isNotEmpty())
-                    <div class="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                        <flux:text class="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Urgent Requests') }}</flux:text>
-                        @foreach($this->criticalPrayerRequests as $prayer)
-                            <div class="mb-2 rounded-lg border border-red-100 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
-                                <div class="flex items-start justify-between">
-                                    <div>
-                                        <flux:text class="font-medium">{{ $prayer->member?->fullName() ?? __('Anonymous') }}</flux:text>
-                                        <flux:text class="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{{ Str::limit($prayer->request, 100) }}</flux:text>
-                                    </div>
-                                    <flux:badge size="sm" color="red">{{ $prayer->urgency_level->label() }}</flux:badge>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
             @endif
-        </div>
+        @endif
+    </div>
 
+    {{-- Two Column Layout: SMS & Email Engagement --}}
+    <div class="grid gap-6 lg:grid-cols-2">
         {{-- SMS Engagement --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="mb-4 flex items-center justify-between">
@@ -794,6 +794,44 @@
                             <div class="flex items-center justify-between rounded-lg border border-zinc-100 p-3 dark:border-zinc-800">
                                 <div class="flex items-center gap-3">
                                     <flux:icon :icon="$levelData['level']->icon()" class="size-4 {{ $levelData['level']->color() }}" />
+                                    <flux:text>{{ $levelData['level']->label() }}</flux:text>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <flux:text class="text-sm text-zinc-500">{{ $levelData['percentage'] }}%</flux:text>
+                                    <flux:badge size="sm" :color="$levelData['level']->color()">{{ $levelData['count'] }}</flux:badge>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        {{-- Email Engagement --}}
+        <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <flux:heading size="base">{{ __('Email Engagement') }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Member engagement with email campaigns') }}</flux:text>
+                </div>
+                @if($this->lowEmailEngagementCount > 0)
+                    <flux:badge color="amber">{{ $this->lowEmailEngagementCount }} {{ __('low engagement') }}</flux:badge>
+                @endif
+            </div>
+
+            @if(empty($this->emailEngagementDistribution) || collect($this->emailEngagementDistribution)->sum('count') === 0)
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <flux:icon icon="envelope" class="size-12 text-zinc-400" />
+                    <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">{{ __('No email engagement data') }}</flux:text>
+                    <flux:text class="text-sm text-zinc-400">{{ __('Run engagement calculation to see data') }}</flux:text>
+                </div>
+            @else
+                <div class="space-y-2">
+                    @foreach($this->emailEngagementDistribution as $levelData)
+                        @if($levelData['count'] > 0)
+                            <div class="flex items-center justify-between rounded-lg border border-zinc-100 p-3 dark:border-zinc-800">
+                                <div class="flex items-center gap-3">
+                                    <flux:icon :icon="$levelData['level']->icon()" class="size-4 text-{{ $levelData['level']->color() }}-500" />
                                     <flux:text>{{ $levelData['level']->label() }}</flux:text>
                                 </div>
                                 <div class="flex items-center gap-2">

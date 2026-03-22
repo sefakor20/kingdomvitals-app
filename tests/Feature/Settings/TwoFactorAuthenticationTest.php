@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Livewire\Settings\TwoFactor;
+use App\Livewire\Settings\TwoFactor\RecoveryCodes;
 use App\Models\Tenant\Branch;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -204,7 +205,7 @@ test('can regenerate recovery codes', function (): void {
     ])->save();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\Settings\TwoFactor\RecoveryCodes::class)
+        ->test(RecoveryCodes::class)
         ->call('regenerateRecoveryCodes');
 
     $user->refresh();

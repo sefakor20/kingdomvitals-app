@@ -10,6 +10,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -105,7 +107,7 @@ class ReportCenter extends Component
         ];
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.report-center');
     }

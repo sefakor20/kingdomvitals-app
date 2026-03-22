@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pledges;
 
+use App\Enums\BranchRole;
 use App\Enums\Currency;
 use App\Enums\PledgeFrequency;
 use App\Enums\PledgeStatus;
@@ -13,6 +14,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\PledgeCampaign;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -188,9 +191,9 @@ class PledgeIndex extends Component
         return auth()->user()->branchAccess()
             ->where('branch_id', $this->branch->id)
             ->whereIn('role', [
-                \App\Enums\BranchRole::Admin,
-                \App\Enums\BranchRole::Manager,
-                \App\Enums\BranchRole::Staff,
+                BranchRole::Admin,
+                BranchRole::Manager,
+                BranchRole::Staff,
             ])
             ->exists();
     }
@@ -588,7 +591,7 @@ class PledgeIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.pledges.pledge-index');
     }

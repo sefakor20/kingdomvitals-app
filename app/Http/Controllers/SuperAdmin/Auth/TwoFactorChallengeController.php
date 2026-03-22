@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 
 class TwoFactorChallengeController extends Controller
 {
@@ -103,7 +104,7 @@ class TwoFactorChallengeController extends Controller
      */
     private function verifyTwoFactorCode(SuperAdmin $superAdmin, string $code): bool
     {
-        return app(\Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider::class)
+        return app(TwoFactorAuthenticationProvider::class)
             ->verify(decrypt($superAdmin->two_factor_secret), $code);
     }
 

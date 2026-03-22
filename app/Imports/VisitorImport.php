@@ -6,6 +6,7 @@ namespace App\Imports;
 
 use App\Enums\VisitorStatus;
 use App\Models\Tenant\Visitor;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -16,6 +17,7 @@ use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class VisitorImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, WithBatchInserts, WithChunkReading, WithHeadingRow, WithValidation
 {
@@ -170,12 +172,12 @@ class VisitorImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, Wit
 
         // Handle Excel numeric date format
         if (is_numeric($value)) {
-            return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((int) $value)->format('Y-m-d');
+            return Date::excelToDateTimeObject((int) $value)->format('Y-m-d');
         }
 
         // Try to parse as date string
         try {
-            return \Carbon\Carbon::parse($value)->format('Y-m-d');
+            return Carbon::parse($value)->format('Y-m-d');
         } catch (\Exception) {
             return null;
         }

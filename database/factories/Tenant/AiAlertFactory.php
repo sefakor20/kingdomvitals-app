@@ -11,7 +11,7 @@ use App\Models\Tenant\Member;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\AiAlert>
+ * @extends Factory<AiAlert>
  */
 class AiAlertFactory extends Factory
 {

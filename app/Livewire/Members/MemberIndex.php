@@ -16,6 +16,8 @@ use App\Models\Tenant\Member;
 use App\Services\ImageProcessingService;
 use App\Services\PlanAccessService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
@@ -667,7 +669,7 @@ class MemberIndex extends Component
 
     public function removePhoto(): void
     {
-        if ($this->editingMember instanceof \App\Models\Tenant\Member) {
+        if ($this->editingMember instanceof Member) {
             $this->authorize('update', $this->editingMember);
             $this->deleteOldPhoto($this->editingMember);
             $this->editingMember->update(['photo_url' => null]);
@@ -734,7 +736,7 @@ class MemberIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.members.member-index');
     }

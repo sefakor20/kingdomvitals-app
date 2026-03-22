@@ -10,11 +10,13 @@ use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
+use App\Models\Tenant\EmailLog;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 
 class PlanAccessService
@@ -37,7 +39,7 @@ class PlanAccessService
     private function getTenant(): ?Tenant
     {
         // If a tenant was explicitly provided via constructor, use it
-        if ($this->tenant instanceof \App\Models\Tenant) {
+        if ($this->tenant instanceof Tenant) {
             return $this->tenant;
         }
 
@@ -49,7 +51,7 @@ class PlanAccessService
      * Get the cache store directly to bypass tenancy's tagging wrapper.
      * The database cache driver doesn't support tags, so we access it directly.
      */
-    private function cache(): \Illuminate\Contracts\Cache\Repository
+    private function cache(): Repository
     {
         return Cache::store(config('cache.default'));
     }
@@ -61,7 +63,7 @@ class PlanAccessService
     {
         $tenant = $this->getTenant();
 
-        if (! $tenant instanceof \App\Models\Tenant) {
+        if (! $tenant instanceof Tenant) {
             return null;
         }
 
@@ -79,7 +81,7 @@ class PlanAccessService
     {
         $plan = $this->getPlan();
 
-        if (! $plan instanceof \App\Models\SubscriptionPlan) {
+        if (! $plan instanceof SubscriptionPlan) {
             return false;
         }
 
@@ -173,7 +175,7 @@ class PlanAccessService
      */
     private function getCount(QuotaType $type): int|float
     {
-        if (! $this->getTenant() instanceof \App\Models\Tenant) {
+        if (! $this->getTenant() instanceof Tenant) {
             return 0;
         }
 
@@ -183,6 +185,9 @@ class PlanAccessService
             QuotaType::Members => Member::count(),
             QuotaType::Branches => Branch::count(),
             QuotaType::Sms => SmsLog::whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count(),
+            QuotaType::Email => EmailLog::whereMonth('created_at', now()->month)
                 ->whereYear('created_at', now()->year)
                 ->count(),
             QuotaType::Storage => $this->calculateStorageUsed(),
@@ -275,6 +280,24 @@ class PlanAccessService
     public function canSendSms(int $count = 1): bool
     {
         return $this->canCreate(QuotaType::Sms, $count);
+    }
+
+    /**
+     * Get email quota information for current month.
+     *
+     * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
+     */
+    public function getEmailQuota(): array
+    {
+        return $this->getQuota(QuotaType::Email);
+    }
+
+    /**
+     * Check if email can be sent (has remaining credits).
+     */
+    public function canSendEmail(int $count = 1): bool
+    {
+        return $this->canCreate(QuotaType::Email, $count);
     }
 
     /**
@@ -437,7 +460,7 @@ class PlanAccessService
      */
     public function clearCache(): void
     {
-        if ($this->getTenant() instanceof \App\Models\Tenant) {
+        if ($this->getTenant() instanceof Tenant) {
             $this->cache()->forget("tenant:{$this->getTenant()->id}:subscription_plan");
 
             foreach (QuotaType::cases() as $type) {
@@ -451,7 +474,7 @@ class PlanAccessService
      */
     public function invalidateCountCache(QuotaType|string $type): void
     {
-        if (! $this->getTenant() instanceof \App\Models\Tenant) {
+        if (! $this->getTenant() instanceof Tenant) {
             return;
         }
 

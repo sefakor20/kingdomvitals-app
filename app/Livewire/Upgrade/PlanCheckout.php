@@ -10,6 +10,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\SystemSetting;
 use App\Services\PlatformPaystackService;
 use App\Services\TenantUpgradeService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -186,7 +188,7 @@ class PlanCheckout extends Component
         $this->errorMessage = 'Payment was cancelled. You can try again when ready.';
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.upgrade.plan-checkout');
     }

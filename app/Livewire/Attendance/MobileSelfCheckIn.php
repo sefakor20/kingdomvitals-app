@@ -9,6 +9,8 @@ use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Services\QrCodeService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -42,7 +44,7 @@ class MobileSelfCheckIn extends Component
     #[Computed]
     public function qrCodeSvg(): ?string
     {
-        if (! $this->member instanceof \App\Models\Tenant\Member) {
+        if (! $this->member instanceof Member) {
             return null;
         }
 
@@ -85,7 +87,7 @@ class MobileSelfCheckIn extends Component
         $this->errorMessage = null;
         $this->showSuccess = false;
 
-        if (! $this->member instanceof \App\Models\Tenant\Member) {
+        if (! $this->member instanceof Member) {
             $this->errorMessage = __('Invalid member token.');
 
             return;
@@ -138,7 +140,7 @@ class MobileSelfCheckIn extends Component
 
     public function regenerateQrCode(): void
     {
-        if (! $this->member instanceof \App\Models\Tenant\Member) {
+        if (! $this->member instanceof Member) {
             return;
         }
 
@@ -149,7 +151,7 @@ class MobileSelfCheckIn extends Component
         unset($this->qrCodeSvg);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.attendance.mobile-self-check-in');
     }

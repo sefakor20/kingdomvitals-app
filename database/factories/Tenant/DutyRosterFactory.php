@@ -7,7 +7,7 @@ use App\Models\Tenant\DutyRoster;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\DutyRoster>
+ * @extends Factory<DutyRoster>
  */
 class DutyRosterFactory extends Factory
 {

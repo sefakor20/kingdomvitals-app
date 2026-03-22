@@ -2,6 +2,7 @@
 
 namespace App\Models\Tenant;
 
+use App\Enums\EmailEngagementLevel;
 use App\Enums\EmploymentStatus;
 use App\Enums\Gender;
 use App\Enums\HouseholdRole;
@@ -110,6 +111,17 @@ class Member extends Model
         'sms_total_received',
         'sms_total_delivered',
         'sms_engagement_calculated_at',
+        'email_engagement_score',
+        'email_engagement_level',
+        'email_open_rate',
+        'email_click_rate',
+        'email_optimal_send_hour',
+        'email_optimal_send_day',
+        'email_last_engaged_at',
+        'email_total_sent',
+        'email_total_opened',
+        'email_total_clicked',
+        'email_engagement_calculated_at',
         'lifecycle_stage',
         'lifecycle_stage_changed_at',
         'lifecycle_stage_factors',
@@ -152,6 +164,17 @@ class Member extends Model
             'sms_total_received' => 'integer',
             'sms_total_delivered' => 'integer',
             'sms_engagement_calculated_at' => 'datetime',
+            'email_engagement_score' => 'decimal:2',
+            'email_engagement_level' => EmailEngagementLevel::class,
+            'email_open_rate' => 'decimal:2',
+            'email_click_rate' => 'decimal:2',
+            'email_optimal_send_hour' => 'integer',
+            'email_optimal_send_day' => 'integer',
+            'email_last_engaged_at' => 'datetime',
+            'email_total_sent' => 'integer',
+            'email_total_opened' => 'integer',
+            'email_total_clicked' => 'integer',
+            'email_engagement_calculated_at' => 'datetime',
             'lifecycle_stage' => LifecycleStage::class,
             'lifecycle_stage_changed_at' => 'datetime',
             'lifecycle_stage_factors' => 'array',

@@ -18,6 +18,8 @@ use App\Models\Tenant\Member;
 use App\Models\Tenant\PaymentTransaction;
 use App\Models\Tenant\Pledge;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -670,7 +672,7 @@ class FinanceDashboard extends Component
         ];
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.finance.finance-dashboard');
     }

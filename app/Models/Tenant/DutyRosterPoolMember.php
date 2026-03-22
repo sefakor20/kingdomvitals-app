@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use App\Enums\ExperienceLevel;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -46,7 +47,7 @@ class DutyRosterPoolMember extends Pivot
     /**
      * Record an assignment for this pool member.
      */
-    public function recordAssignment(\Carbon\Carbon $date): void
+    public function recordAssignment(Carbon $date): void
     {
         $this->update([
             'last_assigned_date' => $date,

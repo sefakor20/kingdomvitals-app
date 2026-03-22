@@ -9,6 +9,7 @@ use App\Models\Tenant\Budget;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Donation;
 use App\Models\Tenant\DutyRoster;
+use App\Models\Tenant\EmailLog;
 use App\Models\Tenant\Equipment;
 use App\Models\Tenant\Event;
 use App\Models\Tenant\Expense;
@@ -24,6 +25,8 @@ use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\BranchContextService;
 use App\Services\PlanAccessService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -172,6 +175,14 @@ class BranchNavigation extends Component
     }
 
     #[Computed]
+    public function canViewEmail(): bool
+    {
+        return $this->currentBranch &&
+            $this->planAccess->hasModule(PlanModule::Email) &&
+            auth()->user()?->can('viewAny', [EmailLog::class, $this->currentBranch]);
+    }
+
+    #[Computed]
     public function canViewEquipment(): bool
     {
         return $this->currentBranch &&
@@ -257,7 +268,7 @@ class BranchNavigation extends Component
             auth()->user()?->can('viewActivityLogs', $this->currentBranch);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.navigation.branch-navigation');
     }

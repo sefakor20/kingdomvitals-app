@@ -6,6 +6,8 @@ namespace App\Livewire\Settings;
 
 use App\Models\PlatformInvoice;
 use App\Models\PlatformPayment;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -68,7 +70,7 @@ class PaymentHistory extends Component
         return (bool) $this->payments->isNotEmpty();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.settings.payment-history');
     }

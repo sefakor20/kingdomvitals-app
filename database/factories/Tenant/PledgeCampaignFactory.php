@@ -8,7 +8,7 @@ use App\Models\Tenant\PledgeCampaign;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\PledgeCampaign>
+ * @extends Factory<PledgeCampaign>
  */
 class PledgeCampaignFactory extends Factory
 {

@@ -11,6 +11,8 @@ use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
 use App\Services\DonationReceiptService;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -211,7 +213,7 @@ class MemberGivingHistory extends Component
         return app(DonationReceiptService::class)->downloadReceipt($donation);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.giving.member-giving-history');
     }

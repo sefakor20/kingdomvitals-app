@@ -2,6 +2,18 @@
 
 namespace App\Enums;
 
+use App\Models\Tenant\Cluster;
+use App\Models\Tenant\Donation;
+use App\Models\Tenant\Equipment;
+use App\Models\Tenant\Event;
+use App\Models\Tenant\EventRegistration;
+use App\Models\Tenant\Expense;
+use App\Models\Tenant\Member;
+use App\Models\Tenant\Pledge;
+use App\Models\Tenant\Service;
+use App\Models\Tenant\Visitor;
+use App\Models\User;
+
 enum SubjectType: string
 {
     case Member = 'member';
@@ -53,17 +65,17 @@ enum SubjectType: string
     public function modelClass(): string
     {
         return match ($this) {
-            self::Member => \App\Models\Tenant\Member::class,
-            self::Donation => \App\Models\Tenant\Donation::class,
-            self::Visitor => \App\Models\Tenant\Visitor::class,
-            self::Expense => \App\Models\Tenant\Expense::class,
-            self::Pledge => \App\Models\Tenant\Pledge::class,
-            self::Equipment => \App\Models\Tenant\Equipment::class,
-            self::Cluster => \App\Models\Tenant\Cluster::class,
-            self::Service => \App\Models\Tenant\Service::class,
-            self::User => \App\Models\User::class,
-            self::Event => \App\Models\Tenant\Event::class,
-            self::EventRegistration => \App\Models\Tenant\EventRegistration::class,
+            self::Member => Member::class,
+            self::Donation => Donation::class,
+            self::Visitor => Visitor::class,
+            self::Expense => Expense::class,
+            self::Pledge => Pledge::class,
+            self::Equipment => Equipment::class,
+            self::Cluster => Cluster::class,
+            self::Service => Service::class,
+            self::User => User::class,
+            self::Event => Event::class,
+            self::EventRegistration => EventRegistration::class,
         };
     }
 }

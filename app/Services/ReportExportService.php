@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exports\GenericReportExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
@@ -43,7 +44,7 @@ class ReportExportService
      */
     public function exportToExcel(Collection $data, array $headers, string $filename): StreamedResponse
     {
-        $export = new \App\Exports\GenericReportExport($data, $headers);
+        $export = new GenericReportExport($data, $headers);
 
         return Excel::download($export, $filename);
     }

@@ -9,6 +9,9 @@ use App\Livewire\Concerns\HasReportFilters;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Service;
+use Carbon\Carbon;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -133,7 +136,7 @@ class ServiceWiseAttendance extends Component
         }
 
         return [
-            'labels' => $dates->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): string => \Carbon\Carbon::parse($d)->format('M d'))->toArray(),
+            'labels' => $dates->map(fn (\DateTimeInterface|\Carbon\WeekDay|\Carbon\Month|string|int|float|null $d): string => Carbon::parse($d)->format('M d'))->toArray(),
             'datasets' => array_slice($datasets, 0, 5), // Limit to top 5 services
         ];
     }
@@ -189,7 +192,7 @@ class ServiceWiseAttendance extends Component
         ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.attendance.service-wise-attendance');
     }

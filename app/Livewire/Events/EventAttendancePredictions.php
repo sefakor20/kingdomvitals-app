@@ -9,6 +9,8 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Event;
 use App\Models\Tenant\EventAttendancePrediction;
 use App\Services\AI\EventPredictionService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -111,7 +113,7 @@ class EventAttendancePredictions extends Component
     }
 
     #[Computed]
-    public function predictions(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function predictions(): LengthAwarePaginator
     {
         $query = EventAttendancePrediction::query()
             ->where('event_id', $this->event->id)
@@ -183,7 +185,7 @@ class EventAttendancePredictions extends Component
         return app(EventPredictionService::class)->isEnabled();
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.events.event-attendance-predictions');
     }

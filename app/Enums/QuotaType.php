@@ -9,6 +9,7 @@ enum QuotaType: string
     case Members = 'members';
     case Branches = 'branches';
     case Sms = 'sms';
+    case Email = 'email';
     case Storage = 'storage';
     case Households = 'households';
     case Clusters = 'clusters';
@@ -24,6 +25,7 @@ enum QuotaType: string
             self::Members => 'max_members',
             self::Branches => 'max_branches',
             self::Sms => 'sms_credits_monthly',
+            self::Email => 'email_credits_monthly',
             self::Storage => 'storage_quota_gb',
             self::Households => 'max_households',
             self::Clusters => 'max_clusters',
@@ -39,6 +41,7 @@ enum QuotaType: string
     {
         return match ($this) {
             self::Sms => 'sms_sent_'.now()->format('Y-m'),
+            self::Email => 'email_sent_'.now()->format('Y-m'),
             self::Storage => 'storage_used',
             self::Members => 'member_count',
             self::Branches => 'branch_count',
@@ -55,7 +58,7 @@ enum QuotaType: string
     public function currentKey(): string
     {
         return match ($this) {
-            self::Sms => 'sent',
+            self::Sms, self::Email => 'sent',
             self::Storage => 'used',
             default => 'current',
         };
@@ -70,6 +73,7 @@ enum QuotaType: string
             self::Members => 'hasUnlimitedMembers',
             self::Branches => 'hasUnlimitedBranches',
             self::Sms => 'hasUnlimitedSms',
+            self::Email => 'hasUnlimitedEmail',
             self::Storage => 'hasUnlimitedStorage',
             self::Households => 'hasUnlimitedHouseholds',
             self::Clusters => 'hasUnlimitedClusters',
@@ -87,6 +91,7 @@ enum QuotaType: string
             self::Members => 'Members',
             self::Branches => 'Branches',
             self::Sms => 'SMS Credits',
+            self::Email => 'Email Credits',
             self::Storage => 'Storage',
             self::Households => 'Households',
             self::Clusters => 'Clusters',

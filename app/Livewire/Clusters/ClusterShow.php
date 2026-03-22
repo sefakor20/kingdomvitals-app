@@ -7,6 +7,8 @@ use App\Enums\ClusterType;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -289,7 +291,7 @@ class ClusterShow extends Component
         $this->redirect(route('clusters.index', $this->branch), navigate: true);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.clusters.cluster-show');
     }

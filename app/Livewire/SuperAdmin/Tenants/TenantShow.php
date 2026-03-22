@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\TenantAdminInvitationNotification;
 use App\Services\TenantImpersonationService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
@@ -62,10 +63,10 @@ class TenantShow extends Component
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, User>
+     * @return Collection<int, User>
      */
     #[Computed]
-    public function tenantUsers(): \Illuminate\Support\Collection
+    public function tenantUsers(): Collection
     {
         return $this->tenant->run(fn () => User::all());
     }

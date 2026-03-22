@@ -13,6 +13,8 @@ use App\Models\Tenant\Service;
 use App\Models\Tenant\Visitor;
 use App\Services\FamilyCheckInService;
 use App\Services\QrCodeService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -412,7 +414,7 @@ class LiveCheckIn extends Component
         $this->dispatch('check-out-success', name: $name);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.attendance.live-check-in');
     }

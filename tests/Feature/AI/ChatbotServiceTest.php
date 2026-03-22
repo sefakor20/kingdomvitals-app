@@ -16,6 +16,7 @@ use App\Services\AI\Chatbot\EventsHandler;
 use App\Services\AI\Chatbot\GivingHistoryHandler;
 use App\Services\AI\Chatbot\PrayerRequestHandler;
 use App\Services\AI\ChatbotService;
+use Illuminate\Support\Str;
 use Tests\TenantTestCase;
 
 uses(TenantTestCase::class);
@@ -184,7 +185,7 @@ it('classifies cluster info intent', function (): void {
 
     // Attach member to cluster
     $member->clusters()->attach($cluster->id, [
-        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'id' => Str::uuid()->toString(),
         'role' => 'member',
         'joined_at' => now(),
     ]);

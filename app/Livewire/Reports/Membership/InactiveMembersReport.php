@@ -8,7 +8,10 @@ use App\Livewire\Concerns\HasReportExport;
 use App\Models\Tenant\Attendance;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -160,8 +163,8 @@ class InactiveMembersReport extends Component
             ->orderByRaw('last_attendance IS NULL DESC, last_attendance ASC')
             ->get()
             ->map(function ($member): array {
-                $lastAttendance = $member->last_attendance ? \Carbon\Carbon::parse($member->last_attendance) : null;
-                $daysInactive = $lastAttendance instanceof \Carbon\Carbon ? $lastAttendance->diffInDays(now()) : 'Never attended';
+                $lastAttendance = $member->last_attendance ? Carbon::parse($member->last_attendance) : null;
+                $daysInactive = $lastAttendance instanceof Carbon ? $lastAttendance->diffInDays(now()) : 'Never attended';
 
                 return [
                     $member->fullName(),
@@ -174,7 +177,7 @@ class InactiveMembersReport extends Component
             });
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.membership.inactive-members-report');
     }

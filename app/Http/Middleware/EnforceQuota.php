@@ -18,7 +18,7 @@ class EnforceQuota
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      * @param  string  $quotaType  'members', 'branches', or 'sms'
      */
     public function handle(Request $request, Closure $next, string $quotaType): Response

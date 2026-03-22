@@ -8,6 +8,8 @@ use App\Models\Tenant\DutyRoster;
 use App\Models\Tenant\DutyRosterPool;
 use App\Models\Tenant\Service;
 use App\Services\DutyRosterGenerationService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -223,7 +225,7 @@ class DutyRosterGenerationWizard extends Component
         $this->step = 1;
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.duty-rosters.duty-roster-generation-wizard');
     }

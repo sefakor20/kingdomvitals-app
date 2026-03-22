@@ -10,6 +10,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Services\AI\DTOs\GivingCapacityAssessment;
+use App\Services\AI\DTOs\GivingTrend;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -194,7 +195,7 @@ class GivingCapacityService
      *
      * @return array{trend: string, growth_rate: float, consistency: float, description: string}
      */
-    protected function calculateTrajectoryFactor(\App\Services\AI\DTOs\GivingTrend $trend): array
+    protected function calculateTrajectoryFactor(GivingTrend $trend): array
     {
         return [
             'trend' => $trend->trend,

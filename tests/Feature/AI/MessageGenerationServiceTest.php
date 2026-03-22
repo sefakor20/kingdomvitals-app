@@ -222,7 +222,7 @@ describe('Visitor Follow-up Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI service unavailable'));
+            ->andThrow(new Exception('AI service unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateVisitorFollowUp($visitor, FollowUpType::Sms);
@@ -389,7 +389,7 @@ describe('Member Re-engagement Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI service unavailable'));
+            ->andThrow(new Exception('AI service unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateMemberReengagement($member, FollowUpType::Sms);
@@ -484,7 +484,7 @@ describe('Template Fallback Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI unavailable'));
+            ->andThrow(new Exception('AI unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateVisitorFollowUp($visitor, FollowUpType::Sms);
@@ -511,7 +511,7 @@ describe('Template Fallback Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI unavailable'));
+            ->andThrow(new Exception('AI unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateVisitorFollowUp($visitor, FollowUpType::Sms);
@@ -529,7 +529,7 @@ describe('Template Fallback Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI unavailable'));
+            ->andThrow(new Exception('AI unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateMemberReengagement($member, FollowUpType::Sms);
@@ -548,7 +548,7 @@ describe('Template Fallback Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI unavailable'));
+            ->andThrow(new Exception('AI unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateMemberReengagement($member, FollowUpType::Sms);
@@ -566,7 +566,7 @@ describe('Template Fallback Messages', function (): void {
         $aiService = Mockery::mock(AiService::class);
         $aiService->shouldReceive('generateWithFallback')
             ->once()
-            ->andThrow(new \Exception('AI unavailable'));
+            ->andThrow(new Exception('AI unavailable'));
 
         $service = new MessageGenerationService($aiService);
         $result = $service->generateMemberReengagement($member, FollowUpType::Sms);

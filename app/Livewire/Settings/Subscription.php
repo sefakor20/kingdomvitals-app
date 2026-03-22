@@ -8,6 +8,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\PlanAccessService;
 use Flux\Flux;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -207,7 +209,7 @@ class Subscription extends Component
         Flux::toast(__('Your subscription has been reactivated.'));
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.settings.subscription');
     }

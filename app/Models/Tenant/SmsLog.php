@@ -4,6 +4,7 @@ namespace App\Models\Tenant;
 
 use App\Enums\SmsStatus;
 use App\Enums\SmsType;
+use App\Models\User;
 use Database\Factories\Tenant\SmsLogFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -65,6 +66,6 @@ class SmsLog extends Model
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'sent_by');
+        return $this->belongsTo(User::class, 'sent_by');
     }
 }

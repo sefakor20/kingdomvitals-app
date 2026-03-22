@@ -7,6 +7,8 @@ namespace App\Livewire\Branches;
 use App\Enums\AiAlertType;
 use App\Models\Tenant\AiAlertSetting;
 use App\Models\Tenant\Branch;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -172,7 +174,7 @@ class AlertSettings extends Component
         ];
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.branches.alert-settings');
     }

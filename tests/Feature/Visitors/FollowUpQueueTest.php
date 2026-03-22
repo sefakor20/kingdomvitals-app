@@ -13,6 +13,7 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Models\User;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use Tests\TenantTestCase;
@@ -31,7 +32,7 @@ beforeEach(function (): void {
         'enabled_modules' => ['visitors', 'members'],
     ]);    // Clear cached plan data
     Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
+    app()->forgetInstance(PlanAccessService::class);
     $this->branch = Branch::factory()->main()->create();
     $this->visitor = Visitor::factory()->create(['branch_id' => $this->branch->id]);
 

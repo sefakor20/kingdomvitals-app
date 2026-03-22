@@ -123,7 +123,7 @@ readonly class RosterOptimizationResult
 
         $alternativesArray = [];
         foreach ($this->alternatives as $role => $scores) {
-            $alternativesArray[$role] = array_map(fn (\App\Services\AI\DTOs\MemberSuitabilityScore $s): array => $s->toArray(), $scores);
+            $alternativesArray[$role] = array_map(fn (MemberSuitabilityScore $s): array => $s->toArray(), $scores);
         }
 
         return [

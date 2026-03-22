@@ -85,7 +85,7 @@ class DutyRosterGenerationService
         ?Collection $unavailableMemberIds = null
     ): ?Member {
         // Get unavailable member IDs for this date if not provided
-        if (! $unavailableMemberIds instanceof \Illuminate\Support\Collection) {
+        if (! $unavailableMemberIds instanceof Collection) {
             $unavailableMemberIds = MemberUnavailability::query()
                 ->where('branch_id', $pool->branch_id)
                 ->whereDate('unavailable_date', $date)
@@ -331,7 +331,7 @@ class DutyRosterGenerationService
 
                 if ($preacherPool) {
                     $preacher = $this->getNextAvailableMember($preacherPool, $date, $unavailableMemberIds);
-                    if ($preacher instanceof \App\Models\Tenant\Member) {
+                    if ($preacher instanceof Member) {
                         $preacherId = $preacher->id;
                         $this->recordAssignment($preacherPool, $preacher->id, $date);
                     }
@@ -339,7 +339,7 @@ class DutyRosterGenerationService
 
                 if ($liturgistPool) {
                     $liturgist = $this->getNextAvailableMember($liturgistPool, $date, $unavailableMemberIds);
-                    if ($liturgist instanceof \App\Models\Tenant\Member) {
+                    if ($liturgist instanceof Member) {
                         $liturgistId = $liturgist->id;
                         $this->recordAssignment($liturgistPool, $liturgist->id, $date);
                     }
@@ -359,7 +359,7 @@ class DutyRosterGenerationService
                 // If we have a reader pool, add a scripture reading with the reader assigned
                 if ($readerPool) {
                     $reader = $this->getNextAvailableMember($readerPool, $date, $unavailableMemberIds);
-                    if ($reader instanceof \App\Models\Tenant\Member) {
+                    if ($reader instanceof Member) {
                         $this->recordAssignment($readerPool, $reader->id, $date);
                         // Note: Scripture readings would need to be added separately
                         // as they require reference and reading_type

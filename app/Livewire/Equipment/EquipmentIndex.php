@@ -16,6 +16,9 @@ use App\Models\Tenant\Equipment;
 use App\Models\Tenant\EquipmentCheckout;
 use App\Models\Tenant\Member;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -269,7 +272,7 @@ class EquipmentIndex extends Component
     /**
      * Apply enum filter with explicit table prefix.
      */
-    private function applyEnumFilterForTable(\Illuminate\Database\Eloquent\Builder $query, string $property, string $column): void
+    private function applyEnumFilterForTable(Builder $query, string $property, string $column): void
     {
         if ($this->isFilterActive($this->{$property})) {
             $query->where($column, $this->{$property});
@@ -671,7 +674,7 @@ class EquipmentIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.equipment.equipment-index');
     }

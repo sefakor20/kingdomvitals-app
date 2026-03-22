@@ -7,6 +7,8 @@ namespace App\Livewire\Reports\Membership;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -232,7 +234,7 @@ class MemberGrowthTrends extends Component
         ])->values();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.membership.member-growth-trends');
     }

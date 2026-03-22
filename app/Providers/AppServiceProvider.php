@@ -53,6 +53,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -111,7 +113,7 @@ class AppServiceProvider extends ServiceProvider
             return Route::post('/livewire/update', $handle)
                 ->middleware([
                     'web',
-                    \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+                    InitializeTenancyByDomain::class,
                 ]);
         });
 
@@ -135,7 +137,7 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configurePreventAccessFromCentralDomains(): void
     {
-        \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
+        PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
             $currentHost = $request->getHost();
             $superadminDomain = config('app.superadmin_domain', 'admin.localhost');
 
@@ -158,7 +160,7 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureInitializeTenancyByDomainOnFail(): void
     {
-        \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::$onFail = function ($exception, $request, $next) {
+        InitializeTenancyByDomain::$onFail = function ($exception, $request, $next) {
             $centralDomains = config('tenancy.central_domains', []);
 
             // If this is a central domain, continue without tenancy

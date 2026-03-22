@@ -128,7 +128,7 @@ class RecurringExpense extends Model
             default => null,
         };
 
-        if ($nextDate instanceof \Carbon\Carbon && $this->end_date !== null && $nextDate->gt($this->end_date)) {
+        if ($nextDate instanceof Carbon && $this->end_date !== null && $nextDate->gt($this->end_date)) {
             return null;
         }
 
@@ -209,7 +209,7 @@ class RecurringExpense extends Model
         ]);
 
         // Mark as completed if no more dates
-        if (! $nextDate instanceof \Carbon\Carbon) {
+        if (! $nextDate instanceof Carbon) {
             $this->update(['status' => RecurringExpenseStatus::Completed]);
         }
 

@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Livewire\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 trait HasFilterableQuery
 {
     /**
      * Apply a search filter across multiple fields.
      *
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
+     * @param  Builder<Model>  $query
      * @param  array<string>  $fields
-     * @return Builder<\Illuminate\Database\Eloquent\Model>
+     * @return Builder<Model>
      */
     protected function applySearch(Builder $query, array $fields): Builder
     {
@@ -33,8 +34,8 @@ trait HasFilterableQuery
     /**
      * Apply an enum/status filter.
      *
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
-     * @return Builder<\Illuminate\Database\Eloquent\Model>
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     protected function applyEnumFilter(Builder $query, string $filterProperty, string $column): Builder
     {
@@ -54,8 +55,8 @@ trait HasFilterableQuery
     /**
      * Apply a boolean toggle filter (converts string to boolean).
      *
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
-     * @return Builder<\Illuminate\Database\Eloquent\Model>
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     protected function applyBooleanFilter(Builder $query, string $filterProperty, string $column, string $trueValue): Builder
     {
@@ -75,8 +76,8 @@ trait HasFilterableQuery
     /**
      * Apply date range filters.
      *
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
-     * @return Builder<\Illuminate\Database\Eloquent\Model>
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     protected function applyDateRange(Builder $query, string $column, ?string $dateFrom = null, ?string $dateTo = null): Builder
     {

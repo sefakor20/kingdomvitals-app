@@ -8,6 +8,8 @@ use App\Enums\HouseholdRole;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -164,7 +166,7 @@ class HouseholdShow extends Component
     {
         $this->authorize('update', $this->household);
 
-        if (! $this->editingMember instanceof \App\Models\Tenant\Member) {
+        if (! $this->editingMember instanceof Member) {
             return;
         }
 
@@ -211,7 +213,7 @@ class HouseholdShow extends Component
     {
         $this->authorize('update', $this->household);
 
-        if (! $this->removingMember instanceof \App\Models\Tenant\Member) {
+        if (! $this->removingMember instanceof Member) {
             return;
         }
 
@@ -237,7 +239,7 @@ class HouseholdShow extends Component
         $this->removingMember = null;
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.households.household-show');
     }

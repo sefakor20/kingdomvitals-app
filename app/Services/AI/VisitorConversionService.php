@@ -7,6 +7,7 @@ namespace App\Services\AI;
 use App\Models\Tenant\Visitor;
 use App\Services\AI\DTOs\ConversionPrediction;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class VisitorConversionService
 {
@@ -146,10 +147,10 @@ class VisitorConversionService
     /**
      * Bulk calculate scores for multiple visitors.
      *
-     * @param  \Illuminate\Support\Collection<Visitor>  $visitors
-     * @return \Illuminate\Support\Collection<ConversionPrediction>
+     * @param  Collection<Visitor>  $visitors
+     * @return Collection<ConversionPrediction>
      */
-    public function calculateScoresForMany($visitors): \Illuminate\Support\Collection
+    public function calculateScoresForMany($visitors): Collection
     {
         // Eager load relationships to prevent N+1 queries
         $visitors->load(['attendance', 'followUps']);

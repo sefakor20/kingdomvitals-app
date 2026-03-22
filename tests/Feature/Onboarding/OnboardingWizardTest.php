@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureOnboardingComplete;
 use App\Livewire\Onboarding\OnboardingWizard;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\BranchUserInvitation;
@@ -8,6 +9,9 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Notifications\BranchUserInvitationNotification;
 use App\Services\OnboardingService;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\TenantTestCase;
@@ -452,24 +456,24 @@ describe('Tenant onboarding methods', function (): void {
 
 describe('EnsureOnboardingComplete middleware', function (): void {
     it('allows guests through', function (): void {
-        $middleware = new \App\Http\Middleware\EnsureOnboardingComplete(
+        $middleware = new EnsureOnboardingComplete(
             app(OnboardingService::class)
         );
 
-        $request = \Illuminate\Http\Request::create('/dashboard');
-        $response = $middleware->handle($request, fn ($req): \Illuminate\Http\Response => new \Illuminate\Http\Response('OK'));
+        $request = Request::create('/dashboard');
+        $response = $middleware->handle($request, fn ($req): Response => new Response('OK'));
 
         expect($response->getContent())->toBe('OK');
     });
 
     it('returns expected response for onboarding routes', function (): void {
-        $middleware = new \App\Http\Middleware\EnsureOnboardingComplete(
+        $middleware = new EnsureOnboardingComplete(
             app(OnboardingService::class)
         );
 
-        $request = \Illuminate\Http\Request::create('/onboarding');
-        $request->setRouteResolver(function (): \Illuminate\Routing\Route {
-            $route = new \Illuminate\Routing\Route('GET', '/onboarding', []);
+        $request = Request::create('/onboarding');
+        $request->setRouteResolver(function (): Route {
+            $route = new Route('GET', '/onboarding', []);
             $route->name('onboarding.index');
 
             return $route;
@@ -477,7 +481,7 @@ describe('EnsureOnboardingComplete middleware', function (): void {
 
         auth()->login($this->user);
 
-        $response = $middleware->handle($request, fn ($req): \Illuminate\Http\Response => new \Illuminate\Http\Response('OK'));
+        $response = $middleware->handle($request, fn ($req): Response => new Response('OK'));
 
         expect($response->getContent())->toBe('OK');
     });

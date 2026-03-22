@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\BranchRole;
+use App\Enums\PlanModule;
 use App\Enums\SupportLevel;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant\Branch;
@@ -168,8 +169,8 @@ it('returns enabled modules from plan', function (): void {
     $service = new PlanAccessService($this->tenant);
 
     expect($service->getPlan()->enabled_modules)->toBe(['members', 'donations', 'attendance', 'sms']);
-    expect($service->hasModule(\App\Enums\PlanModule::Members))->toBeTrue();
-    expect($service->hasModule(\App\Enums\PlanModule::Donations))->toBeTrue();
+    expect($service->hasModule(PlanModule::Members))->toBeTrue();
+    expect($service->hasModule(PlanModule::Donations))->toBeTrue();
 });
 
 it('returns features from plan', function (): void {
@@ -205,9 +206,9 @@ it('returns empty modules when plan has null enabled_modules', function (): void
     $service = new PlanAccessService($this->tenant);
 
     // When enabled_modules is null, hasModule returns true for all modules
-    expect($service->hasModule(\App\Enums\PlanModule::Members))->toBeTrue();
-    expect($service->hasModule(\App\Enums\PlanModule::Sms))->toBeTrue();
-    expect($service->hasModule(\App\Enums\PlanModule::Reports))->toBeTrue();
+    expect($service->hasModule(PlanModule::Members))->toBeTrue();
+    expect($service->hasModule(PlanModule::Sms))->toBeTrue();
+    expect($service->hasModule(PlanModule::Reports))->toBeTrue();
 });
 
 it('returns empty features when plan has null features', function (): void {

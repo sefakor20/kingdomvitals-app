@@ -9,6 +9,8 @@ use App\Livewire\Concerns\HasReportFilters;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -161,7 +163,7 @@ class NewMembersReport extends Component
             ]);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.reports.membership.new-members-report');
     }

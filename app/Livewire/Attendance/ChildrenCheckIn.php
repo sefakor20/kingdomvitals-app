@@ -10,6 +10,8 @@ use App\Models\Tenant\ChildrenCheckinSecurity;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Service;
 use App\Services\FamilyCheckInService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -219,7 +221,7 @@ class ChildrenCheckIn extends Component
 
     public function confirmCheckout(): void
     {
-        if (! $this->checkoutRecord instanceof \App\Models\Tenant\ChildrenCheckinSecurity) {
+        if (! $this->checkoutRecord instanceof ChildrenCheckinSecurity) {
             return;
         }
 
@@ -249,7 +251,7 @@ class ChildrenCheckIn extends Component
             ->exists();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.attendance.children-check-in');
     }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\BranchRole;
+use App\Livewire\Auth\AcceptBranchInvitation;
 use App\Livewire\Users\BranchUserIndex;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\UserBranchAccess;
@@ -16,12 +17,12 @@ beforeEach(function (): void {
 
     // Register tenant routes for testing
     Route::middleware(['web', 'auth', 'onboarding.complete'])->group(function (): void {
-        Route::get('/branches/{branch}/users', \App\Livewire\Users\BranchUserIndex::class)
+        Route::get('/branches/{branch}/users', BranchUserIndex::class)
             ->name('branches.users.index');
     });
 
     Route::middleware(['web'])->group(function (): void {
-        Route::get('/invitations/{token}/accept', \App\Livewire\Auth\AcceptBranchInvitation::class)
+        Route::get('/invitations/{token}/accept', AcceptBranchInvitation::class)
             ->name('invitations.accept')
             ->middleware('guest');
     });

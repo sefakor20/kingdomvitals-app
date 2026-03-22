@@ -15,9 +15,12 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PrayerRequest;
+use App\Models\User;
 use App\Notifications\PrayerRequestSubmittedNotification;
 use App\Services\PlanAccessService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -305,7 +308,7 @@ class PrayerRequestIndex extends Component
             $leader = $prayerRequest->cluster->leader;
             if ($leader && $leader->email) {
                 // Find user associated with leader for notification
-                $leaderUser = \App\Models\User::where('email', $leader->email)->first();
+                $leaderUser = User::where('email', $leader->email)->first();
                 if ($leaderUser) {
                     $leaderUser->notify(new PrayerRequestSubmittedNotification($prayerRequest));
                 }
@@ -467,7 +470,7 @@ class PrayerRequestIndex extends Component
         $this->resetValidation();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.prayer-requests.prayer-request-index');
     }

@@ -7,6 +7,8 @@ namespace App\Livewire\Members;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
 use App\Services\QrCodeService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -33,7 +35,7 @@ class MemberQrPrint extends Component
         return app(QrCodeService::class)->generateQrCodeSvg($token, 64);
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.members.member-qr-print');
     }

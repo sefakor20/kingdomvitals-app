@@ -8,7 +8,7 @@ use App\Models\Tenant\Budget;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\Budget>
+ * @extends Factory<Budget>
  */
 class BudgetFactory extends Factory
 {

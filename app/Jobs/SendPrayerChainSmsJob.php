@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
@@ -160,9 +161,9 @@ class SendPrayerChainSmsJob implements ShouldQueue
     /**
      * Get members eligible to receive the prayer chain SMS.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Member>
+     * @return Collection<int, Member>
      */
-    protected function getEligibleMembers(PrayerRequest $prayerRequest): \Illuminate\Database\Eloquent\Collection
+    protected function getEligibleMembers(PrayerRequest $prayerRequest): Collection
     {
         $query = Member::query()
             ->notOptedOutOfSms()

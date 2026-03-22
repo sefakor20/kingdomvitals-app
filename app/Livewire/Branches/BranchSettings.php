@@ -13,6 +13,8 @@ use App\Services\ImageProcessingService;
 use App\Services\ImageStagingService;
 use App\Services\PaystackService;
 use App\Services\TextTangoService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
@@ -680,7 +682,7 @@ class BranchSettings extends Component
         $this->dispatch('giving-tagline-saved');
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.branches.branch-settings', [
             'currencies' => Currency::options(),

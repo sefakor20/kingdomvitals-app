@@ -13,6 +13,8 @@ use App\Models\Tenant\Equipment;
 use App\Models\Tenant\EquipmentCheckout;
 use App\Models\Tenant\EquipmentMaintenance;
 use App\Models\Tenant\Member;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -476,7 +478,7 @@ class EquipmentShow extends Component
         $this->dispatch('maintenance-cancelled');
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.equipment.equipment-show');
     }

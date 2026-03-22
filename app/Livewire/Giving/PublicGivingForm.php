@@ -13,6 +13,8 @@ use App\Models\Tenant\Donation;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -258,7 +260,7 @@ class PublicGivingForm extends Component
         $this->donationType = 'offering';
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    public function render(): Factory|View
     {
         return view('livewire.giving.public-giving-form');
     }

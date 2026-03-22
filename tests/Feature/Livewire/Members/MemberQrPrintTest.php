@@ -2,6 +2,7 @@
 
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Member;
+use App\Services\PlanAccessService;
 use App\Services\QrCodeService;
 use Illuminate\Support\Facades\Cache;
 use Tests\TenantTestCase;
@@ -13,7 +14,7 @@ beforeEach(function (): void {
 
     // Clear the PlanAccessService cache
     Cache::flush();
-    app()->forgetInstance(\App\Services\PlanAccessService::class);
+    app()->forgetInstance(PlanAccessService::class);
 
     $this->branch = Branch::factory()->main()->create();
 
