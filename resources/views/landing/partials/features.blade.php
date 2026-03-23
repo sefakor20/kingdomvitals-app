@@ -59,7 +59,7 @@
                     </svg>
                 </div>
                 <h3 class="mt-4 text-lg font-medium text-primary">Visitor Engagement</h3>
-                <p class="mt-2 text-sm text-secondary">AI-powered conversion scoring predicts likely members</p>
+                <p class="mt-2 text-sm text-secondary">Manage visitors from first visit to membership with AI conversion insights</p>
             </div>
 
             {{-- Accent Card - Lime background --}}
@@ -87,7 +87,7 @@
                     </svg>
                 </div>
                 <h3 class="mt-4 text-lg font-medium text-primary">Financial Management</h3>
-                <p class="mt-2 text-sm text-secondary">AI-powered giving forecasts and donor insights</p>
+                <p class="mt-2 text-sm text-secondary">Track giving, expenses, and budgets with AI-powered forecasts</p>
             </div>
 
             {{-- Standard Card - Volunteers --}}
