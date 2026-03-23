@@ -64,6 +64,7 @@ use App\Livewire\Member\MemberContactInfo;
 use App\Livewire\Member\MemberDashboard;
 use App\Livewire\Member\MemberEvents;
 use App\Livewire\Member\MemberGiving;
+use App\Livewire\Member\MemberHousehold;
 use App\Livewire\Member\MemberPassword;
 use App\Livewire\Member\MemberPledges;
 use App\Livewire\Member\MemberProfile;
@@ -213,6 +214,7 @@ Route::middleware(['web'])->group(function (): void {
         Route::get('/attendance', MemberAttendance::class)->name('attendance');
         Route::get('/pledges', MemberPledges::class)->name('pledges');
         Route::get('/events', MemberEvents::class)->name('events');
+        Route::get('/household', MemberHousehold::class)->name('household');
     });
 
     // Upgrade required page (auth required but no onboarding check)

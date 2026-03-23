@@ -27,8 +27,8 @@
                     <flux:navlist.item icon="home" :href="route('member.dashboard')" :current="request()->routeIs('member.dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:navlist.item>
-                    <flux:navlist.item icon="cog-6-tooth" :href="route('member.profile')" :current="request()->routeIs('member.profile', 'member.password', 'member.two-factor', 'member.appearance')" wire:navigate>
-                        {{ __('Settings') }}
+                    <flux:navlist.item icon="users" :href="route('member.household')" :current="request()->routeIs('member.household')" wire:navigate>
+                        {{ __('My Household') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
 
