@@ -333,26 +333,13 @@ class VisitorIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        if ($this->isFilterActive($this->search)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->statusFilter)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->convertedFilter)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->dateFrom)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->dateTo)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->assignedMemberFilter)) {
-            return true;
-        }
-
-        return $this->isFilterActive($this->sourceFilter);
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->convertedFilter)
+            || $this->isFilterActive($this->dateFrom)
+            || $this->isFilterActive($this->dateTo)
+            || $this->isFilterActive($this->assignedMemberFilter)
+            || $this->isFilterActive($this->sourceFilter);
     }
 
     #[Computed]
