@@ -13,7 +13,7 @@
         }
         .header {
             text-align: center;
-            border-bottom: 2px solid {{ $branch->color_primary ?? '#3B82F6' }};
+            border-bottom: 2px solid #10B981;
             padding-bottom: 20px;
             margin-bottom: 20px;
         }
@@ -24,7 +24,7 @@
         .church-name {
             font-size: 18px;
             font-weight: bold;
-            color: {{ $branch->color_primary ?? '#3B82F6' }};
+            color: #10B981;
             margin-bottom: 5px;
         }
         .church-contact {
@@ -52,7 +52,7 @@
         }
         .member-info h4 {
             margin: 0 0 8px;
-            color: {{ $branch->color_primary ?? '#3B82F6' }};
+            color: #10B981;
             font-size: 12px;
         }
         .member-info p {
@@ -65,7 +65,7 @@
             margin: 15px 0;
         }
         .donations-table th {
-            background: {{ $branch->color_primary ?? '#3B82F6' }};
+            background: #10B981;
             color: white;
             padding: 8px 10px;
             text-align: left;
@@ -89,13 +89,13 @@
             font-weight: bold;
         }
         .total-row td {
-            border-top: 2px solid {{ $branch->color_primary ?? '#3B82F6' }};
-            border-bottom: 2px solid {{ $branch->color_primary ?? '#3B82F6' }};
+            border-top: 2px solid #10B981;
+            border-bottom: 2px solid #10B981;
             padding: 12px 10px;
             font-size: 12px;
         }
         .total-amount {
-            color: {{ $branch->color_primary ?? '#3B82F6' }};
+            color: #10B981;
             font-size: 14px;
         }
         .no-donations {
@@ -205,6 +205,8 @@
     <div class="footer">
         {{ __('Statement generated on :date', ['date' => now()->format('F j, Y')]) }} |
         {{ $branch->name }}
+        <br>
+        {{ __('Powered by') }} {{ config('app.name') }}
     </div>
 </body>
 </html>
