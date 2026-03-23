@@ -6,6 +6,8 @@ namespace App\Livewire\Visitors;
 
 use App\Enums\BranchRole;
 use App\Enums\FollowUpOutcome;
+use App\Enums\Gender;
+use App\Enums\MembershipStatus;
 use App\Enums\QuotaType;
 use App\Enums\VisitorStatus;
 use App\Exports\VisitorImportTemplateExport;
@@ -20,6 +22,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -117,6 +120,24 @@ class VisitorIndex extends Component
 
     public ?string $convertToMemberId = null;
 
+    // Conversion mode: 'link' or 'create'
+    public string $conversionMode = 'link';
+
+    // New member form fields for create mode
+    public string $newMemberFirstName = '';
+
+    public string $newMemberLastName = '';
+
+    public string $newMemberEmail = '';
+
+    public string $newMemberPhone = '';
+
+    public string $newMemberGender = '';
+
+    public string $newMemberStatus = 'active';
+
+    public ?string $newMemberJoinedAt = null;
+
     public function mount(Branch $branch): void
     {
         $this->authorize('viewAny', [Visitor::class, $branch]);
@@ -207,6 +228,24 @@ class VisitorIndex extends Component
     }
 
     #[Computed]
+    public function genders(): array
+    {
+        return Gender::cases();
+    }
+
+    #[Computed]
+    public function membershipStatuses(): array
+    {
+        return MembershipStatus::cases();
+    }
+
+    #[Computed]
+    public function canCreateMemberWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateMember();
+    }
+
+    #[Computed]
     public function howDidYouHearOptions(): array
     {
         return [
@@ -294,26 +333,13 @@ class VisitorIndex extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        if ($this->isFilterActive($this->search)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->statusFilter)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->convertedFilter)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->dateFrom)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->dateTo)) {
-            return true;
-        }
-        if ($this->isFilterActive($this->assignedMemberFilter)) {
-            return true;
-        }
-
-        return $this->isFilterActive($this->sourceFilter);
+        return $this->isFilterActive($this->search)
+            || $this->isFilterActive($this->statusFilter)
+            || $this->isFilterActive($this->convertedFilter)
+            || $this->isFilterActive($this->dateFrom)
+            || $this->isFilterActive($this->dateTo)
+            || $this->isFilterActive($this->assignedMemberFilter)
+            || $this->isFilterActive($this->sourceFilter);
     }
 
     #[Computed]
@@ -472,7 +498,7 @@ class VisitorIndex extends Component
     {
         $this->authorize('update', $visitor);
         $this->convertingVisitor = $visitor;
-        $this->convertToMemberId = null;
+        $this->resetConversionForm();
         $this->showConvertModal = true;
     }
 
@@ -494,8 +520,93 @@ class VisitorIndex extends Component
 
         $this->showConvertModal = false;
         $this->convertingVisitor = null;
-        $this->convertToMemberId = null;
+        $this->resetConversionForm();
         $this->dispatch('visitor-converted');
+    }
+
+    public function convertAndCreate(): void
+    {
+        $this->authorize('update', $this->convertingVisitor);
+        $this->authorize('create', [Member::class, $this->branch]);
+
+        // Check member quota
+        if (! app(PlanAccessService::class)->canCreateMember()) {
+            $this->addError('newMemberFirstName', __('Member quota exceeded for your plan. Please upgrade to add more members.'));
+
+            return;
+        }
+
+        $validated = $this->validate([
+            'newMemberFirstName' => ['required', 'string', 'max:100'],
+            'newMemberLastName' => ['required', 'string', 'max:100'],
+            'newMemberEmail' => ['nullable', 'email', 'max:255'],
+            'newMemberPhone' => ['nullable', 'string', 'max:20'],
+            'newMemberGender' => ['nullable', 'string', 'in:male,female'],
+            'newMemberStatus' => ['required', 'string', 'in:active,inactive,pending,deceased,transferred'],
+            'newMemberJoinedAt' => ['nullable', 'date'],
+        ]);
+
+        $convertingVisitor = $this->convertingVisitor;
+
+        DB::transaction(function () use ($validated, $convertingVisitor): void {
+            // Create the new member
+            $member = Member::create([
+                'first_name' => $validated['newMemberFirstName'],
+                'last_name' => $validated['newMemberLastName'],
+                'email' => $validated['newMemberEmail'] ?: null,
+                'phone' => $validated['newMemberPhone'] ?: null,
+                'gender' => $validated['newMemberGender'] ?: null,
+                'status' => $validated['newMemberStatus'],
+                'joined_at' => $validated['newMemberJoinedAt'] ?: null,
+                'primary_branch_id' => $this->branch->id,
+            ]);
+
+            // Update visitor as converted
+            $convertingVisitor->update([
+                'status' => VisitorStatus::Converted->value,
+                'is_converted' => true,
+                'converted_member_id' => $member->id,
+            ]);
+        });
+
+        // Invalidate member count cache
+        app(PlanAccessService::class)->invalidateCountCache('members');
+
+        unset($this->visitors); // Clear computed cache
+        unset($this->visitorStats);
+
+        $this->showConvertModal = false;
+        $this->convertingVisitor = null;
+        $this->resetConversionForm();
+        $this->dispatch('visitor-converted-and-created');
+    }
+
+    private function resetConversionForm(): void
+    {
+        $this->conversionMode = 'link';
+        $this->convertToMemberId = null;
+        $this->newMemberFirstName = '';
+        $this->newMemberLastName = '';
+        $this->newMemberEmail = '';
+        $this->newMemberPhone = '';
+        $this->newMemberGender = '';
+        $this->newMemberStatus = 'active';
+        $this->newMemberJoinedAt = null;
+        $this->resetValidation();
+    }
+
+    public function updatedConversionMode(): void
+    {
+        $this->resetValidation();
+
+        // Pre-fill form with visitor data when switching to create mode
+        if ($this->conversionMode === 'create' && $this->convertingVisitor) {
+            $this->newMemberFirstName = $this->convertingVisitor->first_name;
+            $this->newMemberLastName = $this->convertingVisitor->last_name;
+            $this->newMemberEmail = $this->convertingVisitor->email ?? '';
+            $this->newMemberPhone = $this->convertingVisitor->phone ?? '';
+            $this->newMemberJoinedAt = $this->convertingVisitor->visit_date?->format('Y-m-d');
+        }
     }
 
     public function cancelCreate(): void
@@ -521,7 +632,7 @@ class VisitorIndex extends Component
     {
         $this->showConvertModal = false;
         $this->convertingVisitor = null;
-        $this->convertToMemberId = null;
+        $this->resetConversionForm();
     }
 
     // ============================================

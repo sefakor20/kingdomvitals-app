@@ -378,34 +378,119 @@
     </div>
 
     <!-- Convert to Member Modal -->
-    <flux:modal wire:model.self="showConvertModal" name="convert-visitor" class="w-full max-w-md">
+    <flux:modal wire:model.self="showConvertModal" name="convert-visitor" class="w-full max-w-lg">
         <div class="space-y-6">
             <flux:heading size="lg">{{ __('Convert to Member') }}</flux:heading>
 
             <flux:text>
-                {{ __('Link :name to an existing member to mark them as converted.', ['name' => $visitor->fullName()]) }}
+                {{ __('Convert :name to a member by linking to an existing member or creating a new one.', ['name' => $visitor->fullName()]) }}
             </flux:text>
 
-            <form wire:submit="convert" class="space-y-4">
-                <flux:select wire:model="convertToMemberId" :label="__('Select Member')" required>
-                    <flux:select.option value="">{{ __('Select a member...') }}</flux:select.option>
-                    @foreach($this->members as $member)
-                        <flux:select.option value="{{ $member->id }}">
-                            {{ $member->fullName() }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-                @error('convertToMemberId') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+            <!-- Mode Toggle -->
+            <div class="flex rounded-lg border border-zinc-200 dark:border-zinc-700">
+                <button
+                    type="button"
+                    wire:click="$set('conversionMode', 'link')"
+                    class="flex-1 px-4 py-2 text-sm font-medium transition-colors {{ $conversionMode === 'link' ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100' : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800/50' }} rounded-l-lg"
+                >
+                    {{ __('Link Existing') }}
+                </button>
+                <button
+                    type="button"
+                    wire:click="$set('conversionMode', 'create')"
+                    class="flex-1 px-4 py-2 text-sm font-medium transition-colors {{ $conversionMode === 'create' ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100' : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800/50' }} rounded-r-lg"
+                >
+                    {{ __('Create New') }}
+                </button>
+            </div>
 
-                <div class="flex justify-end gap-3 pt-4">
-                    <flux:button variant="ghost" wire:click="cancelConvert" type="button">
-                        {{ __('Cancel') }}
-                    </flux:button>
-                    <flux:button variant="primary" type="submit">
-                        {{ __('Convert to Member') }}
-                    </flux:button>
-                </div>
-            </form>
+            @if($conversionMode === 'link')
+                <!-- Link Existing Member Mode -->
+                <form wire:submit="convert" class="space-y-4">
+                    <flux:select wire:model="convertToMemberId" :label="__('Select Member')" required>
+                        <flux:select.option value="">{{ __('Select a member...') }}</flux:select.option>
+                        @foreach($this->members as $member)
+                            <flux:select.option value="{{ $member->id }}">
+                                {{ $member->fullName() }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    @error('convertToMemberId') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+
+                    <div class="flex justify-end gap-3 pt-4">
+                        <flux:button variant="ghost" wire:click="cancelConvert" type="button">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" type="submit">
+                            {{ __('Convert to Member') }}
+                        </flux:button>
+                    </div>
+                </form>
+            @else
+                <!-- Create New Member Mode -->
+                @if(!$this->canCreateMemberWithinQuota)
+                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                        <div class="flex items-center gap-3">
+                            <flux:icon name="x-circle" class="size-5 text-red-600 dark:text-red-400" />
+                            <div class="flex-1">
+                                <flux:text class="font-medium text-red-800 dark:text-red-200">
+                                    {{ __('Member Limit Reached') }}
+                                </flux:text>
+                                <flux:text class="text-sm text-red-700 dark:text-red-300">
+                                    {{ __('Upgrade your plan to create new members.') }}
+                                </flux:text>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <form wire:submit="convertAndCreate" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <flux:input wire:model="newMemberFirstName" :label="__('First Name')" required />
+                                @error('newMemberFirstName') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
+                            </div>
+                            <div>
+                                <flux:input wire:model="newMemberLastName" :label="__('Last Name')" required />
+                                @error('newMemberLastName') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="newMemberEmail" type="email" :label="__('Email')" />
+                            <flux:input wire:model="newMemberPhone" :label="__('Phone')" />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:select wire:model="newMemberGender" :label="__('Gender')">
+                                <flux:select.option value="">{{ __('Select...') }}</flux:select.option>
+                                @foreach($this->genders as $gender)
+                                    <flux:select.option value="{{ $gender->value }}">
+                                        {{ ucfirst($gender->value) }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:select wire:model="newMemberStatus" :label="__('Status')">
+                                @foreach($this->membershipStatuses as $statusOption)
+                                    <flux:select.option value="{{ $statusOption->value }}">
+                                        {{ ucfirst($statusOption->value) }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+
+                        <flux:input wire:model="newMemberJoinedAt" type="date" :label="__('Joined Date')" />
+
+                        <div class="flex justify-end gap-3 pt-4">
+                            <flux:button variant="ghost" wire:click="cancelConvert" type="button">
+                                {{ __('Cancel') }}
+                            </flux:button>
+                            <flux:button variant="primary" type="submit">
+                                {{ __('Create & Convert') }}
+                            </flux:button>
+                        </div>
+                    </form>
+                @endif
+            @endif
         </div>
     </flux:modal>
 
@@ -613,6 +698,10 @@
 
     <x-toast on="visitor-converted" type="success">
         {{ __('Visitor converted to member successfully.') }}
+    </x-toast>
+
+    <x-toast on="visitor-converted-and-created" type="success">
+        {{ __('New member created and visitor converted successfully.') }}
     </x-toast>
 
     <x-toast on="follow-up-added" type="success">

@@ -6,16 +6,21 @@ namespace App\Livewire\Visitors;
 
 use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
+use App\Enums\Gender;
+use App\Enums\MembershipStatus;
 use App\Enums\VisitorStatus;
+use App\Livewire\Concerns\HasQuotaComputed;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\Visitor;
 use App\Models\Tenant\VisitorFollowUp;
 use App\Services\FollowUpTemplatePlaceholderService;
+use App\Services\PlanAccessService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -23,6 +28,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class VisitorShow extends Component
 {
+    use HasQuotaComputed;
+
     public Branch $branch;
 
     public Visitor $visitor;
@@ -54,6 +61,24 @@ class VisitorShow extends Component
     public bool $showConvertModal = false;
 
     public ?string $convertToMemberId = null;
+
+    // Conversion mode: 'link' or 'create'
+    public string $conversionMode = 'link';
+
+    // New member form fields for create mode
+    public string $newMemberFirstName = '';
+
+    public string $newMemberLastName = '';
+
+    public string $newMemberEmail = '';
+
+    public string $newMemberPhone = '';
+
+    public string $newMemberGender = '';
+
+    public string $newMemberStatus = 'active';
+
+    public ?string $newMemberJoinedAt = null;
 
     // Follow-up modals
     public bool $showAddFollowUpModal = false;
@@ -108,6 +133,24 @@ class VisitorShow extends Component
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
+    }
+
+    #[Computed]
+    public function genders(): array
+    {
+        return Gender::cases();
+    }
+
+    #[Computed]
+    public function membershipStatuses(): array
+    {
+        return MembershipStatus::cases();
+    }
+
+    #[Computed]
+    public function canCreateMemberWithinQuota(): bool
+    {
+        return app(PlanAccessService::class)->canCreateMember();
     }
 
     #[Computed]
@@ -285,14 +328,14 @@ class VisitorShow extends Component
     public function openConvertModal(): void
     {
         $this->authorize('update', $this->visitor);
-        $this->convertToMemberId = null;
+        $this->resetConversionForm();
         $this->showConvertModal = true;
     }
 
     public function cancelConvert(): void
     {
         $this->showConvertModal = false;
-        $this->convertToMemberId = null;
+        $this->resetConversionForm();
     }
 
     public function convert(): void
@@ -311,8 +354,88 @@ class VisitorShow extends Component
 
         $this->visitor->refresh();
         $this->showConvertModal = false;
-        $this->convertToMemberId = null;
+        $this->resetConversionForm();
         $this->dispatch('visitor-converted');
+    }
+
+    public function convertAndCreate(): void
+    {
+        $this->authorize('update', $this->visitor);
+        $this->authorize('create', [Member::class, $this->branch]);
+
+        // Check member quota
+        if (! app(PlanAccessService::class)->canCreateMember()) {
+            $this->addError('newMemberFirstName', __('Member quota exceeded for your plan. Please upgrade to add more members.'));
+
+            return;
+        }
+
+        $validated = $this->validate([
+            'newMemberFirstName' => ['required', 'string', 'max:100'],
+            'newMemberLastName' => ['required', 'string', 'max:100'],
+            'newMemberEmail' => ['nullable', 'email', 'max:255'],
+            'newMemberPhone' => ['nullable', 'string', 'max:20'],
+            'newMemberGender' => ['nullable', 'string', 'in:male,female'],
+            'newMemberStatus' => ['required', 'string', 'in:active,inactive,pending,deceased,transferred'],
+            'newMemberJoinedAt' => ['nullable', 'date'],
+        ]);
+
+        DB::transaction(function () use ($validated): void {
+            // Create the new member
+            $member = Member::create([
+                'first_name' => $validated['newMemberFirstName'],
+                'last_name' => $validated['newMemberLastName'],
+                'email' => $validated['newMemberEmail'] ?: null,
+                'phone' => $validated['newMemberPhone'] ?: null,
+                'gender' => $validated['newMemberGender'] ?: null,
+                'status' => $validated['newMemberStatus'],
+                'joined_at' => $validated['newMemberJoinedAt'] ?: null,
+                'primary_branch_id' => $this->branch->id,
+            ]);
+
+            // Update visitor as converted
+            $this->visitor->update([
+                'status' => VisitorStatus::Converted->value,
+                'is_converted' => true,
+                'converted_member_id' => $member->id,
+            ]);
+        });
+
+        // Invalidate member count cache
+        app(PlanAccessService::class)->invalidateCountCache('members');
+
+        $this->visitor->refresh();
+        $this->showConvertModal = false;
+        $this->resetConversionForm();
+        $this->dispatch('visitor-converted-and-created');
+    }
+
+    private function resetConversionForm(): void
+    {
+        $this->conversionMode = 'link';
+        $this->convertToMemberId = null;
+        $this->newMemberFirstName = '';
+        $this->newMemberLastName = '';
+        $this->newMemberEmail = '';
+        $this->newMemberPhone = '';
+        $this->newMemberGender = '';
+        $this->newMemberStatus = 'active';
+        $this->newMemberJoinedAt = null;
+        $this->resetValidation();
+    }
+
+    public function updatedConversionMode(): void
+    {
+        $this->resetValidation();
+
+        // Pre-fill form with visitor data when switching to create mode
+        if ($this->conversionMode === 'create') {
+            $this->newMemberFirstName = $this->visitor->first_name;
+            $this->newMemberLastName = $this->visitor->last_name;
+            $this->newMemberEmail = $this->visitor->email ?? '';
+            $this->newMemberPhone = $this->visitor->phone ?? '';
+            $this->newMemberJoinedAt = $this->visitor->visit_date?->format('Y-m-d');
+        }
     }
 
     // Follow-up methods
