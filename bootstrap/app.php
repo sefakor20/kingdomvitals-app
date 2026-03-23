@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnforceQuota;
+use App\Http\Middleware\EnsureMemberAccess;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use App\Http\Middleware\SuperAdminAuthenticate;
@@ -48,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'onboarding.complete' => EnsureOnboardingComplete::class,
             'module' => EnsureModuleEnabled::class,
             'quota' => EnforceQuota::class,
+            'member' => EnsureMemberAccess::class,
         ]);
 
         // Exclude webhook routes from CSRF verification

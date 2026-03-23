@@ -11,6 +11,8 @@ use App\Jobs\ProcessMemberPhotoJob;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\Cluster;
 use App\Models\Tenant\Member;
+use App\Models\Tenant\MemberInvitation;
+use App\Notifications\MemberPortalInvitation;
 use App\Services\AI\DTOs\ClusterRecommendation;
 use App\Services\AI\MemberRecommendationService;
 use App\Services\ImageProcessingService;
@@ -110,6 +112,9 @@ class MemberShow extends Component
 
     // QR Code modal
     public bool $showQrModal = false;
+
+    // Portal invitation modal
+    public bool $showPortalInviteModal = false;
 
     public function mount(Branch $branch, Member $member): void
     {
@@ -622,6 +627,70 @@ class MemberShow extends Component
         $this->member->refresh();
 
         $this->dispatch('sms-opt-out-updated');
+    }
+
+    public function openPortalInviteModal(): void
+    {
+        $this->authorize('update', $this->member);
+        $this->showPortalInviteModal = true;
+    }
+
+    public function closePortalInviteModal(): void
+    {
+        $this->showPortalInviteModal = false;
+    }
+
+    public function sendPortalInvitation(): void
+    {
+        $this->authorize('update', $this->member);
+
+        if (! $this->member->email) {
+            $this->dispatch('portal-invite-error', message: __('Member does not have an email address.'));
+            $this->closePortalInviteModal();
+
+            return;
+        }
+
+        if ($this->member->hasPortalAccess()) {
+            $this->dispatch('portal-invite-error', message: __('Member already has portal access.'));
+            $this->closePortalInviteModal();
+
+            return;
+        }
+
+        // Create invitation
+        $invitation = MemberInvitation::createForMember($this->member, auth()->user());
+
+        // Send notification
+        $invitation->notify(new MemberPortalInvitation($invitation));
+
+        $this->dispatch('portal-invitation-sent');
+        $this->closePortalInviteModal();
+    }
+
+    public function resendPortalInvitation(): void
+    {
+        $this->authorize('update', $this->member);
+
+        if (! $this->member->email) {
+            return;
+        }
+
+        // Create new invitation (this deletes any existing pending invitation)
+        $invitation = MemberInvitation::createForMember($this->member, auth()->user());
+
+        // Send notification
+        $invitation->notify(new MemberPortalInvitation($invitation));
+
+        $this->dispatch('portal-invitation-resent');
+    }
+
+    #[Computed]
+    public function pendingPortalInvitation(): ?MemberInvitation
+    {
+        return MemberInvitation::forMember($this->member->id)
+            ->pending()
+            ->first();
     }
 
     public function render(): Factory|View

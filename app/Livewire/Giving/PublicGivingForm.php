@@ -15,6 +15,7 @@ use App\Models\Tenant\PaymentTransaction;
 use App\Services\PaystackService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -51,6 +52,8 @@ class PublicGivingForm extends Component
 
     public ?string $errorMessage = null;
 
+    public ?string $memberId = null;
+
     protected array $presetAmounts = [10, 20, 50, 100, 200, 500];
 
     public function mount(Branch $branch): void
@@ -59,6 +62,26 @@ class PublicGivingForm extends Component
 
         if (! $this->branch->hasPaystackConfigured()) {
             $this->errorMessage = 'Online giving is not configured for this branch. Please contact the church administrator.';
+        }
+
+        $this->prefillMemberDetails();
+    }
+
+    private function prefillMemberDetails(): void
+    {
+        if (! Auth::check()) {
+            return;
+        }
+
+        $member = Member::where('user_id', Auth::id())
+            ->whereNotNull('portal_activated_at')
+            ->first();
+
+        if ($member) {
+            $this->memberId = $member->id;
+            $this->donorName = $member->fullName();
+            $this->donorEmail = $member->email;
+            $this->donorPhone = $member->phone ?? '';
         }
     }
 
@@ -221,7 +244,7 @@ class PublicGivingForm extends Component
 
         $donation = Donation::create([
             'branch_id' => $this->branch->id,
-            'member_id' => $member?->id,
+            'member_id' => $this->memberId ?? $member?->id,
             'amount' => $transaction->amount,
             'currency' => $transaction->currency,
             'donation_type' => $metadata['donation_type'] ?? 'offering',
@@ -253,10 +276,22 @@ class PublicGivingForm extends Component
 
     public function giveAgain(): void
     {
+        // Preserve member info for logged-in members
+        $preserveMemberId = $this->memberId;
+        $preserveName = $this->donorName;
+        $preserveEmail = $this->donorEmail;
+        $preservePhone = $this->donorPhone;
+
         $this->reset([
             'amount', 'donationType', 'isAnonymous', 'isRecurring',
             'recurringInterval', 'notes', 'showThankYou', 'lastDonation', 'errorMessage',
         ]);
+
+        // Restore member info
+        $this->memberId = $preserveMemberId;
+        $this->donorName = $preserveName;
+        $this->donorEmail = $preserveEmail;
+        $this->donorPhone = $preservePhone;
         $this->donationType = 'offering';
     }
 

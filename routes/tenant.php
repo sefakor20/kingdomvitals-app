@@ -17,6 +17,7 @@ use App\Livewire\Attendance\ChildrenCheckIn;
 use App\Livewire\Attendance\LiveCheckIn;
 use App\Livewire\Attendance\MobileSelfCheckIn;
 use App\Livewire\Auth\AcceptBranchInvitation;
+use App\Livewire\Auth\AcceptMemberInvitation;
 use App\Livewire\Branches\AlertSettings;
 use App\Livewire\Branches\BranchIndex;
 use App\Livewire\Branches\BranchSettings;
@@ -57,6 +58,17 @@ use App\Livewire\Giving\MemberGivingHistory;
 use App\Livewire\Giving\PublicGivingForm;
 use App\Livewire\Households\HouseholdIndex;
 use App\Livewire\Households\HouseholdShow;
+use App\Livewire\Member\MemberAppearance;
+use App\Livewire\Member\MemberAttendance;
+use App\Livewire\Member\MemberContactInfo;
+use App\Livewire\Member\MemberDashboard;
+use App\Livewire\Member\MemberEvents;
+use App\Livewire\Member\MemberGiving;
+use App\Livewire\Member\MemberHousehold;
+use App\Livewire\Member\MemberPassword;
+use App\Livewire\Member\MemberPledges;
+use App\Livewire\Member\MemberProfile;
+use App\Livewire\Member\MemberTwoFactor;
 use App\Livewire\Members\MemberCardsBulkPrint;
 use App\Livewire\Members\MemberIndex;
 use App\Livewire\Members\MemberQrPrint;
@@ -183,6 +195,27 @@ Route::middleware(['web'])->group(function (): void {
         ->name('email.track.pixel');
     Route::get('/email/track/{emailLog}/click', [EmailTrackingController::class, 'click'])
         ->name('email.track.click');
+
+    // Member portal invitation (guest)
+    Route::get('/member/invitation/{token}', AcceptMemberInvitation::class)
+        ->name('member.invitation.accept')
+        ->middleware('guest');
+
+    // Member portal routes (auth + member middleware)
+    Route::middleware(['auth', 'member'])->prefix('member')->name('member.')->group(function (): void {
+        Route::get('/', fn () => redirect()->route('member.dashboard'))->name('index');
+        Route::get('/dashboard', MemberDashboard::class)->name('dashboard');
+        Route::get('/profile', MemberProfile::class)->name('profile');
+        Route::get('/contact', MemberContactInfo::class)->name('contact');
+        Route::get('/password', MemberPassword::class)->name('password');
+        Route::get('/two-factor', MemberTwoFactor::class)->name('two-factor');
+        Route::get('/appearance', MemberAppearance::class)->name('appearance');
+        Route::get('/giving', MemberGiving::class)->name('giving');
+        Route::get('/attendance', MemberAttendance::class)->name('attendance');
+        Route::get('/pledges', MemberPledges::class)->name('pledges');
+        Route::get('/events', MemberEvents::class)->name('events');
+        Route::get('/household', MemberHousehold::class)->name('household');
+    });
 
     // Upgrade required page (auth required but no onboarding check)
     Route::middleware(['auth'])->group(function (): void {

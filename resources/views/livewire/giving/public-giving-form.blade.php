@@ -50,9 +50,16 @@
                     A receipt will be sent to your email.
                 </p>
 
-                <button wire:click="giveAgain" class="btn-neon mt-6 rounded-full px-6 py-2.5 text-sm font-semibold">
-                    Give Again
-                </button>
+                <div class="mt-6 flex flex-col items-center gap-3">
+                    <button wire:click="giveAgain" class="btn-neon rounded-full px-6 py-2.5 text-sm font-semibold">
+                        Give Again
+                    </button>
+                    @if ($memberId)
+                        <a href="{{ route('member.dashboard') }}" class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                            ← Back to Dashboard
+                        </a>
+                    @endif
+                </div>
             </div>
         @elseif ($errorMessage && !$this->isConfigured)
             {{-- Not Configured State --}}
