@@ -101,7 +101,7 @@
 
                     @if($this->member->clusters->isNotEmpty())
                         <div>
-                            <flux:text class="text-sm text-zinc-500">{{ __('Cluster') }}</flux:text>
+                            <flux:text class="text-sm text-zinc-500">{{ __('Cluster/Group') }}</flux:text>
                             <div class="font-medium">{{ $this->member->clusters->pluck('name')->join(', ') }}</div>
                         </div>
                     @endif

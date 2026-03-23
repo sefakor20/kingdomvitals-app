@@ -219,7 +219,7 @@
                     {{ __('Members') }}
                     <span class="text-sm font-normal text-zinc-500">({{ $this->clusterMembers->count() }})</span>
                 </flux:heading>
-                @if($editing && $this->canEdit)
+                @if($this->canEdit)
                     <flux:button variant="primary" size="sm" wire:click="openAddMemberModal" icon="plus">
                         {{ __('Add Member') }}
                     </flux:button>
