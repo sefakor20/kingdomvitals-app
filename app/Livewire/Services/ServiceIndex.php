@@ -141,6 +141,8 @@ class ServiceIndex extends Component
 
         Service::create($validated);
 
+        unset($this->services);
+
         $this->showCreateModal = false;
         $this->resetForm();
         $this->dispatch('service-created');
@@ -173,6 +175,8 @@ class ServiceIndex extends Component
 
         $this->editingService->update($validated);
 
+        unset($this->services);
+
         $this->showEditModal = false;
         $this->editingService = null;
         $this->resetForm();
@@ -190,6 +194,9 @@ class ServiceIndex extends Component
     {
         $this->authorize('delete', $this->deletingService);
         $this->deletingService->delete();
+
+        unset($this->services);
+
         $this->showDeleteModal = false;
         $this->deletingService = null;
         $this->dispatch('service-deleted');
