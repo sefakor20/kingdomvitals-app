@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SubscriptionPlan;
 use Illuminate\Support\Str;
 
 return [
@@ -99,6 +100,21 @@ return [
             ],
         ],
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | This option configures the classes that may be unserialized when
+    | retrieving cached values. Setting this to false prevents any
+    | PHP objects from being unserialized from the cache.
+    |
+    */
+
+    'serializable_classes' => [
+        SubscriptionPlan::class,
     ],
 
     /*

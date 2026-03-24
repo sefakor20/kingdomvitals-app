@@ -11,12 +11,12 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1.2",
-        "erag/laravel-pwa": "^1.9",
+        "erag/laravel-pwa": "^2.0.0",
         "intervention/image-laravel": "^1.5.8",
-        "laravel/ai": "^0.1.5",
+        "laravel/ai": "^0.3.0",
         "laravel/fortify": "^1.36.1",
-        "laravel/framework": "^12.55.1",
-        "laravel/tinker": "^2.11.1",
+        "laravel/framework": "^13.0",
+        "laravel/tinker": "^3.0",
         "livewire/flux": "^2.13.0",
         "maatwebsite/excel": "^3.1.68",
         "propaganistas/laravel-phone": "^6.0.3",
@@ -24,7 +24,7 @@
         "stancl/tenancy": "^3.10.0"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "^3.16.5",
+        "barryvdh/laravel-debugbar": "^4.0",
         "fakerphp/faker": "^1.24.1",
         "laravel/boost": "^2.3.4",
         "laravel/pail": "^1.2.6",
