@@ -128,7 +128,8 @@
 
     <!-- Create Tenant Modal -->
     <flux:modal wire:model="showCreateModal" class="max-w-lg">
-        <div class="space-y-6">
+        <!-- Form (hide when creating) -->
+        <div wire:loading.remove wire:target="createTenant" class="space-y-6">
             <div>
                 <flux:heading size="lg">Create New Tenant</flux:heading>
                 <flux:text class="mt-2 text-zinc-500">
@@ -217,10 +218,19 @@
                 <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">
                     Cancel
                 </flux:button>
-                <flux:button wire:click="createTenant" variant="primary">
+                <flux:button wire:click="createTenant" variant="primary" wire:loading.attr="disabled" wire:target="createTenant">
                     Create Tenant
                 </flux:button>
             </div>
+        </div>
+
+        <!-- Progress indicator (show when creating) -->
+        <div wire:loading wire:target="createTenant" class="py-12 text-center">
+            <flux:icon.arrow-path class="mx-auto size-12 animate-spin text-emerald-600 dark:text-emerald-400" />
+            <flux:heading size="lg" class="mt-4">Creating Tenant...</flux:heading>
+            <flux:text class="mt-2 text-zinc-500 dark:text-zinc-400">
+                Setting up database and sending invitation email.
+            </flux:text>
         </div>
     </flux:modal>
 </div>

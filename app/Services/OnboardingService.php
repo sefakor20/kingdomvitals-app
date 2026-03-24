@@ -41,7 +41,10 @@ class OnboardingService
     ];
 
     public function __construct(
-        protected BranchContextService $branchContextService
+        protected BranchContextService $branchContextService,
+        protected FollowUpTemplateSeeder $followUpTemplateSeeder,
+        protected EmailTemplateSeeder $emailTemplateSeeder,
+        protected SmsTemplateSeeder $smsTemplateSeeder
     ) {}
 
     /**
@@ -154,8 +157,17 @@ class OnboardingService
                 ]
             );
 
-            // Update branch data if it already existed
-            if (! $branch->wasRecentlyCreated) {
+            if ($branch->wasRecentlyCreated) {
+                // Seed default templates for newly created branches
+                $this->followUpTemplateSeeder->seedForBranch($branch);
+                $this->emailTemplateSeeder->seedForBranch($branch);
+                $this->smsTemplateSeeder->seedForBranch($branch);
+
+                Log::info('Onboarding: Templates seeded for new branch', [
+                    'branch_id' => $branch->id,
+                ]);
+            } else {
+                // Update branch data if it already existed
                 $branch->update([
                     'name' => $data['name'],
                     'timezone' => $data['timezone'] ?? 'UTC',

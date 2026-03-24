@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Listeners\LogUserLogin;
 use App\Listeners\LogUserLogout;
 use App\Models\Tenant;
+use App\Models\Tenant\Branch;
 use App\Models\Tenant\Budget;
 use App\Models\Tenant\ChildrenCheckinSecurity;
 use App\Models\Tenant\Donation;
@@ -22,6 +23,7 @@ use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\SmsTemplate;
 use App\Models\Tenant\UserBranchAccess;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Observers\BranchObserver;
 use App\Observers\SmsLogObserver;
 use App\Observers\TenantObserver;
 use App\Policies\BudgetPolicy;
@@ -123,6 +125,7 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         Tenant::observe(TenantObserver::class);
         SmsLog::observe(SmsLogObserver::class);
+        Branch::observe(BranchObserver::class);
 
         // Register auth event listeners for activity logging
         Event::listen(Login::class, LogUserLogin::class);
