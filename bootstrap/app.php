@@ -52,8 +52,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'member' => EnsureMemberAccess::class,
         ]);
 
-        // Exclude webhook routes from CSRF verification
-        $middleware->validateCsrfTokens(except: [
+        // Exclude webhook routes from request forgery protection
+        $middleware->preventRequestForgery(except: [
             'webhooks/*',
         ]);
     })
