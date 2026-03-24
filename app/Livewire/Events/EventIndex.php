@@ -272,6 +272,8 @@ class EventIndex extends Component
             $recurrenceService->generateOccurrences($event);
         }
 
+        unset($this->eventsQuery);
+
         $this->showCreateModal = false;
         $this->resetForm();
         $this->dispatch('event-created');
@@ -351,6 +353,8 @@ class EventIndex extends Component
             $recurrenceService->cancelFutureOccurrences($this->editingEvent);
         }
 
+        unset($this->eventsQuery);
+
         $this->showEditModal = false;
         $this->editingEvent = null;
         $this->resetForm();
@@ -368,6 +372,9 @@ class EventIndex extends Component
     {
         $this->authorize('delete', $this->deletingEvent);
         $this->deletingEvent->delete();
+
+        unset($this->eventsQuery);
+
         $this->showDeleteModal = false;
         $this->deletingEvent = null;
         $this->dispatch('event-deleted');

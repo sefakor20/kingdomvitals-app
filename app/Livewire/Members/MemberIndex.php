@@ -519,6 +519,8 @@ class MemberIndex extends Component
         // Invalidate member count cache for quota tracking
         app(PlanAccessService::class)->invalidateCountCache('members');
 
+        unset($this->members);
+
         $this->showCreateModal = false;
         $this->resetForm();
         $this->dispatch('member-created');
@@ -586,6 +588,8 @@ class MemberIndex extends Component
 
         $this->editingMember->update($validated);
 
+        unset($this->members);
+
         $this->showEditModal = false;
         $this->editingMember = null;
         $this->resetForm();
@@ -607,6 +611,8 @@ class MemberIndex extends Component
 
         // Invalidate member count cache for quota tracking
         app(PlanAccessService::class)->invalidateCountCache('members');
+
+        unset($this->members);
 
         $this->showDeleteModal = false;
         $this->deletingMember = null;
