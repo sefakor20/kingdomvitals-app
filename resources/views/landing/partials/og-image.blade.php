@@ -10,7 +10,7 @@
         <div class="relative z-10 flex flex-col items-center text-center">
             {{-- Logo --}}
             <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 ring-4 ring-white/20">
-                <img src="{{ public_path('favicon.svg') }}" alt="Kingdom Vitals" class="h-14 w-14">
+                <img src="{{ asset('favicon.svg') }}" alt="Kingdom Vitals" class="h-14 w-14">
             </div>
 
             {{-- Title --}}

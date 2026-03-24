@@ -9,6 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Spatie\OgImage\Http\Middleware\RenderOgImageMiddleware;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -56,6 +57,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->preventRequestForgery(except: [
             'webhooks/*',
         ]);
+
+        // Append OG Image middleware to the web group
+        $middleware->appendToGroup('web', RenderOgImageMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
