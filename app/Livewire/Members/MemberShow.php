@@ -552,6 +552,8 @@ class MemberShow extends Component
         ]);
 
         $this->member->refresh();
+        unset($this->memberClusters, $this->availableClusters);
+
         $this->closeAddClusterModal();
         $this->dispatch('cluster-added');
     }
@@ -562,6 +564,8 @@ class MemberShow extends Component
 
         $this->member->clusters()->detach($clusterId);
         $this->member->refresh();
+        unset($this->memberClusters, $this->availableClusters);
+
         $this->dispatch('cluster-removed');
     }
 
@@ -578,6 +582,8 @@ class MemberShow extends Component
         ]);
 
         $this->member->refresh();
+        unset($this->memberClusters);
+
         $this->dispatch('cluster-updated');
     }
 

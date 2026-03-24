@@ -348,6 +348,8 @@ class ServiceShow extends Component
         ]);
 
         $this->service->refresh();
+        unset($this->attendanceCount, $this->attendanceRecords, $this->availableMembers, $this->availableVisitors);
+
         $this->closeAddAttendanceModal();
         $this->dispatch('attendance-added');
     }
@@ -439,6 +441,8 @@ class ServiceShow extends Component
         ]);
 
         $this->service->refresh();
+        unset($this->attendanceCount, $this->attendanceRecords, $this->availableMembers, $this->availableVisitors);
+
         $this->closeAddAttendanceModal();
         $this->dispatch('attendance-updated');
     }
@@ -462,6 +466,8 @@ class ServiceShow extends Component
 
         $attendance->delete();
         $this->service->refresh();
+        unset($this->attendanceCount, $this->attendanceRecords, $this->availableMembers, $this->availableVisitors);
+
         $this->dispatch('attendance-deleted');
     }
 

@@ -192,7 +192,7 @@ class HouseholdShow extends Component
 
         $this->showEditRoleModal = false;
         $this->editingMember = null;
-        unset($this->members);
+        unset($this->members, $this->availableMembers);
         $this->dispatch('role-updated');
     }
 
@@ -229,7 +229,7 @@ class HouseholdShow extends Component
 
         $this->showRemoveMemberModal = false;
         $this->removingMember = null;
-        unset($this->members);
+        unset($this->members, $this->availableMembers);
         $this->dispatch('member-removed');
     }
 

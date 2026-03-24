@@ -405,6 +405,8 @@ class VisitorShow extends Component
         app(PlanAccessService::class)->invalidateCountCache('members');
 
         $this->visitor->refresh();
+        unset($this->members, $this->canCreateMemberWithinQuota);
+
         $this->showConvertModal = false;
         $this->resetConversionForm();
         $this->dispatch('visitor-converted-and-created');

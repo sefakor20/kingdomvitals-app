@@ -426,7 +426,7 @@ class VisitorIndex extends Component
 
         Visitor::create($validated);
 
-        unset($this->visitors); // Clear computed cache
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -466,7 +466,7 @@ class VisitorIndex extends Component
 
         $this->editingVisitor->update($validated);
 
-        unset($this->visitors); // Clear computed cache
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showEditModal = false;
         $this->editingVisitor = null;
@@ -487,7 +487,7 @@ class VisitorIndex extends Component
 
         $this->deletingVisitor->delete();
 
-        unset($this->visitors); // Clear computed cache
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showDeleteModal = false;
         $this->deletingVisitor = null;
@@ -516,7 +516,7 @@ class VisitorIndex extends Component
             'converted_member_id' => $this->convertToMemberId,
         ]);
 
-        unset($this->visitors); // Clear computed cache
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showConvertModal = false;
         $this->convertingVisitor = null;
@@ -572,8 +572,7 @@ class VisitorIndex extends Component
         // Invalidate member count cache
         app(PlanAccessService::class)->invalidateCountCache('members');
 
-        unset($this->visitors); // Clear computed cache
-        unset($this->visitorStats);
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showConvertModal = false;
         $this->convertingVisitor = null;
@@ -867,8 +866,7 @@ class VisitorIndex extends Component
             ->delete();
 
         $this->clearSelection();
-        unset($this->visitors);
-        unset($this->visitorStats);
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showBulkDeleteModal = false;
         $this->dispatch('visitors-bulk-deleted', count: $count);
@@ -907,7 +905,7 @@ class VisitorIndex extends Component
             ->update(['assigned_to' => $assignTo]);
 
         $this->clearSelection();
-        unset($this->visitors);
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showBulkAssignModal = false;
         $this->bulkAssignTo = null;
@@ -951,8 +949,7 @@ class VisitorIndex extends Component
             ->update($updateData);
 
         $this->clearSelection();
-        unset($this->visitors);
-        unset($this->visitorStats);
+        unset($this->visitors, $this->visitorStats, $this->visitorQuota);
 
         $this->showBulkStatusModal = false;
         $this->bulkStatusValue = '';

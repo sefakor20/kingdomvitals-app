@@ -265,6 +265,8 @@ class DutyRosterShow extends Component
         ]);
 
         $this->dutyRoster->refresh();
+        unset($this->scriptures);
+
         $this->closeAddScriptureModal();
         $this->dispatch('scripture-added');
     }
@@ -299,6 +301,8 @@ class DutyRosterShow extends Component
         ]);
 
         $this->dutyRoster->refresh();
+        unset($this->scriptures);
+
         $this->closeAddScriptureModal();
         $this->dispatch('scripture-updated');
     }
@@ -315,6 +319,8 @@ class DutyRosterShow extends Component
         $this->authorize('update', $this->dutyRoster);
         $this->deletingScripture->delete();
         $this->dutyRoster->refresh();
+        unset($this->scriptures);
+
         $this->showDeleteScriptureModal = false;
         $this->deletingScripture = null;
         $this->dispatch('scripture-deleted');
@@ -363,6 +369,8 @@ class DutyRosterShow extends Component
         ]);
 
         $this->dutyRoster->refresh();
+        unset($this->availableClusters);
+
         $this->closeAddClusterModal();
         $this->dispatch('cluster-added');
     }
@@ -372,6 +380,8 @@ class DutyRosterShow extends Component
         $this->authorize('update', $this->dutyRoster);
         $this->dutyRoster->clusters()->detach($clusterId);
         $this->dutyRoster->refresh();
+        unset($this->availableClusters);
+
         $this->dispatch('cluster-removed');
     }
 

@@ -157,6 +157,8 @@ class BranchIndex extends Component
         // Invalidate branch count cache for quota tracking
         app(PlanAccessService::class)->invalidateCountCache('branches');
 
+        unset($this->branches);
+
         $this->showCreateModal = false;
         $this->resetForm();
         $this->dispatch('branch-created');
@@ -190,6 +192,8 @@ class BranchIndex extends Component
 
         $this->editingBranch->update($validated);
 
+        unset($this->branches);
+
         $this->showEditModal = false;
         $this->editingBranch = null;
         $this->resetForm();
@@ -217,6 +221,8 @@ class BranchIndex extends Component
 
         // Invalidate branch count cache for quota tracking
         app(PlanAccessService::class)->invalidateCountCache('branches');
+
+        unset($this->branches);
 
         $this->showDeleteModal = false;
         $this->deletingBranch = null;
