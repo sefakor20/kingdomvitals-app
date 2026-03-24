@@ -456,7 +456,7 @@ class VisitorAnalytics extends Component
                 'name' => $visitor->fullName(),
                 'visit_date' => $visitor->visit_date?->format('M d, Y'),
                 'converted_at' => $visitor->updated_at?->format('M d, Y'),
-                'days_to_convert' => $visitor->visit_date?->diffInDays($visitor->updated_at),
+                'days_to_convert' => (int) $visitor->visit_date?->diffInDays($visitor->updated_at),
                 'source' => $visitor->how_did_you_hear,
             ]);
     }

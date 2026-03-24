@@ -243,6 +243,8 @@ class ClusterShow extends Component
         ]);
 
         $this->cluster->refresh();
+        unset($this->clusterMembers, $this->availableMembers);
+
         $this->closeAddMemberModal();
         $this->dispatch('member-added');
     }
@@ -253,6 +255,8 @@ class ClusterShow extends Component
 
         $this->cluster->members()->detach($memberId);
         $this->cluster->refresh();
+        unset($this->clusterMembers, $this->availableMembers);
+
         $this->dispatch('member-removed');
     }
 
@@ -269,6 +273,8 @@ class ClusterShow extends Component
         ]);
 
         $this->cluster->refresh();
+        unset($this->clusterMembers);
+
         $this->dispatch('member-role-updated');
     }
 

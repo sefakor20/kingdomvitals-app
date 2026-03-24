@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\TenantStatus;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\TenantAdminInvitationNotification;
@@ -23,11 +24,13 @@ class TenantCreationService
     public function createTenantWithAdmin(array $tenantData, array $adminData): Tenant
     {
         $tenantId = Str::slug($tenantData['name']).'-'.Str::random(6);
+        $defaultPlan = SubscriptionPlan::getDefault();
 
         $tenant = Tenant::create([
             'id' => $tenantId,
             'name' => $tenantData['name'],
             'status' => TenantStatus::Trial,
+            'subscription_id' => $defaultPlan?->id,
             'contact_email' => $tenantData['contact_email'] ?? null,
             'contact_phone' => $tenantData['contact_phone'] ?? null,
             'address' => $tenantData['address'] ?? null,

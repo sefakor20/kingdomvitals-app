@@ -201,6 +201,8 @@ class ClusterIndex extends Component
 
         Cluster::create($validated);
 
+        unset($this->clusters);
+
         $this->showCreateModal = false;
         $this->resetForm();
         $this->dispatch('cluster-created');
@@ -245,6 +247,8 @@ class ClusterIndex extends Component
 
         $this->editingCluster->update($validated);
 
+        unset($this->clusters);
+
         $this->showEditModal = false;
         $this->editingCluster = null;
         $this->resetForm();
@@ -262,6 +266,9 @@ class ClusterIndex extends Component
     {
         $this->authorize('delete', $this->deletingCluster);
         $this->deletingCluster->delete();
+
+        unset($this->clusters);
+
         $this->showDeleteModal = false;
         $this->deletingCluster = null;
         $this->dispatch('cluster-deleted');

@@ -329,6 +329,8 @@ class EquipmentShow extends Component
         ]);
 
         $this->equipment->refresh();
+        unset($this->checkoutHistory, $this->activeCheckout);
+
         $this->closeCheckoutModal();
         $this->dispatch('equipment-checked-out');
     }
@@ -381,6 +383,8 @@ class EquipmentShow extends Component
         ]);
 
         $this->equipment->refresh();
+        unset($this->checkoutHistory, $this->activeCheckout);
+
         $this->closeReturnModal();
         $this->dispatch('equipment-returned');
     }
@@ -439,6 +443,8 @@ class EquipmentShow extends Component
         ]);
 
         $this->equipment->refresh();
+        unset($this->maintenanceHistory);
+
         $this->closeMaintenanceModal();
         $this->dispatch('maintenance-scheduled');
     }
@@ -461,6 +467,8 @@ class EquipmentShow extends Component
         ]);
 
         $this->equipment->refresh();
+        unset($this->maintenanceHistory);
+
         $this->dispatch('maintenance-completed');
     }
 
@@ -475,6 +483,8 @@ class EquipmentShow extends Component
         ]);
 
         $this->equipment->refresh();
+        unset($this->maintenanceHistory);
+
         $this->dispatch('maintenance-cancelled');
     }
 
