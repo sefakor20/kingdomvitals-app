@@ -7,17 +7,13 @@ window.Chart = Chart;
 // Make Html5Qrcode available globally for Alpine.js components
 window.Html5Qrcode = Html5Qrcode;
 
-// Register Service Worker for PWA
+// Unregister any existing service workers (PWA removed)
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker
-            .register('/sw.js')
-            .then((registration) => {
-                console.log('SW registered:', registration.scope);
-            })
-            .catch((error) => {
-                console.log('SW registration failed:', error);
-            });
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+            registration.unregister();
+            console.log('SW unregistered:', registration.scope);
+        });
     });
 }
 
