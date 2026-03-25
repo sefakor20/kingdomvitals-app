@@ -23,27 +23,30 @@
                 Church Management Made Simple
             </p>
 
-            {{-- Features - 6 badges + AI accent --}}
-            <div class="flex flex-wrap justify-center gap-3">
-                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+            {{-- Features - 7 badges + AI accent --}}
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
                     Membership
                 </span>
-                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
                     Giving
                 </span>
-                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
                     Attendance
                 </span>
-                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
                     Visitors
                 </span>
-                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
                     Finances
                 </span>
-                <span class="rounded-full bg-white/10 px-5 py-2 text-base font-medium text-white">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
                     Events
                 </span>
-                <span class="rounded-full bg-lime-400/20 px-5 py-2 text-base font-medium text-lime-300">
+                <span style="background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: white;">
+                    Communication
+                </span>
+                <span style="background: rgba(163,230,53,0.2); border-radius: 9999px; padding: 8px 20px; font-size: 16px; font-weight: 500; color: rgb(190,242,100);">
                     AI-Powered
                 </span>
             </div>
