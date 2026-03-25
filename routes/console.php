@@ -188,3 +188,8 @@ Schedule::command('ai:predict-pledge-fulfillment')
 Schedule::command('ai:predict-event-attendance --days-ahead=3')
     ->dailyAt('07:00')
     ->withoutOverlapping();
+
+// Generate sitemap weekly on Sunday at 1 AM
+Schedule::command('sitemap:generate')
+    ->weeklyOn(0, '01:00')
+    ->withoutOverlapping();
