@@ -4,12 +4,13 @@
         @include('partials.head')
 
         <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-VR5T7NL1LQ"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K59XC62XF"></script>
         <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-VR5T7NL1LQ');
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-5K59XC62XF');
         </script>
 
         {{-- Landing page specific fonts --}}
