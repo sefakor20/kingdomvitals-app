@@ -70,7 +70,9 @@ class FollowUpQueue extends Component
 
     public bool $isGeneratingMessage = false;
 
-    public ?string $generatingForFollowUpId = null;
+    public bool $isExistingMessage = false;
+
+    public ?VisitorFollowUp $aiMessageFollowUp = null;
 
     public ?string $aiMessageFollowUpId = null;
 
@@ -370,10 +372,38 @@ class FollowUpQueue extends Component
             return;
         }
 
-        $this->generatingForFollowUpId = $followUp->id;
-        $this->isGeneratingMessage = true;
-        $this->showAiMessageModal = true;
+        $this->aiMessageFollowUp = $followUp;
         $this->aiMessageFollowUpId = $followUp->id;
+        $this->showAiMessageModal = true;
+
+        // Check for existing approved message first
+        $existingMessage = $this->getApprovedAiMessageForVisitor($followUp->visitor_id, $followUp->type);
+
+        if ($existingMessage) {
+            $this->generatedMessage = $existingMessage;
+            $this->isExistingMessage = true;
+            $this->isGeneratingMessage = false;
+
+            return;
+        }
+
+        // No existing message, generate a new one
+        $this->doGenerateAiMessage($followUp);
+    }
+
+    public function regenerateAiMessage(): void
+    {
+        if (! $this->aiMessageFollowUp) {
+            return;
+        }
+
+        $this->isExistingMessage = false;
+        $this->doGenerateAiMessage($this->aiMessageFollowUp);
+    }
+
+    private function doGenerateAiMessage(VisitorFollowUp $followUp): void
+    {
+        $this->isGeneratingMessage = true;
 
         // Call the service directly for immediate response
         $service = app(MessageGenerationService::class);
@@ -418,7 +448,8 @@ class FollowUpQueue extends Component
         $this->showAiMessageModal = false;
         $this->generatedMessage = null;
         $this->isGeneratingMessage = false;
-        $this->generatingForFollowUpId = null;
+        $this->isExistingMessage = false;
+        $this->aiMessageFollowUp = null;
         // Note: We keep aiMessageFollowUpId and approvedAiMessageContent
         // so they can be used when completing the follow-up
     }

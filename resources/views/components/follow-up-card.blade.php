@@ -1,4 +1,4 @@
-@props(['followUp', 'branch', 'urgency' => 'upcoming', 'showConversionScore' => false, 'showAiMessage' => false, 'isGeneratingAi' => false])
+@props(['followUp', 'branch', 'urgency' => 'upcoming', 'showConversionScore' => false, 'showAiMessage' => false])
 
 @php
     $borderColor = match($urgency) {
@@ -33,9 +33,13 @@
 @endphp
 
 <div class="relative flex h-full flex-col rounded-lg border {{ $borderColor }} {{ $bgColor }} p-4" wire:key="follow-up-{{ $followUp->id }}">
-    <!-- AI Generating Overlay -->
-    @if($isGeneratingAi)
-        <div class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80 dark:bg-zinc-900/80">
+    <!-- AI Generating Overlay - shows while generateAiMessage is running -->
+    @if($showAiMessage)
+        <div
+            wire:loading.flex
+            wire:target="generateAiMessage('{{ $followUp->id }}')"
+            class="absolute inset-0 z-10 items-center justify-center rounded-lg bg-white/80 dark:bg-zinc-900/80"
+        >
             <div class="flex flex-col items-center gap-2">
                 <flux:icon icon="sparkles" class="size-6 animate-pulse text-purple-500" />
                 <span class="text-sm font-medium text-purple-600 dark:text-purple-400">{{ __('Generating AI message...') }}</span>
@@ -148,13 +152,20 @@
                     {{ __('Reschedule') }}
                 </flux:menu.item>
                 @if($showAiMessage)
+                    @php
+                        $hasApprovedMessage = \App\Models\Tenant\AiGeneratedMessage::where('visitor_id', $followUp->visitor_id)
+                            ->where('channel', $followUp->type)
+                            ->where('status', \App\Enums\AiMessageStatus::Approved)
+                            ->where('approved_at', '>=', now()->subDay())
+                            ->exists();
+                    @endphp
                     <flux:menu.item
                         wire:click="generateAiMessage('{{ $followUp->id }}')"
                         wire:loading.attr="disabled"
                         wire:target="generateAiMessage('{{ $followUp->id }}')"
                         icon="sparkles"
                     >
-                        {{ __('Generate AI Message') }}
+                        {{ $hasApprovedMessage ? __('View AI Message') : __('Generate AI Message') }}
                     </flux:menu.item>
                 @endif
                 <flux:menu.separator />
