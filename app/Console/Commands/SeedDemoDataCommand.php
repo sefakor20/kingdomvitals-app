@@ -707,13 +707,20 @@ class SeedDemoDataCommand extends Command
         $themes = $this->getRealisticDutyThemes();
         $remarks = $this->getRealisticDutyRemarks();
 
+        // Generate dates for current month and next month
+        $startOfMonth = now()->startOfMonth();
+        $endOfNextMonth = now()->addMonth()->endOfMonth();
+
         for ($i = 0; $i < $count; $i++) {
-            DutyRoster::factory()->create([
-                'branch_id' => $branch->id,
-                'service_id' => $services->random()->id,
-                'theme' => $themes[$i % count($themes)],
-                'remarks' => fake()->boolean(40) ? $remarks[array_rand($remarks)] : null,
-            ]);
+            DutyRoster::factory()
+                ->published()
+                ->create([
+                    'branch_id' => $branch->id,
+                    'service_id' => $services->random()->id,
+                    'service_date' => fake()->dateTimeBetween($startOfMonth, $endOfNextMonth),
+                    'theme' => $themes[$i % count($themes)],
+                    'remarks' => fake()->boolean(40) ? $remarks[array_rand($remarks)] : null,
+                ]);
         }
 
         $this->summary['Duty Rosters'] = $count;
