@@ -46,6 +46,7 @@ class AiAlertFactory extends Factory
             AiAlertType::CriticalPrayer => 'Critical prayer request requires attention',
             AiAlertType::ClusterHealth => "Cluster '".fake()->word()."' health is critical",
             AiAlertType::HouseholdDisengagement => "Household '".fake()->lastName()."' is disengaged",
+            AiAlertType::EmailEngagementDeclining => 'Email engagement declining for '.fake()->name(),
         };
     }
 
@@ -58,6 +59,7 @@ class AiAlertFactory extends Factory
             AiAlertType::CriticalPrayer => 'A critical prayer request needs pastoral attention.',
             AiAlertType::ClusterHealth => 'Cluster health has declined significantly.',
             AiAlertType::HouseholdDisengagement => 'Household engagement has dropped to disengaged level.',
+            AiAlertType::EmailEngagementDeclining => 'Member email engagement has significantly declined.',
         };
     }
 
