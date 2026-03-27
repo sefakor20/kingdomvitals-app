@@ -223,6 +223,27 @@ class VisitorShow extends Component
             ->get();
     }
 
+    #[Computed]
+    public function messageHistory(): Collection
+    {
+        $smsLogs = $this->visitor->smsLogs()
+            ->select(['id', 'visitor_id', 'phone_number as recipient', 'message as body', 'message_type', 'status', 'sent_at', 'error_message'])
+            ->addSelect(\DB::raw("'sms' as channel"))
+            ->limit(20)
+            ->get();
+
+        $emailLogs = $this->visitor->emailLogs()
+            ->select(['id', 'visitor_id', 'email_address as recipient', 'body', 'message_type', 'status', 'sent_at', 'error_message', 'subject'])
+            ->addSelect(\DB::raw("'email' as channel"))
+            ->limit(20)
+            ->get();
+
+        return $smsLogs->concat($emailLogs)
+            ->sortByDesc('sent_at')
+            ->take(10)
+            ->values();
+    }
+
     public function updatedFollowUpType(): void
     {
         // Clear the selected template when the type changes

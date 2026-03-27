@@ -328,6 +328,65 @@
             @endif
         </div>
 
+        <!-- Messages Section -->
+        @if($this->messageHistory->isNotEmpty())
+            <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900 lg:col-span-2">
+                <flux:heading size="lg" class="mb-4">{{ __('Messages') }}</flux:heading>
+
+                <div class="space-y-3">
+                    @foreach($this->messageHistory as $message)
+                        <div wire:key="message-{{ $message->channel }}-{{ $message->id }}" class="flex items-start gap-3 border-l-2 pl-4 {{ match($message->status->value) {
+                            'sent', 'delivered' => 'border-green-500',
+                            'pending' => 'border-yellow-500',
+                            'failed', 'bounced' => 'border-red-500',
+                            default => 'border-zinc-300 dark:border-zinc-600',
+                        } }}">
+                            <div class="flex-shrink-0">
+                                @if($message->channel === 'email')
+                                    <div class="flex size-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                                        <flux:icon icon="envelope" class="size-4 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                @else
+                                    <div class="flex size-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                                        <flux:icon icon="chat-bubble-left" class="size-4 text-green-600 dark:text-green-400" />
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $message->channel === 'email' ? __('Email') : __('SMS') }}
+                                    </span>
+                                    <flux:badge
+                                        :color="match($message->status->value) {
+                                            'sent' => 'blue',
+                                            'delivered' => 'green',
+                                            'pending' => 'yellow',
+                                            'failed', 'bounced' => 'red',
+                                            default => 'zinc',
+                                        }"
+                                        size="sm"
+                                    >
+                                        {{ ucfirst($message->status->value) }}
+                                    </flux:badge>
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        {{ $message->sent_at?->format('M d, Y \a\t g:i A') }}
+                                    </span>
+                                </div>
+                                @if($message->channel === 'email' && $message->subject)
+                                    <p class="mt-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ $message->subject }}</p>
+                                @endif
+                                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">{{ Str::limit($message->body, 150) }}</p>
+                                @if($message->error_message)
+                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message->error_message }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <!-- Conversion Status -->
         <div class="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg" class="mb-4">{{ __('Conversion Status') }}</flux:heading>

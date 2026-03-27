@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Visitors;
 
 use App\Enums\AiMessageStatus;
+use App\Enums\EmailStatus;
+use App\Enums\EmailType;
 use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
 use App\Jobs\SendVisitorFollowUpSmsJob;
@@ -12,6 +14,7 @@ use App\Livewire\Concerns\HasFilterableQuery;
 use App\Mail\VisitorFollowUpMail;
 use App\Models\Tenant\AiGeneratedMessage;
 use App\Models\Tenant\Branch;
+use App\Models\Tenant\EmailLog;
 use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\VisitorFollowUp;
@@ -274,6 +277,8 @@ class FollowUpQueue extends Component
             return;
         }
 
+        $subject = __('A message from :branch', ['branch' => $this->branch->name]);
+
         Mail::to($visitor->email)->queue(
             new VisitorFollowUpMail(
                 visitor: $visitor,
@@ -281,6 +286,20 @@ class FollowUpQueue extends Component
                 branch: $this->branch
             )
         );
+
+        // Log the email
+        EmailLog::create([
+            'branch_id' => $this->branch->id,
+            'visitor_id' => $visitor->id,
+            'email_address' => $visitor->email,
+            'subject' => $subject,
+            'body' => $message,
+            'message_type' => EmailType::FollowUp,
+            'status' => EmailStatus::Sent,
+            'sent_at' => now(),
+            'sent_by' => auth()->id(),
+        ]);
+
         $this->dispatch('message-sent-to-visitor', ['type' => 'email']);
     }
 
