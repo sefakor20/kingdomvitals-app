@@ -121,7 +121,7 @@
     @endif
 
     <!-- Actions -->
-    <div class="flex items-center gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+    <div class="flex items-center justify-between border-t border-zinc-200 pt-3 dark:border-zinc-700">
         <flux:button
             variant="primary"
             size="sm"
@@ -130,39 +130,32 @@
         >
             {{ __('Complete') }}
         </flux:button>
-        <flux:button
-            variant="ghost"
-            size="sm"
-            icon="clock"
-            wire:click="openRescheduleModal('{{ $followUp->id }}')"
-        >
-            {{ __('Reschedule') }}
-        </flux:button>
-        @if($showAiMessage)
-            <flux:button
-                variant="ghost"
-                size="sm"
-                wire:click="generateAiMessage('{{ $followUp->id }}')"
-                wire:loading.attr="disabled"
-                wire:target="generateAiMessage('{{ $followUp->id }}')"
-                title="{{ __('Generate AI message') }}"
-            >
-                <span wire:loading.remove wire:target="generateAiMessage('{{ $followUp->id }}')">
-                    <flux:icon icon="sparkles" class="size-4 text-purple-500" />
-                </span>
-                <span wire:loading wire:target="generateAiMessage('{{ $followUp->id }}')">
-                    <flux:icon icon="arrow-path" class="size-4 animate-spin text-purple-500" />
-                </span>
-            </flux:button>
-        @endif
-        <flux:button
-            variant="ghost"
-            size="sm"
-            icon="eye"
-            href="{{ route('visitors.show', [$branch, $followUp->visitor]) }}"
-            wire:navigate
-        >
-            {{ __('View') }}
-        </flux:button>
+
+        <flux:dropdown>
+            <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
+            <flux:menu>
+                <flux:menu.item wire:click="openRescheduleModal('{{ $followUp->id }}')" icon="clock">
+                    {{ __('Reschedule') }}
+                </flux:menu.item>
+                @if($showAiMessage)
+                    <flux:menu.item
+                        wire:click="generateAiMessage('{{ $followUp->id }}')"
+                        wire:loading.attr="disabled"
+                        wire:target="generateAiMessage('{{ $followUp->id }}')"
+                        icon="sparkles"
+                    >
+                        {{ __('Generate AI Message') }}
+                    </flux:menu.item>
+                @endif
+                <flux:menu.separator />
+                <flux:menu.item
+                    :href="route('visitors.show', [$branch, $followUp->visitor])"
+                    wire:navigate
+                    icon="eye"
+                >
+                    {{ __('View Visitor') }}
+                </flux:menu.item>
+            </flux:menu>
+        </flux:dropdown>
     </div>
 </div>
