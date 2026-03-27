@@ -236,6 +236,30 @@
                     @endif
 
                     <flux:textarea wire:model="completionNotes" :label="__('Notes')" rows="3" />
+
+                    @if($completingFollowUp->visitor->email)
+                        <div class="flex items-center gap-3 rounded-lg bg-blue-50 p-3 dark:bg-blue-900/30">
+                            <flux:switch wire:model="sendEmail" />
+                            <div>
+                                <flux:text class="font-medium">{{ __('Send email to visitor') }}</flux:text>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ $completingFollowUp->visitor->email }}
+                                </flux:text>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($completingFollowUp->visitor->phone && $this->smsConfigured)
+                        <div class="flex items-center gap-3 rounded-lg bg-green-50 p-3 dark:bg-green-900/30">
+                            <flux:switch wire:model="sendSms" />
+                            <div>
+                                <flux:text class="font-medium">{{ __('Send SMS to visitor') }}</flux:text>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ $completingFollowUp->visitor->phone }}
+                                </flux:text>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -365,7 +389,8 @@
         {{ __('AI message discarded.') }}
     </x-toast>
 
-    <!-- Clipboard copy handler -->
+
+    <!-- Clipboard copy handler and message notifications -->
     @script
     <script>
         $wire.on('copy-to-clipboard', (event) => {
@@ -382,6 +407,19 @@
                     text: '{{ __('Failed to copy to clipboard.') }}',
                     variant: 'danger',
                 });
+            });
+        });
+
+        $wire.on('message-sent-to-visitor', (event) => {
+            const type = event[0].type;
+            const message = type === 'email'
+                ? '{{ __('Email sent to visitor successfully.') }}'
+                : '{{ __('SMS queued for delivery to visitor.') }}';
+
+            Flux.toast({
+                heading: '{{ __('Message Sent') }}',
+                text: message,
+                variant: 'success',
             });
         });
     </script>

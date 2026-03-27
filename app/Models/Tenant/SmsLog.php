@@ -24,6 +24,7 @@ class SmsLog extends Model
     protected $fillable = [
         'branch_id',
         'member_id',
+        'visitor_id',
         'phone_number',
         'message',
         'message_type',
@@ -62,6 +63,11 @@ class SmsLog extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function visitor(): BelongsTo
+    {
+        return $this->belongsTo(Visitor::class);
     }
 
     public function sender(): BelongsTo
