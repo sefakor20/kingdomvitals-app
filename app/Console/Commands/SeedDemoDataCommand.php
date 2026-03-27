@@ -8,6 +8,7 @@ use App\Enums\ClusterHealthLevel;
 use App\Enums\HouseholdEngagementLevel;
 use App\Enums\LifecycleStage;
 use App\Enums\PlanModule;
+use App\Enums\RiskLevel;
 use App\Enums\SmsEngagementLevel;
 use App\Models\Domain;
 use App\Models\SubscriptionPlan;
@@ -27,6 +28,7 @@ use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\MemberActivity;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\PledgePrediction;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
@@ -231,7 +233,8 @@ class SeedDemoDataCommand extends Command
         }
 
         if (in_array('pledges', $modulesToSeed)) {
-            $this->seedPledges($branch, $members);
+            $pledges = $this->seedPledges($branch, $members);
+            $this->seedPledgePredictions($branch, $pledges);
         }
 
         if (in_array('budgets', $modulesToSeed)) {
@@ -401,11 +404,33 @@ class SeedDemoDataCommand extends Command
 
         // Update members with AI-related fields for dashboard widgets
         $members->each(function ($member) {
+            $capacityScore = fake()->randomFloat(2, 20, 95);
+            $currentAnnualGiving = fake()->randomFloat(2, 500, 15000);
+            $potentialGap = $capacityScore < 70
+                ? fake()->randomFloat(2, 500, 5000)
+                : fake()->randomFloat(2, 0, 500);
+
             $member->update([
                 'churn_risk_score' => fake()->optional(0.3)->randomFloat(2, 0, 100),
                 'lifecycle_stage' => fake()->randomElement(LifecycleStage::cases()),
                 'sms_engagement_level' => fake()->randomElement(SmsEngagementLevel::cases()),
                 'attendance_anomaly_detected_at' => fake()->optional(0.1)->dateTimeBetween('-7 days', 'now'),
+                // Giving intelligence fields
+                'giving_capacity_score' => $capacityScore,
+                'giving_potential_gap' => $potentialGap,
+                'giving_capacity_factors' => [
+                    'profession_weight' => fake()->randomFloat(2, 0.1, 0.4),
+                    'employment_status' => $member->employment_status?->value ?? 'employed',
+                    'historical_trajectory' => fake()->randomElement(['growth', 'stable', 'declining']),
+                    'lifecycle_multiplier' => fake()->randomFloat(2, 0.8, 1.2),
+                    'current_annual_giving' => $currentAnnualGiving,
+                ],
+                'giving_capacity_analyzed_at' => now()->subDays(fake()->numberBetween(1, 7)),
+                'giving_consistency_score' => fake()->numberBetween(30, 100),
+                'giving_growth_rate' => fake()->randomFloat(2, -15, 25),
+                'donor_tier' => fake()->randomElement(['top_10', 'top_25', 'top_50', 'regular', 'new', 'lapsed']),
+                'giving_trend' => fake()->randomElement(['growing', 'stable', 'declining', 'new', 'lapsed']),
+                'giving_analyzed_at' => now()->subDays(fake()->numberBetween(1, 7)),
             ]);
         });
 
@@ -528,12 +553,12 @@ class SeedDemoDataCommand extends Command
         $this->summary['Expenses'] = $count;
     }
 
-    protected function seedPledges(Branch $branch, Collection $members): void
+    protected function seedPledges(Branch $branch, Collection $members): Collection
     {
         $count = $this->getCount('pledges');
         $this->line("Creating {$count} pledges...");
 
-        Pledge::factory()
+        $pledges = Pledge::factory()
             ->count($count)
             ->create([
                 'branch_id' => $branch->id,
@@ -541,6 +566,56 @@ class SeedDemoDataCommand extends Command
             ]);
 
         $this->summary['Pledges'] = $count;
+
+        return $pledges;
+    }
+
+    protected function seedPledgePredictions(Branch $branch, Collection $pledges): void
+    {
+        if ($pledges->isEmpty()) {
+            return;
+        }
+
+        $this->line('Creating pledge predictions...');
+        $count = 0;
+
+        foreach ($pledges as $pledge) {
+            // Calculate fulfillment based on pledge status and amount
+            $fulfillmentPercent = $pledge->amount > 0
+                ? ($pledge->amount_fulfilled / $pledge->amount) * 100
+                : 0;
+
+            // Predict probability based on current fulfillment
+            $probability = match (true) {
+                $fulfillmentPercent >= 80 => fake()->randomFloat(2, 75, 98),
+                $fulfillmentPercent >= 50 => fake()->randomFloat(2, 50, 80),
+                $fulfillmentPercent >= 25 => fake()->randomFloat(2, 30, 60),
+                default => fake()->randomFloat(2, 10, 45),
+            };
+
+            $riskLevel = RiskLevel::fromFulfillmentProbability($probability);
+
+            PledgePrediction::create([
+                'branch_id' => $branch->id,
+                'pledge_id' => $pledge->id,
+                'member_id' => $pledge->member_id,
+                'fulfillment_probability' => $probability,
+                'risk_level' => $riskLevel,
+                'recommended_nudge_at' => $riskLevel->shouldSendNudge()
+                    ? now()->addDays(fake()->numberBetween(1, 14))
+                    : null,
+                'factors' => [
+                    'fulfillment_pace' => fake()->randomElement(['ahead', 'on_track', 'behind', 'far_behind']),
+                    'pledge_history_completion_rate' => fake()->randomFloat(2, 0.5, 1.0),
+                    'giving_trend' => fake()->randomElement(['growing', 'stable', 'declining']),
+                    'days_since_last_payment' => fake()->numberBetween(1, 60),
+                ],
+                'provider' => 'heuristic',
+            ]);
+            $count++;
+        }
+
+        $this->summary['Pledge Predictions'] = $count;
     }
 
     protected function seedBudgets(Branch $branch): void
