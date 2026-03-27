@@ -1,4 +1,4 @@
-@props(['followUp', 'branch', 'urgency' => 'upcoming', 'showConversionScore' => false, 'showAiMessage' => false])
+@props(['followUp', 'branch', 'urgency' => 'upcoming', 'showConversionScore' => false, 'showAiMessage' => false, 'isGeneratingAi' => false])
 
 @php
     $borderColor = match($urgency) {
@@ -32,7 +32,17 @@
     };
 @endphp
 
-<div class="rounded-lg border {{ $borderColor }} {{ $bgColor }} p-4" wire:key="follow-up-{{ $followUp->id }}">
+<div class="relative flex h-full flex-col rounded-lg border {{ $borderColor }} {{ $bgColor }} p-4" wire:key="follow-up-{{ $followUp->id }}">
+    <!-- AI Generating Overlay -->
+    @if($isGeneratingAi)
+        <div class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80 dark:bg-zinc-900/80">
+            <div class="flex flex-col items-center gap-2">
+                <flux:icon icon="sparkles" class="size-6 animate-pulse text-purple-500" />
+                <span class="text-sm font-medium text-purple-600 dark:text-purple-400">{{ __('Generating AI message...') }}</span>
+            </div>
+        </div>
+    @endif
+
     <!-- Header with visitor name and type badge -->
     <div class="mb-3 flex items-start justify-between">
         <div class="flex items-center gap-2">
@@ -121,7 +131,7 @@
     @endif
 
     <!-- Actions -->
-    <div class="flex items-center justify-between border-t border-zinc-200 pt-3 dark:border-zinc-700">
+    <div class="mt-auto flex items-center justify-between border-t border-zinc-200 pt-3 dark:border-zinc-700">
         <flux:button
             variant="primary"
             size="sm"
