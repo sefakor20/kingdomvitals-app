@@ -7,7 +7,9 @@ namespace App\Livewire\Visitors;
 use App\Enums\AiMessageStatus;
 use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
+use App\Jobs\SendVisitorFollowUpSmsJob;
 use App\Livewire\Concerns\HasFilterableQuery;
+use App\Mail\VisitorFollowUpMail;
 use App\Models\Tenant\AiGeneratedMessage;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\FollowUpTemplate;
@@ -20,6 +22,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -55,6 +58,10 @@ class FollowUpQueue extends Component
     public ?string $completionPerformedBy = null;
 
     public ?string $selectedTemplateId = null;
+
+    public bool $sendEmail = false;
+
+    public bool $sendSms = false;
 
     // Reschedule modal
     public bool $showRescheduleModal = false;
@@ -151,6 +158,12 @@ class FollowUpQueue extends Component
     }
 
     #[Computed]
+    public function smsConfigured(): bool
+    {
+        return $this->branch->hasSmsConfigured();
+    }
+
+    #[Computed]
     public function followUpOutcomes(): array
     {
         return collect(FollowUpOutcome::cases())
@@ -242,7 +255,52 @@ class FollowUpQueue extends Component
         }
 
         $this->completionPerformedBy = $followUp->performed_by;
+
+        // Default to sending messages if visitor has contact info
+        $this->sendEmail = (bool) $followUp->visitor->email;
+        $this->sendSms = (bool) $followUp->visitor->phone && $this->smsConfigured;
+
         $this->showCompleteModal = true;
+    }
+
+    /**
+     * Send email to the visitor.
+     */
+    private function sendEmailToVisitor(VisitorFollowUp $followUp, string $message): void
+    {
+        $visitor = $followUp->visitor;
+
+        if (! $visitor->email) {
+            return;
+        }
+
+        Mail::to($visitor->email)->queue(
+            new VisitorFollowUpMail(
+                visitor: $visitor,
+                messageBody: $message,
+                branch: $this->branch
+            )
+        );
+        $this->dispatch('message-sent-to-visitor', ['type' => 'email']);
+    }
+
+    /**
+     * Send SMS to the visitor.
+     */
+    private function sendSmsToVisitor(VisitorFollowUp $followUp, string $message): void
+    {
+        $visitor = $followUp->visitor;
+
+        if (! $visitor->phone || ! $this->smsConfigured) {
+            return;
+        }
+
+        SendVisitorFollowUpSmsJob::dispatch(
+            $visitor->id,
+            $this->branch->id,
+            $message
+        );
+        $this->dispatch('message-sent-to-visitor', ['type' => 'sms']);
     }
 
     /**
@@ -281,6 +339,16 @@ class FollowUpQueue extends Component
 
         $visitor = $this->completingFollowUp->visitor;
 
+        // Send messages to visitor if enabled
+        if ($validated['completionNotes']) {
+            if ($this->sendEmail) {
+                $this->sendEmailToVisitor($this->completingFollowUp, $validated['completionNotes']);
+            }
+            if ($this->sendSms) {
+                $this->sendSmsToVisitor($this->completingFollowUp, $validated['completionNotes']);
+            }
+        }
+
         // Update visitor stats
         $visitor->update([
             'last_follow_up_at' => now(),
@@ -314,6 +382,8 @@ class FollowUpQueue extends Component
         $this->completionNotes = '';
         $this->completionPerformedBy = null;
         $this->selectedTemplateId = null;
+        $this->sendEmail = false;
+        $this->sendSms = false;
         $this->resetValidation();
     }
 
