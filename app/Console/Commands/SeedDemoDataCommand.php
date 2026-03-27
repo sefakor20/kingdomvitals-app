@@ -28,6 +28,7 @@ use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\MemberActivity;
 use App\Models\Tenant\Pledge;
+use App\Models\Tenant\PledgeCampaign;
 use App\Models\Tenant\PledgePrediction;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\Service;
@@ -233,7 +234,8 @@ class SeedDemoDataCommand extends Command
         }
 
         if (in_array('pledges', $modulesToSeed)) {
-            $pledges = $this->seedPledges($branch, $members);
+            $campaigns = $this->seedPledgeCampaigns($branch);
+            $pledges = $this->seedPledges($branch, $members, $campaigns);
             $this->seedPledgePredictions($branch, $pledges);
         }
 
@@ -548,7 +550,30 @@ class SeedDemoDataCommand extends Command
         $this->summary['Expenses'] = $count;
     }
 
-    protected function seedPledges(Branch $branch, Collection $members): Collection
+    protected function seedPledgeCampaigns(Branch $branch): Collection
+    {
+        $this->line('Creating pledge campaigns...');
+
+        $campaignData = $this->getRealisticCampaignData();
+        $campaigns = collect();
+
+        foreach ($campaignData as $data) {
+            $campaign = PledgeCampaign::factory()
+                ->active()
+                ->create([
+                    'branch_id' => $branch->id,
+                    'name' => $data['name'],
+                    'description' => $data['description'],
+                ]);
+            $campaigns->push($campaign);
+        }
+
+        $this->summary['Pledge Campaigns'] = $campaigns->count();
+
+        return $campaigns;
+    }
+
+    protected function seedPledges(Branch $branch, Collection $members, Collection $campaigns): Collection
     {
         $count = $this->getCount('pledges');
         $this->line("Creating {$count} pledges...");
@@ -558,6 +583,7 @@ class SeedDemoDataCommand extends Command
             ->create([
                 'branch_id' => $branch->id,
                 'member_id' => fn () => $members->isNotEmpty() ? $members->random()->id : null,
+                'pledge_campaign_id' => fn () => $campaigns->isNotEmpty() ? $campaigns->random()->id : null,
             ]);
 
         $this->summary['Pledges'] = $count;
@@ -1064,6 +1090,20 @@ class SeedDemoDataCommand extends Command
             ['name' => 'Sound Booth Equipment Rack', 'description' => 'Professional equipment rack for organizing audio gear.'],
             ['name' => 'Wireless In-Ear Monitors', 'description' => 'In-ear monitoring system for worship band members.'],
             ['name' => 'Generator (5KVA)', 'description' => 'Backup power generator for uninterrupted services during outages.'],
+        ];
+    }
+
+    /**
+     * @return array<int, array{name: string, description: string}>
+     */
+    protected function getRealisticCampaignData(): array
+    {
+        return [
+            ['name' => 'Building Fund 2026', 'description' => 'Supporting the construction and renovation of our church facilities to accommodate our growing congregation.'],
+            ['name' => 'Missions Outreach', 'description' => 'Funding missionary work and evangelism efforts both locally and internationally.'],
+            ['name' => 'Youth Ministry Support', 'description' => 'Investing in programs, events, and resources for the spiritual growth of our young people.'],
+            ['name' => 'Widows & Orphans Fund', 'description' => 'Providing financial assistance and care for widows and orphans in our community.'],
+            ['name' => 'Church Anniversary Thanksgiving', 'description' => 'Special thanksgiving offering celebrating God\'s faithfulness to our church over the years.'],
         ];
     }
 }
