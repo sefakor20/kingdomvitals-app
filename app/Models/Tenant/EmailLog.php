@@ -24,6 +24,7 @@ class EmailLog extends Model
     protected $fillable = [
         'branch_id',
         'member_id',
+        'visitor_id',
         'email_address',
         'subject',
         'body',
@@ -59,6 +60,11 @@ class EmailLog extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function visitor(): BelongsTo
+    {
+        return $this->belongsTo(Visitor::class);
     }
 
     public function sender(): BelongsTo

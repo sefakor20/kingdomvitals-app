@@ -106,6 +106,16 @@ class Visitor extends Model
             ->take(1);
     }
 
+    public function smsLogs(): HasMany
+    {
+        return $this->hasMany(SmsLog::class)->orderBy('sent_at', 'desc');
+    }
+
+    public function emailLogs(): HasMany
+    {
+        return $this->hasMany(EmailLog::class)->orderBy('sent_at', 'desc');
+    }
+
     public function getActivitySubjectType(): SubjectType
     {
         return SubjectType::Visitor;
