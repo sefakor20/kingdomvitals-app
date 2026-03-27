@@ -14,12 +14,12 @@
         .ticket-container {
             max-width: 400px;
             margin: 0 auto;
-            border: 2px solid {{ $branch->color_primary ?? '#4F46E5' }};
+            border: 2px solid {{ $branch->color_primary ?? '#009866' }};
             border-radius: 12px;
             overflow: hidden;
         }
         .ticket-header {
-            background: {{ $branch->color_primary ?? '#4F46E5' }};
+            background: {{ $branch->color_primary ?? '#009866' }};
             color: white;
             padding: 20px;
             text-align: center;
@@ -49,7 +49,7 @@
         .event-name {
             font-size: 22px;
             font-weight: bold;
-            color: {{ $branch->color_primary ?? '#4F46E5' }};
+            color: {{ $branch->color_primary ?? '#009866' }};
             text-align: center;
             margin-bottom: 20px;
         }
@@ -67,7 +67,7 @@
         }
         .detail-icon {
             width: 24px;
-            color: {{ $branch->color_primary ?? '#4F46E5' }};
+            color: {{ $branch->color_primary ?? '#009866' }};
             font-weight: bold;
         }
         .detail-label {
@@ -98,7 +98,7 @@
             font-family: monospace;
             font-size: 18px;
             font-weight: bold;
-            color: {{ $branch->color_primary ?? '#4F46E5' }};
+            color: {{ $branch->color_primary ?? '#009866' }};
             letter-spacing: 2px;
         }
         .scan-instruction {
