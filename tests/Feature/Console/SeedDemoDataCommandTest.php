@@ -40,6 +40,9 @@ test('command seeds demo data for a tenant by domain', function (): void {
     // Verify no data exists initially
     expect(Member::count())->toBe(0);
 
+    // End tenancy context before running command (command manages its own tenancy)
+    tenancy()->end();
+
     // Run the command using domain
     $this->artisan('tenant:seed-demo', ['tenant' => 'test.localhost'])
         ->expectsOutputToContain('Demo data seeding completed!')

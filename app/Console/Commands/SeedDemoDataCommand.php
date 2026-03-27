@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\ClusterHealthLevel;
+use App\Enums\HouseholdEngagementLevel;
+use App\Enums\LifecycleStage;
 use App\Enums\PlanModule;
+use App\Enums\SmsEngagementLevel;
 use App\Models\Domain;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
@@ -21,11 +25,13 @@ use App\Models\Tenant\Event;
 use App\Models\Tenant\Expense;
 use App\Models\Tenant\Household;
 use App\Models\Tenant\Member;
+use App\Models\Tenant\MemberActivity;
 use App\Models\Tenant\Pledge;
 use App\Models\Tenant\PrayerRequest;
 use App\Models\Tenant\Service;
 use App\Models\Tenant\SmsLog;
 use App\Models\Tenant\Visitor;
+use App\Models\Tenant\VisitorFollowUp;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -262,6 +268,15 @@ class SeedDemoDataCommand extends Command
         if (in_array('ai_insights', $modulesToSeed)) {
             $this->seedAiAlerts($branch, $members, $clusters);
         }
+
+        // Phase 8: Dashboard widgets (follow-ups and activities)
+        if (in_array('visitors', $modulesToSeed) && $visitors->isNotEmpty()) {
+            $this->seedVisitorFollowUps($visitors);
+        }
+
+        if ((in_array('members', $modulesToSeed) || in_array('children', $modulesToSeed)) && $members->isNotEmpty()) {
+            $this->seedMemberActivities($members);
+        }
     }
 
     protected function seedBranch(): Branch
@@ -288,6 +303,7 @@ class SeedDemoDataCommand extends Command
 
         $households = Household::factory()->count($count)->create([
             'branch_id' => $branch->id,
+            'engagement_level' => fn () => fake()->randomElement(HouseholdEngagementLevel::cases()),
         ]);
         $this->summary['Households'] = $count;
 
@@ -301,10 +317,10 @@ class SeedDemoDataCommand extends Command
 
         $clusters = Cluster::factory()
             ->count($count)
-            ->sequence(
-                fn ($sequence) => ['branch_id' => $branch->id]
-            )
-            ->create();
+            ->create([
+                'branch_id' => $branch->id,
+                'health_level' => fn () => fake()->randomElement(ClusterHealthLevel::cases()),
+            ]);
 
         $this->summary['Clusters'] = $count;
 
@@ -383,6 +399,16 @@ class SeedDemoDataCommand extends Command
             ])
             ->each(fn ($m) => $members->push($m));
 
+        // Update members with AI-related fields for dashboard widgets
+        $members->each(function ($member) {
+            $member->update([
+                'churn_risk_score' => fake()->optional(0.3)->randomFloat(2, 0, 100),
+                'lifecycle_stage' => fake()->randomElement(LifecycleStage::cases()),
+                'sms_engagement_level' => fake()->randomElement(SmsEngagementLevel::cases()),
+                'attendance_anomaly_detected_at' => fake()->optional(0.1)->dateTimeBetween('-7 days', 'now'),
+            ]);
+        });
+
         $this->summary['Members'] = $members->count();
 
         return $members;
@@ -395,7 +421,10 @@ class SeedDemoDataCommand extends Command
 
         $visitors = Visitor::factory()
             ->count($count)
-            ->create(['branch_id' => $branch->id]);
+            ->create([
+                'branch_id' => $branch->id,
+                'conversion_score' => fn () => fake()->optional(0.5)->randomFloat(2, 0, 100),
+            ]);
 
         $this->summary['Visitors'] = $count;
 
@@ -667,6 +696,38 @@ class SeedDemoDataCommand extends Command
         }
 
         $this->summary['AI Alerts'] = $created;
+    }
+
+    protected function seedVisitorFollowUps(Collection $visitors): void
+    {
+        $count = 10;
+        $this->line("Creating {$count} visitor follow-ups...");
+
+        foreach (range(1, $count) as $i) {
+            VisitorFollowUp::factory()
+                ->scheduled()
+                ->create([
+                    'visitor_id' => $visitors->random()->id,
+                ]);
+        }
+
+        $this->summary['Follow-ups'] = $count;
+    }
+
+    protected function seedMemberActivities(Collection $members): void
+    {
+        $count = 25;
+        $this->line("Creating {$count} member activities...");
+
+        foreach (range(1, $count) as $i) {
+            MemberActivity::factory()
+                ->create([
+                    'member_id' => $members->random()->id,
+                    'user_id' => null,
+                ]);
+        }
+
+        $this->summary['Activities'] = $count;
     }
 
     protected function displaySummary(): void
