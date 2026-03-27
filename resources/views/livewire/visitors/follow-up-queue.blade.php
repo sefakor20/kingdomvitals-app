@@ -122,6 +122,7 @@
                         urgency="overdue"
                         :show-conversion-score="$this->conversionPredictionEnabled"
                         :show-ai-message="$this->aiEnabled"
+                        :is-generating-ai="$generatingForFollowUpId === $followUp->id"
                     />
                 @endforeach
             </div>
@@ -143,6 +144,7 @@
                         urgency="today"
                         :show-conversion-score="$this->conversionPredictionEnabled"
                         :show-ai-message="$this->aiEnabled"
+                        :is-generating-ai="$generatingForFollowUpId === $followUp->id"
                     />
                 @endforeach
             </div>
@@ -164,6 +166,7 @@
                         urgency="upcoming"
                         :show-conversion-score="$this->conversionPredictionEnabled"
                         :show-ai-message="$this->aiEnabled"
+                        :is-generating-ai="$generatingForFollowUpId === $followUp->id"
                     />
                 @endforeach
             </div>
@@ -314,8 +317,7 @@
                         <flux:button variant="ghost" wire:click="rejectAiMessage">
                             {{ __('Discard') }}
                         </flux:button>
-                        <flux:button variant="primary" wire:click="approveAiMessage">
-                            <flux:icon icon="check" class="mr-1 size-4" />
+                        <flux:button variant="primary" wire:click="approveAiMessage" icon="check">
                             {{ __('Use Message') }}
                         </flux:button>
                     </div>
@@ -338,11 +340,29 @@
         {{ __('Follow-up rescheduled successfully.') }}
     </x-toast>
 
-    <x-toast on="ai-message-approved" type="success">
-        {{ __('AI message approved and ready to use.') }}
-    </x-toast>
-
     <x-toast on="ai-message-rejected" type="info">
         {{ __('AI message discarded.') }}
     </x-toast>
+
+    <!-- Clipboard copy handler -->
+    @script
+    <script>
+        $wire.on('copy-to-clipboard', (event) => {
+            const text = event[0].text;
+            navigator.clipboard.writeText(text).then(() => {
+                Flux.toast({
+                    heading: '{{ __('Copied!') }}',
+                    text: '{{ __('AI message copied to clipboard and saved for notes.') }}',
+                    variant: 'success',
+                });
+            }).catch(() => {
+                Flux.toast({
+                    heading: '{{ __('Error') }}',
+                    text: '{{ __('Failed to copy to clipboard.') }}',
+                    variant: 'danger',
+                });
+            });
+        });
+    </script>
+    @endscript
 </section>

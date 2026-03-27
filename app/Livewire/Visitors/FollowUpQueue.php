@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire\Visitors;
 
+use App\Enums\AiMessageStatus;
 use App\Enums\FollowUpOutcome;
 use App\Enums\FollowUpType;
-use App\Jobs\AI\GenerateFollowUpMessageJob;
 use App\Livewire\Concerns\HasFilterableQuery;
 use App\Models\Tenant\AiGeneratedMessage;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\FollowUpTemplate;
 use App\Models\Tenant\Member;
 use App\Models\Tenant\VisitorFollowUp;
+use App\Services\AI\MessageGenerationService;
 use App\Services\FollowUpTemplatePlaceholderService;
 use App\Services\PlanAccessService;
 use Illuminate\Contracts\View\Factory;
@@ -68,6 +69,12 @@ class FollowUpQueue extends Component
     public ?AiGeneratedMessage $generatedMessage = null;
 
     public bool $isGeneratingMessage = false;
+
+    public ?string $generatingForFollowUpId = null;
+
+    public ?string $aiMessageFollowUpId = null;
+
+    public ?string $approvedAiMessageContent = null;
 
     public bool $sortByConversionScore = false;
 
@@ -221,9 +228,32 @@ class FollowUpQueue extends Component
         $this->authorize('update', $followUp);
         $this->completingFollowUp = $followUp;
         $this->completionOutcome = 'successful';
-        $this->completionNotes = $followUp->notes ?? '';
+
+        // Pre-fill notes with approved AI message if available
+        $aiMessage = $this->getApprovedAiMessageForVisitor($followUp->visitor_id, $followUp->type);
+
+        if ($aiMessage) {
+            $this->completionNotes = $aiMessage->generated_content;
+            $this->selectedTemplateId = null; // Clear template so it doesn't overwrite AI message
+        } else {
+            $this->completionNotes = $followUp->notes ?? '';
+        }
+
         $this->completionPerformedBy = $followUp->performed_by;
         $this->showCompleteModal = true;
+    }
+
+    /**
+     * Get the latest approved AI message for a visitor within the last 24 hours.
+     */
+    private function getApprovedAiMessageForVisitor(string $visitorId, FollowUpType $channel): ?AiGeneratedMessage
+    {
+        return AiGeneratedMessage::where('visitor_id', $visitorId)
+            ->where('channel', $channel)
+            ->where('status', AiMessageStatus::Approved)
+            ->where('approved_at', '>=', now()->subDay())
+            ->orderByDesc('approved_at')
+            ->first();
     }
 
     public function completeFollowUp(): void
@@ -340,17 +370,17 @@ class FollowUpQueue extends Component
             return;
         }
 
+        $this->generatingForFollowUpId = $followUp->id;
         $this->isGeneratingMessage = true;
         $this->showAiMessageModal = true;
+        $this->aiMessageFollowUpId = $followUp->id;
 
-        // Dispatch job synchronously for immediate response
-        $message = dispatch_sync(new GenerateFollowUpMessageJob(
-            'visitor',
-            $followUp->visitor_id,
-            $followUp->type->value
-        ));
-
-        $this->generatedMessage = $message;
+        // Call the service directly for immediate response
+        $service = app(MessageGenerationService::class);
+        $this->generatedMessage = $service->createVisitorMessage(
+            $followUp->visitor,
+            $followUp->type
+        );
         $this->isGeneratingMessage = false;
     }
 
@@ -362,8 +392,12 @@ class FollowUpQueue extends Component
 
         $this->generatedMessage->approve(auth()->user());
 
-        $this->dispatch('ai-message-approved', [
-            'message' => $this->generatedMessage->generated_content,
+        // Store the approved message content for pre-filling notes
+        $this->approvedAiMessageContent = $this->generatedMessage->generated_content;
+
+        // Dispatch event with message for clipboard copy
+        $this->dispatch('copy-to-clipboard', [
+            'text' => $this->generatedMessage->generated_content,
         ]);
 
         $this->closeAiMessageModal();
@@ -384,6 +418,9 @@ class FollowUpQueue extends Component
         $this->showAiMessageModal = false;
         $this->generatedMessage = null;
         $this->isGeneratingMessage = false;
+        $this->generatingForFollowUpId = null;
+        // Note: We keep aiMessageFollowUpId and approvedAiMessageContent
+        // so they can be used when completing the follow-up
     }
 
     public function toggleConversionSort(): void
