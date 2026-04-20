@@ -84,6 +84,11 @@ Schedule::command('subscriptions:process-expired')
     ->dailyAt('00:30')
     ->withoutOverlapping();
 
+// Suspend tenants with invoices overdue 30+ days
+Schedule::command('subscriptions:suspend-overdue')
+    ->dailyAt('00:00')
+    ->withoutOverlapping();
+
 // Generate monthly invoices on the 1st of each month at 1 AM
 Schedule::command('billing:generate-invoices')
     ->monthlyOn(1, '01:00')

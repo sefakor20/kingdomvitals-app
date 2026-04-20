@@ -324,9 +324,9 @@ class PlatformBillingService
     }
 
     /**
-     * Suspend tenants who have invoices overdue by 30+ days and are still active.
+     * Suspend tenants who have invoices overdue by the given number of days and are still active.
      */
-    public function suspendTenantsWithOverdueInvoices(int $overdueDays = 30): int
+    public function suspendTenantsWithOverdueInvoices(int $overdueDays = 30, bool $dryRun = false): int
     {
         $count = 0;
 
@@ -350,15 +350,17 @@ class PlatformBillingService
                 continue;
             }
 
-            $tenant->suspend("Automatically suspended: invoice {$invoice->invoice_number} overdue by {$invoice->daysOverdue()} days.");
+            if (! $dryRun) {
+                $tenant->suspend("Automatically suspended: invoice {$invoice->invoice_number} overdue by {$invoice->daysOverdue()} days.");
 
-            Log::info('Tenant suspended for overdue invoice', [
-                'tenant_id' => $tenant->id,
-                'tenant_name' => $tenant->name,
-                'invoice_id' => $invoice->id,
-                'invoice_number' => $invoice->invoice_number,
-                'days_overdue' => $invoice->daysOverdue(),
-            ]);
+                Log::info('Tenant suspended for overdue invoice', [
+                    'tenant_id' => $tenant->id,
+                    'tenant_name' => $tenant->name,
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'days_overdue' => $invoice->daysOverdue(),
+                ]);
+            }
 
             $processedTenants[$tenant->id] = true;
             $count++;

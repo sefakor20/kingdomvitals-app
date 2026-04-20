@@ -27,13 +27,6 @@ class CheckOverdueInvoicesCommand extends Command
                 Log::info('Overdue invoices marked', ['count' => $overdueCount]);
             }
 
-            $suspendedCount = $billingService->suspendTenantsWithOverdueInvoices(30);
-
-            if ($suspendedCount > 0) {
-                $this->warn("Suspended {$suspendedCount} tenant(s) with invoices overdue 30+ days");
-                Log::info('Tenants suspended for overdue invoices', ['count' => $suspendedCount]);
-            }
-
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $this->error("Failed to check overdue invoices: {$e->getMessage()}");
