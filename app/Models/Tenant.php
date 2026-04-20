@@ -218,7 +218,15 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function isActive(): bool
     {
-        return $this->status === TenantStatus::Trial || $this->status === TenantStatus::Active;
+        if ($this->status === TenantStatus::Active) {
+            return true;
+        }
+
+        if ($this->status === TenantStatus::Trial) {
+            return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+        }
+
+        return false;
     }
 
     /**

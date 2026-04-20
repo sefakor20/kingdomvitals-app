@@ -79,6 +79,11 @@ Schedule::command('analytics:aggregate-usage')
     ->hourly()
     ->withoutOverlapping();
 
+// Mark expired/cancelled subscriptions and lapsed trials as Inactive
+Schedule::command('subscriptions:process-expired')
+    ->dailyAt('00:30')
+    ->withoutOverlapping();
+
 // Generate monthly invoices on the 1st of each month at 1 AM
 Schedule::command('billing:generate-invoices')
     ->monthlyOn(1, '01:00')

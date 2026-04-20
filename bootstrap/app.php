@@ -4,6 +4,7 @@ use App\Http\Middleware\EnforceQuota;
 use App\Http\Middleware\EnsureMemberAccess;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\EnsureOnboardingComplete;
+use App\Http\Middleware\EnsureTenantActive;
 use App\Http\Middleware\SuperAdminAuthenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -48,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'superadmin' => SuperAdminAuthenticate::class,
             'onboarding.complete' => EnsureOnboardingComplete::class,
+            'tenant.active' => EnsureTenantActive::class,
             'module' => EnsureModuleEnabled::class,
             'quota' => EnforceQuota::class,
             'member' => EnsureMemberAccess::class,
