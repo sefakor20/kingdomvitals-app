@@ -12,6 +12,18 @@
             <div class="space-y-4">
                 <flux:heading size="lg">{{ __('Invoices') }}</flux:heading>
 
+                @if($errorMessage)
+                    <flux:callout variant="danger" icon="exclamation-circle">
+                        {{ $errorMessage }}
+                    </flux:callout>
+                @endif
+
+                @if(session('success'))
+                    <flux:callout variant="success" icon="check-circle">
+                        {{ session('success') }}
+                    </flux:callout>
+                @endif
+
                 @if($this->invoices->isNotEmpty())
                     <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
                         <div class="overflow-x-auto">
@@ -59,13 +71,30 @@
                                                 </flux:badge>
                                             </td>
                                             <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
-                                                <flux:button
-                                                    :href="route('invoices.download', $invoice)"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    icon="arrow-down-tray"
-                                                    :title="__('Download PDF')"
-                                                />
+                                                <flux:dropdown>
+                                                    <flux:button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        icon="ellipsis-horizontal"
+                                                        :disabled="$isProcessing && $payingInvoiceId === $invoice->id"
+                                                    />
+                                                    <flux:menu>
+                                                        @if($invoice->status->canReceivePayment())
+                                                            <flux:menu.item
+                                                                wire:click="initiateInvoicePayment('{{ $invoice->id }}')"
+                                                                icon="credit-card"
+                                                            >
+                                                                {{ __('Pay Now') }}
+                                                            </flux:menu.item>
+                                                        @endif
+                                                        <flux:menu.item
+                                                            :href="route('invoices.download', $invoice)"
+                                                            icon="arrow-down-tray"
+                                                        >
+                                                            {{ __('Download PDF') }}
+                                                        </flux:menu.item>
+                                                    </flux:menu>
+                                                </flux:dropdown>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -161,4 +190,32 @@
             </div>
         @endif
     </div>
+
+    {{-- Paystack Integration --}}
+    <script src="https://js.paystack.co/v2/inline.js"></script>
+
+    @script
+    <script>
+        $wire.on('open-paystack', (data) => {
+            const config = data[0];
+
+            const handler = PaystackPop.setup({
+                key: config.key,
+                email: config.email,
+                amount: config.amount,
+                currency: config.currency,
+                ref: config.reference,
+                metadata: config.metadata,
+                onClose: function() {
+                    $wire.handlePaymentClosed();
+                },
+                callback: function(response) {
+                    $wire.handlePaymentSuccess(response.reference);
+                }
+            });
+
+            handler.openIframe();
+        });
+    </script>
+    @endscript
 </div>
