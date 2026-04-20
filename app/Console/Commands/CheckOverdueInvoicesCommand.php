@@ -19,12 +19,12 @@ class CheckOverdueInvoicesCommand extends Command
         $this->info('Checking for overdue invoices...');
 
         try {
-            $count = $billingService->checkOverdueInvoices();
+            $overdueCount = $billingService->checkOverdueInvoices();
 
-            $this->info("Marked {$count} invoices as overdue");
+            $this->info("Marked {$overdueCount} invoices as overdue");
 
-            if ($count > 0) {
-                Log::info('Overdue invoices marked', ['count' => $count]);
+            if ($overdueCount > 0) {
+                Log::info('Overdue invoices marked', ['count' => $overdueCount]);
             }
 
             return Command::SUCCESS;
