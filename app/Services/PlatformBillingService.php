@@ -324,6 +324,50 @@ class PlatformBillingService
     }
 
     /**
+     * Suspend tenants who have invoices overdue by 30+ days and are still active.
+     */
+    public function suspendTenantsWithOverdueInvoices(int $overdueDays = 30): int
+    {
+        $count = 0;
+
+        $cutoff = now()->subDays($overdueDays);
+
+        $invoices = PlatformInvoice::where('status', InvoiceStatus::Overdue)
+            ->where('due_date', '<=', $cutoff)
+            ->with('tenant')
+            ->get();
+
+        $processedTenants = [];
+
+        foreach ($invoices as $invoice) {
+            $tenant = $invoice->tenant;
+
+            if (! $tenant || isset($processedTenants[$tenant->id])) {
+                continue;
+            }
+
+            if (! in_array($tenant->status, [TenantStatus::Active, TenantStatus::Trial])) {
+                continue;
+            }
+
+            $tenant->suspend("Automatically suspended: invoice {$invoice->invoice_number} overdue by {$invoice->daysOverdue()} days.");
+
+            Log::info('Tenant suspended for overdue invoice', [
+                'tenant_id' => $tenant->id,
+                'tenant_name' => $tenant->name,
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'days_overdue' => $invoice->daysOverdue(),
+            ]);
+
+            $processedTenants[$tenant->id] = true;
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
      * Get invoices that need reminders.
      *
      * @return Collection<int, array{invoice: PlatformInvoice, type: string}>
