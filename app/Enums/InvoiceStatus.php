@@ -18,7 +18,7 @@ enum InvoiceStatus: string
     {
         return match ($this) {
             self::Draft => 'Draft',
-            self::Sent => 'Sent',
+            self::Sent => 'Unpaid',
             self::Paid => 'Paid',
             self::Partial => 'Partial',
             self::Overdue => 'Overdue',
@@ -57,7 +57,7 @@ enum InvoiceStatus: string
 
     public function canReceivePayment(): bool
     {
-        return in_array($this, [self::Sent, self::Partial, self::Overdue]);
+        return in_array($this, [self::Draft, self::Sent, self::Partial, self::Overdue]);
     }
 
     public function canBeCancelled(): bool
