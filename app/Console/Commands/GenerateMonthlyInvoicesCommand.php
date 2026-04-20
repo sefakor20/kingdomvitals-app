@@ -36,12 +36,26 @@ class GenerateMonthlyInvoicesCommand extends Command
 
             $this->info("Generated {$invoices->count()} invoices");
 
+            $sentCount = 0;
+
             foreach ($invoices as $invoice) {
                 $this->line("  - {$invoice->invoice_number}: {$invoice->tenant->name} ({$invoice->currency} {$invoice->total_amount})");
+
+                if ($billingService->sendInvoice($invoice)) {
+                    $sentCount++;
+                } else {
+                    Log::warning('Could not send invoice email', [
+                        'invoice_id' => $invoice->id,
+                        'tenant_id' => $invoice->tenant_id,
+                    ]);
+                }
             }
+
+            $this->info("Sent {$sentCount} of {$invoices->count()} invoice email(s)");
 
             Log::info('Monthly invoice generation completed', [
                 'count' => $invoices->count(),
+                'sent' => $sentCount,
             ]);
 
             return Command::SUCCESS;
