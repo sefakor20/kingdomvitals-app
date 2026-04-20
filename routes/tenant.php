@@ -235,8 +235,8 @@ Route::middleware(['web'])->group(function (): void {
             ->name('plans.checkout');
     });
 
-    // Authenticated routes (require completed onboarding)
-    Route::middleware(['auth', 'onboarding.complete'])->group(function (): void {
+    // Authenticated routes (require completed onboarding and active subscription)
+    Route::middleware(['auth', 'onboarding.complete', 'tenant.active'])->group(function (): void {
         // Settings (no module restriction)
         Route::redirect('settings', 'settings/profile');
         Route::get('settings/profile', Profile::class)->name('profile.edit');
