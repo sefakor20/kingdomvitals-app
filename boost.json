@@ -7,18 +7,18 @@
     "mcp": true,
     "nightwatch_mcp": false,
     "packages": [
-        "laravel/fortify",
-        "laravel/ai",
-        "spatie/laravel-og-image"
+        "spatie/laravel-og-image",
+        "barryvdh/laravel-debugbar"
     ],
     "sail": false,
     "skills": [
+        "ai-sdk-development",
+        "fortify-development",
         "laravel-best-practices",
         "fluxui-development",
         "pest-testing",
         "tailwindcss-development",
-        "ai-sdk-development",
-        "fortify-development",
-        "laravel-og-image"
+        "laravel-og-image",
+        "debug-using-debugbar"
     ]
 }
