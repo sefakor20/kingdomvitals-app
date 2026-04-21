@@ -416,11 +416,21 @@
                 </div>
 
                 <flux:field>
-                    <flux:label>{{ __('Please tell us why you\'re cancelling') }}</flux:label>
+                    <flux:label>{{ __('Why are you cancelling?') }}</flux:label>
+                    <flux:select wire:model="cancellationReasonCategory" placeholder="{{ __('Select a reason...') }}">
+                        @foreach($this->cancellationReasonOptions as $value => $label)
+                            <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="cancellationReasonCategory" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('Additional details') }} <flux:badge size="sm" variant="ghost">{{ __('Optional') }}</flux:badge></flux:label>
                     <flux:textarea
                         wire:model="cancellationReason"
-                        rows="3"
-                        placeholder="{{ __('Your feedback helps us improve...') }}"
+                        rows="2"
+                        placeholder="{{ __('Anything else you\'d like us to know...') }}"
                     />
                     <flux:error name="cancellationReason" />
                 </flux:field>

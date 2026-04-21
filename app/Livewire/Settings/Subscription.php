@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Settings;
 
+use App\Enums\CancellationReason;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\PlanAccessService;
@@ -18,6 +19,8 @@ use Livewire\Component;
 class Subscription extends Component
 {
     public bool $showCancelModal = false;
+
+    public string $cancellationReasonCategory = '';
 
     public string $cancellationReason = '';
 
@@ -175,6 +178,17 @@ class Subscription extends Component
     }
 
     /**
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function cancellationReasonOptions(): array
+    {
+        return collect(CancellationReason::cases())
+            ->mapWithKeys(fn ($reason) => [$reason->value => $reason->label()])
+            ->all();
+    }
+
+    /**
      * Show the cancellation confirmation modal.
      */
     public function confirmCancellation(): void
@@ -187,13 +201,20 @@ class Subscription extends Component
      */
     public function cancelSubscription(): void
     {
+        $validCategories = collect(CancellationReason::cases())->map(fn ($c) => $c->value)->implode(',');
+
         $this->validate([
-            'cancellationReason' => 'required|string|min:10|max:500',
+            'cancellationReasonCategory' => "required|in:{$validCategories}",
+            'cancellationReason' => 'nullable|string|max:500',
         ]);
 
-        tenant()->cancelSubscription($this->cancellationReason);
+        $category = CancellationReason::from($this->cancellationReasonCategory);
+        $reason = $this->cancellationReason ?: $category->label();
+
+        tenant()->cancelSubscription($reason, $category);
 
         $this->showCancelModal = false;
+        $this->cancellationReasonCategory = '';
         $this->cancellationReason = '';
 
         Flux::toast(__('Your subscription has been cancelled. You will retain access until the end of your billing period.'));
