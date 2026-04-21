@@ -84,8 +84,8 @@ Schedule::command('subscriptions:process-expired')
     ->dailyAt('00:30')
     ->withoutOverlapping();
 
-// Suspend tenants with invoices overdue 30+ days
-Schedule::command('subscriptions:suspend-overdue')
+// Suspend tenants with any overdue invoice (immediate — no grace period)
+Schedule::command('subscriptions:suspend-overdue --days=0')
     ->dailyAt('00:00')
     ->withoutOverlapping();
 

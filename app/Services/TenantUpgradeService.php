@@ -139,6 +139,10 @@ class TenantUpgradeService
                     'notes' => 'Self-service plan upgrade payment',
                 ]);
 
+                // Write off any outstanding monthly billing invoices so the tenant
+                // isn't suspended overnight for old unpaid platform fees.
+                $this->billingService->writeOffOutstandingInvoices($tenant, $invoice->id);
+
                 // Update subscription and billing period
                 $billingCycle = BillingCycle::from($invoice->metadata['billing_cycle'] ?? 'monthly');
                 $tenant->update([

@@ -489,6 +489,37 @@ class PlatformBillingService
     }
 
     /**
+     * Write off all outstanding monthly billing invoices for a tenant, excluding one invoice.
+     * Called after a successful plan upgrade so old unpaid invoices don't trigger suspension.
+     * Only monthly billing invoices are written off — other upgrade invoices are left untouched.
+     */
+    public function writeOffOutstandingInvoices(Tenant $tenant, string $excludeInvoiceId): int
+    {
+        // Monthly billing invoices don't have upgrade_type set in metadata
+        $invoices = PlatformInvoice::where('tenant_id', $tenant->id)
+            ->where('id', '!=', $excludeInvoiceId)
+            ->whereIn('status', [InvoiceStatus::Draft, InvoiceStatus::Sent, InvoiceStatus::Overdue, InvoiceStatus::Partial])
+            ->where(fn ($q) => $q->whereNull('metadata->upgrade_type')
+                ->orWhere('metadata->upgrade_type', '!=', 'self_service'))
+            ->get();
+
+        $count = 0;
+
+        foreach ($invoices as $invoice) {
+            $invoice->cancel('Written off — tenant upgraded to a new plan');
+            $count++;
+
+            Log::info('Invoice written off on plan upgrade', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'tenant_id' => $tenant->id,
+            ]);
+        }
+
+        return $count;
+    }
+
+    /**
      * Send invoice email to tenant.
      */
     public function sendInvoiceEmail(PlatformInvoice $invoice): bool
