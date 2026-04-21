@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use App\Enums\BillingCycle;
+use App\Enums\CancellationReason;
 use App\Enums\Currency;
 use App\Enums\TenantStatus;
+use App\Mail\SubscriptionCancelledMail;
+use App\Mail\SubscriptionReactivatedMail;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -33,6 +37,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'subscription_id',
         'cancelled_at',
         'cancellation_reason',
+        'cancellation_reason_category',
         'subscription_ends_at',
         'billing_cycle',
         'current_period_start',
@@ -265,13 +270,18 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      * Cancel the subscription with a reason.
      * Access continues until the end of the current billing period.
      */
-    public function cancelSubscription(string $reason): void
+    public function cancelSubscription(string $reason, ?CancellationReason $category = null): void
     {
         $this->update([
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
+            'cancellation_reason_category' => $category?->value,
             'subscription_ends_at' => now()->endOfMonth(),
         ]);
+
+        if ($this->contact_email) {
+            Mail::to($this->contact_email)->queue(new SubscriptionCancelledMail($this));
+        }
     }
 
     /**
@@ -311,8 +321,13 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         $this->update([
             'cancelled_at' => null,
             'cancellation_reason' => null,
+            'cancellation_reason_category' => null,
             'subscription_ends_at' => null,
         ]);
+
+        if ($this->contact_email) {
+            Mail::to($this->contact_email)->queue(new SubscriptionReactivatedMail($this));
+        }
     }
 
     /**

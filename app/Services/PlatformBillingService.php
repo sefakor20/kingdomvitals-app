@@ -45,6 +45,11 @@ class PlatformBillingService
                 continue;
             }
 
+            // Skip tenants in their cancellation grace period — they've already cancelled
+            if ($tenant->isInCancellationGracePeriod()) {
+                continue;
+            }
+
             // Skip if invoice already exists for this period
             $existingInvoice = PlatformInvoice::where('tenant_id', $tenant->id)
                 ->where('billing_period', $billingPeriod)

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\BillingCycle;
 use App\Enums\PlatformPaymentMethod;
+use App\Enums\TenantStatus;
 use App\Models\PlatformInvoice;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
@@ -143,13 +144,19 @@ class TenantUpgradeService
                 // isn't suspended overnight for old unpaid platform fees.
                 $this->billingService->writeOffOutstandingInvoices($tenant, $invoice->id);
 
-                // Update subscription and billing period
+                // Update subscription, billing period, and ensure tenant is Active.
+                // Covers Inactive/Suspended/cancelled tenants re-subscribing via upgrade.
                 $billingCycle = BillingCycle::from($invoice->metadata['billing_cycle'] ?? 'monthly');
                 $tenant->update([
+                    'status' => TenantStatus::Active,
                     'subscription_id' => $newPlan->id,
                     'billing_cycle' => $billingCycle->value,
                     'current_period_start' => $invoice->period_start,
                     'current_period_end' => $invoice->period_end,
+                    'cancelled_at' => null,
+                    'cancellation_reason' => null,
+                    'subscription_ends_at' => null,
+                    'trial_ends_at' => null,
                 ]);
 
                 // Apply any credit generated from proration (for downgrades)

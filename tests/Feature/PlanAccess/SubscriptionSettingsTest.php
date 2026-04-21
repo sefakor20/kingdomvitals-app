@@ -115,9 +115,9 @@ it('returns all quotas correctly when plan has limits', function (): void {
     expect($service->getBranchQuota()['max'])->toBe(2);
     expect($service->getBranchQuota()['unlimited'])->toBeFalse();
 
-    // SMS quota
-    expect($service->getSmsQuota()['max'])->toBe(100);
-    expect($service->getSmsQuota()['unlimited'])->toBeFalse();
+    // SMS quota is always unlimited — tenants use their own API keys
+    expect($service->getSmsQuota()['max'])->toBeNull();
+    expect($service->getSmsQuota()['unlimited'])->toBeTrue();
 
     // Storage quota
     expect($service->getStorageQuota()['max'])->toBe(5);
