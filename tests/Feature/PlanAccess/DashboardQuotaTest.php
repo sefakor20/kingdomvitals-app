@@ -59,10 +59,10 @@ it('returns hasAnyQuotaLimits correctly when plan has limits', function (): void
 
     $service = new PlanAccessService($this->tenant);
 
-    // All quotas are limited
+    // All quotas are limited (SMS is always unlimited — tenants use own API keys)
     expect($service->getMemberQuota()['unlimited'])->toBeFalse();
     expect($service->getBranchQuota()['unlimited'])->toBeFalse();
-    expect($service->getSmsQuota()['unlimited'])->toBeFalse();
+    expect($service->getSmsQuota()['unlimited'])->toBeTrue();
     expect($service->getStorageQuota()['unlimited'])->toBeFalse();
 });
 
@@ -125,7 +125,7 @@ it('returns correct member quota information', function (): void {
     expect($quota['unlimited'])->toBeFalse();
 });
 
-it('returns correct SMS quota information', function (): void {
+it('returns SMS quota as always unlimited', function (): void {
     $plan = SubscriptionPlan::create([
         'name' => 'Basic Plan',
         'slug' => 'basic',
@@ -136,20 +136,13 @@ it('returns correct SMS quota information', function (): void {
     ]);
     $this->tenant->update(['subscription_id' => $plan->id]);
 
-    // Create 30 SMS logs this month
-    SmsLog::factory()->count(30)->create([
-        'branch_id' => $this->branch->id,
-        'created_at' => now(),
-    ]);
-
     $service = new PlanAccessService($this->tenant);
     $quota = $service->getSmsQuota();
 
-    expect($quota['sent'])->toBe(30);
-    expect($quota['max'])->toBe(100);
-    expect($quota['percent'])->toBe(30.0);
-    expect($quota['remaining'])->toBe(70);
-    expect($quota['unlimited'])->toBeFalse();
+    // SMS is always unlimited — tenants use their own API keys
+    expect($quota['sent'])->toBe(0);
+    expect($quota['max'])->toBeNull();
+    expect($quota['unlimited'])->toBeTrue();
 });
 
 it('returns correct branch quota information', function (): void {

@@ -51,35 +51,80 @@
     </flux:field>
 </div>
 
-<!-- Limits -->
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-    <flux:field>
-        <flux:label>{{ __('Max Members') }}</flux:label>
-        <flux:input wire:model="maxMembers" type="number" min="1" placeholder="{{ __('Leave empty for unlimited') }}" />
-        <flux:description>{{ __('Leave empty for unlimited') }}</flux:description>
-        <flux:error name="maxMembers" />
-    </flux:field>
+<!-- Resource Limits -->
+<div>
+    <flux:heading size="sm" class="mb-3 text-zinc-700 dark:text-zinc-300">{{ __('Resource Limits') }}</flux:heading>
+    <flux:text class="mb-3 text-xs text-zinc-500">{{ __('Leave empty for unlimited access.') }}</flux:text>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <flux:field>
+            <flux:label>{{ __('Max Members') }}</flux:label>
+            <flux:input wire:model="maxMembers" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="maxMembers" />
+        </flux:field>
 
-    <flux:field>
-        <flux:label>{{ __('Max Branches') }}</flux:label>
-        <flux:input wire:model="maxBranches" type="number" min="1" placeholder="{{ __('Leave empty for unlimited') }}" />
-        <flux:description>{{ __('Leave empty for unlimited') }}</flux:description>
-        <flux:error name="maxBranches" />
-    </flux:field>
+        <flux:field>
+            <flux:label>{{ __('Max Branches') }}</flux:label>
+            <flux:input wire:model="maxBranches" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="maxBranches" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Max Households') }}</flux:label>
+            <flux:input wire:model="maxHouseholds" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="maxHouseholds" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Max Clusters') }}</flux:label>
+            <flux:input wire:model="maxClusters" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="maxClusters" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Max Visitors') }}</flux:label>
+            <flux:input wire:model="maxVisitors" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="maxVisitors" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Max Equipment') }}</flux:label>
+            <flux:input wire:model="maxEquipment" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="maxEquipment" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Storage Quota (GB)') }}</flux:label>
+            <flux:input wire:model="storageQuotaGb" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="storageQuotaGb" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('SMS Credits/Month') }}</flux:label>
+            <flux:input wire:model="smsCreditsMonthly" type="number" min="0" placeholder="{{ __('Unlimited') }}" />
+            <flux:error name="smsCreditsMonthly" />
+        </flux:field>
+    </div>
 </div>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-    <flux:field>
-        <flux:label>{{ __('Storage Quota (GB)') }}</flux:label>
-        <flux:input wire:model="storageQuotaGb" type="number" min="1" />
-        <flux:error name="storageQuotaGb" />
-    </flux:field>
-
-    <flux:field>
-        <flux:label>{{ __('SMS Credits/Month') }}</flux:label>
-        <flux:input wire:model="smsCreditsMonthly" type="number" min="0" placeholder="{{ __('Optional') }}" />
-        <flux:error name="smsCreditsMonthly" />
-    </flux:field>
+<!-- Enabled Modules -->
+<div>
+    <flux:heading size="sm" class="mb-1 text-zinc-700 dark:text-zinc-300">{{ __('Enabled Modules') }}</flux:heading>
+    <flux:text class="mb-3 text-xs text-zinc-500">{{ __('Leave all unchecked to enable every module. Check specific modules to restrict access.') }}</flux:text>
+    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        @foreach($planModules as $module)
+            <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800
+                {{ in_array($module->value, $enabledModules) ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20' : '' }}">
+                <input
+                    type="checkbox"
+                    wire:model="enabledModules"
+                    value="{{ $module->value }}"
+                    class="rounded border-zinc-300 text-blue-600 dark:border-zinc-600"
+                />
+                <span>{{ $module->label() }}</span>
+            </label>
+        @endforeach
+    </div>
+    <flux:error name="enabledModules" />
 </div>
 
 <!-- Support & Display -->

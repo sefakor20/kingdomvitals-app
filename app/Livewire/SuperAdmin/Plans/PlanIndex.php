@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Livewire\SuperAdmin\Plans;
 
 use App\Enums\Currency;
+use App\Enums\PlanModule;
 use App\Enums\SupportLevel;
 use App\Livewire\Concerns\HasReportExport;
 use App\Models\SubscriptionPlan;
 use App\Models\SuperAdminActivityLog;
 use App\Models\SystemSetting;
 use App\Models\Tenant;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -55,9 +57,20 @@ class PlanIndex extends Component
 
     public ?int $maxBranches = null;
 
-    public int $storageQuotaGb = 5;
+    public ?int $maxHouseholds = null;
+
+    public ?int $maxClusters = null;
+
+    public ?int $maxVisitors = null;
+
+    public ?int $maxEquipment = null;
+
+    public ?int $storageQuotaGb = null;
 
     public ?int $smsCreditsMonthly = null;
+
+    /** @var array<string> */
+    public array $enabledModules = [];
 
     public string $featuresInput = '';
 
@@ -100,8 +113,13 @@ class PlanIndex extends Component
         $this->priceAnnualUsd = '0';
         $this->maxMembers = null;
         $this->maxBranches = null;
-        $this->storageQuotaGb = 5;
+        $this->maxHouseholds = null;
+        $this->maxClusters = null;
+        $this->maxVisitors = null;
+        $this->maxEquipment = null;
+        $this->storageQuotaGb = null;
         $this->smsCreditsMonthly = null;
+        $this->enabledModules = [];
         $this->featuresInput = '';
         $this->supportLevel = 'community';
         $this->isActive = true;
@@ -134,8 +152,13 @@ class PlanIndex extends Component
             'price_annual_usd' => $this->priceAnnualUsd ?: null,
             'max_members' => $this->maxMembers,
             'max_branches' => $this->maxBranches,
+            'max_households' => $this->maxHouseholds,
+            'max_clusters' => $this->maxClusters,
+            'max_visitors' => $this->maxVisitors,
+            'max_equipment' => $this->maxEquipment,
             'storage_quota_gb' => $this->storageQuotaGb,
             'sms_credits_monthly' => $this->smsCreditsMonthly,
+            'enabled_modules' => empty($this->enabledModules) ? null : $this->enabledModules,
             'features' => $features,
             'support_level' => SupportLevel::from($this->supportLevel),
             'is_active' => $this->isActive,
@@ -176,8 +199,13 @@ class PlanIndex extends Component
         $this->priceAnnualUsd = (string) ($plan->price_annual_usd ?? '0');
         $this->maxMembers = $plan->max_members;
         $this->maxBranches = $plan->max_branches;
+        $this->maxHouseholds = $plan->max_households;
+        $this->maxClusters = $plan->max_clusters;
+        $this->maxVisitors = $plan->max_visitors;
+        $this->maxEquipment = $plan->max_equipment;
         $this->storageQuotaGb = $plan->storage_quota_gb;
         $this->smsCreditsMonthly = $plan->sms_credits_monthly;
+        $this->enabledModules = $plan->enabled_modules ?? [];
         $this->featuresInput = $plan->features ? implode(', ', $plan->features) : '';
         $this->supportLevel = $plan->support_level->value;
         $this->isActive = $plan->is_active;
@@ -217,14 +245,24 @@ class PlanIndex extends Component
             'price_annual_usd' => $this->priceAnnualUsd ?: null,
             'max_members' => $this->maxMembers,
             'max_branches' => $this->maxBranches,
+            'max_households' => $this->maxHouseholds,
+            'max_clusters' => $this->maxClusters,
+            'max_visitors' => $this->maxVisitors,
+            'max_equipment' => $this->maxEquipment,
             'storage_quota_gb' => $this->storageQuotaGb,
             'sms_credits_monthly' => $this->smsCreditsMonthly,
+            'enabled_modules' => empty($this->enabledModules) ? null : $this->enabledModules,
             'features' => $features,
             'support_level' => SupportLevel::from($this->supportLevel),
             'is_active' => $this->isActive,
             'is_default' => $this->isDefault,
             'display_order' => $this->displayOrder,
         ]);
+
+        // Invalidate cached plan data for all tenants on this plan
+        Tenant::where('subscription_id', $plan->id)->each(function (Tenant $tenant): void {
+            (new PlanAccessService($tenant))->clearCache();
+        });
 
         SuperAdminActivityLog::log(
             superAdmin: Auth::guard('superadmin')->user(),
@@ -398,8 +436,14 @@ class PlanIndex extends Component
             'priceAnnualUsd' => ['nullable', 'numeric', 'min:0'],
             'maxMembers' => ['nullable', 'integer', 'min:1'],
             'maxBranches' => ['nullable', 'integer', 'min:1'],
-            'storageQuotaGb' => ['required', 'integer', 'min:1'],
+            'maxHouseholds' => ['nullable', 'integer', 'min:1'],
+            'maxClusters' => ['nullable', 'integer', 'min:1'],
+            'maxVisitors' => ['nullable', 'integer', 'min:1'],
+            'maxEquipment' => ['nullable', 'integer', 'min:1'],
+            'storageQuotaGb' => ['nullable', 'integer', 'min:1'],
             'smsCreditsMonthly' => ['nullable', 'integer', 'min:0'],
+            'enabledModules' => ['nullable', 'array'],
+            'enabledModules.*' => ['string', 'in:'.implode(',', PlanModule::values())],
             'supportLevel' => ['required', 'in:community,email,priority'],
             'displayOrder' => ['required', 'integer', 'min:0'],
         ];
@@ -438,6 +482,7 @@ class PlanIndex extends Component
             'plans' => SubscriptionPlan::orderBy('display_order')->orderBy('price_monthly')->get(),
             'supportLevels' => SupportLevel::cases(),
             'currencies' => Currency::cases(),
+            'planModules' => PlanModule::cases(),
             'canManage' => $canManage,
             'pricingStrategy' => $this->pricingStrategy,
         ])->layout('components.layouts.superadmin.app');
