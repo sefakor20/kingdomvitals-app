@@ -203,7 +203,7 @@ it('blocks branch creation when quota exceeded', function (): void {
 // SMS QUOTA TESTS
 // ============================================
 
-it('correctly calculates sms quota for current month', function (): void {
+it('returns sms quota as always unlimited', function (): void {
     $plan = SubscriptionPlan::create([
         'name' => 'Basic Plan',
         'slug' => 'basic',
@@ -214,19 +214,13 @@ it('correctly calculates sms quota for current month', function (): void {
     ]);
     $this->tenant->update(['subscription_id' => $plan->id]);
 
-    // Create 30 SMS logs this month
-    SmsLog::factory()->count(30)->create([
-        'branch_id' => $this->branch->id,
-        'created_at' => now(),
-    ]);
-
     $service = new PlanAccessService($this->tenant);
     $quota = $service->getSmsQuota();
 
-    expect($quota['sent'])->toBe(30);
-    expect($quota['max'])->toBe(100);
-    expect($quota['percent'])->toBe(30.0);
-    expect($quota['remaining'])->toBe(70);
+    // SMS is always unlimited — tenants use their own API keys
+    expect($quota['sent'])->toBe(0);
+    expect($quota['max'])->toBeNull();
+    expect($quota['unlimited'])->toBeTrue();
 });
 
 it('allows sms when credits available', function (): void {
@@ -246,7 +240,7 @@ it('allows sms when credits available', function (): void {
     expect($service->canSendSms(50))->toBeTrue();
 });
 
-it('blocks sms when credits exhausted', function (): void {
+it('always allows sms regardless of plan limits', function (): void {
     $plan = SubscriptionPlan::create([
         'name' => 'Basic Plan',
         'slug' => 'basic',
@@ -257,16 +251,11 @@ it('blocks sms when credits exhausted', function (): void {
     ]);
     $this->tenant->update(['subscription_id' => $plan->id]);
 
-    // Use all 10 credits
-    SmsLog::factory()->count(10)->create([
-        'branch_id' => $this->branch->id,
-        'created_at' => now(),
-    ]);
-
     $service = new PlanAccessService($this->tenant);
 
-    expect($service->canSendSms())->toBeFalse();
-    expect($service->canSendSms(1))->toBeFalse();
+    // SMS is always allowed — tenants use their own API keys
+    expect($service->canSendSms())->toBeTrue();
+    expect($service->canSendSms(1))->toBeTrue();
 });
 
 // ============================================

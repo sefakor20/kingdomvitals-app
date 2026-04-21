@@ -94,7 +94,7 @@
 
         <flux:field>
             <flux:label>{{ __('Storage Quota (GB)') }}</flux:label>
-            <flux:input wire:model="storageQuotaGb" type="number" min="1" />
+            <flux:input wire:model="storageQuotaGb" type="number" min="1" placeholder="{{ __('Unlimited') }}" />
             <flux:error name="storageQuotaGb" />
         </flux:field>
 

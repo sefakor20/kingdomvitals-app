@@ -12,6 +12,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\SuperAdminActivityLog;
 use App\Models\SystemSetting;
 use App\Models\Tenant;
+use App\Services\PlanAccessService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -64,7 +65,7 @@ class PlanIndex extends Component
 
     public ?int $maxEquipment = null;
 
-    public int $storageQuotaGb = 5;
+    public ?int $storageQuotaGb = null;
 
     public ?int $smsCreditsMonthly = null;
 
@@ -116,7 +117,7 @@ class PlanIndex extends Component
         $this->maxClusters = null;
         $this->maxVisitors = null;
         $this->maxEquipment = null;
-        $this->storageQuotaGb = 5;
+        $this->storageQuotaGb = null;
         $this->smsCreditsMonthly = null;
         $this->enabledModules = [];
         $this->featuresInput = '';
@@ -257,6 +258,11 @@ class PlanIndex extends Component
             'is_default' => $this->isDefault,
             'display_order' => $this->displayOrder,
         ]);
+
+        // Invalidate cached plan data for all tenants on this plan
+        Tenant::where('subscription_id', $plan->id)->each(function (Tenant $tenant): void {
+            (new PlanAccessService($tenant))->clearCache();
+        });
 
         SuperAdminActivityLog::log(
             superAdmin: Auth::guard('superadmin')->user(),
@@ -434,7 +440,7 @@ class PlanIndex extends Component
             'maxClusters' => ['nullable', 'integer', 'min:1'],
             'maxVisitors' => ['nullable', 'integer', 'min:1'],
             'maxEquipment' => ['nullable', 'integer', 'min:1'],
-            'storageQuotaGb' => ['required', 'integer', 'min:1'],
+            'storageQuotaGb' => ['nullable', 'integer', 'min:1'],
             'smsCreditsMonthly' => ['nullable', 'integer', 'min:0'],
             'enabledModules' => ['nullable', 'array'],
             'enabledModules.*' => ['string', 'in:'.implode(',', PlanModule::values())],

@@ -82,7 +82,7 @@ class PlanAccessService
         $plan = $this->getPlan();
 
         if (! $plan instanceof SubscriptionPlan) {
-            return false;
+            return true; // No plan = unlimited access
         }
 
         $moduleName = $module instanceof PlanModule ? $module->value : $module;
