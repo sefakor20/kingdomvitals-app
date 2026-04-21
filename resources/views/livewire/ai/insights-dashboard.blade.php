@@ -457,16 +457,15 @@
                                             <flux:button
                                                 size="xs"
                                                 variant="ghost"
+                                                icon="check-badge"
                                                 wire:click="markRecommendationActedOn('{{ $alert->id }}')"
                                             >
-                                                <flux:icon icon="check-badge" class="size-4" />
                                                 {{ __('Mark Action Taken') }}
                                             </flux:button>
                                         </div>
                                     @else
                                         <div class="mt-4 pt-3 border-t border-purple-100 dark:border-purple-800">
-                                            <flux:text class="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                                                <flux:icon icon="check-badge" class="size-4" />
+                                            <flux:text class="text-xs text-green-600 dark:text-green-400 flex items-center gap-1" icon="check-badge">
                                                 {{ __('Action taken') }} {{ $alert->recommendation_acted_at?->diffForHumans() }}
                                             </flux:text>
                                         </div>
