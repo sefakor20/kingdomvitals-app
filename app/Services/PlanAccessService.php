@@ -266,20 +266,27 @@ class PlanAccessService
 
     /**
      * Get SMS quota information for current month.
+     * SMS is always unlimited — tenants use their own API keys.
      *
      * @return array{sent: int, max: int|null, unlimited: bool, remaining: int|null, percent: float}
      */
     public function getSmsQuota(): array
     {
-        return $this->getQuota(QuotaType::Sms);
+        return [
+            'sent' => 0,
+            'max' => null,
+            'unlimited' => true,
+            'remaining' => null,
+            'percent' => 0.0,
+        ];
     }
 
     /**
-     * Check if SMS can be sent (has remaining credits).
+     * SMS sending is always allowed — tenants use their own API keys.
      */
     public function canSendSms(int $count = 1): bool
     {
-        return $this->canCreate(QuotaType::Sms, $count);
+        return true;
     }
 
     /**
