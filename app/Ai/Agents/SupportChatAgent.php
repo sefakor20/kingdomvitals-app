@@ -48,21 +48,6 @@ class SupportChatAgent implements Agent, Conversational
             .'Your role is to help users navigate the application, understand its features, and get the most out of their subscription.';
     }
 
-    private function buildKnowledgeBaseSection(): string
-    {
-        $path = base_path(self::KNOWLEDGE_BASE_PATH);
-
-        if (! file_exists($path)) {
-            return '';
-        }
-
-        $content = file_get_contents($path);
-
-        return "## KNOWLEDGE BASE\n\n"
-            ."The following is the authoritative reference for how KingdomVitals works. Always use this as your primary source. Do not guess or make up navigation steps — only use what is documented here.\n\n"
-            .$content;
-    }
-
     private function buildUserContextSection(): string
     {
         if (! $this->userContext) {
@@ -98,6 +83,21 @@ class SupportChatAgent implements Agent, Conversational
             .'- If they ask about something outside their access, advise them to speak with their Admin.';
     }
 
+    private function buildKnowledgeBaseSection(): string
+    {
+        $path = base_path(self::KNOWLEDGE_BASE_PATH);
+
+        if (! file_exists($path)) {
+            return '';
+        }
+
+        $content = file_get_contents($path);
+
+        return "## KNOWLEDGE BASE\n\n"
+            ."The following is the authoritative reference for how KingdomVitals works. Always use this as your primary source. Do not guess or make up navigation steps — only use what is documented here.\n\n"
+            .$content;
+    }
+
     private function buildPlansSection(): string
     {
         $plans = SubscriptionPlan::where('is_active', true)
@@ -109,30 +109,28 @@ class SupportChatAgent implements Agent, Conversational
             return '';
         }
 
-        $lines = [
-            '## SUBSCRIPTION PLANS',
-            '',
-            'The following are the current live subscription plans available in KingdomVitals. Use this as the authoritative source for plan pricing and limits — never guess or use outdated figures.',
-            '',
-        ];
+        $header = "## SUBSCRIPTION PLANS\n\n"
+            .'The following are the current live subscription plans available in KingdomVitals. Use this as the authoritative source for plan pricing and limits — never guess or use outdated figures.';
 
-        foreach ($plans as $plan) {
+        $planBlocks = $plans->map(function (SubscriptionPlan $plan): string {
             $members = $plan->hasUnlimitedMembers() ? 'Unlimited' : number_format($plan->max_members).' max';
             $branches = $plan->hasUnlimitedBranches() ? 'Unlimited' : $plan->max_branches.' max';
             $storage = $plan->hasUnlimitedStorage() ? 'Unlimited storage' : $plan->storage_quota_gb.' GB storage';
             $support = $plan->support_level?->label() ?? 'Community';
+            $title = '### '.$plan->name.($plan->description ? ' — '.$plan->description : '');
 
-            $lines[] = '### '.$plan->name.($plan->description ? ' — '.$plan->description : '');
-            $lines[] = '- Monthly: GHS '.number_format((float) $plan->price_monthly, 2);
-            $lines[] = '- Annual: GHS '.number_format((float) $plan->price_annual, 2);
-            $lines[] = '- Members: '.$members;
-            $lines[] = '- Branches: '.$branches;
-            $lines[] = '- Storage: '.$storage;
-            $lines[] = '- Support: '.$support;
-            $lines[] = '';
-        }
+            return implode("\n", [
+                $title,
+                '- Monthly: GHS '.number_format((float) $plan->price_monthly, 2),
+                '- Annual: GHS '.number_format((float) $plan->price_annual, 2),
+                '- Members: '.$members,
+                '- Branches: '.$branches,
+                '- Storage: '.$storage,
+                '- Support: '.$support,
+            ]);
+        })->all();
 
-        return implode("\n", $lines);
+        return $header."\n\n".implode("\n\n", $planBlocks);
     }
 
     private function rulesAndStyle(): string

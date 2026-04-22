@@ -41,16 +41,16 @@ class SupportChat extends Component
      */
     public array $feedback = [];
 
+    /**
+     * @var array{name: string, role: string, branch: string, permissions: string[], current_plan: string|null}|null
+     */
+    public ?array $userContext = null;
+
     private const MAX_MESSAGE_LENGTH = 1000;
 
     private const RATE_LIMIT_MAX = 20;
 
     private const RATE_LIMIT_DECAY_SECONDS = 600;
-
-    /**
-     * @var array{name: string, role: string, branch: string, permissions: string[], current_plan: string|null}|null
-     */
-    public ?array $userContext = null;
 
     private ?string $conversationId = null;
 
@@ -145,7 +145,7 @@ class SupportChat extends Component
         }
     }
 
-    public function rateLimitKey(): string
+    private function rateLimitKey(): string
     {
         return 'support-chat:'.auth()->id();
     }
@@ -222,10 +222,11 @@ class SupportChat extends Component
             return;
         }
 
-        $existing = collect($this->feedback)->firstWhere('index', $messageIndex);
+        $feedbackCollection = collect($this->feedback);
+        $existing = $feedbackCollection->firstWhere('index', $messageIndex);
 
         if ($existing) {
-            $this->feedback = collect($this->feedback)
+            $this->feedback = $feedbackCollection
                 ->map(fn ($f) => $f['index'] === $messageIndex ? ['index' => $messageIndex, 'rating' => $rating] : $f)
                 ->values()
                 ->toArray();
