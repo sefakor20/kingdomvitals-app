@@ -29,13 +29,17 @@
     <!-- Plans Grid -->
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         @forelse($this->plans as $plan)
-            <div wire:key="plan-{{ $plan->id }}" class="{{ $this->isCurrentPlan($plan->id) ? 'pt-3' : '' }}">
+            <div wire:key="plan-{{ $plan->id }}" class="{{ $this->isCurrentPlan($plan->id) || $plan->is_featured ? 'pt-3' : '' }}">
                 <div
-                    class="relative flex h-full flex-col rounded-xl border {{ $this->isCurrentPlan($plan->id) ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-zinc-200 dark:border-zinc-700' }} bg-white dark:bg-zinc-800"
+                    class="relative flex h-full flex-col rounded-xl border {{ $this->isCurrentPlan($plan->id) ? 'border-emerald-500 ring-2 ring-emerald-500' : ($plan->is_featured ? 'border-[#009866] ring-1 ring-[#009866]/30' : 'border-zinc-200 dark:border-zinc-700') }} bg-white dark:bg-zinc-800"
                 >
                     @if($this->isCurrentPlan($plan->id))
                         <div class="absolute -top-3 left-1/2 -translate-x-1/2">
                             <flux:badge color="emerald" class="shadow-sm">{{ __('Current Plan') }}</flux:badge>
+                        </div>
+                    @elseif($plan->is_featured)
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+                            <flux:badge color="green" class="shadow-sm">{{ __('Most Popular') }}</flux:badge>
                         </div>
                     @endif
                     <div class="flex flex-1 flex-col p-6">
