@@ -16,7 +16,7 @@
         "laravel/fortify": "^1.36.2",
         "laravel/framework": "^13.6",
         "laravel/tinker": "^3.0.2",
-        "livewire/flux": "^2.13.2",
+        "livewire/flux": "^2.14.0",
         "maatwebsite/excel": "^3.1.68",
         "propaganistas/laravel-phone": "^6.0.3",
         "spatie/browsershot": "^5.2.3",
@@ -25,9 +25,9 @@
         "stancl/tenancy": "^3.10.0"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "^4.2.7",
+        "barryvdh/laravel-debugbar": "^4.2.8",
         "fakerphp/faker": "^1.24.1",
-        "laravel/boost": "^2.4.4",
+        "laravel/boost": "^2.4.5",
         "laravel/pail": "^1.2.6",
         "laravel/pint": "^1.29.1",
         "laravel/sail": "^1.57",
