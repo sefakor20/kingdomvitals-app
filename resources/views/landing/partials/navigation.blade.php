@@ -35,20 +35,32 @@
             </div>
 
             {{-- Pill-shaped Desktop Navigation --}}
+            @php
+                $navSections = [
+                    ['id' => 'features', 'label' => 'Features'],
+                    ['id' => 'how-it-works', 'label' => 'How It Works'],
+                    ['id' => 'pricing', 'label' => 'Pricing'],
+                    ['id' => 'faq', 'label' => 'FAQ'],
+                    ['id' => 'contact', 'label' => 'Contact'],
+                ];
+                $homeUrl = route('home');
+            @endphp
             <div class="hidden lg:flex">
                 <div class="glass-card flex items-center gap-1 px-2 py-1.5">
-                    <a href="javascript:void(0)" x-on:click="document.querySelector('#features').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Features</a>
-                    <a href="javascript:void(0)" x-on:click="document.querySelector('#how-it-works').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">How It Works</a>
-                    <a href="javascript:void(0)" x-on:click="document.querySelector('#pricing').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Pricing</a>
-                    <a href="javascript:void(0)" x-on:click="document.querySelector('#faq').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">FAQ</a>
-                    <a href="javascript:void(0)" x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' })" class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400">Contact</a>
+                    @foreach ($navSections as $section)
+                        <a
+                            href="{{ $homeUrl }}#{{ $section['id'] }}"
+                            x-on:click="const el = document.querySelector('#{{ $section['id'] }}'); if (el) { $event.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }"
+                            class="rounded-full px-4 py-2 text-sm font-medium text-secondary transition hover:bg-black/5 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:hover:bg-white/5 dark:hover:text-emerald-400"
+                        >{{ $section['label'] }}</a>
+                    @endforeach
                 </div>
             </div>
 
             {{-- Desktop CTA --}}
             <div class="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-                <a href="javascript:void(0)" x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' })" class="btn-neon rounded-full px-6 py-2.5 text-sm font-semibold">
-                    Get Started
+                <a href="{{ route('trial.start') }}" class="btn-neon rounded-full px-6 py-2.5 text-sm font-semibold">
+                    Start Free Trial
                 </a>
             </div>
         </nav>
@@ -110,41 +122,23 @@
                     {{-- Navigation links --}}
                     <div class="mt-6 flex-1">
                         <div class="space-y-1">
-                            <a
-                                href="javascript:void(0)"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                x-on:click="document.querySelector('#features').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
-                            >Features</a>
-                            <a
-                                href="javascript:void(0)"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                x-on:click="document.querySelector('#how-it-works').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
-                            >How It Works</a>
-                            <a
-                                href="javascript:void(0)"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                x-on:click="document.querySelector('#pricing').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
-                            >Pricing</a>
-                            <a
-                                href="javascript:void(0)"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                x-on:click="document.querySelector('#faq').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
-                            >FAQ</a>
-                            <a
-                                href="javascript:void(0)"
-                                class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
-                                x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
-                            >Contact</a>
+                            @foreach ($navSections as $section)
+                                <a
+                                    href="{{ $homeUrl }}#{{ $section['id'] }}"
+                                    class="block rounded-lg px-3 py-2.5 text-base font-medium text-primary transition hover:bg-black/5 hover:text-emerald-600 dark:hover:bg-white/5 dark:hover:text-emerald-400"
+                                    x-on:click="const el = document.querySelector('#{{ $section['id'] }}'); if (el) { $event.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); } mobileMenuOpen = false"
+                                >{{ $section['label'] }}</a>
+                            @endforeach
                         </div>
                     </div>
 
                     {{-- CTA button --}}
                     <div class="mt-6 border-t border-black/10 pt-6 dark:border-white/10">
                         <a
-                            href="javascript:void(0)"
+                            href="{{ route('trial.start') }}"
                             class="btn-neon block rounded-full px-3 py-3 text-center text-base font-semibold"
-                            x-on:click="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' }); mobileMenuOpen = false"
-                        >Get Started</a>
+                            x-on:click="mobileMenuOpen = false"
+                        >Start Free Trial</a>
                     </div>
                 </div>
             </div>

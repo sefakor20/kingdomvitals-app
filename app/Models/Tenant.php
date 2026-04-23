@@ -60,7 +60,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'status' => TenantStatus::class,
             'logo' => 'array',
             'currency' => Currency::class,
-            'onboarding' => 'array',
         ];
     }
 
@@ -457,17 +456,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         ];
 
         $onboarding = $this->getAttribute('onboarding');
-
-        // Handle legacy double-encoded JSON strings (may need multiple decodes)
-        while (is_string($onboarding)) {
-            $decoded = json_decode($onboarding, true);
-            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-                // Invalid JSON, use empty array
-                $onboarding = [];
-                break;
-            }
-            $onboarding = $decoded;
-        }
 
         return array_merge($default, is_array($onboarding) ? $onboarding : []);
     }
