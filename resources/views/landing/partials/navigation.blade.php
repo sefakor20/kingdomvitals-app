@@ -1,8 +1,9 @@
 <div
     x-data="{ mobileMenuOpen: false, scrolled: false }"
     x-init="scrolled = window.scrollY > 50"
-    @scroll.window="scrolled = window.scrollY > 50"
-    wire:ignore.self
+    @scroll.window.passive="scrolled = window.scrollY > 50"
+    @scrollend.window="scrolled = window.scrollY > 50"
+    wire:ignore
 >
     {{-- Header --}}
     <header class="fixed inset-x-0 top-4 z-50 sm:top-6 lg:top-8">
