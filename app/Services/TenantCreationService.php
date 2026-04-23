@@ -50,8 +50,9 @@ class TenantCreationService
                 'name' => $adminData['name'],
                 'email' => $adminData['email'],
                 'password' => Hash::make(Str::random(32)),
-                'email_verified_at' => now(),
             ]);
+
+            $user->markEmailAsVerified();
 
             // Generate password reset token
             $token = Password::broker('users')->createToken($user);

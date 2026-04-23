@@ -31,8 +31,11 @@
 
                 {{-- CTAs --}}
                 <div class="mt-10 flex flex-wrap items-center gap-4 hero-entrance hero-delay-4">
-                    <a href="#pricing" class="btn-neon rounded-full px-8 py-4 text-base font-semibold">
-                        Get Started
+                    <a href="{{ route('trial.start') }}" class="btn-neon rounded-full px-8 py-4 text-base font-semibold">
+                        Start Free Trial
+                    </a>
+                    <a href="#contact" class="rounded-full border border-black/10 px-8 py-4 text-base font-semibold text-primary transition hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5">
+                        Talk to Sales
                     </a>
                     <button
                         type="button"
@@ -50,7 +53,7 @@
 
                 {{-- Contact text --}}
                 <p class="mt-6 text-sm text-muted hero-entrance hero-delay-5">
-                    Contact us to get started with your church.
+                    14-day free trial. No credit card required.
                 </p>
             </div>
 

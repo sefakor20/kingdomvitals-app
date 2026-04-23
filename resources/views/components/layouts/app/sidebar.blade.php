@@ -36,6 +36,21 @@
 
             <flux:spacer />
 
+            <!-- AI Assistant Trigger -->
+            @auth
+                <button
+                    type="button"
+                    @click="$store.supportChat.toggle()"
+                    class="mb-2 flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    :class="$store.supportChat.open ? 'bg-emerald-50 text-[#009866] dark:bg-emerald-900/20 dark:text-emerald-400' : ''"
+                >
+                    <span class="flex size-5 shrink-0 items-center justify-center">
+                        <flux:icon icon="sparkles" class="size-4" />
+                    </span>
+                    {{ __('AI Assistant') }}
+                </button>
+            @endauth
+
             <!-- Billing Navigation (only in tenant context) -->
             @if(tenant() && auth()->check())
                 <flux:navlist variant="outline">
@@ -105,6 +120,17 @@
 
             <flux:spacer />
 
+            @auth
+                <button
+                    type="button"
+                    @click="$store.supportChat.toggle()"
+                    class="flex size-8 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    title="{{ __('AI Assistant') }}"
+                >
+                    <flux:icon icon="sparkles" class="size-5" />
+                </button>
+            @endauth
+
             <flux:dropdown position="top" align="end">
                 <flux:profile
                     :initials="auth()->user()->initials()"
@@ -155,6 +181,12 @@
         @if(tenant() && auth()->check() && tenant()->isOnboardingComplete())
             <livewire:search.global-search />
         @endif
+
+        @auth
+            @persist('support-chat')
+                <livewire:support.support-chat />
+            @endpersist
+        @endauth
 
         @fluxScripts
     </body>

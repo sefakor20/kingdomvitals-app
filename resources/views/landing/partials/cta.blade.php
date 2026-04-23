@@ -12,12 +12,15 @@
                 Join hundreds of churches already using Kingdom Vitals to streamline their operations and focus on what matters most — ministry.
             </p>
             <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-x-6">
-                <a href="#contact" class="btn-lime w-full rounded-full px-12 py-4 text-lg font-semibold sm:w-auto">
-                    Get Started Today
+                <a href="{{ route('trial.start') }}" class="btn-lime w-full rounded-full px-12 py-4 text-lg font-semibold sm:w-auto">
+                    Start 14-Day Free Trial
+                </a>
+                <a href="#contact" class="w-full rounded-full border border-black/10 px-12 py-4 text-lg font-semibold text-primary transition hover:bg-black/5 sm:w-auto dark:border-white/10 dark:hover:bg-white/5">
+                    Book a Demo
                 </a>
             </div>
             <p class="mt-6 text-sm text-muted">
-                Get in touch to learn more about Kingdom Vitals.
+                No credit card required. Cancel anytime.
             </p>
         </div>
     </div>

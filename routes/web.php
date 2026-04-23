@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Webhooks\TextTangoWebhookController;
+use App\Livewire\Landing\StartTrial;
 use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,10 @@ foreach ($centralDomainsForLanding as $domain) {
 
             return view('landing.index', ['plans' => $plans]);
         })->name($domain === 'kingdomvitals-app.test' ? 'home' : null);
+
+        Route::get('/start-trial', StartTrial::class)
+            ->middleware('throttle:30,1')
+            ->name($domain === 'kingdomvitals-app.test' ? 'trial.start' : null);
     });
 }
 

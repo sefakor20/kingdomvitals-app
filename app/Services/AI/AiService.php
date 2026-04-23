@@ -118,14 +118,14 @@ class AiService
     protected function getDefaultModelForProvider(string $provider): string
     {
         return match ($provider) {
-            'anthropic' => 'claude-3-5-sonnet-20241022',
+            'anthropic' => 'claude-sonnet-4-6',
             'openai' => 'gpt-4o',
             'gemini' => 'gemini-1.5-pro',
             'ollama' => 'llama3',
             'groq' => 'llama-3.1-70b-versatile',
             'mistral' => 'mistral-large-latest',
             'deepseek' => 'deepseek-chat',
-            default => 'claude-3-5-sonnet-20241022',
+            default => 'claude-sonnet-4-6',
         };
     }
 }

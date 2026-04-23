@@ -43,6 +43,7 @@ class SubscriptionPlan extends Model
         'support_level',
         'is_active',
         'is_default',
+        'is_featured',
         'display_order',
     ];
 
@@ -66,6 +67,7 @@ class SubscriptionPlan extends Model
             'support_level' => SupportLevel::class,
             'is_active' => 'boolean',
             'is_default' => 'boolean',
+            'is_featured' => 'boolean',
             'display_order' => 'integer',
         ];
     }
