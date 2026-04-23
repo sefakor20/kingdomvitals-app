@@ -104,7 +104,6 @@ class SubscriptionPlanSeeder extends Seeder
                     'Everything in Professional',
                     'Unlimited members & branches',
                     'AI Insights & Giving Intelligence',
-                    'Priority support',
                 ],
                 'support_level' => SupportLevel::Priority,
                 'is_active' => true,
