@@ -26,9 +26,27 @@ class MemberGiving extends Component
     #[Url]
     public int $year;
 
+    public ?int $selectedMonth = null;
+
     public function mount(): void
     {
         $this->year = now()->year;
+        $this->selectedMonth = $this->latestActiveMonth();
+    }
+
+    private function latestActiveMonth(): ?int
+    {
+        return Donation::query()
+            ->selectRaw('MONTH(donation_date) as month')
+            ->where('member_id', $this->member->id)
+            ->whereYear('donation_date', $this->year)
+            ->orderByRaw('MONTH(donation_date) DESC')
+            ->value('month');
+    }
+
+    public function selectMonth(int $month): void
+    {
+        $this->selectedMonth = $this->selectedMonth === $month ? null : $month;
     }
 
     #[Computed]
@@ -84,6 +102,23 @@ class MemberGiving extends Component
     }
 
     #[Computed]
+    public function dailyTotals(): array
+    {
+        if (! $this->selectedMonth) {
+            return [];
+        }
+
+        return Donation::query()
+            ->selectRaw('DAY(donation_date) as day, SUM(amount) as total')
+            ->where('member_id', $this->member->id)
+            ->whereYear('donation_date', $this->year)
+            ->whereMonth('donation_date', $this->selectedMonth)
+            ->groupByRaw('DAY(donation_date)')
+            ->pluck('total', 'day')
+            ->toArray();
+    }
+
+    #[Computed]
     public function availableYears(): array
     {
         $years = Donation::query()
@@ -104,6 +139,7 @@ class MemberGiving extends Component
     public function setYear(int $year): void
     {
         $this->year = $year;
+        $this->selectedMonth = $this->latestActiveMonth();
         $this->resetPage();
     }
 
