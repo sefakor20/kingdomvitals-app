@@ -103,7 +103,6 @@ class SubscriptionPlanSeeder extends Seeder
                 'features' => [
                     'Everything in Professional',
                     'Unlimited members & branches',
-                    '25 GB storage',
                     'AI Insights & Giving Intelligence',
                     'Priority support',
                 ],
