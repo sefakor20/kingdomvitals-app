@@ -150,10 +150,10 @@
                         </ul>
 
                         <a
-                            href="#contact"
+                            href="{{ route('trial.start') }}"
                             class="btn-neon mt-8 block w-full rounded-full px-4 py-3 text-center text-sm font-semibold"
                         >
-                            Contact Us
+                            Start Free Trial
                         </a>
                     </div>
                 @endforeach
