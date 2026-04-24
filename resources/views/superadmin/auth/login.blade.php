@@ -1,8 +1,8 @@
 <x-layouts.superadmin.auth>
     <div class="flex flex-col gap-6">
         <div class="text-center">
-            <flux:heading size="lg" class="text-white">Administrator Login</flux:heading>
-            <flux:text class="mt-2 text-slate-400">Sign in to access the platform administration panel</flux:text>
+            <flux:heading size="lg">{{ __('Administrator Login') }}</flux:heading>
+            <flux:text class="mt-2">{{ __('Sign in to access the platform administration panel') }}</flux:text>
         </div>
 
         <form method="POST" action="{{ route('superadmin.login') }}" class="flex flex-col gap-6">

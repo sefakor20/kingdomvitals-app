@@ -44,7 +44,7 @@
                         {{ __('Tenants') }}
                     </flux:navlist.item>
                     <flux:navlist.item icon="credit-card" :href="route('superadmin.plans.index')" :current="request()->routeIs('superadmin.plans.*')" wire:navigate>
-                        {{ __('Subscription Plans') }}
+                        {{ __('Plans') }}
                     </flux:navlist.item>
                     <flux:navlist.item icon="banknotes" :href="route('superadmin.billing.dashboard')" :current="request()->routeIs('superadmin.billing.*')" wire:navigate>
                         {{ __('Billing') }}
@@ -86,7 +86,7 @@
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
                 <flux:profile
                     :name="auth('superadmin')->user()->name"
-                    :initials="substr(auth('superadmin')->user()->name, 0, 2)"
+                    :initials="auth('superadmin')->user()->initials()"
                     icon:trailing="chevrons-up-down"
                 />
 
@@ -95,8 +95,8 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span class="flex h-full w-full items-center justify-center rounded-lg bg-indigo-600 text-white">
-                                        {{ substr(auth('superadmin')->user()->name, 0, 2) }}
+                                    <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        {{ auth('superadmin')->user()->initials() }}
                                     </span>
                                 </span>
 
@@ -112,7 +112,7 @@
 
                     <flux:menu.radio.group>
                         <div class="px-2 py-1">
-                            <flux:badge color="indigo" size="sm">
+                            <flux:badge color="emerald" size="sm">
                                 {{ auth('superadmin')->user()->role->label() }}
                             </flux:badge>
                         </div>
@@ -120,8 +120,8 @@
 
                     <flux:menu.separator />
 
-                    <flux:menu.item :href="route('superadmin.profile.security')" icon="shield-check" wire:navigate>
-                        {{ __('Security') }}
+                    <flux:menu.item :href="route('superadmin.profile.edit')" icon="cog" wire:navigate>
+                        {{ __('Settings') }}
                     </flux:menu.item>
 
                     <flux:menu.separator />
@@ -144,7 +144,7 @@
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
-                    :initials="substr(auth('superadmin')->user()->name, 0, 2)"
+                    :initials="auth('superadmin')->user()->initials()"
                     icon-trailing="chevron-down"
                 />
 
@@ -153,8 +153,8 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span class="flex h-full w-full items-center justify-center rounded-lg bg-indigo-600 text-white">
-                                        {{ substr(auth('superadmin')->user()->name, 0, 2) }}
+                                    <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        {{ auth('superadmin')->user()->initials() }}
                                     </span>
                                 </span>
 
@@ -168,8 +168,8 @@
 
                     <flux:menu.separator />
 
-                    <flux:menu.item :href="route('superadmin.profile.security')" icon="shield-check" wire:navigate>
-                        {{ __('Security') }}
+                    <flux:menu.item :href="route('superadmin.profile.edit')" icon="cog" wire:navigate>
+                        {{ __('Settings') }}
                     </flux:menu.item>
 
                     <flux:menu.separator />
