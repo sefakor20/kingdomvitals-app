@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         @include('partials.head')
+
+        {{-- Auth page fonts (Space Grotesk) --}}
+        <link rel="preload" href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700|jetbrains-mono:400,500" as="style">
+        <link href="https://fonts.bunny.net/css?family=space-grotesk:300,400,500,600,700|jetbrains-mono:400,500" rel="stylesheet" />
+
+        <style>[x-cloak] { display: none !important; }</style>
     </head>
-    <body class="min-h-screen bg-zinc-100 dark:bg-zinc-900 antialiased">
+    <body class="landing-page min-h-screen bg-zinc-100 antialiased dark:bg-obsidian-base">
         @php
             $platformLogoUrl = null;
             $platformName = config('app.name');
@@ -18,27 +24,46 @@
             }
         @endphp
 
-        <div class="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-            <div class="flex w-full max-w-md flex-col gap-6">
-                <div class="flex flex-col items-center gap-2">
-                    @if($platformLogoUrl)
-                        <img src="{{ $platformLogoUrl }}" alt="{{ $platformName }}" class="h-12 w-12 rounded-lg object-contain" />
-                    @else
-                        <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/10 ring-2 ring-emerald-500/20">
-                            <x-app-logo-icon class="size-10" />
-                        </div>
-                    @endif
-                    <span class="text-lg font-semibold text-zinc-900 dark:text-white">{{ $platformName }}</span>
-                    <span class="text-sm text-zinc-500 dark:text-zinc-400">Platform Administration</span>
-                </div>
+        {{-- Floating Shell Container --}}
+        <div class="relative mx-auto my-4 min-h-[calc(100vh-2rem)] max-w-[800px] overflow-hidden rounded-[2rem] bg-white ring-1 ring-black/10 sm:my-6 lg:my-8 dark:bg-obsidian-surface dark:ring-white/10">
+            {{-- Grid Pattern Background --}}
+            <div class="pointer-events-none absolute inset-0 grid-pattern"></div>
 
-                <div class="flex flex-col gap-6">
-                    <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 shadow-lg">
-                        <div class="px-10 py-8">{{ $slot }}</div>
+            {{-- Glow Spheres --}}
+            <div class="glow-sphere glow-emerald absolute -right-20 -top-20 size-64 opacity-30"></div>
+            <div class="glow-sphere glow-lime absolute -bottom-20 -left-20 size-48 opacity-20"></div>
+
+            {{-- Content --}}
+            <div class="relative flex min-h-[calc(100vh-2rem)] flex-col items-center justify-center p-6 sm:min-h-[calc(100vh-3rem)] sm:p-8 lg:min-h-[calc(100vh-4rem)] lg:p-10">
+                <div class="flex w-full max-w-md flex-col gap-6">
+                    {{-- Logo --}}
+                    <div class="flex flex-col items-center gap-3 font-medium">
+                        @if($platformLogoUrl)
+                            <img src="{{ $platformLogoUrl }}" alt="{{ $platformName }}" class="h-14 w-14 rounded-xl object-contain ring-2 ring-emerald-500/20" />
+                        @else
+                            <span class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/10 ring-2 ring-emerald-500/20">
+                                <x-app-logo-icon class="size-10 fill-current text-emerald-600 dark:text-emerald-400" />
+                            </span>
+                        @endif
+                        <span class="text-lg font-semibold text-primary">{{ $platformName }}</span>
+                        <span class="-mt-2 text-sm text-secondary">{{ __('Platform Administration') }}</span>
+                    </div>
+
+                    {{-- Auth Card --}}
+                    <div class="rounded-2xl border border-black/10 bg-white/95 shadow-xl backdrop-blur-sm dark:border-white/10 dark:bg-obsidian-surface/95">
+                        <div class="px-8 py-8 sm:px-10">{{ $slot }}</div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="text-center">
+                        <p class="text-xs text-muted">
+                            Powered by <a href="{{ url('/') }}" class="font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400">{{ config('app.name') }}</a>
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
+
         @fluxScripts
     </body>
 </html>

@@ -15,8 +15,8 @@
     >
         <div x-show="!showRecoveryInput">
             <div class="flex flex-col gap-2 text-center mb-6">
-                <flux:heading size="lg" class="text-white">{{ __('Authentication Code') }}</flux:heading>
-                <flux:text class="text-zinc-400">
+                <flux:heading size="lg">{{ __('Authentication Code') }}</flux:heading>
+                <flux:text class="mt-1">
                     {{ __('Enter the authentication code provided by your authenticator application.') }}
                 </flux:text>
             </div>
@@ -24,8 +24,8 @@
 
         <div x-show="showRecoveryInput">
             <div class="flex flex-col gap-2 text-center mb-6">
-                <flux:heading size="lg" class="text-white">{{ __('Recovery Code') }}</flux:heading>
-                <flux:text class="text-zinc-400">
+                <flux:heading size="lg">{{ __('Recovery Code') }}</flux:heading>
+                <flux:text class="mt-1">
                     {{ __('Please confirm access to your account by entering one of your emergency recovery codes.') }}
                 </flux:text>
             </div>
@@ -48,7 +48,7 @@
                     </div>
 
                     @error('code')
-                        <flux:text class="text-red-400 text-sm">
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">
                             {{ $message }}
                         </flux:text>
                     @enderror
@@ -66,7 +66,7 @@
                     </div>
 
                     @error('recovery_code')
-                        <flux:text class="text-red-400 text-sm">
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">
                             {{ $message }}
                         </flux:text>
                     @enderror
@@ -81,9 +81,9 @@
                 </flux:button>
             </div>
 
-            <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
-                <span class="text-zinc-400">{{ __('or you can') }}</span>
-                <div class="inline font-medium underline cursor-pointer text-indigo-400 hover:text-indigo-300">
+            <div class="mt-5 space-x-0.5 text-center text-sm leading-5">
+                <span class="text-secondary">{{ __('or you can') }}</span>
+                <div class="inline cursor-pointer font-medium text-emerald-600 underline hover:text-emerald-500 dark:text-emerald-400">
                     <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</span>
                     <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</span>
                 </div>
@@ -91,7 +91,7 @@
         </form>
 
         <div class="text-center">
-            <a href="{{ route('superadmin.login') }}" class="text-sm text-zinc-400 hover:text-zinc-300">
+            <a href="{{ route('superadmin.login') }}" class="text-sm text-secondary hover:text-primary">
                 {{ __('Back to login') }}
             </a>
         </div>
