@@ -38,6 +38,9 @@ foreach ($centralDomainsForLanding as $domain) {
         Route::get('/start-trial', StartTrial::class)
             ->middleware('throttle:30,1')
             ->name($domain === 'kingdomvitals-app.test' ? 'trial.start' : null);
+
+        Route::get('/offline', fn () => response()->view('errors.offline', [], 200))
+            ->name($domain === 'kingdomvitals-app.test' ? 'offline' : null);
     });
 }
 

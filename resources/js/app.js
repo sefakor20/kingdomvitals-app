@@ -1,5 +1,6 @@
 import Chart from 'chart.js/auto';
 import { Html5Qrcode } from 'html5-qrcode';
+import './offline-indicator.js';
 
 // Make Chart available globally for Alpine.js components
 window.Chart = Chart;

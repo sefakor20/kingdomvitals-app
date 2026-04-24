@@ -575,3 +575,14 @@ html {
         animation: none;
     }
 }
+
+/* Offline overlay — hidden by default, shown when body[data-offline="true"].
+   Uses an attribute selector so Alpine/Livewire aren't involved — this must
+   work even if client-side JS frameworks break during the disconnection. */
+#offline-overlay {
+    display: none;
+}
+
+body[data-offline="true"] #offline-overlay {
+    display: flex;
+}

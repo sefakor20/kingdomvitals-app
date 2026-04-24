@@ -188,6 +188,9 @@
             @endpersist
         @endauth
 
+        {{-- Offline overlay --}}
+        @include('partials.offline-overlay')
+
         @fluxScripts
     </body>
 </html>
