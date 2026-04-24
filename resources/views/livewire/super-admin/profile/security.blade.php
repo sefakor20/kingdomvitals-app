@@ -1,18 +1,8 @@
-<div>
-    <!-- Header -->
-    <div class="mb-8">
-        <flux:heading size="xl">{{ __('Security Settings') }}</flux:heading>
-        <flux:text class="mt-1 text-zinc-500">
-            {{ __('Manage your account security and two-factor authentication.') }}
-        </flux:text>
-    </div>
+<section class="w-full">
+    @include('partials.superadmin-settings-heading')
 
-    <!-- Two-Factor Authentication Section -->
-    <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
-        <div class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
-            <flux:heading size="lg">{{ __('Two-Factor Authentication') }}</flux:heading>
-        </div>
-        <div class="p-6" wire:cloak>
+    <x-superadmin.settings.layout :heading="__('Two-Factor Authentication')" :subheading="__('Manage your two-factor authentication settings')">
+        <div class="mt-6 space-y-6" wire:cloak>
             @if ($twoFactorEnabled)
                 <div class="space-y-6">
                     <div class="flex items-center gap-3">
@@ -93,7 +83,6 @@
                 </div>
             @endif
         </div>
-    </div>
 
     <!-- Setup Modal -->
     <flux:modal wire:model="showModal" class="max-w-md">
@@ -241,4 +230,5 @@
     <x-toast on="recovery-codes-regenerated" type="success">
         {{ __('Recovery codes regenerated successfully.') }}
     </x-toast>
-</div>
+    </x-superadmin.settings.layout>
+</section>

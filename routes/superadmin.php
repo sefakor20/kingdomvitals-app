@@ -16,6 +16,9 @@ use App\Livewire\SuperAdmin\Billing\OverdueInvoices;
 use App\Livewire\SuperAdmin\Billing\PaymentIndex;
 use App\Livewire\SuperAdmin\Dashboard;
 use App\Livewire\SuperAdmin\Plans\PlanIndex;
+use App\Livewire\SuperAdmin\Profile\Appearance as ProfileAppearance;
+use App\Livewire\SuperAdmin\Profile\Password as ProfilePassword;
+use App\Livewire\SuperAdmin\Profile\Profile as ProfileEdit;
 use App\Livewire\SuperAdmin\Profile\Security;
 use App\Livewire\SuperAdmin\Revenue\RevenueDashboard;
 use App\Livewire\SuperAdmin\Settings\SystemSettings;
@@ -116,7 +119,16 @@ Route::middleware('superadmin')->group(function (): void {
     Route::get('billing/overdue', OverdueInvoices::class)
         ->name('superadmin.billing.overdue');
 
-    // Profile/Security
+    // Profile / Account Settings
+    Route::get('profile/edit', ProfileEdit::class)
+        ->name('superadmin.profile.edit');
+
+    Route::get('profile/password', ProfilePassword::class)
+        ->name('superadmin.profile.password');
+
     Route::get('profile/security', Security::class)
         ->name('superadmin.profile.security');
+
+    Route::get('profile/appearance', ProfileAppearance::class)
+        ->name('superadmin.profile.appearance');
 });
