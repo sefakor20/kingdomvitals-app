@@ -57,7 +57,7 @@
                     </div>
 
                     {{-- Error Code Badge --}}
-                    <span class="label-mono @yield('label-color', 'text-red-600 dark:text-red-400')">Error @yield('code')</span>
+                    <span class="label-mono @yield('label-color', 'text-red-600 dark:text-red-400')">@yield('label', 'Error') @yield('code')</span>
 
                     {{-- Title --}}
                     <h1 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">

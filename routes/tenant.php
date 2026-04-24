@@ -129,6 +129,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['web'])->group(function (): void {
+    // Offline fallback (no auth, available to any tenant visitor)
+    Route::get('/offline', fn () => response()->view('errors.offline', [], 200))
+        ->name('tenant.offline');
+
     // Impersonation routes (before auth middleware)
     Route::get('/impersonate/enter', [ImpersonationController::class, 'enter'])
         ->name('impersonate.enter');

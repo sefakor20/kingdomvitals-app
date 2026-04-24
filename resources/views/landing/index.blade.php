@@ -211,6 +211,9 @@
         {{-- OG Image Template (rendered by spatie/laravel-og-image) --}}
         @include('landing.partials.og-image')
 
+        {{-- Offline overlay --}}
+        @include('partials.offline-overlay')
+
         @fluxScripts
     </body>
 </html>

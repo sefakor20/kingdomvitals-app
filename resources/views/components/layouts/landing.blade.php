@@ -33,6 +33,9 @@
             @include('landing.partials.footer')
         </div>
 
+        {{-- Offline overlay --}}
+        @include('partials.offline-overlay')
+
         @fluxScripts
     </body>
 </html>
