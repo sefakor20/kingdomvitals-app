@@ -12,6 +12,7 @@ use App\Models\Tenant\UserBranchAccess;
 use App\Models\User;
 use App\Policies\PrayerRequestPolicy;
 use App\Services\PlanAccessService;
+use Database\Seeders\SubscriptionPlanSeeder;
 use Tests\TenantTestCase;
 
 uses(TenantTestCase::class);
@@ -331,4 +332,20 @@ it('blocks all restricted features when empty features array', function (): void
     expect($service->hasFeature('prayer_chain_sms'))->toBeFalse();
     expect($service->hasFeature('bulk_sms_scheduling'))->toBeFalse();
     expect($service->hasFeature('member_import'))->toBeFalse();
+});
+
+// ============================================
+// SEEDED PLANS — FEATURE FLAG INVENTORY
+// ============================================
+
+it('seeds the member_import flag on paid plans only', function (): void {
+    $this->seed(SubscriptionPlanSeeder::class);
+
+    $basic = SubscriptionPlan::where('slug', 'basic')->firstOrFail();
+    $professional = SubscriptionPlan::where('slug', 'professional')->firstOrFail();
+    $enterprise = SubscriptionPlan::where('slug', 'enterprise')->firstOrFail();
+
+    expect($professional->features)->toContain('member_import');
+    expect($enterprise->features)->toContain('member_import');
+    expect($basic->features)->not->toContain('member_import');
 });

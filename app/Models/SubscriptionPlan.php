@@ -196,6 +196,26 @@ class SubscriptionPlan extends Model
     }
 
     /**
+     * Display-only features: human-readable bullet copy, with snake_case
+     * feature-flag identifiers (e.g. "member_import") stripped out so they
+     * don't leak onto pricing cards.
+     *
+     * @return array<int, string>
+     */
+    public function getDisplayFeaturesAttribute(): array
+    {
+        if (! is_array($this->features)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $this->features,
+            fn ($feature): bool => is_string($feature)
+                && preg_match('/^[a-z][a-z0-9_]*$/', $feature) !== 1,
+        ));
+    }
+
+    /**
      * Check if a module is enabled in this plan.
      */
     public function hasModule(string $moduleName): bool

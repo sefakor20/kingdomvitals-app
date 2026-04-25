@@ -118,11 +118,11 @@
                     </div>
 
                     <!-- Features -->
-                    @if($plan->features && count($plan->features) > 0)
+                    @if(count($plan->display_features) > 0)
                         <div class="border-t border-zinc-200 pt-4 dark:border-zinc-700">
                             <flux:text class="mb-2 text-sm font-medium">{{ __('Features:') }}</flux:text>
                             <ul class="space-y-1">
-                                @foreach($plan->features as $feature)
+                                @foreach($plan->display_features as $feature)
                                     <li class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                                         <flux:icon.check class="size-4 text-green-500" />
                                         {{ $feature }}
