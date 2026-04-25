@@ -114,19 +114,19 @@
                     </div>
 
                     <!-- Features List -->
-                    @if($plan->features && count($plan->features) > 0)
+                    @if(count($plan->display_features) > 0)
                         <div class="mb-6 border-t border-zinc-200 pt-4 dark:border-zinc-700">
                             <flux:text class="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Features:') }}</flux:text>
                             <ul class="space-y-2">
-                                @foreach(array_slice($plan->features, 0, 5) as $feature)
+                                @foreach(array_slice($plan->display_features, 0, 5) as $feature)
                                     <li class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                                         <flux:icon.check class="size-4 text-green-500" />
-                                        {{ ucfirst(str_replace('_', ' ', $feature)) }}
+                                        {{ $feature }}
                                     </li>
                                 @endforeach
-                                @if(count($plan->features) > 5)
+                                @if(count($plan->display_features) > 5)
                                     <li class="text-sm text-zinc-500">
-                                        {{ __('+ :count more features', ['count' => count($plan->features) - 5]) }}
+                                        {{ __('+ :count more features', ['count' => count($plan->display_features) - 5]) }}
                                     </li>
                                 @endif
                             </ul>

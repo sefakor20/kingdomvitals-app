@@ -133,14 +133,15 @@ class Subscription extends Component
     }
 
     /**
-     * Get the list of enabled features.
+     * Get the list of human-readable features for display on plan cards.
+     * Snake_case feature-flag identifiers are filtered out by the model accessor.
      *
      * @return array<string>
      */
     #[Computed]
     public function features(): array
     {
-        return $this->plan?->features ?? [];
+        return $this->plan?->display_features ?? [];
     }
 
     /**

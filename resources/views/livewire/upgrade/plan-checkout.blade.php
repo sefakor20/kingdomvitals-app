@@ -146,11 +146,11 @@
                             <flux:icon.check class="size-4 text-green-500" />
                             {{ $plan->support_level?->label() ?? 'Community' }} {{ __('support') }}
                         </li>
-                        @if($plan->features && count($plan->features) > 0)
-                            @foreach($plan->features as $feature)
+                        @if(count($plan->display_features) > 0)
+                            @foreach($plan->display_features as $feature)
                                 <li class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                                     <flux:icon.check class="size-4 text-green-500" />
-                                    {{ ucfirst(str_replace('_', ' ', $feature)) }}
+                                    {{ $feature }}
                                 </li>
                             @endforeach
                         @endif

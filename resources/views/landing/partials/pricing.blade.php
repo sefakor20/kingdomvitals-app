@@ -129,8 +129,8 @@
                             @endif
 
                             {{-- Custom features from JSON --}}
-                            @if($plan->features && is_array($plan->features))
-                                @foreach($plan->features as $feature)
+                            @if(count($plan->display_features) > 0)
+                                @foreach($plan->display_features as $feature)
                                     <li class="flex items-start gap-3">
                                         <svg class="size-5 shrink-0 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
