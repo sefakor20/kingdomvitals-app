@@ -36,9 +36,9 @@ Schedule::command('sms:send-attendance-followup')
     ->hourly()
     ->withoutOverlapping();
 
-// Sync SMS delivery status (fallback for missed webhooks) every 2 hours
-Schedule::command('sms:sync-delivery-status --hours=2 --limit=200')
-    ->everyTwoHours()
+// Sync SMS delivery status (fallback for missed webhooks) every 30 minutes
+Schedule::command('sms:sync-delivery-status --hours=1 --limit=200')
+    ->everyThirtyMinutes()
     ->withoutOverlapping();
 
 // Send duty roster reminders daily at 8 AM

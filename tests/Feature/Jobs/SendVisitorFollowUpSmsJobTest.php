@@ -35,12 +35,14 @@ test('job sends follow-up SMS to visitor with phone', function (): void {
         'phone' => '+233241234567',
     ]);
 
-    // Fake HTTP response for successful SMS send
     Http::fake([
         '*' => Http::response([
-            'success' => true,
-            'message' => 'SMS sent successfully',
-            'data' => ['tracking_id' => 'test-tracking-id'],
+            'data' => [
+                'type' => 'campaign',
+                'id' => 'test-tracking-id',
+                'attributes' => ['status' => 'queued'],
+            ],
+            'meta' => ['api_version' => 'v2', 'message' => 'SMS sent successfully'],
         ], 200),
     ]);
 
@@ -114,11 +116,15 @@ test('job logs failed SMS with error message', function (): void {
         'phone' => '+233241234567',
     ]);
 
-    // Fake HTTP response to simulate failure
     Http::fake([
         '*' => Http::response([
-            'success' => false,
-            'message' => 'Insufficient balance',
+            'errors' => [[
+                'status' => '400',
+                'code' => 'INSUFFICIENT_BALANCE',
+                'title' => 'Insufficient balance',
+                'detail' => 'Insufficient balance',
+            ]],
+            'meta' => ['api_version' => 'v2'],
         ], 400),
     ]);
 

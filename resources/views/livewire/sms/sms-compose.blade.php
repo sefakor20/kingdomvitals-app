@@ -37,8 +37,15 @@
                         <div>
                             <flux:text class="text-sm text-blue-600 dark:text-blue-400">{{ __('Account Balance') }}</flux:text>
                             <flux:heading size="lg" class="text-blue-900 dark:text-blue-100">
-                                {{ $this->accountBalance['currency'] ?? 'GHS' }} {{ number_format($this->accountBalance['balance'] ?? 0, 2) }}
+                                {{ $this->accountBalance['currency'] ?? 'GHS' }} {{ number_format($this->accountBalance['main_balance'] ?? 0, 2) }}
                             </flux:heading>
+                            <flux:text class="text-xs text-blue-600/80 dark:text-blue-400/80">
+                                {{ __('Main: :currency :main · Bonus: :currency :bonus', [
+                                    'currency' => $this->accountBalance['currency'] ?? 'GHS',
+                                    'main' => number_format($this->accountBalance['main_balance'] ?? 0, 2),
+                                    'bonus' => number_format($this->accountBalance['bonus_balance'] ?? 0, 2),
+                                ]) }}
+                            </flux:text>
                         </div>
                     </div>
                 </div>

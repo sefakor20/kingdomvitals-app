@@ -114,7 +114,7 @@ test('webhook ignores request when sms log not found', function (): void {
         ->assertJson(['status' => 'ignored', 'reason' => 'not_found']);
 });
 
-test('webhook requires status field', function (): void {
+test('webhook ignores request when status field is missing', function (): void {
     $payload = [
         'tracking_id' => 'test-tracking-123',
     ];
@@ -125,8 +125,8 @@ test('webhook requires status field', function (): void {
         'X-TextTango-Signature' => $signature,
     ]);
 
-    $response->assertUnprocessable()
-        ->assertJsonValidationErrors(['status']);
+    $response->assertOk()
+        ->assertJson(['status' => 'ignored', 'reason' => 'missing_status']);
 });
 
 test('webhook handles various status mappings', function (string $inputStatus, SmsStatus $expectedStatus): void {
@@ -222,3 +222,100 @@ test('webhook ignores request with missing identifiers', function (): void {
     $response->assertOk()
         ->assertJson(['status' => 'ignored', 'reason' => 'missing_identifiers']);
 });
+
+test('webhook accepts v2 JSON:API message payload and updates by campaign + phone', function (): void {
+    $payload = [
+        'data' => [
+            'type' => 'message',
+            'id' => 'msg-uuid-001',
+            'attributes' => [
+                'to' => '+233241234567',
+                'status' => 'delivered',
+                'delivered_at' => '2026-04-26T10:00:00Z',
+            ],
+            'relationships' => [
+                'campaign' => [
+                    'data' => ['type' => 'campaign', 'id' => 'test-tracking-123'],
+                ],
+            ],
+        ],
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $response = $this->postJson('/webhooks/texttango/delivery', $payload, [
+        'X-TextTango-Signature' => $signature,
+    ]);
+
+    $response->assertOk()->assertJson(['status' => 'success']);
+
+    $this->smsLog->refresh();
+    expect($this->smsLog->status)->toBe(SmsStatus::Delivered);
+    expect($this->smsLog->provider_recipient_id)->toBe('msg-uuid-001');
+    expect($this->smsLog->delivered_at?->toIso8601String())->toBe('2026-04-26T10:00:00+00:00');
+});
+
+test('webhook accepts v2 JSON:API failed payload with delivery_details description', function (): void {
+    $payload = [
+        'data' => [
+            'type' => 'message',
+            'id' => 'msg-uuid-002',
+            'attributes' => [
+                'to' => '+233241234567',
+                'status' => 'failed',
+                'failed_at' => '2026-04-26T10:00:00Z',
+                'delivery_details' => [
+                    'detailed_status' => 'INVALID_NUMBER',
+                    'description' => 'Number not reachable',
+                ],
+            ],
+            'relationships' => [
+                'campaign' => [
+                    'data' => ['type' => 'campaign', 'id' => 'test-tracking-123'],
+                ],
+            ],
+        ],
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $this->postJson('/webhooks/texttango/delivery', $payload, [
+        'X-TextTango-Signature' => $signature,
+    ])->assertOk();
+
+    $this->smsLog->refresh();
+    expect($this->smsLog->status)->toBe(SmsStatus::Failed);
+    expect($this->smsLog->error_message)->toBe('Number not reachable');
+});
+
+test('webhook v2 status mappings', function (string $inputStatus, SmsStatus $expectedStatus): void {
+    $payload = [
+        'data' => [
+            'type' => 'message',
+            'id' => 'msg-uuid-003',
+            'attributes' => [
+                'to' => '+233241234567',
+                'status' => $inputStatus,
+            ],
+            'relationships' => [
+                'campaign' => [
+                    'data' => ['type' => 'campaign', 'id' => 'test-tracking-123'],
+                ],
+            ],
+        ],
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $this->postJson('/webhooks/texttango/delivery', $payload, [
+        'X-TextTango-Signature' => $signature,
+    ])->assertOk();
+
+    $this->smsLog->refresh();
+    expect($this->smsLog->status)->toBe($expectedStatus);
+})->with([
+    'delivered' => ['delivered', SmsStatus::Delivered],
+    'failed' => ['failed', SmsStatus::Failed],
+    'expired' => ['expired', SmsStatus::Failed],
+    'submitted' => ['submitted', SmsStatus::Sent],
+]);

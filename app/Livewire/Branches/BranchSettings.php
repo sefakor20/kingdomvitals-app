@@ -261,6 +261,12 @@ class BranchSettings extends Component
     }
 
     #[Computed]
+    public function texttangoWebhookUrl(): string
+    {
+        return rtrim(config('app.url'), '/').'/webhooks/texttango/delivery';
+    }
+
+    #[Computed]
     public function dutyRosterReminderTemplates(): Collection
     {
         return SmsTemplate::where('branch_id', $this->branch->id)
@@ -386,9 +392,10 @@ class BranchSettings extends Component
         $result = $service->getBalance();
 
         if ($result['success']) {
-            $this->testConnectionResult = __('Connection successful! Balance: :currency :balance', [
+            $this->testConnectionResult = __('Connection successful! Main: :currency :main · Bonus: :currency :bonus', [
                 'currency' => $result['currency'] ?? 'GHS',
-                'balance' => number_format($result['balance'] ?? 0, 2),
+                'main' => number_format($result['main_balance'] ?? 0, 2),
+                'bonus' => number_format($result['bonus_balance'] ?? 0, 2),
             ]);
             $this->testConnectionStatus = 'success';
         } else {
