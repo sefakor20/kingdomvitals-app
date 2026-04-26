@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Tenant\Branch;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -18,12 +19,6 @@ class TextTangoService
 
     protected string $senderId;
 
-    /**
-     * Create a new TextTangoService instance.
-     *
-     * If credentials are not provided, uses system config values.
-     * For tenant-specific messaging, use forBranch() instead.
-     */
     public function __construct(?string $apiKey = null, ?string $senderId = null)
     {
         $this->baseUrl = config('services.texttango.base_url');
@@ -34,7 +29,6 @@ class TextTangoService
     /**
      * Create a TextTangoService instance for a specific branch.
      * Only uses branch-configured SMS credentials. Does NOT fall back to system config.
-     * System credentials are reserved for system-level notifications only.
      */
     public static function forBranch(Branch $branch): self
     {
@@ -43,20 +37,17 @@ class TextTangoService
         $encryptedApiKey = $settings['sms_api_key'] ?? null;
         $senderId = $settings['sms_sender_id'] ?? null;
 
-        // If branch has SMS settings configured, use them
         if (! empty($encryptedApiKey) && ! empty($senderId)) {
-            // Decrypt the API key
             try {
                 $apiKey = Crypt::decryptString($encryptedApiKey);
-            } catch (\Exception $e) {
-                // If decryption fails, assume it's stored unencrypted (legacy)
+            } catch (\Throwable) {
+                // Legacy: key may be stored unencrypted from earlier versions.
                 $apiKey = $encryptedApiKey;
             }
 
             return new self($apiKey, $senderId);
         }
 
-        // No fallback to system config - branch must configure their own credentials
         return new self('', '');
     }
 
@@ -69,21 +60,18 @@ class TextTangoService
     }
 
     /**
-     * Send bulk SMS to multiple recipients.
+     * Send bulk SMS to multiple recipients via the v2 campaigns endpoint.
      *
      * @param  array<string>  $phoneNumbers  Array of phone numbers in E.164 format
-     * @param  string  $message  The SMS message content
-     * @param  string|null  $senderId  Optional sender ID override
-     * @param  bool  $isScheduled  Whether to schedule the SMS
-     * @param  string|null  $scheduledAt  Datetime for scheduled SMS
-     * @return array{success: bool, tracking_id?: string, message?: string, error?: string}
+     * @return array{success: bool, tracking_id?: string|null, message?: string, data?: array, error?: string}
      */
     public function sendBulkSms(
         array $phoneNumbers,
         string $message,
         ?string $senderId = null,
         bool $isScheduled = false,
-        ?string $scheduledAt = null
+        ?string $scheduledAt = null,
+        ?string $campaignName = null,
     ): array {
         try {
             $payload = [
@@ -95,19 +83,23 @@ class TextTangoService
             ];
 
             if ($isScheduled && $scheduledAt) {
-                $payload['is_scheduled_datetime'] = $scheduledAt;
+                $payload['scheduled_at'] = $scheduledAt;
             }
 
-            $response = $this->client()->post('/sms/campaign/send', $payload);
+            if ($campaignName !== null && $campaignName !== '') {
+                $payload['campaign_name'] = $campaignName;
+            }
+
+            $response = $this->client()->post('/campaigns', $payload);
 
             if ($response->successful()) {
-                $data = $response->json();
+                $data = $response->json('data') ?? [];
 
                 return [
                     'success' => true,
-                    'tracking_id' => $data['data']['tracking_id'] ?? null,
-                    'message' => $data['message'] ?? 'SMS sent successfully',
-                    'data' => $data['data'] ?? [],
+                    'tracking_id' => $data['id'] ?? null,
+                    'message' => $response->json('meta.message') ?? 'SMS sent successfully',
+                    'data' => $data,
                 ];
             }
 
@@ -118,7 +110,7 @@ class TextTangoService
 
             return [
                 'success' => false,
-                'error' => $response->json('message') ?? 'Failed to send SMS',
+                'error' => $this->extractError($response),
             ];
         } catch (\Exception $e) {
             Log::error('TextTango SMS exception', [
@@ -134,26 +126,27 @@ class TextTangoService
     }
 
     /**
-     * Track the status of a bulk SMS campaign.
+     * Track the status of a campaign. Returns campaign attributes plus the
+     * v2 analytics summary (total_sent, delivered, failed, pending).
      *
-     * @param  string  $trackingId  The campaign tracking ID
-     * @return array{success: bool, data?: array, error?: string}
+     * @return array{success: bool, data?: array, summary?: array, error?: string}
      */
     public function trackCampaign(string $trackingId): array
     {
         try {
-            $response = $this->client()->get("/sms/campaign/track/{$trackingId}");
+            $response = $this->client()->get("/campaigns/{$trackingId}");
 
             if ($response->successful()) {
                 return [
                     'success' => true,
-                    'data' => $response->json('data') ?? [],
+                    'data' => $response->json('data.attributes') ?? [],
+                    'summary' => $response->json('data.analytics.summary') ?? [],
                 ];
             }
 
             return [
                 'success' => false,
-                'error' => $response->json('message') ?? 'Failed to track campaign',
+                'error' => $this->extractError($response),
             ];
         } catch (\Exception $e) {
             return [
@@ -164,26 +157,25 @@ class TextTangoService
     }
 
     /**
-     * Track the status of a single SMS message.
+     * Track a single message inside a campaign. v2 requires both ids.
      *
-     * @param  string  $messageId  The message ID from the provider
      * @return array{success: bool, data?: array, error?: string}
      */
-    public function trackSingleMessage(string $messageId): array
+    public function trackSingleMessage(string $campaignId, string $messageId): array
     {
         try {
-            $response = $this->client()->get("/sms/campaign/track/single/{$messageId}");
+            $response = $this->client()->get("/campaigns/{$campaignId}/messages/{$messageId}");
 
             if ($response->successful()) {
                 return [
                     'success' => true,
-                    'data' => $response->json('data') ?? [],
+                    'data' => $response->json('data.attributes') ?? [],
                 ];
             }
 
             return [
                 'success' => false,
-                'error' => $response->json('message') ?? 'Failed to track message',
+                'error' => $this->extractError($response),
             ];
         } catch (\Exception $e) {
             return [
@@ -194,28 +186,70 @@ class TextTangoService
     }
 
     /**
-     * Get the account balance.
+     * List messages within a campaign (paginated). Useful for backfilling
+     * per-recipient ids after dispatch.
      *
-     * @return array{success: bool, balance?: float, currency?: string, error?: string}
+     * @return array{success: bool, data?: array, error?: string}
+     */
+    public function listCampaignMessages(string $campaignId, ?string $status = null, int $perPage = 100): array
+    {
+        try {
+            $query = ['per_page' => $perPage];
+            if ($status !== null) {
+                $query['status'] = $status;
+            }
+
+            $response = $this->client()->get("/campaigns/{$campaignId}/messages", $query);
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'data' => $response->json('data') ?? [],
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $this->extractError($response),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Get the wallet balance from v2.
+     *
+     * @return array{success: bool, main_balance?: float, bonus_balance?: float, total_balance?: float, currency?: string, error?: string}
      */
     public function getBalance(): array
     {
         try {
-            $response = $this->client()->get('/account/me/balance');
+            $response = $this->client()->get('/wallet');
 
             if ($response->successful()) {
-                $data = $response->json('data') ?? [];
+                $attributes = $response->json('data.attributes') ?? [];
+
+                $main = (float) ($attributes['main_balance'] ?? 0);
+                $bonus = (float) ($attributes['bonus_balance'] ?? 0);
 
                 return [
                     'success' => true,
-                    'balance' => $data['main_account_balance'] ?? 0,
-                    'currency' => $data['currency'] ?? 'GHS',
+                    'main_balance' => $main,
+                    'bonus_balance' => $bonus,
+                    'total_balance' => isset($attributes['total_balance'])
+                        ? (float) $attributes['total_balance']
+                        : $main + $bonus,
+                    'currency' => $attributes['currency'] ?? 'GHS',
                 ];
             }
 
             return [
                 'success' => false,
-                'error' => $response->json('message') ?? 'Failed to get balance',
+                'error' => $this->extractError($response),
             ];
         } catch (\Exception $e) {
             return [
@@ -225,19 +259,37 @@ class TextTangoService
         }
     }
 
-    /**
-     * Check if the service is configured.
-     */
     public function isConfigured(): bool
     {
         return $this->apiKey !== '' && $this->apiKey !== '0' && ($this->senderId !== '' && $this->senderId !== '0');
     }
 
-    /**
-     * Get the default sender ID.
-     */
     public function getDefaultSenderId(): string
     {
         return $this->senderId;
+    }
+
+    /**
+     * Extract a human-readable error from a v2 JSON:API error envelope, with
+     * fallbacks for non-conforming responses.
+     */
+    protected function extractError(Response $response): string
+    {
+        $detail = $response->json('errors.0.detail');
+        if (is_string($detail) && $detail !== '') {
+            return $detail;
+        }
+
+        $title = $response->json('errors.0.title');
+        if (is_string($title) && $title !== '') {
+            return $title;
+        }
+
+        $message = $response->json('message');
+        if (is_string($message) && $message !== '') {
+            return $message;
+        }
+
+        return 'TextTango request failed (HTTP '.$response->status().')';
     }
 }

@@ -10,52 +10,48 @@ use App\Http\Requests\TextTangoWebhookRequest;
 use App\Models\Tenant;
 use App\Models\Tenant\SmsLog;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class TextTangoWebhookController extends Controller
 {
     /**
-     * Handle TextTango delivery status webhook.
+     * Handle TextTango delivery status webhook (v1 flat or v2 JSON:API payload).
      */
     public function handleDelivery(TextTangoWebhookRequest $request): JsonResponse
     {
-        $payload = $request->validated();
+        $event = $this->normalize($request->all());
 
-        // Extract data from payload
-        $trackingId = $payload['tracking_id'] ?? null;
-        $messageId = $payload['message_id'] ?? null;
-        $status = $payload['status'] ?? null;
-        $phoneNumber = $payload['phone_number'] ?? null;
+        if ($event['status'] === null) {
+            Log::warning('TextTango webhook: Missing status', ['payload' => $request->all()]);
 
-        if (! $trackingId && ! $messageId) {
-            Log::warning('TextTango webhook: Missing tracking_id and message_id');
+            return response()->json(['status' => 'ignored', 'reason' => 'missing_status']);
+        }
+
+        if ($event['campaign_id'] === null && $event['message_id'] === null && $event['recipient_id'] === null) {
+            Log::warning('TextTango webhook: Missing identifiers');
 
             return response()->json(['status' => 'ignored', 'reason' => 'missing_identifiers']);
         }
 
-        // Find the SmsLog across all tenants
-        $result = $this->findSmsLogAcrossTenants($trackingId, $messageId, $phoneNumber);
+        $result = $this->findSmsLogAcrossTenants($event);
 
         if (! $result) {
-            Log::info('TextTango webhook: SmsLog not found', [
-                'tracking_id' => $trackingId,
-                'message_id' => $messageId,
-            ]);
+            Log::info('TextTango webhook: SmsLog not found', $event);
 
             return response()->json(['status' => 'ignored', 'reason' => 'not_found']);
         }
 
         [$tenant, $smsLogId] = $result;
 
-        // Initialize tenant context and update the record
         tenancy()->initialize($tenant);
 
         try {
-            $this->updateSmsLogStatus($smsLogId, $status, $payload);
+            $this->updateSmsLogStatus($smsLogId, $event);
 
             Log::info('TextTango webhook: Delivery status updated', [
                 'sms_log_id' => $smsLogId,
-                'status' => $status,
+                'status' => $event['status'],
                 'tenant_id' => $tenant->id,
             ]);
 
@@ -66,15 +62,82 @@ class TextTangoWebhookController extends Controller
     }
 
     /**
-     * Find SmsLog across all tenants by provider_message_id and/or phone_number.
+     * Normalize a webhook payload into a single internal shape, accepting
+     * both v1 flat keys and v2 JSON:API envelopes.
      *
+     * @param  array<string, mixed>  $payload
+     * @return array{
+     *     campaign_id: string|null,
+     *     message_id: string|null,
+     *     recipient_id: string|null,
+     *     phone_number: string|null,
+     *     status: string|null,
+     *     delivered_at: string|null,
+     *     error_message: string|null,
+     * }
+     */
+    protected function normalize(array $payload): array
+    {
+        // v2 JSON:API payload
+        if (isset($payload['data']) && is_array($payload['data']) && isset($payload['data']['attributes'])) {
+            $data = $payload['data'];
+            $attributes = $data['attributes'] ?? [];
+            $type = $data['type'] ?? null;
+
+            $campaignId = $data['relationships']['campaign']['data']['id'] ?? null;
+            $messageId = $type === 'message' ? ($data['id'] ?? null) : null;
+            if ($type === 'campaign') {
+                $campaignId = $data['id'] ?? $campaignId;
+            }
+
+            return [
+                'campaign_id' => $this->stringOrNull($campaignId),
+                'message_id' => $this->stringOrNull($messageId),
+                'recipient_id' => $this->stringOrNull($messageId),
+                'phone_number' => $this->stringOrNull($attributes['to'] ?? null),
+                'status' => $this->stringOrNull($attributes['status'] ?? null),
+                'delivered_at' => $this->stringOrNull(
+                    $attributes['delivered_at']
+                    ?? $attributes['failed_at']
+                    ?? $attributes['dispatched_at']
+                    ?? null,
+                ),
+                'error_message' => $this->stringOrNull(
+                    $attributes['delivery_details']['description']
+                    ?? $attributes['delivery_details']['detailed_status']
+                    ?? null,
+                ),
+            ];
+        }
+
+        // v1 flat payload
+        return [
+            'campaign_id' => $this->stringOrNull($payload['tracking_id'] ?? null),
+            'message_id' => $this->stringOrNull($payload['message_id'] ?? null),
+            'recipient_id' => null,
+            'phone_number' => $this->stringOrNull($payload['phone_number'] ?? null),
+            'status' => $this->stringOrNull($payload['status'] ?? null),
+            'delivered_at' => $this->stringOrNull($payload['delivered_at'] ?? $payload['timestamp'] ?? null),
+            'error_message' => $this->stringOrNull($payload['error_message'] ?? $payload['reason'] ?? null),
+        ];
+    }
+
+    protected function stringOrNull(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        $string = (string) $value;
+
+        return $string === '' ? null : $string;
+    }
+
+    /**
+     * @param  array{campaign_id: string|null, message_id: string|null, recipient_id: string|null, phone_number: string|null}  $event
      * @return array{0: Tenant, 1: string}|null
      */
-    protected function findSmsLogAcrossTenants(
-        ?string $trackingId,
-        ?string $messageId,
-        ?string $phoneNumber
-    ): ?array {
+    protected function findSmsLogAcrossTenants(array $event): ?array
+    {
         $tenants = Tenant::all();
 
         foreach ($tenants as $tenant) {
@@ -83,16 +146,19 @@ class TextTangoWebhookController extends Controller
             try {
                 $query = SmsLog::query();
 
-                // Build query based on available identifiers
-                if ($trackingId) {
-                    $query->where('provider_message_id', $trackingId);
-                } elseif ($messageId) {
-                    $query->where('provider_message_id', $messageId);
+                if ($event['recipient_id']) {
+                    $query->where(function ($q) use ($event) {
+                        $q->where('provider_recipient_id', $event['recipient_id'])
+                            ->orWhere('provider_message_id', $event['recipient_id']);
+                    });
+                } elseif ($event['message_id']) {
+                    $query->where('provider_message_id', $event['message_id']);
+                } elseif ($event['campaign_id']) {
+                    $query->where('provider_message_id', $event['campaign_id']);
                 }
 
-                // If we have phone number, use it to narrow down for campaigns
-                if ($phoneNumber && ($trackingId || $messageId)) {
-                    $query->where('phone_number', $phoneNumber);
+                if ($event['phone_number'] && ($event['campaign_id'] || $event['message_id'])) {
+                    $query->where('phone_number', $event['phone_number']);
                 }
 
                 $smsLog = $query->first();
@@ -112,11 +178,9 @@ class TextTangoWebhookController extends Controller
     }
 
     /**
-     * Update the SmsLog status based on webhook payload.
-     *
-     * @param  array<string, mixed>  $payload
+     * @param  array{status: string|null, delivered_at: string|null, error_message: string|null, recipient_id: string|null}  $event
      */
-    protected function updateSmsLogStatus(string $smsLogId, string $status, array $payload): void
+    protected function updateSmsLogStatus(string $smsLogId, array $event): void
     {
         $smsLog = SmsLog::find($smsLogId);
 
@@ -124,24 +188,30 @@ class TextTangoWebhookController extends Controller
             return;
         }
 
-        $mappedStatus = $this->mapTextTangoStatus($status);
+        $mappedStatus = $this->mapTextTangoStatus((string) $event['status']);
 
         $updateData = ['status' => $mappedStatus];
 
         if ($mappedStatus === SmsStatus::Delivered) {
-            $updateData['delivered_at'] = now();
+            $updateData['delivered_at'] = $event['delivered_at']
+                ? Carbon::parse($event['delivered_at'])
+                : now();
         }
 
-        if ($mappedStatus === SmsStatus::Failed) {
-            $updateData['error_message'] = $payload['error_message'] ?? $payload['reason'] ?? 'Delivery failed';
+        if ($mappedStatus === SmsStatus::Failed && $event['error_message']) {
+            $updateData['error_message'] = $event['error_message'];
+        } elseif ($mappedStatus === SmsStatus::Failed) {
+            $updateData['error_message'] = 'Delivery failed';
+        }
+
+        // Backfill the per-recipient id when the v2 webhook supplies it.
+        if ($event['recipient_id'] && empty($smsLog->provider_recipient_id)) {
+            $updateData['provider_recipient_id'] = $event['recipient_id'];
         }
 
         $smsLog->update($updateData);
     }
 
-    /**
-     * Map TextTango status strings to SmsStatus enum.
-     */
     protected function mapTextTangoStatus(string $status): SmsStatus
     {
         return match (strtolower($status)) {

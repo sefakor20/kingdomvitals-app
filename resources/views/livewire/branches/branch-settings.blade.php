@@ -283,13 +283,30 @@
                     </div>
                 @endif
 
+                <!-- Delivery Webhook URL -->
+                <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/30">
+                    <flux:heading size="sm" class="mb-2 text-blue-700 dark:text-blue-300">{{ __('Delivery webhook URL') }}</flux:heading>
+                    <div class="flex items-center gap-2">
+                        <code class="flex-1 rounded bg-white px-3 py-2 text-sm dark:bg-zinc-800">{{ $this->texttangoWebhookUrl }}</code>
+                        <flux:button variant="ghost" size="sm" icon="clipboard" onclick="navigator.clipboard.writeText('{{ $this->texttangoWebhookUrl }}')">
+                            {{ __('Copy') }}
+                        </flux:button>
+                    </div>
+                    <flux:text class="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                        {{ __('Paste this URL into BOTH the Campaign Callback URL and Single SMS Callback URL fields when you create your TextTango token, so we receive every delivery update.') }}
+                    </flux:text>
+                </div>
+
                 <!-- Help Section -->
                 <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                    <p class="mb-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ __('Where to find your API key:') }}</p>
+                    <p class="mb-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ __('Setup steps:') }}</p>
                     <ol class="ml-4 list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango account') }}</a></li>
-                        <li>{{ __('Navigate to Developer > Access Tokens') }}</li>
-                        <li>{{ __('Create a new API key or copy your existing one') }}</li>
+                        <li>{{ __('Log in to your') }} <a href="https://app.texttango.com/profile?tab=api-tokens" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">{{ __('TextTango account') }}</a></li>
+                        <li>{{ __('Open Settings → API Tokens and click Create Token') }}</li>
+                        <li>{{ __('Pick your default Sender ID — use the same one you set in the Sender ID field above') }}</li>
+                        <li>{{ __('Toggle on Enable Callbacks') }}</li>
+                        <li>{{ __('Paste the Delivery webhook URL above into BOTH the Campaign Callback URL and Single SMS Callback URL fields') }}</li>
+                        <li>{{ __('Save the token, then copy the generated key into the API Key field above and click Save Settings') }}</li>
                     </ol>
                 </div>
 

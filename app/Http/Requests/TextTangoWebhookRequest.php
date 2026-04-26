@@ -55,33 +55,14 @@ class TextTangoWebhookRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * No rules: payload shape differs between v1 (flat) and v2 (JSON:API),
+     * and the HMAC check above already authenticates the request body.
+     * Shape normalization and field validation happen in the controller.
      *
      * @return array<string, array<int, string>>
      */
     public function rules(): array
     {
-        return [
-            'tracking_id' => ['nullable', 'string', 'max:255'],
-            'message_id' => ['nullable', 'string', 'max:255'],
-            'phone_number' => ['nullable', 'string', 'max:20'],
-            'status' => ['required', 'string', 'max:50'],
-            'error_message' => ['nullable', 'string', 'max:500'],
-            'reason' => ['nullable', 'string', 'max:500'],
-            'delivered_at' => ['nullable', 'string'],
-            'timestamp' => ['nullable', 'string'],
-        ];
-    }
-
-    /**
-     * Get custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'status.required' => 'The delivery status is required.',
-        ];
+        return [];
     }
 }

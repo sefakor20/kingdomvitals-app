@@ -31,6 +31,7 @@ class SmsLog extends Model
         'status',
         'provider',
         'provider_message_id',
+        'provider_recipient_id',
         'cost',
         'currency',
         'sent_at',

@@ -10,6 +10,7 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use App\Services\TextTangoService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class SyncSmsDeliveryStatusCommand extends Command
@@ -142,7 +143,18 @@ class SyncSmsDeliveryStatusCommand extends Command
 
     protected function checkAndUpdateStatus(SmsLog $smsLog, TextTangoService $service): string
     {
-        $result = $service->trackSingleMessage($smsLog->provider_message_id);
+        // v2 requires both campaign id and per-message id. We only get the
+        // per-message id from a delivery webhook (or by listing campaign
+        // messages). When it's missing, fall back to listing campaign
+        // messages and matching by phone number.
+        if (! empty($smsLog->provider_recipient_id)) {
+            $result = $service->trackSingleMessage(
+                (string) $smsLog->provider_message_id,
+                (string) $smsLog->provider_recipient_id,
+            );
+        } else {
+            $result = $this->lookupViaCampaignMessages($smsLog, $service);
+        }
 
         if (! $result['success']) {
             Log::warning('SMS delivery status check failed', [
@@ -163,7 +175,6 @@ class SyncSmsDeliveryStatusCommand extends Command
 
         $newStatus = $this->mapStatus($status);
 
-        // Only update if status changed
         if ($newStatus === $smsLog->status) {
             return 'unchanged';
         }
@@ -171,16 +182,51 @@ class SyncSmsDeliveryStatusCommand extends Command
         $updateData = ['status' => $newStatus];
 
         if ($newStatus === SmsStatus::Delivered) {
-            $updateData['delivered_at'] = now();
+            $updateData['delivered_at'] = ! empty($data['delivered_at'])
+                ? Carbon::parse($data['delivered_at'])
+                : now();
             $this->line("    Updated: {$smsLog->phone_number} → Delivered");
         } elseif ($newStatus === SmsStatus::Failed) {
-            $updateData['error_message'] = $data['error_message'] ?? $data['reason'] ?? 'Delivery failed';
+            $updateData['error_message'] = $data['delivery_details']['description']
+                ?? $data['delivery_details']['detailed_status']
+                ?? 'Delivery failed';
             $this->line("    Updated: {$smsLog->phone_number} → Failed");
+        }
+
+        if (! empty($data['recipient_id']) && empty($smsLog->provider_recipient_id)) {
+            $updateData['provider_recipient_id'] = $data['recipient_id'];
         }
 
         $smsLog->update($updateData);
 
         return 'updated';
+    }
+
+    /**
+     * Backfill flow for legacy rows missing provider_recipient_id: list the
+     * campaign's messages and find the one matching this row's phone number.
+     *
+     * @return array{success: bool, data?: array, error?: string}
+     */
+    protected function lookupViaCampaignMessages(SmsLog $smsLog, TextTangoService $service): array
+    {
+        $list = $service->listCampaignMessages((string) $smsLog->provider_message_id);
+
+        if (! $list['success']) {
+            return $list;
+        }
+
+        foreach ($list['data'] ?? [] as $message) {
+            $attributes = $message['attributes'] ?? [];
+            if (($attributes['to'] ?? null) === $smsLog->phone_number) {
+                return [
+                    'success' => true,
+                    'data' => $attributes + ['recipient_id' => $message['id'] ?? null],
+                ];
+            }
+        }
+
+        return ['success' => true, 'data' => []];
     }
 
     protected function mapStatus(string $status): SmsStatus
