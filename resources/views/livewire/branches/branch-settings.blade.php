@@ -268,6 +268,30 @@
                     @enderror
                 </div>
 
+                <!-- Webhook Signing Secret -->
+                <div>
+                    <flux:input
+                        wire:model="smsWebhookSecret"
+                        type="password"
+                        :label="__('Webhook Signing Secret')"
+                        placeholder="{{ $hasExistingWebhookSecret ? __('Enter new secret to replace existing') : __('Paste the secret shown when you rotated the webhook secret in TextTango') }}"
+                    />
+                    @if($hasExistingWebhookSecret)
+                        <div class="mt-2 flex items-center gap-2">
+                            <flux:badge color="green" size="sm">{{ __('Configured') }}</flux:badge>
+                            <flux:button variant="ghost" size="sm" wire:click="clearWebhookSecret" class="text-red-600 hover:text-red-700">
+                                {{ __('Clear') }}
+                            </flux:button>
+                        </div>
+                    @endif
+                    <flux:text class="mt-1 text-xs text-zinc-500">
+                        {{ __('In TextTango, go to Settings → API Tokens, click "Rotate webhook secret", and paste the plaintext value here. It is shown only once after rotation.') }}
+                    </flux:text>
+                    @error('smsWebhookSecret')
+                        <flux:text class="mt-1 text-sm text-red-500">{{ $message }}</flux:text>
+                    @enderror
+                </div>
+
                 <!-- Test Connection Result -->
                 @if($testConnectionResult)
                     <div class="rounded-lg border p-4 {{ $testConnectionStatus === 'success' ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/30' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/30' }}">
@@ -306,6 +330,7 @@
                         <li>{{ __('Pick your default Sender ID — use the same one you set in the Sender ID field above') }}</li>
                         <li>{{ __('Toggle on Enable Callbacks') }}</li>
                         <li>{{ __('Paste the Delivery webhook URL above into BOTH the Campaign Callback URL and Single SMS Callback URL fields') }}</li>
+                        <li>{{ __('Click "Rotate webhook secret" — copy the plaintext shown once and paste it into the Webhook Signing Secret field above') }}</li>
                         <li>{{ __('Save the token, then copy the generated key into the API Key field above and click Save Settings') }}</li>
                     </ol>
                 </div>

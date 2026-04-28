@@ -4,6 +4,7 @@ use App\Enums\SmsStatus;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
 use Tests\TenantTestCase;
 
 uses(TenantTestCase::class);
@@ -286,6 +287,75 @@ test('webhook accepts v2 JSON:API failed payload with delivery_details descripti
     $this->smsLog->refresh();
     expect($this->smsLog->status)->toBe(SmsStatus::Failed);
     expect($this->smsLog->error_message)->toBe('Number not reachable');
+});
+
+test('webhook accepts branched URL signed with branch-stored secret', function (): void {
+    $branchSecret = str_repeat('b', 64);
+    $branchId = $this->branch->id;
+
+    // Persist the per-branch secret. We rely on the request's tenant-walking
+    // logic (used in production) to find this row when the webhook arrives.
+    $this->tenant->run(function () use ($branchId, $branchSecret): void {
+        $branch = Branch::find($branchId);
+        $branch->setSetting('sms_webhook_secret', Crypt::encryptString($branchSecret));
+        $branch->save();
+    });
+
+    $payload = [
+        'tracking_id' => 'test-tracking-123',
+        'phone_number' => '+233241234567',
+        'status' => 'delivered',
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), $branchSecret);
+
+    $response = $this->postJson("/webhooks/texttango/delivery/{$branchId}", $payload, [
+        'X-TextTango-Signature' => $signature,
+    ]);
+
+    $response->assertOk()->assertJson(['status' => 'success']);
+});
+
+test('webhook accepts branched URL signed with global secret as fallback', function (): void {
+    $branchId = $this->branch->id;
+
+    // Branch has no per-branch secret stored — global fallback should kick in.
+    $payload = [
+        'tracking_id' => 'test-tracking-123',
+        'phone_number' => '+233241234567',
+        'status' => 'delivered',
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $response = $this->postJson("/webhooks/texttango/delivery/{$branchId}", $payload, [
+        'X-TextTango-Signature' => $signature,
+    ]);
+
+    $response->assertOk()->assertJson(['status' => 'success']);
+});
+
+test('webhook rejects branched URL when neither branch nor global secret matches', function (): void {
+    $branchSecret = str_repeat('c', 64);
+    $branchId = $this->branch->id;
+
+    $this->tenant->run(function () use ($branchId, $branchSecret): void {
+        $branch = Branch::find($branchId);
+        $branch->setSetting('sms_webhook_secret', Crypt::encryptString($branchSecret));
+        $branch->save();
+    });
+
+    $payload = [
+        'tracking_id' => 'test-tracking-123',
+        'status' => 'delivered',
+    ];
+
+    // Sign with neither the branch secret nor the configured global secret.
+    $signature = hash_hmac('sha256', json_encode($payload), 'totally-wrong-secret');
+
+    $this->postJson("/webhooks/texttango/delivery/{$branchId}", $payload, [
+        'X-TextTango-Signature' => $signature,
+    ])->assertForbidden();
 });
 
 test('webhook v2 status mappings', function (string $inputStatus, SmsStatus $expectedStatus): void {
