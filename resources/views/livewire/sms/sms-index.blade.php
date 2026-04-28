@@ -241,7 +241,7 @@
                             {{ __('Date') }}
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                            {{ __('Recipient') }}
+                            {{ __('Recipients') }}
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             {{ __('Message') }}
@@ -261,43 +261,70 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
-                    @foreach($this->smsRecords as $sms)
-                        <tr wire:key="sms-{{ $sms->id }}">
+                    @foreach($this->smsRecords as $campaign)
+                        @php
+                            $firstLog = $campaign['logs']->first();
+                            $count = $campaign['recipient_count'];
+                            $previewMembers = $campaign['logs']->take(3);
+                        @endphp
+                        <tr wire:key="campaign-{{ $campaign['key'] }}">
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ $sms->created_at?->format('M d, Y H:i') ?? '-' }}
+                                {{ $campaign['created_at']?->format('M d, Y H:i') ?? '-' }}
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
-                                <div class="flex items-center gap-2">
-                                    @if($sms->member)
-                                        @if($sms->member->photo_url)
-                                            <img src="{{ $sms->member->photo_url }}" alt="{{ $sms->member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                @if($count === 1 && $firstLog)
+                                    <div class="flex items-center gap-2">
+                                        @if($firstLog->member)
+                                            @if($firstLog->member->photo_url)
+                                                <img src="{{ $firstLog->member->photo_url }}" alt="{{ $firstLog->member->fullName() }}" class="size-8 rounded-full object-cover" />
+                                            @else
+                                                <flux:avatar size="sm" name="{{ $firstLog->member->fullName() }}" />
+                                            @endif
+                                            <div>
+                                                <a
+                                                    href="{{ route('members.show', [$branch, $firstLog->member]) }}"
+                                                    class="text-sm text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
+                                                    wire:navigate
+                                                >
+                                                    {{ $firstLog->member->fullName() }}
+                                                </a>
+                                                <div class="text-xs text-zinc-500">{{ $firstLog->phone_number }}</div>
+                                            </div>
                                         @else
-                                            <flux:avatar size="sm" name="{{ $sms->member->fullName() }}" />
+                                            <flux:avatar size="sm" name="?" />
+                                            <div class="text-sm text-zinc-900 dark:text-zinc-100">
+                                                {{ $firstLog->phone_number }}
+                                            </div>
                                         @endif
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex -space-x-2">
+                                            @foreach($previewMembers as $previewLog)
+                                                @if($previewLog->member?->photo_url)
+                                                    <img src="{{ $previewLog->member->photo_url }}" alt="{{ $previewLog->member->fullName() }}" class="size-8 rounded-full border-2 border-white object-cover dark:border-zinc-900" />
+                                                @else
+                                                    <span class="ring-2 ring-white dark:ring-zinc-900">
+                                                        <flux:avatar size="sm" name="{{ $previewLog->member?->fullName() ?? $previewLog->phone_number }}" />
+                                                    </span>
+                                                @endif
+                                            @endforeach
+                                        </div>
                                         <div>
-                                            <a
-                                                href="{{ route('members.show', [$branch, $sms->member]) }}"
-                                                class="text-sm text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
-                                                wire:navigate
-                                            >
-                                                {{ $sms->member->fullName() }}
-                                            </a>
-                                            <div class="text-xs text-zinc-500">{{ $sms->phone_number }}</div>
+                                            <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                {{ trans_choice('{1} 1 recipient|[2,*] :count recipients', $count, ['count' => $count]) }}
+                                            </div>
+                                            <div class="text-xs text-zinc-500">{{ __('Campaign') }}</div>
                                         </div>
-                                    @else
-                                        <flux:avatar size="sm" name="?" />
-                                        <div class="text-sm text-zinc-900 dark:text-zinc-100">
-                                            {{ $sms->phone_number }}
-                                        </div>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                             </td>
                             <td class="max-w-xs truncate px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ Str::limit($sms->message, 50) }}
+                                {{ Str::limit($campaign['message'], 50) }}
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
                                 <flux:badge
-                                    :color="match($sms->message_type?->value) {
+                                    :color="match($campaign['message_type']?->value) {
                                         'birthday' => 'pink',
                                         'reminder' => 'yellow',
                                         'announcement' => 'blue',
@@ -306,12 +333,12 @@
                                     }"
                                     size="sm"
                                 >
-                                    {{ ucfirst($sms->message_type?->value ?? 'custom') }}
+                                    {{ ucfirst($campaign['message_type']?->value ?? 'custom') }}
                                 </flux:badge>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4">
                                 <flux:badge
-                                    :color="match($sms->status?->value) {
+                                    :color="match($campaign['status']?->value) {
                                         'delivered' => 'green',
                                         'sent' => 'blue',
                                         'pending' => 'yellow',
@@ -320,14 +347,14 @@
                                     }"
                                     size="sm"
                                 >
-                                    {{ ucfirst($sms->status?->value ?? 'pending') }}
+                                    {{ ucfirst($campaign['status']?->value ?? 'pending') }}
                                 </flux:badge>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ $sms->currency }} {{ number_format((float) $sms->cost, 4) }}
+                                {{ $campaign['currency'] }} {{ number_format($campaign['total_cost'], 4) }}
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewMessage('{{ $sms->id }}')" />
+                                <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewMessage('{{ $campaign['key'] }}')" />
                             </td>
                         </tr>
                     @endforeach
@@ -343,40 +370,31 @@
         @endif
     @endif
 
-    <!-- View Message Modal -->
-    <flux:modal wire:model.self="showMessageModal" name="view-message" class="w-full max-w-lg">
-        @if($viewingMessage)
+    <!-- View Campaign Modal -->
+    <flux:modal wire:model.self="showMessageModal" name="view-message" class="w-full max-w-2xl">
+        @php($campaign = $this->viewingCampaign)
+        @if($campaign)
             <div class="space-y-4">
-                <flux:heading size="lg">{{ __('SMS Details') }}</flux:heading>
+                <flux:heading size="lg">
+                    {{ $campaign['recipient_count'] === 1 ? __('SMS Details') : __('Campaign Details') }}
+                </flux:heading>
 
                 <div class="space-y-3">
                     <div>
-                        <flux:text class="text-sm font-medium text-zinc-500">{{ __('Recipient') }}</flux:text>
-                        <flux:text class="text-zinc-900 dark:text-zinc-100">
-                            {{ $viewingMessage->member?->fullName() ?? $viewingMessage->phone_number }}
-                        </flux:text>
-                    </div>
-
-                    <div>
-                        <flux:text class="text-sm font-medium text-zinc-500">{{ __('Phone Number') }}</flux:text>
-                        <flux:text class="text-zinc-900 dark:text-zinc-100">{{ $viewingMessage->phone_number }}</flux:text>
-                    </div>
-
-                    <div>
                         <flux:text class="text-sm font-medium text-zinc-500">{{ __('Message') }}</flux:text>
                         <div class="mt-1 rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
-                            <flux:text class="whitespace-pre-wrap text-zinc-900 dark:text-zinc-100">{{ $viewingMessage->message }}</flux:text>
+                            <flux:text class="whitespace-pre-wrap text-zinc-900 dark:text-zinc-100">{{ $campaign['message'] }}</flux:text>
                         </div>
                         <flux:text class="mt-1 text-xs text-zinc-500">
-                            {{ strlen($viewingMessage->message) }} {{ __('characters') }} ({{ ceil(strlen($viewingMessage->message) / 160) }} {{ __('SMS part(s)') }})
+                            {{ strlen($campaign['message']) }} {{ __('characters') }} ({{ ceil(strlen($campaign['message']) / 160) }} {{ __('SMS part(s)') }})
                         </flux:text>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
                             <flux:text class="text-sm font-medium text-zinc-500">{{ __('Type') }}</flux:text>
                             <flux:badge
-                                :color="match($viewingMessage->message_type?->value) {
+                                :color="match($campaign['message_type']?->value) {
                                     'birthday' => 'pink',
                                     'reminder' => 'yellow',
                                     'announcement' => 'blue',
@@ -386,13 +404,13 @@
                                 size="sm"
                                 class="mt-1"
                             >
-                                {{ ucfirst($viewingMessage->message_type?->value ?? 'custom') }}
+                                {{ ucfirst($campaign['message_type']?->value ?? 'custom') }}
                             </flux:badge>
                         </div>
                         <div>
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Status') }}</flux:text>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Overall Status') }}</flux:text>
                             <flux:badge
-                                :color="match($viewingMessage->status?->value) {
+                                :color="match($campaign['status']?->value) {
                                     'delivered' => 'green',
                                     'sent' => 'blue',
                                     'pending' => 'yellow',
@@ -402,46 +420,76 @@
                                 size="sm"
                                 class="mt-1"
                             >
-                                {{ ucfirst($viewingMessage->status?->value ?? 'pending') }}
+                                {{ ucfirst($campaign['status']?->value ?? 'pending') }}
                             </flux:badge>
                         </div>
+                        <div>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Recipients') }}</flux:text>
+                            <flux:text class="text-zinc-900 dark:text-zinc-100">{{ $campaign['recipient_count'] }}</flux:text>
+                        </div>
+                        <div>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Total Cost') }}</flux:text>
+                            <flux:text class="text-zinc-900 dark:text-zinc-100">
+                                {{ $campaign['currency'] }} {{ number_format($campaign['total_cost'], 4) }}
+                            </flux:text>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    @if($campaign['provider_message_id'])
                         <div>
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Sent At') }}</flux:text>
-                            <flux:text class="text-zinc-900 dark:text-zinc-100">
-                                {{ $viewingMessage->sent_at?->format('M d, Y H:i') ?? '-' }}
-                            </flux:text>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Provider Campaign ID') }}</flux:text>
+                            <flux:text class="font-mono text-xs text-zinc-500">{{ $campaign['provider_message_id'] }}</flux:text>
                         </div>
-                        <div>
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Delivered At') }}</flux:text>
-                            <flux:text class="text-zinc-900 dark:text-zinc-100">
-                                {{ $viewingMessage->delivered_at?->format('M d, Y H:i') ?? '-' }}
-                            </flux:text>
-                        </div>
-                    </div>
+                    @endif
 
                     <div>
-                        <flux:text class="text-sm font-medium text-zinc-500">{{ __('Cost') }}</flux:text>
-                        <flux:text class="text-zinc-900 dark:text-zinc-100">
-                            {{ $viewingMessage->currency }} {{ number_format((float) $viewingMessage->cost, 4) }}
-                        </flux:text>
+                        <flux:text class="mb-2 text-sm font-medium text-zinc-500">{{ __('Recipients') }}</flux:text>
+                        <div class="max-h-80 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                            <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
+                                <thead class="bg-zinc-50 dark:bg-zinc-800">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Recipient') }}</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Status') }}</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Delivered') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+                                    @foreach($campaign['logs'] as $log)
+                                        <tr>
+                                            <td class="px-4 py-2">
+                                                <div class="text-zinc-900 dark:text-zinc-100">
+                                                    {{ $log->member?->fullName() ?? $log->phone_number }}
+                                                </div>
+                                                @if($log->member)
+                                                    <div class="text-xs text-zinc-500">{{ $log->phone_number }}</div>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <flux:badge
+                                                    :color="match($log->status?->value) {
+                                                        'delivered' => 'green',
+                                                        'sent' => 'blue',
+                                                        'pending' => 'yellow',
+                                                        'failed' => 'red',
+                                                        default => 'zinc',
+                                                    }"
+                                                    size="sm"
+                                                >
+                                                    {{ ucfirst($log->status?->value ?? 'pending') }}
+                                                </flux:badge>
+                                                @if($log->error_message)
+                                                    <div class="mt-1 text-xs text-red-500">{{ $log->error_message }}</div>
+                                                @endif
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-2 text-zinc-500">
+                                                {{ $log->delivered_at?->format('M d, H:i') ?? '-' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-
-                    @if($viewingMessage->error_message)
-                        <div>
-                            <flux:text class="text-sm font-medium text-red-500">{{ __('Error') }}</flux:text>
-                            <flux:text class="text-red-600 dark:text-red-400">{{ $viewingMessage->error_message }}</flux:text>
-                        </div>
-                    @endif
-
-                    @if($viewingMessage->provider_message_id)
-                        <div>
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('Provider ID') }}</flux:text>
-                            <flux:text class="font-mono text-xs text-zinc-500">{{ $viewingMessage->provider_message_id }}</flux:text>
-                        </div>
-                    @endif
                 </div>
 
                 <div class="flex justify-end pt-4">

@@ -11,9 +11,12 @@ use App\Models\Tenant\Branch;
 use App\Models\Tenant\SmsLog;
 use App\Services\PlanAccessService;
 use App\Services\TextTangoService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator as LengthAwarePaginatorImpl;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -43,10 +46,10 @@ class SmsIndex extends Component
     // Quick filter (for today, this_week, this_month)
     public string $quickFilter = '';
 
-    // View message modal
+    // View campaign modal — opened by clicking the eye icon on a grouped row.
     public bool $showMessageModal = false;
 
-    public ?SmsLog $viewingMessage = null;
+    public ?string $viewingCampaignKey = null;
 
     public function mount(Branch $branch): void
     {
@@ -54,12 +57,13 @@ class SmsIndex extends Component
         $this->branch = $branch;
     }
 
-    #[Computed]
-    public function smsRecords(): LengthAwarePaginator
+    /**
+     * Apply the page's filter state to a base SmsLog query. Used by every
+     * paginator/exporter/stat method on this component so that filtering stays
+     * consistent.
+     */
+    protected function applyFilters(Builder $query): Builder
     {
-        $query = SmsLog::where('branch_id', $this->branch->id);
-
-        // Search includes relationship, so keep custom logic
         if ($this->isFilterActive($this->search)) {
             $search = $this->search;
             $query->where(function ($q) use ($search): void {
@@ -74,7 +78,6 @@ class SmsIndex extends Component
         $this->applyEnumFilter($query, 'statusFilter', 'status');
         $this->applyEnumFilter($query, 'typeFilter', 'message_type');
 
-        // Apply quick filter (custom logic for date range shortcuts)
         if ($this->quickFilter === 'today') {
             $query->whereDate('created_at', today());
         } elseif ($this->quickFilter === 'this_week') {
@@ -85,9 +88,128 @@ class SmsIndex extends Component
 
         $this->applyDateRange($query, 'created_at');
 
-        return $query->with(['member'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(25);
+        return $query;
+    }
+
+    /**
+     * Paginated list of campaigns. Each campaign groups every SmsLog that
+     * shares a `provider_message_id` (a TextTango campaign id). Rows without
+     * a provider id — pending sends, or sends that errored before submission
+     * — form their own single-row groups keyed by the row's own id, so they
+     * still appear in the list.
+     *
+     * @return LengthAwarePaginator<int, array{
+     *     key: string,
+     *     created_at: Carbon|null,
+     *     message: string,
+     *     message_type: ?SmsType,
+     *     status: SmsStatus,
+     *     recipient_count: int,
+     *     total_cost: float,
+     *     currency: ?string,
+     *     provider_message_id: ?string,
+     *     logs: Collection<int, SmsLog>,
+     * }>
+     */
+    #[Computed]
+    public function smsRecords(): LengthAwarePaginator
+    {
+        $perPage = 25;
+        $page = LengthAwarePaginatorImpl::resolveCurrentPage();
+
+        // Build a subquery that returns one row per campaign key, ordered by
+        // the most recent log in that campaign. We paginate the subquery and
+        // then load every log for the visible group keys.
+        $groupKey = 'COALESCE(provider_message_id, CAST(id AS CHAR))';
+
+        $groupsQuery = $this->applyFilters(SmsLog::query()->where('branch_id', $this->branch->id))
+            ->selectRaw("{$groupKey} as group_key, MAX(created_at) as latest_at")
+            ->groupBy('group_key')
+            ->orderByDesc('latest_at');
+
+        $totalGroups = (clone $groupsQuery)->getQuery()->getCountForPagination();
+
+        $pageGroups = (clone $groupsQuery)
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        $groupKeys = $pageGroups->pluck('group_key')->all();
+
+        // Pull every log belonging to the visible groups in a single query.
+        // We re-apply filters here too so that, e.g., `statusFilter=failed`
+        // doesn't accidentally pull a Delivered log into a campaign group
+        // when computing aggregates.
+        $logs = $this->applyFilters(SmsLog::query()->where('branch_id', $this->branch->id))
+            ->with(['member'])
+            ->whereRaw("{$groupKey} IN (".implode(',', array_fill(0, max(count($groupKeys), 1), '?')).')', $groupKeys ?: [''])
+            ->orderBy('created_at')
+            ->get()
+            ->groupBy(fn (SmsLog $log): string => $log->provider_message_id ?: (string) $log->id);
+
+        $campaigns = $pageGroups->map(function ($row) use ($logs): array {
+            $key = (string) $row->group_key;
+            $rows = $logs->get($key) ?? collect();
+
+            return $this->buildCampaignSummary($key, $rows);
+        });
+
+        return new LengthAwarePaginatorImpl(
+            $campaigns->values(),
+            $totalGroups,
+            $perPage,
+            $page,
+            ['path' => LengthAwarePaginatorImpl::resolveCurrentPath()],
+        );
+    }
+
+    /**
+     * Aggregate a campaign's per-recipient logs into the summary row shown in
+     * the table. Status uses worst-case rollup: any Failed → Failed; otherwise
+     * any Pending → Pending; otherwise if every recipient is Delivered →
+     * Delivered; otherwise Sent.
+     *
+     * @param  Collection<int, SmsLog>  $logs
+     * @return array{
+     *     key: string,
+     *     created_at: Carbon|null,
+     *     message: string,
+     *     message_type: ?SmsType,
+     *     status: SmsStatus,
+     *     recipient_count: int,
+     *     total_cost: float,
+     *     currency: ?string,
+     *     provider_message_id: ?string,
+     *     logs: Collection<int, SmsLog>,
+     * }
+     */
+    protected function buildCampaignSummary(string $key, Collection $logs): array
+    {
+        $first = $logs->first();
+        $statuses = $logs->map(fn (SmsLog $log): ?SmsStatus => $log->status);
+
+        if ($statuses->contains(SmsStatus::Failed)) {
+            $aggregated = SmsStatus::Failed;
+        } elseif ($statuses->contains(SmsStatus::Pending)) {
+            $aggregated = SmsStatus::Pending;
+        } elseif ($statuses->every(fn (?SmsStatus $s): bool => $s === SmsStatus::Delivered) && $logs->isNotEmpty()) {
+            $aggregated = SmsStatus::Delivered;
+        } else {
+            $aggregated = SmsStatus::Sent;
+        }
+
+        return [
+            'key' => $key,
+            'created_at' => $first?->created_at,
+            'message' => (string) ($first?->message ?? ''),
+            'message_type' => $first?->message_type,
+            'status' => $aggregated,
+            'recipient_count' => $logs->count(),
+            'total_cost' => (float) $logs->sum(fn (SmsLog $log): float => (float) ($log->cost ?? 0)),
+            'currency' => $first?->currency,
+            'provider_message_id' => $first?->provider_message_id,
+            'logs' => $logs->values(),
+        ];
     }
 
     public function updatedSearch(): void
@@ -118,47 +240,17 @@ class SmsIndex extends Component
     #[Computed]
     public function smsStats(): array
     {
-        // Query database directly for stats (not from paginated collection)
-        $baseQuery = SmsLog::where('branch_id', $this->branch->id);
-
-        // Apply search filter
-        if ($this->isFilterActive($this->search)) {
-            $search = $this->search;
-            $baseQuery->where(function ($q) use ($search): void {
-                $q->where('phone_number', 'like', "%{$search}%")
-                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
-                        $memberQuery->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $this->applyEnumFilter($baseQuery, 'statusFilter', 'status');
-        $this->applyEnumFilter($baseQuery, 'typeFilter', 'message_type');
-
-        // Apply quick filter
-        if ($this->quickFilter === 'today') {
-            $baseQuery->whereDate('created_at', today());
-        } elseif ($this->quickFilter === 'this_week') {
-            $baseQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($this->quickFilter === 'this_month') {
-            $baseQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-        }
-
-        $this->applyDateRange($baseQuery, 'created_at');
-
-        $total = (clone $baseQuery)->count();
-        $totalCost = (clone $baseQuery)->sum('cost');
-        $deliveredCount = (clone $baseQuery)->where('status', SmsStatus::Delivered)->count();
-        $failedCount = (clone $baseQuery)->where('status', SmsStatus::Failed)->count();
-        $pendingCount = (clone $baseQuery)->where('status', SmsStatus::Pending)->count();
+        // Stats stay at the per-recipient level so the totals reflect the
+        // actual delivery work the branch has done — counting "delivered"
+        // by campaign would understate volume on a 100-recipient blast.
+        $baseQuery = $this->applyFilters(SmsLog::query()->where('branch_id', $this->branch->id));
 
         return [
-            'total' => $total,
-            'delivered' => $deliveredCount,
-            'failed' => $failedCount,
-            'pending' => $pendingCount,
-            'cost' => $totalCost,
+            'total' => (clone $baseQuery)->count(),
+            'delivered' => (clone $baseQuery)->where('status', SmsStatus::Delivered)->count(),
+            'failed' => (clone $baseQuery)->where('status', SmsStatus::Failed)->count(),
+            'pending' => (clone $baseQuery)->where('status', SmsStatus::Pending)->count(),
+            'cost' => (clone $baseQuery)->sum('cost'),
             'currency' => tenant()->getCurrencyCode(),
         ];
     }
@@ -261,52 +353,68 @@ class SmsIndex extends Component
         unset($this->hasActiveFilters);
     }
 
-    public function viewMessage(SmsLog $smsLog): void
+    public function viewMessage(string $campaignKey): void
     {
-        $this->viewingMessage = $smsLog;
+        $this->viewingCampaignKey = $campaignKey;
         $this->showMessageModal = true;
     }
 
     public function closeMessageModal(): void
     {
         $this->showMessageModal = false;
-        $this->viewingMessage = null;
+        $this->viewingCampaignKey = null;
+    }
+
+    /**
+     * Hydrate the recipients list when the modal is open. We re-query so the
+     * modal always reflects the current state (delivery webhooks may have
+     * arrived since the page was rendered).
+     *
+     * @return array{
+     *     key: string,
+     *     created_at: Carbon|null,
+     *     message: string,
+     *     message_type: ?SmsType,
+     *     status: SmsStatus,
+     *     recipient_count: int,
+     *     total_cost: float,
+     *     currency: ?string,
+     *     provider_message_id: ?string,
+     *     logs: Collection<int, SmsLog>,
+     * }|null
+     */
+    #[Computed]
+    public function viewingCampaign(): ?array
+    {
+        if (! $this->showMessageModal || $this->viewingCampaignKey === null) {
+            return null;
+        }
+
+        $key = $this->viewingCampaignKey;
+        $logs = SmsLog::query()
+            ->with(['member'])
+            ->where('branch_id', $this->branch->id)
+            ->where(function ($q) use ($key): void {
+                $q->where('provider_message_id', $key)->orWhere('id', $key);
+            })
+            ->orderBy('created_at')
+            ->get();
+
+        if ($logs->isEmpty()) {
+            return null;
+        }
+
+        return $this->buildCampaignSummary($key, $logs);
     }
 
     public function exportToCsv(): StreamedResponse
     {
         $this->authorize('viewAny', [SmsLog::class, $this->branch]);
 
-        // Build query for export (all filtered records, not paginated)
-        $query = SmsLog::where('branch_id', $this->branch->id);
-
-        // Apply search filter
-        if ($this->isFilterActive($this->search)) {
-            $search = $this->search;
-            $query->where(function ($q) use ($search): void {
-                $q->where('phone_number', 'like', "%{$search}%")
-                    ->orWhereHas('member', function ($memberQuery) use ($search): void {
-                        $memberQuery->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $this->applyEnumFilter($query, 'statusFilter', 'status');
-        $this->applyEnumFilter($query, 'typeFilter', 'message_type');
-
-        // Apply quick filter
-        if ($this->quickFilter === 'today') {
-            $query->whereDate('created_at', today());
-        } elseif ($this->quickFilter === 'this_week') {
-            $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($this->quickFilter === 'this_month') {
-            $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-        }
-
-        $this->applyDateRange($query, 'created_at');
-
-        $records = $query->with(['member'])
+        // CSV export stays per-recipient so finance/audit consumers see one
+        // row per delivery — grouping is a presentation concern.
+        $records = $this->applyFilters(SmsLog::query()->where('branch_id', $this->branch->id))
+            ->with(['member'])
             ->orderBy('created_at', 'desc')
             ->get();
 
