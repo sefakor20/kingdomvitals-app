@@ -289,6 +289,89 @@ test('webhook accepts v2 JSON:API failed payload with delivery_details descripti
     expect($this->smsLog->error_message)->toBe('Number not reachable');
 });
 
+test('webhook accepts real v2 message.status_updated payload', function (): void {
+    // Shape captured from a live TextTango v2 delivery webhook.
+    $payload = [
+        'event' => 'message.status_updated',
+        'message_id' => 'a1a6a73d-6a01-4e45-93df-bae98b1a0426',
+        'campaign_id' => 'test-tracking-123',
+        'status' => 'delivered',
+        'to' => '+233241234567',
+        'from' => 'KingdomVit',
+        'message' => 'Final check works with no issues.',
+        'dispatched_at' => null,
+        'delivered_at' => '2026-04-28T10:22:06+00:00',
+        'failed_at' => null,
+        'cost' => '0.06',
+        'credits_used' => '0.06',
+        'updated_at' => '2026-04-28T10:22:06+00:00',
+        'timestamp' => '2026-04-28T10:22:06+00:00',
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $this->postJson('/webhooks/texttango/delivery', $payload, [
+        'X-TextTango-Signature' => $signature,
+    ])->assertOk()->assertJson(['status' => 'success']);
+
+    $this->smsLog->refresh();
+    expect($this->smsLog->status)->toBe(SmsStatus::Delivered);
+    expect($this->smsLog->provider_recipient_id)->toBe('a1a6a73d-6a01-4e45-93df-bae98b1a0426');
+    expect($this->smsLog->delivered_at?->toIso8601String())->toBe('2026-04-28T10:22:06+00:00');
+});
+
+test('webhook ignores real v2 campaign.status_updated payload', function (): void {
+    // Campaign-level events have no per-recipient info — we don't update SmsLogs.
+    $payload = [
+        'event' => 'campaign.status_updated',
+        'campaign_id' => 'test-tracking-123',
+        'campaign_name' => 'API Campaign - 2026-04-28 10:16',
+        'status' => 'processing',
+        'type' => 'sms',
+        'total_recipients' => 3,
+        'total_cost' => '0.18',
+        'scheduled_at' => null,
+        'dispatched_at' => '2026-04-28T10:17:03+00:00',
+        'delivered_at' => null,
+        'updated_at' => '2026-04-28T10:17:04+00:00',
+        'timestamp' => '2026-04-28T10:17:04+00:00',
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $this->postJson('/webhooks/texttango/delivery', $payload, [
+        'X-TextTango-Signature' => $signature,
+    ])->assertOk()->assertJson(['status' => 'ignored', 'reason' => 'campaign_event']);
+
+    // The pre-existing SmsLog status MUST NOT have regressed to Pending.
+    $this->smsLog->refresh();
+    expect($this->smsLog->status)->toBe(SmsStatus::Sent);
+});
+
+test('webhook accepts real v2 message.status_updated failed payload with failure_reason', function (): void {
+    $payload = [
+        'event' => 'message.status_updated',
+        'message_id' => 'msg-failed-001',
+        'campaign_id' => 'test-tracking-123',
+        'status' => 'failed',
+        'to' => '+233241234567',
+        'from' => 'KingdomVit',
+        'failed_at' => '2026-04-28T10:22:06+00:00',
+        'failure_reason' => 'Number not reachable',
+        'timestamp' => '2026-04-28T10:22:06+00:00',
+    ];
+
+    $signature = hash_hmac('sha256', json_encode($payload), 'test-secret');
+
+    $this->postJson('/webhooks/texttango/delivery', $payload, [
+        'X-TextTango-Signature' => $signature,
+    ])->assertOk();
+
+    $this->smsLog->refresh();
+    expect($this->smsLog->status)->toBe(SmsStatus::Failed);
+    expect($this->smsLog->error_message)->toBe('Number not reachable');
+});
+
 test('webhook accepts branched URL signed with branch-stored secret', function (): void {
     $branchSecret = str_repeat('b', 64);
     $branchId = $this->branch->id;

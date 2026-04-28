@@ -20,10 +20,19 @@ class TextTangoWebhookController extends Controller
      */
     public function handleDelivery(TextTangoWebhookRequest $request): JsonResponse
     {
-        $event = $this->normalize($request->all());
+        $payload = $request->all();
+        $event = $this->normalize($payload);
+
+        // Campaign-level events (e.g. campaign.status_updated) summarize a whole
+        // campaign and don't carry per-recipient info. Updating SmsLogs from them
+        // can regress per-recipient state set by message.* events.
+        $eventName = \is_string($payload['event'] ?? null) ? $payload['event'] : null;
+        if ($eventName !== null && str_starts_with($eventName, 'campaign.')) {
+            return response()->json(['status' => 'ignored', 'reason' => 'campaign_event']);
+        }
 
         if ($event['status'] === null) {
-            Log::warning('TextTango webhook: Missing status', ['payload' => $request->all()]);
+            Log::warning('TextTango webhook: Missing status', ['payload' => $payload]);
 
             return response()->json(['status' => 'ignored', 'reason' => 'missing_status']);
         }
@@ -78,7 +87,36 @@ class TextTangoWebhookController extends Controller
      */
     protected function normalize(array $payload): array
     {
-        // v2 JSON:API payload
+        // v2 outbound webhook (flat, discriminated by `event`).
+        // `message.status_updated` carries the per-recipient identifiers we need
+        // to update an individual SmsLog. `campaign.*` events only provide the
+        // campaign-level summary; we still surface the status so callers can
+        // act on it, but with no `to` we cannot pin a specific recipient.
+        if (isset($payload['event']) && \is_string($payload['event'])) {
+            $isMessage = str_starts_with($payload['event'], 'message.');
+
+            return [
+                'campaign_id' => $this->stringOrNull($payload['campaign_id'] ?? null),
+                'message_id' => $isMessage ? $this->stringOrNull($payload['message_id'] ?? null) : null,
+                'recipient_id' => $isMessage ? $this->stringOrNull($payload['message_id'] ?? null) : null,
+                'phone_number' => $this->stringOrNull($payload['to'] ?? null),
+                'status' => $this->stringOrNull($payload['status'] ?? null),
+                'delivered_at' => $this->stringOrNull(
+                    $payload['delivered_at']
+                    ?? $payload['failed_at']
+                    ?? $payload['dispatched_at']
+                    ?? $payload['timestamp']
+                    ?? null,
+                ),
+                'error_message' => $this->stringOrNull(
+                    $payload['error_message']
+                    ?? $payload['failure_reason']
+                    ?? null,
+                ),
+            ];
+        }
+
+        // v2 JSON:API payload (used by some endpoints / older webhooks)
         if (isset($payload['data']) && is_array($payload['data']) && isset($payload['data']['attributes'])) {
             $data = $payload['data'];
             $attributes = $data['attributes'] ?? [];
@@ -144,33 +182,69 @@ class TextTangoWebhookController extends Controller
             tenancy()->initialize($tenant);
 
             try {
-                $query = SmsLog::query();
+                $smsLogId = $this->findSmsLogIdForEvent($event);
 
-                if ($event['recipient_id']) {
-                    $query->where(function ($q) use ($event) {
-                        $q->where('provider_recipient_id', $event['recipient_id'])
-                            ->orWhere('provider_message_id', $event['recipient_id']);
-                    });
-                } elseif ($event['message_id']) {
-                    $query->where('provider_message_id', $event['message_id']);
-                } elseif ($event['campaign_id']) {
-                    $query->where('provider_message_id', $event['campaign_id']);
-                }
-
-                if ($event['phone_number'] && ($event['campaign_id'] || $event['message_id'])) {
-                    $query->where('phone_number', $event['phone_number']);
-                }
-
-                $smsLog = $query->first();
-
-                if ($smsLog) {
-                    $smsLogId = $smsLog->id;
+                if ($smsLogId !== null) {
                     tenancy()->end();
 
                     return [$tenant, $smsLogId];
                 }
             } finally {
                 tenancy()->end();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Try a series of progressively-broader lookups for the given event, in
+     * order of specificity. We don't store the per-recipient `message_id` until
+     * the first webhook arrives — so for a freshly-sent SMS the row only has
+     * `provider_message_id` set to the campaign id, and we need campaign+phone
+     * to find it.
+     *
+     * @param  array{campaign_id: string|null, message_id: string|null, recipient_id: string|null, phone_number: string|null}  $event
+     */
+    protected function findSmsLogIdForEvent(array $event): ?string
+    {
+        // 1. Direct recipient match (later webhooks for an already-tracked row).
+        if ($event['recipient_id']) {
+            $smsLog = SmsLog::query()
+                ->where(function ($q) use ($event) {
+                    $q->where('provider_recipient_id', $event['recipient_id'])
+                        ->orWhere('provider_message_id', $event['recipient_id']);
+                })
+                ->first();
+            if ($smsLog) {
+                return $smsLog->id;
+            }
+        }
+
+        // 2. Direct message match.
+        if ($event['message_id']) {
+            $smsLog = SmsLog::query()->where('provider_message_id', $event['message_id'])->first();
+            if ($smsLog) {
+                return $smsLog->id;
+            }
+        }
+
+        // 3. Campaign + phone (first delivery webhook for a brand-new recipient).
+        if ($event['campaign_id'] && $event['phone_number']) {
+            $smsLog = SmsLog::query()
+                ->where('provider_message_id', $event['campaign_id'])
+                ->where('phone_number', $event['phone_number'])
+                ->first();
+            if ($smsLog) {
+                return $smsLog->id;
+            }
+        }
+
+        // 4. Campaign only (fallback when phone is unknown).
+        if ($event['campaign_id']) {
+            $smsLog = SmsLog::query()->where('provider_message_id', $event['campaign_id'])->first();
+            if ($smsLog) {
+                return $smsLog->id;
             }
         }
 
