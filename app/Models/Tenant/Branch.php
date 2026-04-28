@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Crypt;
 
 class Branch extends Model
 {
@@ -164,6 +165,25 @@ class Branch extends Model
     public function getSmsSenderId(): ?string
     {
         return $this->getSetting('sms_sender_id');
+    }
+
+    /**
+     * Get the decrypted TextTango per-token webhook signing secret, if one is stored.
+     */
+    public function getSmsWebhookSecret(): ?string
+    {
+        $value = $this->getSetting('sms_webhook_secret');
+
+        if (! \is_string($value) || $value === '') {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (\Throwable) {
+            // Legacy value stored unencrypted from earlier versions.
+            return $value;
+        }
     }
 
     /**

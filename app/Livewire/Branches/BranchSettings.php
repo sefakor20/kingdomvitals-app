@@ -56,6 +56,10 @@ class BranchSettings extends Component
 
     public bool $hasExistingApiKey = false;
 
+    public string $smsWebhookSecret = '';
+
+    public bool $hasExistingWebhookSecret = false;
+
     public ?string $testConnectionResult = null;
 
     public ?string $testConnectionStatus = null;
@@ -136,6 +140,19 @@ class BranchSettings extends Component
         }
 
         $this->smsSenderId = $this->branch->getSetting('sms_sender_id') ?? '';
+
+        // Mask any existing webhook secret with the same dot pattern as the API key.
+        $existingWebhookSecret = $this->branch->getSetting('sms_webhook_secret');
+        $this->hasExistingWebhookSecret = ! empty($existingWebhookSecret);
+
+        if ($this->hasExistingWebhookSecret) {
+            try {
+                $decrypted = Crypt::decryptString($existingWebhookSecret);
+                $this->smsWebhookSecret = str_repeat('•', max(0, strlen($decrypted) - 4)).substr($decrypted, -4);
+            } catch (\Exception $e) {
+                $this->smsWebhookSecret = str_repeat('•', max(0, strlen($existingWebhookSecret) - 4)).substr($existingWebhookSecret, -4);
+            }
+        }
 
         // Load auto SMS settings
         $this->autoBirthdaySms = (bool) $this->branch->getSetting('auto_birthday_sms', false);
@@ -263,7 +280,7 @@ class BranchSettings extends Component
     #[Computed]
     public function texttangoWebhookUrl(): string
     {
-        return rtrim(config('app.url'), '/').'/webhooks/texttango/delivery';
+        return route('webhooks.texttango.delivery.branch', ['branchId' => $this->branch->id]);
     }
 
     #[Computed]
@@ -280,6 +297,7 @@ class BranchSettings extends Component
     {
         return [
             'smsSenderId' => ['required', 'string', 'max:11', 'regex:/^[a-zA-Z0-9]+$/'],
+            'smsWebhookSecret' => ['nullable', 'string', 'min:16', 'max:512'],
         ];
     }
 
@@ -289,6 +307,7 @@ class BranchSettings extends Component
             'smsSenderId.required' => __('Sender ID is required.'),
             'smsSenderId.max' => __('Sender ID cannot exceed 11 characters.'),
             'smsSenderId.regex' => __('Sender ID can only contain letters and numbers.'),
+            'smsWebhookSecret.min' => __('Webhook signing secret looks too short — paste the full value from TextTango.'),
         ];
     }
 
@@ -296,12 +315,22 @@ class BranchSettings extends Component
     {
         $this->authorize('update', $this->branch);
 
-        $this->validate();
+        // Skip secret validation when the user left the masked placeholder untouched.
+        $rules = $this->rules();
+        if ($this->smsWebhookSecret === '' || str_contains($this->smsWebhookSecret, '•')) {
+            unset($rules['smsWebhookSecret']);
+        }
+        $this->validate($rules);
 
         // Only update API key if a new one was entered (not the masked version)
         if ($this->smsApiKey && ! str_contains($this->smsApiKey, '•')) {
             $encryptedApiKey = Crypt::encryptString($this->smsApiKey);
             $this->branch->setSetting('sms_api_key', $encryptedApiKey);
+        }
+
+        // Only update webhook secret if a new one was entered (not the masked version)
+        if ($this->smsWebhookSecret && ! str_contains($this->smsWebhookSecret, '•')) {
+            $this->branch->setSetting('sms_webhook_secret', Crypt::encryptString($this->smsWebhookSecret));
         }
 
         $this->branch->setSetting('sms_sender_id', $this->smsSenderId);
@@ -336,10 +365,16 @@ class BranchSettings extends Component
         $this->branch->save();
 
         $this->hasExistingApiKey = ! empty($this->branch->getSetting('sms_api_key'));
+        $this->hasExistingWebhookSecret = ! empty($this->branch->getSetting('sms_webhook_secret'));
 
         // Mask the API key after saving
         if ($this->smsApiKey && ! str_contains($this->smsApiKey, '•')) {
             $this->smsApiKey = str_repeat('•', max(0, strlen($this->smsApiKey) - 4)).substr($this->smsApiKey, -4);
+        }
+
+        // Mask the webhook secret after saving
+        if ($this->smsWebhookSecret && ! str_contains($this->smsWebhookSecret, '•')) {
+            $this->smsWebhookSecret = str_repeat('•', max(0, strlen($this->smsWebhookSecret) - 4)).substr($this->smsWebhookSecret, -4);
         }
 
         $this->dispatch('settings-saved');
@@ -416,6 +451,18 @@ class BranchSettings extends Component
         $this->branch->save();
 
         $this->dispatch('api-key-cleared');
+    }
+
+    public function clearWebhookSecret(): void
+    {
+        $this->authorize('update', $this->branch);
+
+        $this->smsWebhookSecret = '';
+        $this->hasExistingWebhookSecret = false;
+        $this->branch->setSetting('sms_webhook_secret', null);
+        $this->branch->save();
+
+        $this->dispatch('webhook-secret-cleared');
     }
 
     // Paystack Methods

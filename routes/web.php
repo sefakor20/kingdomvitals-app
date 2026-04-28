@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/webhooks/texttango/delivery', [TextTangoWebhookController::class, 'handleDelivery'])
     ->name('webhooks.texttango.delivery');
 
+Route::post('/webhooks/texttango/delivery/{branchId}', [TextTangoWebhookController::class, 'handleDelivery'])
+    ->where('branchId', '[0-9a-f-]{36}')
+    ->name('webhooks.texttango.delivery.branch');
+
 // Central domain routes - explicitly bind to central domains only
 // This prevents these routes from matching on tenant subdomains
 $centralDomainsForLanding = [
