@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Presentations\DeckPdfController;
 use App\Http\Controllers\Webhooks\TextTangoWebhookController;
 use App\Livewire\Landing\StartTrial;
 use App\Models\SubscriptionPlan;
@@ -45,6 +46,12 @@ foreach ($centralDomainsForLanding as $domain) {
 
         Route::get('/offline', fn () => response()->view('errors.offline', [], 200))
             ->name($domain === 'kingdomvitals-app.test' ? 'offline' : null);
+
+        Route::get('/deck', fn () => view('presentations.overview'))
+            ->name($domain === 'kingdomvitals-app.test' ? 'presentation.overview' : null);
+
+        Route::get('/deck/pdf', DeckPdfController::class)
+            ->name($domain === 'kingdomvitals-app.test' ? 'presentation.overview.pdf' : null);
     });
 }
 

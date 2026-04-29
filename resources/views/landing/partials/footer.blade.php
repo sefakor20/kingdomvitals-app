@@ -77,9 +77,9 @@
                     &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
                 </p>
 
-                {{-- rCodez branding --}}
+                {{-- MawuRapha branding --}}
                 <p class="font-mono text-xs tracking-wider text-muted">
-                    A product of <a href="https://rcodez.com" target="_blank" rel="noopener noreferrer" class="text-emerald-600 transition hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300">rCodez</a>
+                    A product of <a href="javascript:void(0)" target="_blank" rel="noopener noreferrer" class="text-emerald-600 transition hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300">MawuRapha</a>
                 </p>
 
                 {{-- Social links --}}
