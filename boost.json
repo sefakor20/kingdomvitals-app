@@ -3,9 +3,10 @@
         "claude_code",
         "copilot"
     ],
+    "cloud": false,
     "guidelines": true,
     "mcp": true,
-    "nightwatch_mcp": false,
+    "nightwatch": false,
     "packages": [
         "spatie/laravel-og-image",
         "barryvdh/laravel-debugbar"
