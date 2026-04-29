@@ -25,6 +25,11 @@ class GenerateSitemap extends Command
                     ->setPriority(1.0)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
             )
+            ->add(
+                Url::create('https://kingdomvitals.app/start-trial')
+                    ->setPriority(0.8)
+                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+            )
             ->writeToFile(public_path('sitemap.xml'));
 
         $this->info('Sitemap generated successfully at public/sitemap.xml');

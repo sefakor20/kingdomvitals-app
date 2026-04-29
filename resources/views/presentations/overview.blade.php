@@ -377,6 +377,7 @@
             display: flex;
             flex-direction: column;
             min-height: 280px;
+            padding: 1.75rem !important;
         }
 
         .kv-price-card.featured {
@@ -402,22 +403,100 @@
         }
 
         .kv-price-card h3 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             margin: 0 0 0.4rem 0;
         }
 
-        .kv-price-card .kv-price-sub {
-            font-size: 0.85rem;
+        .kv-price-card .kv-price-desc {
+            font-size: 0.78rem;
             color: var(--kv-text-muted);
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+            min-height: 3em;
+        }
+
+        .kv-price-amount {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 300;
+            font-size: 2.4rem;
+            letter-spacing: -0.04em;
+            color: var(--kv-text);
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .kv-price-amount .kv-price-currency {
+            font-size: 0.85rem;
             font-family: 'JetBrains Mono', monospace;
+            color: var(--kv-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .kv-price-amount .kv-price-period {
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--kv-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+
+        .kv-price-limits {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            padding: 0.75rem 0;
+            border-top: 1px solid var(--kv-border);
+            border-bottom: 1px solid var(--kv-border);
+            margin-bottom: 1rem;
+        }
+
+        .kv-price-limit {
+            text-align: center;
+        }
+
+        .kv-price-limit .kv-limit-value {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--kv-emerald-400);
+            line-height: 1.1;
+        }
+
+        .kv-price-limit .kv-limit-label {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--kv-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .kv-price-card ul {
+            flex: 1;
         }
 
         .kv-price-card ul li {
-            font-size: 0.9rem;
-            margin: 0.4em 0;
+            font-size: 0.85rem;
+            margin: 0.35em 0;
+            padding-left: 1.4em;
+        }
+
+        .kv-price-card ul li::before {
+            content: '✓';
+            background: transparent;
+            color: var(--kv-emerald-400);
+            top: 0;
+            width: auto;
+            height: auto;
+            font-size: 0.85rem;
+            line-height: inherit;
         }
 
         /* ============== TIMELINE ============== */
@@ -947,47 +1026,79 @@
                     <div class="kv-grid-3 kv-mt-md" style="margin-top: 2.5rem;">
                         <div class="kv-glass kv-glass--lg kv-price-card">
                             <h3>Basic</h3>
-                            <div class="kv-price-sub">For small churches</div>
+                            <div class="kv-price-desc">Essential tools for small churches to manage members, communication, and records — simple, reliable, and affordable.</div>
+                            <div class="kv-price-amount">
+                                <span class="kv-price-currency">GHS</span>
+                                <span>90</span>
+                                <span class="kv-price-period">/ month</span>
+                            </div>
+                            <div class="kv-price-limits">
+                                <div class="kv-price-limit"><span class="kv-limit-value">200</span><span class="kv-limit-label">Members</span></div>
+                                <div class="kv-price-limit"><span class="kv-limit-value">1</span><span class="kv-limit-label">Branch</span></div>
+                                <div class="kv-price-limit"><span class="kv-limit-value">5 GB</span><span class="kv-limit-label">Storage</span></div>
+                            </div>
                             <ul>
-                                <li>Core membership management</li>
-                                <li>Attendance tracking</li>
-                                <li>Basic financial records</li>
-                                <li>Communication tools</li>
-                                <li>Single branch</li>
+                                <li>Members management</li>
+                                <li>Household tracking</li>
+                                <li>Services & attendance</li>
+                                <li>Donations & expenses</li>
+                                <li>Events</li>
+                                <li>Priority support</li>
                             </ul>
                         </div>
                         <div class="kv-glass kv-glass--lg kv-price-card featured">
                             <span class="kv-price-badge">Most Popular</span>
-                            <h3>Standard</h3>
-                            <div class="kv-price-sub">For growing churches</div>
+                            <h3>Professional</h3>
+                            <div class="kv-price-desc">More capacity and messaging for growing churches that need flexibility as they scale.</div>
+                            <div class="kv-price-amount">
+                                <span class="kv-price-currency">GHS</span>
+                                <span>126</span>
+                                <span class="kv-price-period">/ month</span>
+                            </div>
+                            <div class="kv-price-limits">
+                                <div class="kv-price-limit"><span class="kv-limit-value">500</span><span class="kv-limit-label">Members</span></div>
+                                <div class="kv-price-limit"><span class="kv-limit-value">1</span><span class="kv-limit-label">Branch</span></div>
+                                <div class="kv-price-limit"><span class="kv-limit-value">8 GB</span><span class="kv-limit-label">Storage</span></div>
+                            </div>
                             <ul>
                                 <li>Everything in Basic</li>
-                                <li>Intelligent follow-up automation</li>
-                                <li>Asset & event management</li>
-                                <li>Visual analytics dashboard</li>
-                                <li>Up to a few branches</li>
+                                <li>Visitor management & follow-up</li>
+                                <li>Pledges & campaigns</li>
+                                <li>Budgets & reports</li>
+                                <li>SMS & email communication</li>
+                                <li>Duty rosters</li>
+                                <li>Priority support</li>
                             </ul>
                         </div>
                         <div class="kv-glass kv-glass--lg kv-price-card">
-                            <h3>Premium</h3>
-                            <div class="kv-price-sub">Multi-branch & large ministries</div>
+                            <h3>Enterprise</h3>
+                            <div class="kv-price-desc">Advanced features, multi-branch support, and priority assistance for large and complex organizations.</div>
+                            <div class="kv-price-amount">
+                                <span class="kv-price-currency">GHS</span>
+                                <span>250</span>
+                                <span class="kv-price-period">/ month</span>
+                            </div>
+                            <div class="kv-price-limits">
+                                <div class="kv-price-limit"><span class="kv-limit-value">∞</span><span class="kv-limit-label">Members</span></div>
+                                <div class="kv-price-limit"><span class="kv-limit-value">∞</span><span class="kv-limit-label">Branches</span></div>
+                                <div class="kv-price-limit"><span class="kv-limit-value">25 GB</span><span class="kv-limit-label">Storage</span></div>
+                            </div>
                             <ul>
-                                <li>Everything in Standard</li>
-                                <li>Unlimited branches</li>
-                                <li>Cross-branch reporting</li>
-                                <li>Priority support & onboarding</li>
-                                <li>Advanced security controls</li>
+                                <li>Everything in Professional</li>
+                                <li>Unlimited members & branches</li>
+                                <li>AI Insights & Giving Intelligence</li>
+                                <li>Priority support</li>
                             </ul>
                         </div>
                     </div>
 
-                    <p style="text-align: center; margin-top: 2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--kv-text-muted);">
-                        Pricing based on membership size · feature access · number of branches
+                    <p style="text-align: center; margin-top: 2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--kv-text-muted);">
+                        Prices in Ghanaian Cedis · billed monthly · annual plans available
                     </p>
                 </div>
             </div>
             <aside class="notes">
-                Don't quote dollar figures — final pricing is determined by membership size and branch count. If asked, say: "We tailor the plan to your church's actual scale — let's talk after this and I'll give you a number." Highlight the Standard tier as the right fit for most.
+                Lead with Professional — it's where most growing churches land and unlocks SMS, pledges, budgets, and visitor follow-up. Basic is the entry point for small congregations; Enterprise removes all caps and adds AI Insights & Giving Intelligence. Annual plans are available at a discount — mention this if price is a sticking point.
             </aside>
         </section>
 
@@ -1078,8 +1189,7 @@
                 <div class="kv-glow kv-glow--lime bl" style="opacity: 0.4;"></div>
 
                 <div class="kv-corner-logo">
-                    <span class="kv-mark">KV</span>
-                    <span>Kingdom Vitals</span>
+                    <img src="{{ asset('images/logo-white.svg') }}" alt="Kingdom Vitals" />
                 </div>
 
                 <div class="kv-content" style="text-align: center; max-width: 980px;">
@@ -1089,7 +1199,7 @@
                         Let's get your church on Kingdom Vitals.
                     </p>
 
-                    <div class="kv-grid-3 kv-mt-lg" style="max-width: 720px; margin: 2.5rem auto;">
+                    <div class="kv-grid-3 kv-mt-lg" style="margin: 2.5rem auto;">
                         <div class="kv-glass">
                             <span class="kv-label" style="display: block; margin-bottom: 0.6rem;">Email</span>
                             <p style="margin: 0; color: var(--kv-text);">hello@kingdomvitals.app</p>
@@ -1100,7 +1210,11 @@
                         </div>
                         <div class="kv-glass">
                             <span class="kv-label" style="display: block; margin-bottom: 0.6rem;">Phone</span>
-                            <p style="margin: 0; color: var(--kv-text);">+233 — — — — — — —</p>
+                            <p style="margin: 0; color: var(--kv-text); font-size: 0.9rem; line-height: 1.6;">
+                                <span style="display: block; white-space: nowrap;">+233 50 922 8314</span>
+                                <span style="display: block; white-space: nowrap;">+233 54 882 8183</span>
+                                <span style="display: block; white-space: nowrap;">+233 20 411 3206</span>
+                            </p>
                         </div>
                     </div>
 

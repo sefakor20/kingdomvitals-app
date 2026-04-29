@@ -1,4 +1,5 @@
 User-agent: *
-Disallow:
+Disallow: /deck/pdf
+Disallow: /offline
 
 Sitemap: https://kingdomvitals.app/sitemap.xml
