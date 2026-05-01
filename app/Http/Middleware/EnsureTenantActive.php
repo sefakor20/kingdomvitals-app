@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\TenantStatus;
+use App\Models\PlatformInvoice;
 use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
@@ -23,7 +24,18 @@ class EnsureTenantActive
             return $next($request);
         }
 
-        if ($request->routeIs('logout', 'password.*', 'verification.*', 'onboarding.*', 'upgrade.*', 'plans.*')) {
+        if ($request->routeIs(
+            'logout',
+            'password.*',
+            'verification.*',
+            'onboarding.*',
+            'upgrade.*',
+            'plans.*',
+            'payment.required',
+            'subscription.*',
+            'payments.*',
+            'invoices.download',
+        )) {
             return $next($request);
         }
 
@@ -47,6 +59,10 @@ class EnsureTenantActive
 
         if ($tenant->status === TenantStatus::Trial && (! $tenant->trial_ends_at || $tenant->trial_ends_at->isPast())) {
             return redirect()->route('upgrade.required', ['reason' => 'trial_expired']);
+        }
+
+        if (PlatformInvoice::forTenant($tenant->id)->pastDue()->exists()) {
+            return redirect()->route('payment.required');
         }
 
         return $next($request);

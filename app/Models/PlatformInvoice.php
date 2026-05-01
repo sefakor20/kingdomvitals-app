@@ -161,6 +161,16 @@ class PlatformInvoice extends Model
         ]);
     }
 
+    public function scopePastDue(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            InvoiceStatus::Draft,
+            InvoiceStatus::Sent,
+            InvoiceStatus::Partial,
+            InvoiceStatus::Overdue,
+        ])->where('due_date', '<', now());
+    }
+
     public function scopeForTenant(Builder $query, string $tenantId): Builder
     {
         return $query->where('tenant_id', $tenantId);

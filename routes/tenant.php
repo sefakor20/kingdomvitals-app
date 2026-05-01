@@ -111,6 +111,7 @@ use App\Livewire\Visitors\FollowUpTemplateIndex;
 use App\Livewire\Visitors\VisitorAnalytics;
 use App\Livewire\Visitors\VisitorIndex;
 use App\Livewire\Visitors\VisitorShow;
+use App\Models\PlatformInvoice;
 use App\Models\Tenant\Branch;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -231,6 +232,21 @@ Route::middleware(['web'])->group(function (): void {
 
             return view('upgrade-required', ['moduleName' => $moduleName]);
         })->name('upgrade.required');
+
+        // Payment required paywall (shown when tenant has past-due invoices)
+        Route::get('/payment-required', function (): Factory|View {
+            $tenantId = tenant()?->id;
+
+            $invoices = $tenantId
+                ? PlatformInvoice::forTenant($tenantId)
+                    ->pastDue()
+                    ->with('subscriptionPlan')
+                    ->orderBy('due_date')
+                    ->get()
+                : collect();
+
+            return view('payment-required', ['invoices' => $invoices]);
+        })->name('payment.required');
 
         // Plan upgrade routes
         Route::get('/plans', PlansIndex::class)
