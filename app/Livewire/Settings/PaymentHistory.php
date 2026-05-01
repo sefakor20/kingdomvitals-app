@@ -220,6 +220,12 @@ class PaymentHistory extends Component
         unset($this->invoices, $this->payments);
 
         session()->flash('success', __('Payment successful! Your invoice has been marked as paid.'));
+
+        // If this clears the last past-due invoice, drop the user out of the paywall.
+        $tenantId = tenant()?->id;
+        if ($tenantId && ! PlatformInvoice::forTenant($tenantId)->pastDue()->exists()) {
+            $this->redirect(route('dashboard'), navigate: true);
+        }
     }
 
     /**

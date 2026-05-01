@@ -310,13 +310,15 @@ class PlatformBillingService
 
     /**
      * Check and mark overdue invoices.
+     *
+     * Uses the pastDue scope so stuck Draft invoices (e.g. when sendInvoice() failed silently)
+     * are also marked Overdue and become visible to the suspension pipeline.
      */
     public function checkOverdueInvoices(): int
     {
         $count = 0;
 
-        $invoices = PlatformInvoice::unpaid()
-            ->where('due_date', '<', now())
+        $invoices = PlatformInvoice::pastDue()
             ->where('status', '!=', InvoiceStatus::Overdue)
             ->get();
 
@@ -618,15 +620,18 @@ class PlatformBillingService
 
     /**
      * Send invoice and mark as sent.
-     * This combines the status update with email sending.
+     *
+     * The status transition to Sent happens regardless of email delivery success,
+     * so a failed email send never leaves an invoice stuck in Draft (which would
+     * make it invisible to the overdue/suspension pipeline).
+     *
+     * Returns true when the email is delivered successfully.
      */
     public function sendInvoice(PlatformInvoice $invoice): bool
     {
-        if (! $invoice->status->canBeSent()) {
-            return false;
+        if ($invoice->status->canBeSent()) {
+            $invoice->markAsSent();
         }
-
-        $invoice->markAsSent();
 
         return $this->sendInvoiceEmail($invoice);
     }

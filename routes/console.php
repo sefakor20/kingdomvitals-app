@@ -79,29 +79,30 @@ Schedule::command('analytics:aggregate-usage')
     ->hourly()
     ->withoutOverlapping();
 
-// Mark expired/cancelled subscriptions and lapsed trials as Inactive
+// Daily billing pipeline. Order matters — these must run in sequence:
+//   1. 00:05 mark past-due invoices as Overdue (also catches stuck Draft invoices)
+//   2. 00:30 mark expired/cancelled subscriptions and lapsed trials as Inactive
+//   3. 00:35 suspend tenants with any overdue invoice (immediate — no grace)
+//   4. 09:00 send payment reminders & expiry reminders
+Schedule::command('billing:check-overdue')
+    ->dailyAt('00:05')
+    ->withoutOverlapping();
+
 Schedule::command('subscriptions:process-expired')
     ->dailyAt('00:30')
     ->withoutOverlapping();
 
-// Send 3-day expiry reminder to cancelled tenants still in grace period
-Schedule::command('subscriptions:send-expiring-reminders --days=3')
-    ->dailyAt('09:00')
+Schedule::command('subscriptions:suspend-overdue --days=0')
+    ->dailyAt('00:35')
     ->withoutOverlapping();
 
-// Suspend tenants with any overdue invoice (immediate — no grace period)
-Schedule::command('subscriptions:suspend-overdue --days=0')
-    ->dailyAt('00:00')
+Schedule::command('subscriptions:send-expiring-reminders --days=3')
+    ->dailyAt('09:00')
     ->withoutOverlapping();
 
 // Generate monthly invoices on the 1st of each month at 1 AM
 Schedule::command('billing:generate-invoices')
     ->monthlyOn(1, '01:00')
-    ->withoutOverlapping();
-
-// Check for overdue invoices daily at 6 AM
-Schedule::command('billing:check-overdue')
-    ->dailyAt('06:00')
     ->withoutOverlapping();
 
 // Send payment reminders daily at 9 AM
