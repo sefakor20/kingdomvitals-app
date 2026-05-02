@@ -115,4 +115,26 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Billing Sender
+    |--------------------------------------------------------------------------
+    |
+    | Address used as the From header for billing/subscription emails
+    | (invoices, receipts, expiring/cancelled/reactivated notices).
+    | Replies route to the support address.
+    |
+    */
+
+    'billing' => [
+        'from' => [
+            'address' => env('BILLING_MAIL_FROM_ADDRESS', 'billing@kingdomvitals.app'),
+            'name' => env('BILLING_MAIL_FROM_NAME', 'Kingdom Vitals Billing'),
+        ],
+        'reply_to' => [
+            'address' => env('BILLING_MAIL_REPLY_TO_ADDRESS', 'support@kingdomvitals.app'),
+            'name' => env('BILLING_MAIL_REPLY_TO_NAME', 'Kingdom Vitals Support'),
+        ],
+    ],
+
 ];
