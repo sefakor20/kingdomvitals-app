@@ -69,3 +69,34 @@ it('does not list paid invoices on the payment-required page', function (): void
         ->assertOk()
         ->assertDontSee('INV-PAID-0001');
 });
+
+it('renders a stripped service-paused view for non-admin members', function (): void {
+    $invoice = PlatformInvoice::factory()
+        ->forTenant($this->tenant)
+        ->sent()
+        ->create([
+            'invoice_number' => 'INV-MEMBER-VIEW-0001',
+            'billing_period' => 'April 2026',
+            'due_date' => now()->subDays(5),
+            'balance_due' => 250.00,
+            'currency' => 'GHS',
+        ]);
+
+    $member = User::factory()->create(['email' => 'member-pr@test.com']);
+    UserBranchAccess::factory()->create([
+        'user_id' => $member->id,
+        'branch_id' => $this->branch->id,
+        'role' => BranchRole::Staff,
+    ]);
+
+    $this->actingAs($member)
+        ->get(route('payment.required'))
+        ->assertOk()
+        ->assertSee('Service Paused')
+        ->assertSee('contact your church administrator')
+        ->assertDontSee($invoice->invoice_number)
+        ->assertDontSee('Pay Now')
+        ->assertDontSee('Manage Subscription')
+        ->assertDontSee('Change Plan')
+        ->assertSee(route('logout'));
+});

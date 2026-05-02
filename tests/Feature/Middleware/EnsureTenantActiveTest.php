@@ -118,3 +118,14 @@ it('allows access to whitelisted billing routes even when past-due', function ()
         expect($response->getStatusCode())->toBe(200);
     }
 });
+
+it('blocks GET /dashboard at the route level when tenant has past-due invoice', function (): void {
+    PlatformInvoice::factory()
+        ->forTenant($this->tenant)
+        ->sent()
+        ->create(['due_date' => now()->subDay()]);
+
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('payment.required'));
+});
