@@ -6,16 +6,26 @@
                     <flux:icon name="lock-closed" class="h-10 w-10 text-red-600 dark:text-red-400" />
                 </div>
 
-                <flux:heading size="xl" class="mb-4">
-                    {{ __('Payment Required') }}
-                </flux:heading>
+                @if($isBillingAdmin)
+                    <flux:heading size="xl" class="mb-4">
+                        {{ __('Payment Required') }}
+                    </flux:heading>
 
-                <flux:text class="mb-8 text-zinc-600 dark:text-zinc-400">
-                    {{ __('Your access has been paused because of unpaid invoices. Settle the outstanding balance to restore full access to your records.') }}
-                </flux:text>
+                    <flux:text class="mb-8 text-zinc-600 dark:text-zinc-400">
+                        {{ __('Your access has been paused because of unpaid invoices. Settle the outstanding balance to restore full access to your records.') }}
+                    </flux:text>
+                @else
+                    <flux:heading size="xl" class="mb-4">
+                        {{ __('Service Paused') }}
+                    </flux:heading>
+
+                    <flux:text class="mb-8 text-zinc-600 dark:text-zinc-400">
+                        {{ __('Access to your church\'s system is temporarily paused while billing is being settled. Please contact your church administrator to restore access.') }}
+                    </flux:text>
+                @endif
             </div>
 
-            @if($invoices->isNotEmpty())
+            @if($isBillingAdmin && $invoices->isNotEmpty())
                 <div class="mb-8 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
                     <table class="w-full text-start text-sm">
                         <thead class="bg-zinc-50 dark:bg-zinc-800/50">
@@ -45,19 +55,21 @@
             @endif
 
             <div class="space-y-3">
-                <flux:button variant="primary" class="w-full" icon="credit-card" :href="route('payments.history')" wire:navigate>
-                    {{ __('Pay Now') }}
-                </flux:button>
-
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <flux:button variant="ghost" :href="route('subscription.show')" wire:navigate>
-                        {{ __('Manage Subscription') }}
+                @if($isBillingAdmin)
+                    <flux:button variant="primary" class="w-full" icon="credit-card" :href="route('payments.history')" wire:navigate>
+                        {{ __('Pay Now') }}
                     </flux:button>
 
-                    <flux:button variant="ghost" :href="route('plans.index')" wire:navigate>
-                        {{ __('Change Plan') }}
-                    </flux:button>
-                </div>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <flux:button variant="ghost" :href="route('subscription.show')" wire:navigate>
+                            {{ __('Manage Subscription') }}
+                        </flux:button>
+
+                        <flux:button variant="ghost" :href="route('plans.index')" wire:navigate>
+                            {{ __('Change Plan') }}
+                        </flux:button>
+                    </div>
+                @endif
 
                 <form method="POST" action="{{ route('logout') }}" class="w-full">
                     @csrf
@@ -67,11 +79,13 @@
                 </form>
             </div>
 
-            <div class="mt-8 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
-                    {{ __('Need help with your invoice or billing? Contact support and we\'ll get you sorted.') }}
-                </flux:text>
-            </div>
+            @if($isBillingAdmin)
+                <div class="mt-8 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('Need help with your invoice or billing? Contact support and we\'ll get you sorted.') }}
+                    </flux:text>
+                </div>
+            @endif
         </div>
     </div>
 </x-layouts.app>

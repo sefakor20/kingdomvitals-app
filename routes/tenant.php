@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\BranchRole;
 use App\Enums\PlanModule;
 use App\Http\Controllers\EmailTrackingController;
 use App\Http\Controllers\EventTicketController;
@@ -154,7 +155,7 @@ Route::middleware(['web'])->group(function (): void {
 
     // Dashboard
     Route::get('/dashboard', Dashboard::class)
-        ->middleware(['auth', 'verified', 'onboarding.complete'])
+        ->middleware(['auth', 'verified', 'onboarding.complete', 'tenant.active'])
         ->name('dashboard');
 
     // Mobile Self Check-in (public access via token)
@@ -207,7 +208,7 @@ Route::middleware(['web'])->group(function (): void {
         ->middleware('guest');
 
     // Member portal routes (auth + member middleware)
-    Route::middleware(['auth', 'member'])->prefix('member')->name('member.')->group(function (): void {
+    Route::middleware(['auth', 'member', 'tenant.active'])->prefix('member')->name('member.')->group(function (): void {
         Route::get('/', fn () => redirect()->route('member.dashboard'))->name('index');
         Route::get('/dashboard', MemberDashboard::class)->name('dashboard');
         Route::get('/profile', MemberProfile::class)->name('profile');
@@ -236,8 +237,13 @@ Route::middleware(['web'])->group(function (): void {
         // Payment required paywall (shown when tenant has past-due invoices)
         Route::get('/payment-required', function (): Factory|View {
             $tenantId = tenant()?->id;
+            $user = auth()->user();
 
-            $invoices = $tenantId
+            $isBillingAdmin = $user
+                ? $user->branchAccess()->where('role', BranchRole::Admin)->exists()
+                : false;
+
+            $invoices = ($tenantId && $isBillingAdmin)
                 ? PlatformInvoice::forTenant($tenantId)
                     ->pastDue()
                     ->with('subscriptionPlan')
@@ -245,7 +251,10 @@ Route::middleware(['web'])->group(function (): void {
                     ->get()
                 : collect();
 
-            return view('payment-required', ['invoices' => $invoices]);
+            return view('payment-required', [
+                'invoices' => $invoices,
+                'isBillingAdmin' => $isBillingAdmin,
+            ]);
         })->name('payment.required');
 
         // Plan upgrade routes
